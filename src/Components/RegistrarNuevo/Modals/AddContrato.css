@@ -1,0 +1,272 @@
+/* =========================
+   Backdrop del modal
+   ========================= */
+.ft-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 16px;
+  background: var(--surface);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  overflow-y: auto;
+}
+
+/* =========================
+   Tarjeta / contenedor modal
+   ========================= */
+.ft-scope.ft-card {
+  --ft-radius: 18px;
+  --ft-pad: 18px;
+  --ft-gap: 14px;
+  --ft-border: 1px solid rgba(148, 163, 184, 0.45);
+
+  width: min(1040px, 100%);
+
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: var(--ft-radius);
+  border: var(--ft-border);
+  box-shadow:
+    0 22px 45px rgba(15, 23, 42, 0.26),
+    0 0 0 1px rgba(15, 23, 42, 0.03);
+
+  display: flex;
+  flex-direction: column;
+  padding: var(--ft-pad);
+  overflow: hidden; /* el scroll va dentro del form */
+}
+
+/* =========================
+   Títulos
+   ========================= */
+.ft-title {
+  margin: 0 0 10px;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.ft-scope h3 {
+  margin: 18px 0 8px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #475569;
+}
+
+/* H3 que debe ocupar toda la fila del grid */
+.full-fila {
+  grid-column: 1 / -1;
+}
+
+/* =========================
+   Formulario interno (grid)
+   ========================= */
+.ft-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 campos por fila */
+  gap: 14px 18px; /* filas / columnas */
+  margin: 0;
+  padding: 4px 2px 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Scrollbar discreta solo en el form */
+.ft-form::-webkit-scrollbar {
+  width: 6px;
+}
+.ft-form::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ft-form::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.9);
+  border-radius: 999px;
+}
+
+/* =========================
+   Campos
+   ========================= */
+.ft-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Si quieres que un campo ocupe la fila completa */
+.ft-field--full {
+  grid-column: 1 / -1;
+}
+
+.ft-label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.ft-native-select {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius, 8px);
+  border: 1px solid var(--bd, #ccd);
+  background: var(--surface, #fff);
+  color: var(--ink, #222);
+  font: inherit;
+  appearance: auto;          /* importantísimo si habías tocado appearance */
+  opacity: 1;
+  height: auto;
+  position: static;
+}
+
+
+/* Inputs base */
+.ft-field input[type="text"],
+.ft-field input[type="number"],
+.ft-field input[type="email"],
+.ft-field input[type="date"]{
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease;
+  background: #f8fafc;
+}
+
+.ft-field input:focus,
+.ft-field select:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.25);
+  background: #ffffff;
+}
+
+/* Errores */
+.ft-field small {
+  font-size: 0.78rem;
+  color: #b91c1c;
+}
+
+/* =========================
+   Campos dobles dentro de un mismo field
+   (ej: porcentaje + valor de garantizado)
+   Añade la clase ft-field--pair al .ft-field
+   ========================= */
+.ft-field--pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.ft-field--pair .ft-label {
+  grid-column: 1 / -1; /* label arriba de los dos campos */
+}
+
+/* =========================
+   Radios
+   ========================= */
+.ft-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+}
+
+.ft-radio-custom {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+/* ocultamos el input para dibujar el círculo custom */
+.ft-radio-custom input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ft-radio-custom .circle {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid #cbd5f5;
+  box-sizing: border-box;
+  position: relative;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.ft-radio-custom .text {
+  font-size: 0.88rem;
+  color: #0f172a;
+}
+
+/* Estado checked usando el hermano anterior (input) */
+.ft-radio-custom input:checked + .circle {
+  border-color: #0f766e;
+  background: radial-gradient(circle at center, #0f766e 45%, transparent 47%);
+}
+
+/* =========================
+   Footer de acciones
+   ========================= */
+.ft-actions {
+  margin-top: 12px;
+  padding-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  background: linear-gradient(to top, #ffffff 75%, rgba(255, 255, 255, 0));
+}
+
+.ft-actions .btn {
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 0.88rem;
+  border: 1px solid #cbd5e1;
+  background: #e2e8f0;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease,
+    box-shadow 0.15s ease;
+}
+
+.ft-actions .btn-primary {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: #f9fafb;
+}
+
+.ft-actions .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
+}
+
+/* =========================
+   Responsivo
+   ========================= */
+@media (max-width: 1024px) {
+  .ft-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .ft-scope.ft-card {
+    width: 100%;
+    max-height: 95vh;
+    padding: 14px;
+  }
+
+  .ft-form {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .ft-actions {
+    justify-content: space-between;
+  }
+}

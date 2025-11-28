@@ -1,0 +1,41 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 16px 20px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.3);
+}
+
+.modal-title {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.modal-field {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-field select {
+  padding: 6px 8px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

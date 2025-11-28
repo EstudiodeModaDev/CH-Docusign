@@ -1,0 +1,103 @@
+import * as React from "react";
+import "../Empresas.css";
+import { useGraphServices } from "../../../graph/graphContext";
+import { useTipoDocumentoSelect } from "../../../Funcionalidades/Desplegables";
+import type { TipoDocumento } from "../../../models/Maestros";
+
+export const DocumentTypeManager: React.FC = () => {
+    const { tipoDocumento, } = useGraphServices();
+    const { items, add, editItem, reload, remove} = useTipoDocumentoSelect(tipoDocumento);
+    const [isEditing, setIsEditing] = React.useState(false);
+    const [state, setState] = React.useState<TipoDocumento>({Abreviacion: "", Title: ""})
+    const [isAdding, setIsAdding] = React.useState<boolean>(false)
+
+    const handleAddNew = () => {
+        if(!state.Title || !state.Abreviacion){
+            alert("Rellene todos los campos")
+        }
+        const payload = {
+            Title: state?.Title,
+            Abreviacion: state.Abreviacion
+        }
+        return payload
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("¿Seguro que quieres eliminar esta empresa?")) return;
+        setIsAdding(false)
+        setIsEditing(false)
+        if(remove){
+            await remove(id);
+        }
+        reload()
+    };
+
+    React.useEffect(() => {
+        reload();
+    }, [reload]);
+
+    return (
+        <div className="emp-page">
+        {/* Botón superior */}
+        <div className="emp-header">
+            <button type="button" className="btn btn-primary btn-xs" onClick={() => {setIsAdding(true); setState({...state, Title: "", Abreviacion: ""})}}>
+                <span className="emp-add-btn__icon">＋</span>
+                Añadir tipo de documento
+            </button>
+        </div>
+
+        <div className="emp-layout">
+            {/* Lista izquierda */}
+            <section className="emp-list">
+            {items.map((tipoDoc) => (
+                <div key={tipoDoc.Id} className={ "emp-row"}>
+                <button type="button" className="emp-row__name" onClick={() => {setIsEditing(true); setState(tipoDoc)}}>
+                    {tipoDoc.Title}
+                </button>
+
+                <div className="emp-row__actions">
+                    <button type="button" className="emp-icon-btn" title="Eliminar"  onClick={() => handleDelete(tipoDoc.Id ?? "")}>
+                        🗑
+                    </button>
+                </div>
+                </div>
+            ))}
+            </section>
+
+
+            { (isAdding || isEditing) &&
+                <>
+                    <section className="emp-form">
+                        <div className="emp-field">
+                            <label className="emp-label" htmlFor="empresaNombre">Tipo de documento</label>
+                            <input id="empresaNombre" type="text" className="emp-input" placeholder="Tipo de documento" value={state?.Title} onChange={(e) => setState({...state, Title: e.target.value})}/>
+                        </div>
+                        <div className="emp-field">
+                            <label className="emp-label" htmlFor="empresaNombre">Abreviación del tipo</label>
+                            <input id="empresaNombre" type="text" className="emp-input" placeholder="Abreviación" value={state?.Abreviacion} onChange={(e) => setState({...state, Abreviacion   : e.target.value})}/>
+                        </div>
+                        { isEditing &&
+                            <div className="emp-actions">
+                                <button type="button" className="emp-btn emp-btn--cancel" onClick={() => {setIsEditing(false); setIsAdding(false)}}>✕</button>
+                                <button type="button" className="emp-btn emp-btn--ok" onClick={async () => {
+                                                                                        console.table(state)
+                                                                                        if(editItem){
+                                                                                            await editItem({Title: state?.Title}, state!.Id ?? "", );
+                                                                                            reload()
+                                                                                        }
+                                                                                        setIsEditing(false);}}>✔</button>
+                            </div>
+                        }
+                        { isAdding &&
+                            <div className="emp-actions">
+                                <button type="button" className="emp-btn emp-btn--cancel" onClick={() => {setIsEditing(false); setIsAdding(false)}}>✕</button>
+                                <button type="button" className="emp-btn emp-btn--ok" onClick={() => add ? add(handleAddNew()) : null}>✔</button>
+                            </div>
+                        }
+                    </section>
+                </>
+            }
+        </div>
+        </div>
+    );
+};

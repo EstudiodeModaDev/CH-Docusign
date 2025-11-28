@@ -1,0 +1,1 @@
+export const esc = (s: string) => String(s).replace(/'/g, "''");

@@ -1,0 +1,168 @@
+/* =========================================================
+   TABLA DE TICKETS — limpia, responsive y basada en tokens
+   (sin colores fijos; todo sale de tus variables globales)
+   ========================================================= */
+
+/* --------- Contenedor principal --------- */
+.tabla-novedades{
+  /* alias a tokens de la app (con fallback suave) */
+  --card:      var(--surface, #fff);
+  --ink:       var(--ink, #0f172a);
+  --muted:     var(--muted, #64748b);
+  --bd:        var(--border, #e5e7eb);
+  --bd-strong: var(--bd-strong, color-mix(in oklab, var(--bd) 75%, black));
+  --shadow:    var(--shadow, 0 10px 30px rgba(0,0,0,.08));
+  --radius:    var(--radius, 14px);
+  --pad:       clamp(10px, 2vw, 16px);
+  --gap:       clamp(10px, 1.8vw, 14px);
+  --ring:      var(--ring, color-mix(in oklab, var(--primary, #3b82f6) 25%, transparent));
+  --radius: 15px;
+
+  color: var(--ink);
+}
+
+/* Si marcas data-force-light, reinterpreta tokens para modo claro */
+.tabla-novedades[data-force-light]{
+  --card: var(--surface, #fff);
+  --ink:  var(--ink, #0f172a);
+  --muted:var(--muted, #64748b);
+  --bd:   var(--border, #e5e7eb);
+}
+
+.tabla-filters{
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+/* --------- Wrapper tabla (scroll horizontal cómodo) --------- */
+.tabla-novedades .novedades-wrap{
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--pad);
+  overflow-x: auto;              /* 🔑 no se “rompe” en pantallas estrechas */
+  scrollbar-gutter: stable both-edges;
+}
+
+/* --------- Tabla --------- */
+.tabla-novedades table{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;         /* celdas estables */
+  min-width: 860px;            /* cabe todo sin romper; el wrap hace scroll */
+}
+
+/* Cabezera sticky para tablas largas */
+.tabla-novedades thead th{
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: color-mix(in oklab, var(--card) 98%, transparent);
+  color: var(--ink);
+  text-align: left;
+  font-weight: 700;
+  letter-spacing: .01em;
+  border-bottom: 1px solid var(--bd);
+  padding: 12px;
+  white-space: nowrap;
+}
+
+/* Indicador de “clickable” para columnas ordenables (role="button") */
+.tabla-novedades thead th[role="button"]{
+  cursor: pointer;
+}
+.tabla-novedades thead th[role="button"]:hover{
+  background: color-mix(in oklab, var(--card) 92%, transparent);
+}
+
+/* Filas */
+.tabla-novedades tbody td{
+  border-bottom: 1px solid var(--bd);
+  padding: 12px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Zebra + hover */
+.tabla-novedades tbody tr:nth-child(odd){
+  background: color-mix(in oklab, var(--card) 98%, transparent);
+}
+.tabla-novedades tbody tr:hover{
+  background: color-mix(in oklab, gray 15%, transparent);
+}
+
+/* Clickable rows (accesible) */
+.tabla-novedades tbody tr{
+  transition: background .15s ease;
+}
+.tabla-novedades tbody tr:focus-within{
+  outline: none;
+  background: color-mix(in oklab, var(--card) 88%, transparent);
+  box-shadow: 0 0 0 4px var(--ring) inset;
+}
+
+
+
+/* --------- Paginación --------- */
+.paginacion{
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  align-items: center;
+  gap: 10px;
+  margin-top: var(--gap);
+  padding-top: var(--gap);
+  border-top: 1px solid var(--bd);
+  color: var(--muted);
+}
+.paginacion > span{
+  font-weight: 700; color: var(--ink);
+}
+.paginacion button{
+  background: color-mix(in oklab, var(--card) 94%, transparent);
+  color: var(--ink);
+  border: 1px solid var(--bd);
+  border-radius: calc(var(--radius) - 8px);
+  padding: 8px 12px;
+  font-weight: 600;
+}
+.paginacion button:hover:enabled{
+  background: color-mix(in oklab, var(--card) 88%, transparent);
+}
+.paginacion button:disabled{
+  opacity: .5; cursor: not-allowed;
+}
+.paginacion select{
+  background: color-mix(in oklab, var(--card) 96%, transparent);
+  color: var(--ink);
+  border: 1px solid var(--bd);
+  border-radius: calc(var(--radius) - 8px);
+  padding: 6px 10px;
+}
+
+/* --------- Estados de la vista (loading / error / vacío) --------- */
+.tabla-novedades p{
+  margin: 8px 0;
+  color: var(--muted);
+}
+.tabla-novedades p strong{ color: var(--ink); }
+
+/* =========================================================
+   RESPONSIVE / ADAPTATIVO
+   ========================================================= */
+
+/* 3) Tabla: reduce padding en celdas cuando el viewport es angosto
+   (el overflow-x del .table-wrap asegura el scroll horizontal) */
+@media (max-width: 720px){
+ .tabla-novedades thead th,
+ .tabla-novedades tbody td{ padding: 10px 8px; }
+}
+
+/* 4) Mejoras de accesibilidad / motion */
+@media (prefers-reduced-motion: reduce){
+  .tabla-novedades tbody tr{ transition: none; }
+}

@@ -1,0 +1,310 @@
+.colab-explorer {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  height: 100%;
+  background: #ffffff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+/* Sidebar */
+.colab-explorer__sidebar {
+  background: #e2e8f0;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.colab-explorer__sidebar-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #475569;
+  margin: 0 0 8px;
+}
+
+.colab-explorer__empresa-btn {
+  border: none;
+  background: transparent;
+  padding: 6px 4px;
+  text-align: left;
+  font-size: 14px;
+  color: #111827;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.colab-explorer__empresa-btn:hover {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.colab-explorer__empresa-btn--active {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Panel derecho */
+.colab-explorer__main {
+  padding: 18px 32px;
+}
+
+/* Toolbar + búsqueda */
+.colab-explorer__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;  /* centra verticalmente ambos lados */
+  gap: 12px;
+}
+
+.colab-explorer__search {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #000000;
+  border-radius: 2px;
+  padding: 4px 8px;
+  min-width: 260px;
+}
+
+.colab-explorer__search-icon {
+  font-size: 16px;
+  margin-right: 6px;
+}
+
+.colab-explorer__search-input {
+  border: none;
+  outline: none;
+  font-size: 14px;
+  flex: 1;
+}
+
+/* Lista de carpetas */
+.colab-explorer__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.colab-explorer__row {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 8px 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.12s ease;
+}
+
+.colab-explorer__row:hover {
+  background: #f9fafb;
+}
+
+.colab-explorer__row-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.colab-explorer__folder-icon {
+  width: 22px;
+  height: 16px;
+  border-radius: 2px 2px 2px 2px;
+  position: relative;
+  background: #fbbf24;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.18);
+}
+
+.colab-explorer__folder-icon::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: -4px;
+  width: 10px;
+  height: 6px;
+  border-radius: 2px 2px 0 0;
+  background: #facc15;
+}
+
+.colab-explorer__row-name {
+  font-size: 15px;
+  color: #111827;
+}
+
+.colab-explorer__row-date {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.colab-explorer__empty {
+  margin-top: 16px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* Icono de archivo (hojita) */
+.colab-explorer__file-icon {
+  width: 18px;
+  height: 22px;
+  border-radius: 3px;
+  background: #e5e7eb;           /* gris claro tipo documento */
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.18);
+  position: relative;
+  display: inline-block;
+}
+
+/* Esquina doblada */
+.colab-explorer__file-icon::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 9px;
+  height: 9px;
+  background: #f9fafb;          /* un poco más claro */
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+
+/* Rayitas simulando texto */
+.colab-explorer__file-icon::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 999px;
+  background: #9ca3af;          /* gris medio */
+  box-shadow:
+    0 -4px 0 0 #d1d5db,
+    0 -8px 0 0 #e5e7eb;
+}
+
+/* Panel derecho */
+.colab-explorer__main {
+  padding: 18px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Toolbar */
+.colab-explorer__toolbar {
+  display: flex;
+  flex-wrap: wrap;            /* para que baje a segunda línea si no cabe */
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Breadcrumb */
+.colab-explorer__breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.colab-explorer__breadcrumb-root {
+  font-weight: 600;
+  color: #111827;
+}
+
+.colab-explorer__breadcrumb-sep {
+  color: #9ca3af;
+}
+
+.colab-explorer__breadcrumb-path {
+  color: #6b7280;
+  max-width: 260px;           /* por si el path es largo */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Lado derecho (buscador) */
+.colab-explorer__toolbar-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+}
+
+/* Lado izquierdo inferior (botón subir nivel) */
+.colab-explorer__toolbar-left {
+  align-items: center;
+  margin-top: 4px;
+  display: inline-flex;
+  gap: 12px;
+  min-width: 0;
+  /* sin margin-top, sin width:100% */
+}
+
+/* Botón subir nivel */
+.colab-explorer__up-btn {
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  font-size: 12px;
+  padding: 4px 10px;
+  cursor: pointer;
+  color: #111827;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.colab-explorer__up-btn:hover {
+  background: #f3f4f6;
+}
+
+/* Buscador */
+.colab-explorer__search {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #000000;
+  border-radius: 2px;
+  padding: 4px 8px;
+  min-width: 220px;
+}
+
+.colab-explorer__search-icon {
+  font-size: 16px;
+  margin-right: 6px;
+}
+
+.colab-explorer__search-input {
+  border: none;
+  outline: none;
+  font-size: 14px;
+  flex: 1;
+}
+
+/* Ajustes responsive */
+@media (max-width: 768px) {
+  .colab-explorer__main {
+    padding: 14px 16px;
+  }
+
+  .colab-explorer__toolbar {
+    align-items: flex-start;
+  }
+
+  .colab-explorer__toolbar-right {
+    justify-content: flex-start;
+  }
+
+  .colab-explorer__search {
+    width: 100%;
+  }
+
+  .colab-explorer__breadcrumb-path {
+    max-width: 180px;
+  }
+}

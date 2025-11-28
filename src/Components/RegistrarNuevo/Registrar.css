@@ -1,0 +1,110 @@
+/* =========================================================
+   rn PAGE — contenedor, toolbar y select
+   (usa únicamente los tokens del tema)
+   ========================================================= */
+
+.rn-page{
+  --pad: clamp(12px, 1.6vw, 18px);
+  --gap: clamp(10px, 1.2vw, 14px);
+
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: var(--radius-3xl, var(--radius));
+  padding: var(--pad);
+  overflow: visible;
+
+  /* Para responsive por espacio real */
+  container-type: inline-size;
+  margin: 20px
+}
+
+/* ================= Toolbar ================= */
+.rn-toolbar{
+  position: sticky;
+  top: 0;                /* se pegará dentro del panel */
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.rn-toolbar__right{
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  gap: 8px;
+  align-items: center;
+  justify-content: end;
+}
+
+.rn-toolbar__left{
+  display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content max-content;
+  gap: 8px;
+  justify-content: start;
+}
+
+/* ================= Select ================= */
+.rn-select{
+  appearance: none;
+  width: min(320px, 100%);
+
+  background: var(--field-bg);
+  color: var(--ink);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 10px 40px 10px 12px;
+  outline: none;
+
+  /* caret consistente usando tokens */
+  background-image:
+    linear-gradient(45deg, transparent 50%, color-mix(in oklab, var(--ink) 55%, transparent) 50%),
+    linear-gradient(135deg, color-mix(in oklab, var(--ink) 55%, transparent) 50%, transparent 50%),
+    linear-gradient(var(--field-bg), var(--field-bg));
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 12px) calc(50% - 3px),
+    calc(100% - 2.4rem) 0;
+  background-size: 6px 6px, 6px 6px, 1px 100%;
+  background-repeat: no-repeat;
+
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease, filter .15s ease;
+}
+
+.rn-select:focus{
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--bd) 45%);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+.rn-select:disabled{
+  opacity: .7;
+  cursor: not-allowed;
+}
+
+/* ================= Input ================= */
+.rn-input{
+  appearance: none;
+  width: min(200px, 100%);
+
+  background: var(--field-bg);
+  color: var(--ink);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 10px 40px 10px 12px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease, filter .15s ease;
+}
+
+.rn-input:focus{
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--bd) 45%);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+.rn-input:disabled{
+  opacity: .7;
+  cursor: not-allowed;
+}
+
+.rn-date{
+    width: 100px;
+    align-self: self-start;
+}

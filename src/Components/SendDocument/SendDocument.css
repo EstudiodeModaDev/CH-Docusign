@@ -1,0 +1,221 @@
+.ef-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface); /* fondo muy clarito */
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.ef-card {
+  width: 100%;
+  max-width: 520px;
+  background: var(--surface-elev);
+  border-radius: 18px;
+  padding: 40px 48px;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
+}
+
+.ef-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.ef-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ef-label {
+  font-size: 15px;
+  text-align: center;
+  color: var(--ink);
+}
+
+.ef-input {
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  padding: 8px 10px;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.ef-input:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.15);
+}
+
+.ef-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.ef-button:hover {
+  background: #11525a;
+}
+
+.ef-button:active {
+  transform: translateY(1px);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .ef-card {
+    padding: 28px 20px;
+    border-radius: 14px;
+  }
+}
+
+
+/* Backdrop */
+.signers-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+/* Contenedor modal */
+.signers-modal {
+  background: var(--surface);
+  border-radius: 12px;
+  width: min(720px, 95vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.25);
+}
+
+/* Header */
+.signers-modal-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.signers-modal-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.signers-modal-close {
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+/* Body */
+.signers-modal-body {
+  padding: 12px 16px;
+  overflow-y: auto;
+}
+
+/* Footer */
+.signers-modal-footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--ink);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Botones */
+.signers-btn {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+/* Reutilizo tus clases anteriores de la lista */
+.signers-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.signers-empty {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.signer-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.signer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.signer-index {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.signer-role {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #cbd5f5;
+  background: #edf2ff;
+}
+
+.signer-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.signer-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.signer-label {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.signer-input {
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
+
+.signer-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px #6366f1;
+}
+
+.signer-input--small {
+  max-width: 70px;
+}
+
+

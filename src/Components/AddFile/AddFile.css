@@ -1,0 +1,191 @@
+/* Fondo del modal */
+.sf-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35); /* negro con opacidad */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+/* Contenedor del modal */
+.sf-modal {
+  width: min(480px, 92vw);
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow:
+    0 18px 60px rgba(15, 23, 42, 0.28),
+    0 0 0 1px rgba(148, 163, 184, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header */
+.sf-modal__header {
+  padding: 14px 18px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sf-modal__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.sf-modal__close {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0 4px;
+}
+
+.sf-modal__close:hover {
+  color: #111827;
+}
+
+/* Body */
+.sf-modal__body {
+  padding: 16px 18px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sf-modal__hint {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.sf-modal__path {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #4b5563;
+  word-break: break-all;
+}
+
+/* Caja de upload */
+.sf-upload-box {
+  border: 1px dashed #cbd5f5;
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.sf-upload-box__input {
+  display: none;
+}
+
+.sf-upload-box__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 14px;
+  color: #111827;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.sf-upload-box__label:hover {
+  background: #f3f4f6;
+}
+
+.sf-upload-box__icon {
+  font-size: 14px;
+}
+
+.sf-upload-box__text {
+  max-width: 260px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.sf-upload-box__hint {
+  margin: 0;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+/* Error */
+.sf-modal__error {
+  margin: 0;
+  font-size: 12px;
+  color: #b91c1c;
+}
+
+/* Footer */
+.sf-modal__footer {
+  padding: 10px 18px 14px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Botones base (puedes cambiar por tus .btn .btn-xs) */
+.sf-btn {
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.sf-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sf-btn--primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.sf-btn--primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.sf-btn--ghost {
+  background: #ffffff;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.sf-btn--ghost:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .sf-modal {
+    width: 94vw;
+  }
+
+  .sf-upload-box__text {
+    max-width: 200px;
+  }
+}

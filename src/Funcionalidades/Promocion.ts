@@ -1,0 +1,426 @@
+import React from "react";
+import type { DateRange, GetAllOpts, rsOption, SortDir, SortField, } from "../models/Commons";
+import { toGraphDateTime, toISODateFlex } from "../utils/Date";
+import type { PromocionesService } from "../Services/Promociones.service";
+import type { Promocion, PromocionErrors } from "../models/Promociones";
+import { useAuth } from "../auth/authProvider";
+
+export function usePromocion(PromocionesSvc: PromocionesService) {
+  const [rows, setRows] = React.useState<Promocion[]>([]);
+  const [workers, setWorkers] = React.useState<Promocion[]>([]);
+  const [workersOptions, setWorkersOptions] = React.useState<rsOption[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const today = React.useMemo(() => toISODateFlex(new Date()), []);
+  const [range, setRange] = React.useState<DateRange>({ from: today, to: today });
+  const [pageSize, setPageSize] = React.useState<number>(10); 
+  const [pageIndex, setPageIndex] = React.useState<number>(1);
+  const [nextLink, setNextLink] = React.useState<string | null>(null);
+  const [sorts, setSorts] = React.useState<Array<{field: SortField; dir: SortDir}>>([{ field: 'id', dir: 'desc' }]);
+  const [search, setSearch] = React.useState<string>("");
+  const {account} = useAuth()
+  const [state, setState] = React.useState<Promocion>({
+    AbreviacionTipoDoc: "",
+    Adicionales: "",
+    Autonomia: "",
+    AuxilioRodamiento: "",
+    AuxilioRodamientoLetras: "",
+    AuxilioTexto: "",
+    AuxilioValor: "",
+    CargoCritico: "No",    
+    CargueNuevoEquipoTrabajo: "No",    
+    CentroOperativo: "",
+    Ciudad: "",
+    CodigoCentroCostos: "",
+    ContribucionaLaEstrategia: "",
+    Departamento: "",
+    Dependencia: "",
+    DescripcionCentroCostos: "",
+    DescripcionCentroOperativo: "",
+    Email: "",
+    EmpresaSolicitante: "",
+    EspecificidadCargo: "",
+    EstadoProceso: "",
+    FechaAjusteAcademico: null,
+    FechaIngreso: null,
+    CargoPersonaReporta: "",
+    FechaValoracionPotencial: null,
+    Garantizado_x00bf_SiNo_x003f_: "No",
+    GarantizadoLetras: "",
+    GrupoCVE: "",
+    HerramientasColaborador: "",
+    IDUnidadNegocio: "",
+    ImpactoClienteExterno: "",
+    InformacionEnviadaPor: account?.name ?? "",
+    ModalidadTeletrabajo: "",
+    NivelCargo: "",
+    NombreSeleccionado: "",
+    NumeroDoc: "",
+    PersonasCargo: "No",
+    PresupuestoVentasMagnitudEconomi: "",
+    Promedio: "",
+    ResultadoValoracion: "",
+    Salario: "",
+    SalarioAjustado: "",
+    SalarioTexto: "",
+    StatusIngreso: "",
+    TipoContrato: "",
+    TipoDoc: "",
+    TipoNomina: "",
+    TipoVacante: "",
+    Title: "",
+    UnidadNegocio: "",
+    ValorGarantizado: "",
+    AjusteSioNo: false,
+    AuxilioRodamientoSioNo: false,
+    Cargo: "",
+    Correo: "",
+    PerteneceModelo: false
+  });
+  const [errors, setErrors] = React.useState<PromocionErrors>({});
+  const setField = <K extends keyof Promocion>(k: K, v: Promocion[K]) => setState((s) => ({ ...s, [k]: v }));
+  
+  // construir filtro OData
+  const buildFilter = React.useCallback((): GetAllOpts => {
+    const filters: string[] = [];
+
+    if(search){
+        filters.push(`(startswith(fields/NombreSeleccionado, '${search}') or startswith(fields/NumeroDoc, '${search}'))`)
+    }
+
+    if (range.from && range.to && (range.from < range.to)) {
+      if (range.from) filters.push(`fields/Created ge '${range.from}T00:00:00Z'`);
+      if (range.to)   filters.push(`fields/Created le '${range.to}T23:59:59Z'`);
+    }
+
+    const orderParts: string[] = sorts
+      .map(s => {
+        const col = sortFieldToOData[s.field];
+        return col ? `${col} ${s.dir}` : '';
+      })
+      .filter(Boolean);
+
+    // Estabilidad de orden: si no incluiste 'id', agrega 'id desc' como desempate.
+    if (!sorts.some(s => s.field === 'id')) {
+      orderParts.push('ID desc');
+    }
+    return {
+      filter: filters.join(" and "),
+      orderby: orderParts.join(","),
+      top: pageSize,
+    };
+  }, [range.from, range.to, pageSize, sorts, search,]); 
+
+  const loadFirstPage = React.useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const { items, nextLink } = await PromocionesSvc.getAll(buildFilter()); // debe devolver {items,nextLink}
+      setRows(items);
+      setNextLink(nextLink ?? null);
+      setPageIndex(1);
+    } catch (e: any) {
+      setError(e?.message ?? "Error cargando tickets");
+      setRows([]);
+      setNextLink(null);
+      setPageIndex(1);
+    } finally {
+      setLoading(false);
+    }
+  }, [PromocionesSvc, buildFilter, sorts]);
+
+  React.useEffect(() => {
+    loadFirstPage();
+  }, [loadFirstPage, range, search]);
+
+  // siguiente página: seguir el nextLink tal cual
+  const hasNext = !!nextLink;
+
+  const nextPage = React.useCallback(async () => {
+    if (!nextLink) return;
+    setLoading(true); setError(null);
+    try {
+      const { items, nextLink: n2 } = await PromocionesSvc.getByNextLink(nextLink);
+      setRows(items);              
+      setNextLink(n2 ?? null);    
+      setPageIndex(i => i + 1);
+    } catch (e: any) {
+      setError(e?.message ?? "Error cargando más tickets");
+    } finally {
+      setLoading(false);
+    }
+  }, [nextLink, PromocionesSvc]);
+
+  // recargas por cambios externos
+  const applyRange = React.useCallback(() => { loadFirstPage(); }, [loadFirstPage]);
+  const reloadAll  = React.useCallback(() => { loadFirstPage(); }, [loadFirstPage, range, search]);
+
+  const sortFieldToOData: Record<SortField, string> = {
+    id: 'fields/Created',
+    Cedula: 'fields/NumeroDoc',
+    Nombre: 'fields/NombreSeleccionado',
+    Salario: 'fields/Salario',
+    promocion: 'fields/FechaIngreso',
+  };
+
+  const toggleSort = React.useCallback((field: SortField, additive = false) => {
+    setSorts(prev => {
+      const idx = prev.findIndex(s => s.field === field);
+      if (!additive) {
+        // clic normal: solo esta columna; alterna asc/desc
+        if (idx >= 0) {
+          const dir: SortDir = prev[idx].dir === 'desc' ? 'asc' : 'desc';
+          return [{ field, dir }];
+        }
+        return [{ field, dir: 'asc' }];
+      }
+      // Shift+clic: multi-columna
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = { field, dir: copy[idx].dir === 'desc' ? 'asc' : 'desc' };
+        return copy;
+      }
+      return [...prev, { field, dir: 'asc' }];
+    });
+  }, []);
+
+  const validate = () => {
+    const e: PromocionErrors = {};
+    if(!state.EmpresaSolicitante) e.EmpresaSolicitante = "Seleccione una empresa solicitante"
+    if(!state.TipoDoc) e.TipoDoc = "Seleccione un tipo de documento"
+    if(!state.NumeroDoc) e.NumeroDoc = "Ingrese el numero de identificación"
+    if(!state.NombreSeleccionado) e.NombreSeleccionado = "Ingrese el nombre del seleccionado"
+    if(!state.Correo) e.Correo = "Ingrese el correo del seleccionado"
+    if(!state.FechaIngreso) e.FechaIngreso = "Ingrese la fecha de la promoción"
+    if(!state.Cargo) e.Cargo = "Seleccione el nuevo cargo que ocupara"
+    if(!state.Departamento) e.Departamento = "Seleccione un departamento"
+    if(!state.Ciudad) e.Ciudad = "Seleccione una ciudad"
+    if(!state.ModalidadTeletrabajo) e.ModalidadTeletrabajo = "Seleccione una modalidad de trabajo"
+    if(!state.Salario) e.Salario = "Ingrese el salario"
+    if(state.AjusteSioNo && !state.SalarioAjustado) e.SalarioAjustado = "Ingrese el porcentaje con el que se ajustara"
+    if(state.Garantizado_x00bf_SiNo_x003f_.toLocaleLowerCase() === "si" && !state.ValorGarantizado) e.ValorGarantizado = "Ingrese el porcentaje del garantizado"
+    if(state.AuxilioRodamientoSioNo && !state.AuxilioRodamiento) e.AuxilioRodamiento = "Ingrese el auxilio de rodamiento"
+    if(!state.EspecificidadCargo)e.EspecificidadCargo = "Seleccione la especificidad del cargo"
+    if(!state.NivelCargo) e.NivelCargo = "Seleccione el nivel de cargo"
+    if(!state.Dependencia) e.Dependencia = "Seleccione la dependencia"
+    if(!state.DescripcionCentroCostos) e.DescripcionCentroCostos = "Seleccione un CC"
+    if(!state.DescripcionCentroOperativo) e.DescripcionCentroOperativo = "Seleccione un CO"
+    if(!state.UnidadNegocio) e.UnidadNegocio = "Seleccione una UN"
+    if(!state.TipoContrato) e.TipoContrato = "Seleccione un tipo de contrato"
+    if(!state.TipoVacante) e.TipoVacante = "Seleccione un tipo de vacante"
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent): Promise<string | null> => {
+    e.preventDefault();
+    if (!validate()) { return null};
+    setLoading(true);
+    try {
+      const payload: Promocion = {
+        Adicionales: state.Adicionales,
+        AjusteSioNo: state.AjusteSioNo,
+        AbreviacionTipoDoc: state.AbreviacionTipoDoc,
+        Autonomia: state.Autonomia,
+        AuxilioRodamiento: state.AuxilioRodamiento,
+        AuxilioRodamientoLetras: state.AuxilioRodamientoLetras,
+        AuxilioRodamientoSioNo: state.AuxilioRodamientoSioNo,
+        AuxilioTexto: state.AuxilioTexto,
+        AuxilioValor: state.AuxilioValor,
+        Cargo: state.Cargo,
+        CargoCritico: state.CargoCritico,
+        CargoPersonaReporta: state.CargoPersonaReporta,
+        CargueNuevoEquipoTrabajo: state.CargueNuevoEquipoTrabajo,
+        CentroOperativo: state.CentroOperativo,
+        Ciudad: state.Ciudad,
+        CodigoCentroCostos: state.CodigoCentroCostos,
+        ContribucionaLaEstrategia: state.ContribucionaLaEstrategia,
+        Departamento: state.Departamento, 
+        Correo: state.Correo,
+        Dependencia: state.Dependencia,
+        DescripcionCentroCostos: state.DescripcionCentroCostos,
+        DescripcionCentroOperativo: state.DescripcionCentroOperativo,
+        Email: state.Email,
+        EmpresaSolicitante: state.EmpresaSolicitante,
+        EspecificidadCargo: state.EspecificidadCargo,
+        EstadoProceso: state.EstadoProceso,
+        FechaAjusteAcademico: toGraphDateTime(state.FechaAjusteAcademico) ?? null,
+        FechaIngreso: toGraphDateTime(state.FechaIngreso) ?? null,
+        FechaValoracionPotencial: toGraphDateTime(state.FechaValoracionPotencial) ?? null,
+        Garantizado_x00bf_SiNo_x003f_: state.Garantizado_x00bf_SiNo_x003f_,        
+        GarantizadoLetras: state.GarantizadoLetras,
+        GrupoCVE: state.GrupoCVE,
+        HerramientasColaborador: state.HerramientasColaborador,
+        IDUnidadNegocio: state.IDUnidadNegocio,
+        ImpactoClienteExterno: state.ImpactoClienteExterno,
+        InformacionEnviadaPor: state.InformacionEnviadaPor,
+        NombreSeleccionado: state.NombreSeleccionado,
+        ModalidadTeletrabajo: state.ModalidadTeletrabajo,
+        NivelCargo: state.NivelCargo,
+        NumeroDoc: state.NumeroDoc,
+        PersonasCargo: state.PersonasCargo,
+        PresupuestoVentasMagnitudEconomi: state.PresupuestoVentasMagnitudEconomi,
+        Promedio: state.Promedio,
+        ResultadoValoracion: String(state.ResultadoValoracion),
+        Salario: String(state.Salario),
+        SalarioAjustado: state.SalarioAjustado,
+        SalarioTexto: state.SalarioTexto,
+        StatusIngreso: state.StatusIngreso,
+        TipoContrato: state.TipoContrato,
+        TipoDoc: state.TipoDoc,
+        TipoNomina: state.TipoNomina,
+        TipoVacante: state.TipoVacante,
+        Title: state.Title,
+        UnidadNegocio: state.UnidadNegocio ?? "",
+        ValorGarantizado: state.ValorGarantizado,
+        PerteneceModelo: state.PerteneceModelo
+      };
+      const created = await PromocionesSvc.create(payload);
+      alert("Se ha creado el registro con éxito")
+      return created.Id!
+    } finally {
+        setLoading(false);
+      }
+  };
+
+  const handleEdit = async (e: React.FormEvent, NovedadSeleccionada: Promocion) => {
+    e.preventDefault();
+    if (!validate()) { 
+      console.log("Hay un campo sin rellenar")
+      return};
+    setLoading(true);
+    try {  
+      const payload = {
+        AbreviacionTipoDoc: NovedadSeleccionada.AbreviacionTipoDoc !== state.AbreviacionTipoDoc ? state.AbreviacionTipoDoc : NovedadSeleccionada.AbreviacionTipoDoc,
+        Adicionales: NovedadSeleccionada.Adicionales !== state.Adicionales ? state.Adicionales : NovedadSeleccionada.Adicionales,
+        AjusteSioNo: NovedadSeleccionada.AjusteSioNo !== state.AjusteSioNo ? state.AjusteSioNo : NovedadSeleccionada.AjusteSioNo,
+        Autonomia: NovedadSeleccionada.Autonomia !== state.Autonomia ? state.Autonomia : NovedadSeleccionada.Autonomia,
+        AuxilioRodamiento: NovedadSeleccionada.AuxilioRodamiento !== state.AuxilioRodamiento ? state.AuxilioRodamiento : NovedadSeleccionada.AuxilioRodamiento,
+        AuxilioRodamientoLetras: NovedadSeleccionada.AuxilioRodamientoLetras !== state.AuxilioRodamientoLetras ? state.AuxilioRodamientoLetras : NovedadSeleccionada.AuxilioRodamientoLetras,
+        AuxilioRodamientoSioNo: NovedadSeleccionada.AuxilioRodamientoSioNo !== state.AuxilioRodamientoSioNo ? state.AuxilioRodamientoSioNo : NovedadSeleccionada.AuxilioRodamientoSioNo,
+        AuxilioTexto: NovedadSeleccionada.AuxilioTexto !== state.AuxilioTexto ? state.AuxilioTexto : NovedadSeleccionada.AuxilioTexto,
+        AuxilioValor: NovedadSeleccionada.AuxilioValor !== state.AuxilioValor ? state.AuxilioValor : NovedadSeleccionada.AuxilioValor,
+        Cargo: NovedadSeleccionada.Cargo !== state.Cargo ? state.Cargo : NovedadSeleccionada.Cargo,
+        CargoCritico: NovedadSeleccionada.CargoCritico !== state.CargoCritico ? state.CargoCritico : NovedadSeleccionada.CargoCritico,
+        CargoPersonaReporta: NovedadSeleccionada.CargoPersonaReporta !== state.CargoPersonaReporta ? state.CargoPersonaReporta : NovedadSeleccionada.CargoPersonaReporta,
+        CargueNuevoEquipoTrabajo: NovedadSeleccionada.CargueNuevoEquipoTrabajo !== state.CargueNuevoEquipoTrabajo ? state.CargueNuevoEquipoTrabajo : NovedadSeleccionada.CargueNuevoEquipoTrabajo,
+        CentroOperativo: NovedadSeleccionada.CentroOperativo !== state.CentroOperativo ? state.CentroOperativo : NovedadSeleccionada.CentroOperativo,
+        Ciudad: NovedadSeleccionada.Ciudad !== state.Ciudad ? state.Ciudad : NovedadSeleccionada.Ciudad,
+        CodigoCentroCostos: NovedadSeleccionada.CodigoCentroCostos !== state.CodigoCentroCostos ? state.CodigoCentroCostos : NovedadSeleccionada.CodigoCentroCostos,
+        ContribucionaLaEstrategia: NovedadSeleccionada.ContribucionaLaEstrategia !== state.ContribucionaLaEstrategia ? state.ContribucionaLaEstrategia : NovedadSeleccionada.ContribucionaLaEstrategia,
+        Departamento: NovedadSeleccionada.Departamento !== state.Departamento ? state.Departamento : NovedadSeleccionada.Departamento,
+        Correo: NovedadSeleccionada.Correo !== state.Correo ? state.Correo : NovedadSeleccionada.Correo,
+        Dependencia: NovedadSeleccionada.Dependencia !== state.Dependencia ? state.Dependencia : NovedadSeleccionada.Dependencia,
+        DescripcionCentroCostos: NovedadSeleccionada.DescripcionCentroCostos !== state.DescripcionCentroCostos ? state.DescripcionCentroCostos : NovedadSeleccionada.DescripcionCentroCostos,
+        DescripcionCentroOperativo: NovedadSeleccionada.DescripcionCentroOperativo !== state.DescripcionCentroOperativo ? state.DescripcionCentroOperativo : NovedadSeleccionada.DescripcionCentroOperativo,
+        Email: NovedadSeleccionada.Email !== state.Email ? state.Email : NovedadSeleccionada.Email,
+        EmpresaSolicitante: NovedadSeleccionada.EmpresaSolicitante !== state.EmpresaSolicitante ? state.EmpresaSolicitante : NovedadSeleccionada.EmpresaSolicitante,
+        EspecificidadCargo: NovedadSeleccionada.EspecificidadCargo !== state.EspecificidadCargo ? state.EspecificidadCargo : NovedadSeleccionada.EspecificidadCargo,
+        EstadoProceso: NovedadSeleccionada.EstadoProceso !== state.EstadoProceso ? state.EstadoProceso : NovedadSeleccionada.EstadoProceso,
+        FechaAjusteAcademico: toGraphDateTime(NovedadSeleccionada.FechaAjusteAcademico) !== toGraphDateTime(state.FechaAjusteAcademico) ? toGraphDateTime(state.FechaAjusteAcademico) ?? null : toGraphDateTime(NovedadSeleccionada.FechaAjusteAcademico) ?? null,
+        FechaIngreso: toGraphDateTime(NovedadSeleccionada.FechaIngreso) !== toGraphDateTime(state.FechaIngreso) ? toGraphDateTime(state.FechaIngreso) ?? null : toGraphDateTime(NovedadSeleccionada.FechaIngreso) ?? null,
+        FechaValoracionPotencial: toGraphDateTime(NovedadSeleccionada.FechaValoracionPotencial) !== toGraphDateTime(state.FechaValoracionPotencial) ? toGraphDateTime(state.FechaValoracionPotencial) ?? null : toGraphDateTime(NovedadSeleccionada.FechaValoracionPotencial) ?? null,
+        Garantizado_x00bf_SiNo_x003f_: NovedadSeleccionada.Garantizado_x00bf_SiNo_x003f_ !== state.Garantizado_x00bf_SiNo_x003f_ ? state.Garantizado_x00bf_SiNo_x003f_ : NovedadSeleccionada.Garantizado_x00bf_SiNo_x003f_,
+        GarantizadoLetras: NovedadSeleccionada.GarantizadoLetras !== state.GarantizadoLetras ? state.GarantizadoLetras : NovedadSeleccionada.GarantizadoLetras,
+        GrupoCVE: NovedadSeleccionada.GrupoCVE !== state.GrupoCVE ? state.GrupoCVE : NovedadSeleccionada.GrupoCVE,
+        HerramientasColaborador: NovedadSeleccionada.HerramientasColaborador !== state.HerramientasColaborador ? state.HerramientasColaborador : NovedadSeleccionada.HerramientasColaborador,
+        IDUnidadNegocio: NovedadSeleccionada.IDUnidadNegocio !== state.IDUnidadNegocio ? state.IDUnidadNegocio : NovedadSeleccionada.IDUnidadNegocio,
+        NombreSeleccionado: NovedadSeleccionada.NombreSeleccionado !== state.NombreSeleccionado ? state.NombreSeleccionado : NovedadSeleccionada.NombreSeleccionado,
+        ImpactoClienteExterno: NovedadSeleccionada.ImpactoClienteExterno !== state.ImpactoClienteExterno ? state.ImpactoClienteExterno : NovedadSeleccionada.ImpactoClienteExterno,
+        ModalidadTeletrabajo: NovedadSeleccionada.ModalidadTeletrabajo !== state.ModalidadTeletrabajo ? state.ModalidadTeletrabajo : NovedadSeleccionada.ModalidadTeletrabajo,
+        NivelCargo: NovedadSeleccionada.NivelCargo !== state.NivelCargo ? state.NivelCargo : NovedadSeleccionada.NivelCargo,
+        NumeroDoc: NovedadSeleccionada.NumeroDoc !== state.NumeroDoc ? state.NumeroDoc : NovedadSeleccionada.NumeroDoc,       
+        PresupuestoVentasMagnitudEconomi: NovedadSeleccionada.PresupuestoVentasMagnitudEconomi !== state.PresupuestoVentasMagnitudEconomi ? state.PresupuestoVentasMagnitudEconomi : NovedadSeleccionada.PresupuestoVentasMagnitudEconomi,
+        PersonasCargo: NovedadSeleccionada.PersonasCargo !== state.PersonasCargo ? String(state.PersonasCargo) : String(NovedadSeleccionada.PersonasCargo),
+        Promedio: NovedadSeleccionada.Promedio !== state.Promedio ? state.Promedio : NovedadSeleccionada.Promedio,
+        ResultadoValoracion: NovedadSeleccionada.ResultadoValoracion !== state.ResultadoValoracion ? state.ResultadoValoracion : NovedadSeleccionada.ResultadoValoracion,
+        Salario: NovedadSeleccionada.Salario !== state.Salario ? state.Salario : NovedadSeleccionada.Salario,
+        SalarioAjustado: NovedadSeleccionada.SalarioAjustado !== state.SalarioAjustado ? state.SalarioAjustado : NovedadSeleccionada.SalarioAjustado,
+        SalarioTexto: NovedadSeleccionada.SalarioTexto !== state.SalarioTexto ? state.SalarioTexto : NovedadSeleccionada.SalarioTexto,
+        StatusIngreso: NovedadSeleccionada.StatusIngreso !== state.StatusIngreso ? state.StatusIngreso : NovedadSeleccionada.StatusIngreso,
+        TipoContrato: NovedadSeleccionada.TipoContrato !== state.TipoContrato ? state.TipoContrato : NovedadSeleccionada.TipoContrato,        
+        TipoDoc: NovedadSeleccionada.TipoDoc !== state.TipoDoc ? state.TipoDoc : NovedadSeleccionada.TipoDoc,
+        TipoNomina: NovedadSeleccionada.TipoNomina !== state.TipoNomina ? state.TipoNomina : NovedadSeleccionada.TipoNomina,
+        Title: NovedadSeleccionada.Title !== state.Title ? state.Title : NovedadSeleccionada.Title,
+        TipoVacante: NovedadSeleccionada.TipoVacante !== state.TipoVacante ? state.TipoVacante : NovedadSeleccionada.TipoVacante,    
+        UnidadNegocio: NovedadSeleccionada.UnidadNegocio !== state.UnidadNegocio ? state.UnidadNegocio : NovedadSeleccionada.UnidadNegocio,
+        ValorGarantizado: NovedadSeleccionada.ValorGarantizado !== state.ValorGarantizado ? state.ValorGarantizado : NovedadSeleccionada.ValorGarantizado,
+      };
+      await PromocionesSvc.update(NovedadSeleccionada.Id!, payload);
+      alert("Se ha actualizado el registro con éxito")
+    } finally {
+        setLoading(false);
+      }
+  };
+
+  const searchWorker = async (query: string): Promise<Promocion[]> => {
+    const resp = await PromocionesSvc.getAll({
+      filter: `fields/NumeroDoc eq '${query}'`, // si NumeroDoc es texto
+      top: 200,
+    });
+
+    const workers: Promocion[] = resp.items ?? [];
+    setWorkers(workers);
+
+    const seen = new Set<string>();
+
+    const next: rsOption[] = workers
+      .map(item => ({
+        value: item.Id!, // solo el Id
+        label: `Nombre: ${item.NombreSeleccionado} - Promocion - Cargo: ${item.Cargo} - Fecha de ingreso: ${toGraphDateTime(item.FechaIngreso)}.`,
+      }))
+      .filter(opt => {
+        if (!opt.value) return false;
+        if (seen.has(opt.value)) return false;
+        seen.add(opt.value);
+        return true;
+      });
+
+    setWorkersOptions(next);
+    console.log("options armadas:", next);
+
+    return workers;
+  };
+
+  const loadToReport = React.useCallback(async (from: string, to: string, EnviadoPor?: string, cargo?: string, empresa?: string, ciudad?: string) => {
+    setLoading(true); setError(null);
+    const filters: string[] = [];
+    filters.push(`fields/Created ge '${from}T00:00:00Z' and fields/Created le '${to}T23:59:59Z'`)
+
+    if(EnviadoPor){
+      filters.push(`fields/InformacionEnviadaPor ge '${EnviadoPor}'`)
+    }
+
+    if(cargo){
+      filters.push(`fields/Cargo ge '${cargo}'`)
+    }
+
+    if(empresa){
+      filters.push(`fields/EmpresaSolicitante ge '${empresa}'`)
+    }
+
+    if(ciudad){
+      filters.push(`fields/Ciudad ge '${ciudad}'`)
+    }
+
+   const buildedFilter = filters.join(" and ")
+    try {
+      const { items, nextLink } = await PromocionesSvc.getAll({filter: buildedFilter, top:2000}); // debe devolver {items,nextLink}
+      setRows(items);
+      setNextLink(nextLink ?? null);
+      setPageIndex(1);
+    } catch (e: any) {
+      setError(e?.message ?? "Error cargando tickets");
+      setRows([]);
+      setNextLink(null);
+      setPageIndex(1);
+    } finally {
+      setLoading(false);
+    }
+  }, [PromocionesSvc]);
+
+  return {
+    rows, loading, error, pageSize, pageIndex, hasNext, range, search, sorts, state, errors, workers, workersOptions,
+    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage
+  };
+}
+

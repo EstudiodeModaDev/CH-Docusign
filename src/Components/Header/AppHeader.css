@@ -1,0 +1,93 @@
+.hd-wrapper {
+  padding: 8px 16px;
+  background: transparent;
+}
+
+.hd-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  background: var(--surface, #ffffff);
+  color: var(--ink, #111827);
+  border-radius: 999px;
+  box-shadow: 0 2px 4px rgb(15 23 42 / 0.06);
+  padding: 10px 20px;
+}
+
+
+/* Título */
+
+.hd-title {
+  flex: 1;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  white-space: nowrap;;
+}
+
+/* Usuario */
+
+.hd-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+
+.userName {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.userRole {
+  font-size: 0.8rem;
+  color: var(--header-muted, #6b7280);
+}
+
+.avatarWrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #e5e7eb;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Responsive pequeño: que no se rompa el título */
+@media (max-width: 640px) {
+  .inner {
+    padding-inline: 12px;
+  }
+
+  .title {
+    font-size: 1rem;
+  }
+
+  .userName {
+    font-size: 0.8rem;
+  }
+
+  .userRole {
+    font-size: 0.72rem;
+  }
+
+  .avatarWrapper {
+    width: 48px;
+    height: 48px;
+  }
+}

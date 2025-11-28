@@ -1,0 +1,16 @@
+.edm-brand {
+  min-height: 100vh;              /* ocupa la pantalla completa */
+  background: var(--page-bg);     /* tu azul de fondo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  overflow: hidden ;
+}
+
+/* Logo responsivo */
+.edm-brand__logo {
+  width: 100%;
+  height: auto;
+  display: block;
+}

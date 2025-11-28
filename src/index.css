@@ -1,0 +1,400 @@
+/* ====== DARK ====== */
+:root{
+  /* Marca / aguamarina */
+  --brand-600:#000000;    
+  /* Superficies y texto (contenido) */
+  --page-bg: #102264;
+  --surface:#0f1a1d;       /* paneles/cards */
+  --surface-elev:#091013;  /* panel elevado */
+  --field-bg:#0c1619;      /* inputs */
+  --ink:#eaf6f6;           /* texto */
+  --muted:#a6c2c5;
+  --border:#1c3135;        /* bordes sutiles */
+  --ring:rgba(35, 163, 163, .28);
+
+  /* Botón primario (mint/teal) */
+  --primary:#23c2ad;
+  --primary-ink:#052b2b;
+
+  /* Sombras y radios */
+  --shadow:0 14px 34px rgba(0,0,0,.35);
+  --radius:18px;
+  --radius-3xl:26px;
+
+  /* Sidebar */
+  --sb-bg:var(--brand-600);
+  --sb-bg-2:var(--brand-700);
+  --sb-text:#eaf6f6;
+  --sb-muted:#cfe7e5;
+  --sb-pill:rgba(255,255,255,.12);
+  --sb-hover:rgba(255,255,255,.10);
+  --sb-shadow:0 14px 34px rgba(0,0,0,.28);
+  --sb-pill-bd:rgba(255,255,255,.18);
+
+  /* Layout */
+  --page-pad:16px;
+  --radius-xl:22px;
+  --sb-w-open:280px;
+  --sb-w-closed:72px;
+
+  /* Charts */
+  --chart-grid: color-mix(in oklab, var(--ink) 10%, transparent);
+  --chart-axis: color-mix(in oklab, var(--ink) 65%, transparent);
+  --chart-tooltip-bg: var(--surface);
+  --chart-tooltip-bd: var(--border);
+  --chart-tooltip-ink: var(--ink);
+  --sb-track: rgba(255,255,255,.08);
+  --sb-thumb: rgba(255,255,255,.30);
+  --sb-thumb-hover: rgba(255,255,255,.55);
+
+  /* Alias */
+  --bd: var(--border);
+}
+
+/* ====== LIGHT ====== */
+:root[data-theme="light"]{
+  /* Conserva sidebar aguamarina */
+  --sb-bg:var(--brand-600);
+  --sb-text:#eaf6f6;
+  --sb-muted:#c7d4d3;
+  --sb-pill:rgba(255,255,255,.12);
+  --sb-hover:rgba(255,255,255,.10);
+  --sb-shadow:0 14px 30px rgba(2,6,23,.10);
+  --sb-pill-bd:rgba(255,255,255,.18);
+
+  /* Superficies del contenido */
+  --surface:#ffffff;
+  --surface-elev:#ffffff;
+  --field-bg:#f7fbfb;
+  --ink:#0f172a;
+  --muted:#6b7b80;
+  --border:#7a7d7e;
+  --ring:rgba(35,163,163,.22);
+
+  /* Botón primario mint/teal */
+  --primary:#22c5af;
+  --primary-ink:#053131;
+
+  /* Sombras */
+  --shadow:0 12px 28px rgba(2,6,23,.12);
+
+  /* Charts */
+  --chart-grid: color-mix(in oklab, var(--ink) 12%, transparent);
+  --chart-axis: color-mix(in oklab, var(--ink) 58%, transparent);
+  --chart-tooltip-bg: var(--surface);
+  --chart-tooltip-bd: var(--border);
+  --chart-tooltip-ink: var(--ink);
+
+  --bd: var(--border);
+  --sb-width: ;              /* grosor */
+  --sb-radius: 10px;             /* redondeo */
+  --sb-track: rgba(0,0,0,.08);   /* carril */
+  --sb-thumb: rgba(0,0,0,.28);   /* pulgar */
+  --sb-thumb-hover: rgba(0,0,0,.45);
+}
+
+/* Global */
+::-webkit-scrollbar{
+  width: 7px;
+  height: 5px; /* horizontal */
+
+}
+
+::-webkit-scrollbar-thumb{
+  background: var(--sb-thumb);
+  border-radius: var(--sb-radius);
+  border: 2px solid transparent;       /* “acolchado” */
+  background-clip: padding-box;
+  
+}
+
+::-webkit-scrollbar-thumb:hover{
+  background: var(--sb-thumb-hover);
+  
+}
+
+/* Si quieres solo en un contenedor específico */
+.scroll-area::-webkit-scrollbar{ width: var(--sb-width); height: var(--sb-width); }
+.scroll-area::-webkit-scrollbar-track{ background: var(--sb-track); }
+.scroll-area::-webkit-scrollbar-thumb{
+  background: var(--sb-thumb);
+  border-radius: var(--sb-radius);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  
+}
+
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+  
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: "Rubik", sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+h1, h2, h3, h4, h5, h6{
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-optical-sizing: auto;
+  font-size: 20px;
+}
+
+
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+input[type="checkbox"]{
+  appearance: none;
+  -webkit-appearance: none;
+  inline-size: 18px;
+  block-size: 18px;
+  border-radius: 4px;
+  border: 1px solid var(--bd);
+  background: var(--field-bg);              /* fondo SIN marcar */
+  display: grid;
+  place-content: center;
+  margin: 0;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+/* Foco accesible */
+input[type="checkbox"]:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+/* Estado marcado: aquí pones el color de fondo */
+input[type="checkbox"]:checked{
+  background: var(--primary);               /* fondo AL marcar */
+  border-color: color-mix(in oklab, var(--primary) 70%, var(--bd) 30%);
+  font-size: 1px;
+}
+
+/* “Tick” dibujado con CSS */
+input[type="checkbox"]::after{
+  content: "";
+  inline-size: 10px;
+  block-size: 6px;
+  border: 2px solid var(--primary-ink, var(--ink));
+  border-top: 0;
+  border-right: 0;
+  transform: rotate(-45deg) scale(0);
+  transition: transform .12s ease;
+}
+
+input[type="checkbox"]:checked::after{
+  transform: rotate(-45deg) scale(1);
+}
+
+
+.content--withSidebar,
+.page-viewport{
+  align-content: start;
+  align-items: start;
+  justify-items: stretch;
+}
+
+/* ===============================
+   Botones
+   =============================== */
+.btn{
+  --btn-bg: transparent;
+  --btn-fg: var(--ink);
+  --btn-bd: var(--bd);
+  --btn-ring: var(--ring);
+
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  padding: 10px 14px;
+  border: 1px solid var(--btn-bd);
+  border-radius: var(--radius, 18px);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: .2px;
+  text-decoration: none;
+  cursor: pointer;
+
+  transition: background .18s ease, color .18s ease,
+              border-color .18s ease, box-shadow .18s ease,
+              transform .06s ease;
+  min-height: 40px;
+  max-width: 400px !important;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 4px var(--btn-ring);
+}
+.btn:active{ transform: translateY(1px); }
+.btn[disabled]{
+  opacity: .55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Icono opcional dentro del botón */
+.btn .i{ inline-size:18px; block-size:18px; display:inline-block; }
+
+/* ===============================
+   TAMAÑOS
+   =============================== */
+.btn-xs{ padding: 6px 10px !important; font-weight: 600; border-radius: calc(var(--radius,18px) - 6px); min-height: 32px; }
+.btn-m { padding: 10px 14px; } /* default */
+.btn-xl{ padding: 14px 22px; font-size: 1.05rem; }
+
+/* Full width opcional */
+.btn-block{ width: 100%; }
+
+/* ===============================
+   VARIANTES
+   =============================== */
+
+/* Primario (usa tokens de marca) */
+.btn-primary-final{
+  --btn-bg: var(--primary);
+  --btn-fg: var(--primary-ink, var(--ink));
+  --btn-bd: color-mix(in oklab, var(--primary) 70%, var(--bd) 30%);
+}
+.btn-primary-final:hover{
+  --btn-bg: color-mix(in oklab, var(--primary) 88%, var(--surface) 12%);
+  --btn-bd: color-mix(in oklab, var(--primary) 80%, var(--bd) 20%);
+}
+.btn-primary-final:active{
+  --btn-bg: color-mix(in oklab, var(--primary) 78%, var(--surface) 22%);
+}
+
+
+/* Secundario sólido (contraste neutro) */
+.btn-secondary-final{
+  --btn-bg: var(--surface-elev);
+  --btn-fg: var(--ink);
+  --btn-bd: var(--bd);
+}
+.btn-secondary-final:hover{
+  --btn-bg: color-mix(in oklab, var(--surface-elev) 85%, var(--ink) 15%);
+
+}
+.btn-secondary-final:active{
+  --btn-bg: color-mix(in oklab, var(--surface-elev) 78%, var(--ink) 22%);
+}
+
+
+/* Transparente (ghost) — sin fondo, con tinta de marca */
+.btn-transparent-final{
+  --btn-bg: transparent;
+  --btn-fg: color-mix(in oklab, var(--primary) 86%, var(--ink) 14%);
+  --btn-bd: color-mix(in oklab, var(--primary) 45%, var(--bd) 55%);
+  border-color: transparent;
+}
+.btn-transparent-final:hover{
+  --btn-bg: color-mix(in oklab, var(--primary) 14%, transparent);
+}
+.btn-transparent-final:active{
+  --btn-bg: color-mix(in oklab, var(--primary) 22%, transparent);
+}
+
+.btn-terciary{
+  /* Default ter*/
+  --btn-bg: color-mix(in oklab, rgb(138, 136, 136) 12%, var(--surface) 88%);
+  --btn-fg: color-mix(in oklab, var(--ink) 96%, var(--muted) 4%);
+  --btn-bd: color-mix(in oklab, var(--bd) 70%, var(--ink) 30%);
+}
+
+.btn-terciary:not([disabled]):hover{
+  --btn-bg: color-mix(in oklab, var(--ink) 18%, var(--surface) 82%);
+  --btn-bd: color-mix(in oklab, var(--bd) 65%, var(--ink) 35%);
+}
+
+.btn-terciary:not([disabled]):active{
+  --btn-bg: color-mix(in oklab, var(--ink) 24%, var(--surface) 76%);
+}
+
+/* =========================================
+   BOTÓN CIRCULAR (icon button)
+   Mezclar con: .btn-final + variante + tamaño
+   Ej: .btn-final btn-primary-final btn-circle btn-circle--lg
+   ========================================= */
+.btn-circle{
+  /* hereda variables de .btn-final / variantes */
+  padding: 0;                 /* el tamaño lo dan width/height */
+  border-radius: 999px;       /* círculo perfecto */
+  width: 42px; height: 42px;  /* tamaño por defecto (md) */
+  aspect-ratio: 1;            /* por seguridad */
+  display: inline-grid;
+  place-items: center;
+  line-height: 1;             /* centra el icono */
+}
+
+/* Tamaños */
+.btn-circle--sm{ width: 20px; height: 20px; }
+.btn-circle--md{ width: 42px; height: 42px; }   /* default */
+.btn-circle--lg{ width: 52px; height: 52px; }
+.btn-circle--xl{ width: 60px; height: 60px; }
+
+/* Icono interior (SVG o img) */
+.btn-circle .i{
+  inline-size: 18px;
+  block-size: 18px;
+  pointer-events: none;
+}
+
+/* Accesibilidad: ring claro */
+.btn-circle:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 4px var(--btn-ring);
+}

@@ -83,98 +83,68 @@ const EnviarFormatoCard: React.FC = () => {
     // ================================
     // 4.a) Armar payload de PREFILL
     // ================================
-    const prefillUpdates: UpdatePrefillTextTabPayload[] = prefillTextTabs
-      .map(t => {
-        const rawLabel = t.tabLabel ?? "";
-        const label = rawLabel.toUpperCase();
-        let value = t.value ?? "";
+    const prefillUpdates: UpdatePrefillTextTabPayload[] = prefillTextTabs.map(t => {
+      const rawLabel = t.tabLabel ?? "";
+      const label = rawLabel.toUpperCase();
+      let value = t.value ?? "";
 
-        switch (label) {
-          case "nombre": value = varColaborador.NombreSeleccionado ?? varColaborador.Title ?? ""; break
-          case "NOMBRE_DE_LA_PERSONA": value = varColaborador.NombreSeleccionado ?? varColaborador.Title ?? ""; break;
-          case "FECHACOMP": value = varColaborador.FECHA_x0020_REQUERIDA_x0020_PARA0 ?? varColaborador.FechaIngreso ?? ""; break;
-          case "FECHA_DE_INGRESO": value = varColaborador.FECHA_x0020_REQUERIDA_x0020_PARA0 ?? varColaborador.FechaIngreso ?? ""; break;
-          case "CARGO": value = varColaborador.CARGO ?? varColaborador.Cargo ?? ""; break;
-          case "CIUDAD": value = varColaborador.CIUDAD ?? varColaborador.Ciudad ?? ""; break;
-          case "CONECTIVIDAD_EN_LETRAS": value = varColaborador.auxconectividadtexto ?? varColaborador.AuxilioTexto ?? ""; break;
-          case "CONECTIVIDAD_VALOR": value = formatPesosEsCO(varColaborador.AuxilioValor ?? varColaborador.auxconectividadvalor ?? ""); break;
-          case "GARANTIZADO_VALOR":
-            value = formatPesosEsCO(
-              varColaborador.VALOR_x0020_GARANTIZADO ??
-                varColaborador.ValorGarantizado ??
-                ""
-            );
-            break;
+      switch (label) {
+        case "nombre": value = varColaborador.NombreSeleccionado ?? varColaborador.Title ?? ""; break
+        case "NOMBRE_DE_LA_PERSONA": value = varColaborador.NombreSeleccionado ?? varColaborador.Title ?? ""; break;
 
-          case "GARANTIZADO":
-            value =
-              varColaborador.GarantizadoLetras ??
-              varColaborador.Garantizado_x0020_en_x0020_letra ??
-              "";
-            break;
+        case "FECHACOMP": value = varColaborador.FECHA_x0020_REQUERIDA_x0020_PARA0 ?? varColaborador.FechaIngreso ?? ""; break;
+        case "FECHA_DE_INGRESO": value = varColaborador.FECHA_x0020_REQUERIDA_x0020_PARA0 ?? varColaborador.FechaIngreso ?? ""; break;
+        case "fechaIngreso": value = varColaborador.FECHA_x0020_REQUERIDA_x0020_PARA0 ?? varColaborador.FechaIngreso ?? ""; break;
 
-          case "IDENTIFICACI_N":
-          case "IDENTIFICACIÓN":
-            value =
-              varColaborador.Numero_x0020_identificaci_x00f3_ ??
-              varColaborador.NumeroDoc ??
-              varColaborador.NumeroDocumento ??
-              "";
-            break;
+        case "CARGO": value = varColaborador.CARGO ?? varColaborador.Cargo ?? ""; break;
+        case "cargo": value = varColaborador.CARGO ?? varColaborador.Cargo ?? ""; break;
 
-          case "SALARIO_EN_LETRAS":
-            value =
-              varColaborador.SalarioTexto ??
-              varColaborador.salariotexto ??
-              "";
-            break;
+        case "CIUDAD": value = varColaborador.CIUDAD ?? varColaborador.Ciudad ?? ""; break;
+        case "ciudad": value = varColaborador.CIUDAD ?? varColaborador.Ciudad ?? ""; break;
 
-          case "SALARIO_VALOR":
-            value = formatPesosEsCO(
-              varColaborador.SALARIO ?? varColaborador.Salario ?? ""
-            );
-            break;
+        case "CONECTIVIDAD_EN_LETRAS": value = varColaborador.auxconectividadtexto ?? varColaborador.AuxilioTexto ?? ""; break;
+        case "auxConectividadLetras": value = varColaborador.auxconectividadtexto ?? varColaborador.AuxilioTexto ?? ""; break;
+        case "CONECTIVIDAD_VALOR": value = formatPesosEsCO(varColaborador.AuxilioValor ?? varColaborador.auxconectividadvalor ?? ""); break;
+        case "AuxConectividadNumero": value = formatPesosEsCO(varColaborador.AuxilioValor ?? varColaborador.auxconectividadvalor ?? ""); break;
+        case "AuxConectividadNu": value = formatPesosEsCO(varColaborador.AuxilioValor ?? varColaborador.auxconectividadvalor ?? ""); break;
+        case "auxConectividad": value = formatPesosEsCO(varColaborador.AuxilioValor ?? varColaborador.auxconectividadvalor ?? ""); break;
 
-          case "TIPO_DE_DOCUMENTO":
-            value =
-              varColaborador.TipoDoc ??
-              varColaborador.tipodoc ??
-              varColaborador.Tipodoc ??
-              "";
-            break;
+        case "GARANTIZADO_VALOR": value = formatPesosEsCO(varColaborador.VALOR_x0020_GARANTIZADO ?? varColaborador.ValorGarantizado ?? ""); break;
+        case "garantizadoNumero": value = formatPesosEsCO(varColaborador.VALOR_x0020_GARANTIZADO ?? varColaborador.ValorGarantizado ?? ""); break;
+        case "garantizadoNu": value = formatPesosEsCO(varColaborador.VALOR_x0020_GARANTIZADO ?? varColaborador.ValorGarantizado ?? ""); break;
+        case "GARANTIZADO": value = varColaborador.GarantizadoLetras ?? varColaborador.Garantizado_x0020_en_x0020_letra ?? ""; break;
+        case "garantizado": value = formatPesosEsCO(varColaborador.VALOR_x0020_GARANTIZADO) ?? formatPesosEsCO(varColaborador.ValorGarantizado) ?? ""; break; 
+        case "garantizadoLetras": value = varColaborador.GarantizadoLetras ?? varColaborador.Garantizado_x0020_en_x0020_letra ?? ""; break; 
 
-          case "TIPODOCCORT":
-            value =
-              varColaborador.AbreviacionTipoDoc ??
-              varColaborador.Tipo_x0020_de_x0020_documento_x0 ??
-              "";
-            break;
+        case "IDENTIFICACI_N": value = varColaborador.Numero_x0020_identificaci_x00f3_ ?? varColaborador.NumeroDoc ??  varColaborador.NumeroDocumento ?? ""; break;
+        case "IDENTIFICACIÓN":  value = varColaborador.Numero_x0020_identificaci_x00f3_ ?? varColaborador.NumeroDoc ?? varColaborador.NumeroDocumento ?? ""; break;
+        case "numeroDoc":  value = varColaborador.Numero_x0020_identificaci_x00f3_ ?? varColaborador.NumeroDoc ?? varColaborador.NumeroDocumento ?? ""; break;
 
-          case "TIPOTEL":
-            value =
-              varColaborador.MODALIDAD_x0020_TELETRABAJO ??
-              varColaborador.ModalidadTeletrabajo ??
-              "";
-            break;
+        case "SALARIO_EN_LETRAS": value = varColaborador.SalarioTexto ?? varColaborador.salariotexto ?? ""; break;
+        case "salarioLetras": value = varColaborador.SalarioTexto ?? varColaborador.salariotexto ?? ""; break;
 
-          default:
-            break;
-        }
+        case "SALARIO_VALOR": value = formatPesosEsCO(varColaborador.SALARIO ?? varColaborador.Salario ?? "" ); break;
+        case "salario": value = formatPesosEsCO(varColaborador.SALARIO ?? varColaborador.Salario ?? "" ); break;
 
-        if (!t.tabId) return null;
+        case "TIPO_DE_DOCUMENTO": value = varColaborador.TipoDoc ?? varColaborador.tipodoc ?? varColaborador.Tipodoc ?? ""; break;
+        case "tipoDoc": value = varColaborador.TipoDoc ?? varColaborador.tipodoc ?? varColaborador.Tipodoc ?? ""; break;
+        case "TIPODOCCORT": value =  varColaborador.AbreviacionTipoDoc ?? varColaborador.Tipo_x0020_de_x0020_documento_x0 ?? ""; break;
+  
+        case "TIPOTEL": value = varColaborador.MODALIDAD_x0020_TELETRABAJO ?? varColaborador.ModalidadTeletrabajo ?? ""; break; 
+        default: break;
+      }
 
-        return {
-          tabId: t.tabId,
-          value,
-        };
-      })
-      .filter((x): x is UpdatePrefillTextTabPayload => x !== null);
+      if (!t.tabId) return null;
+
+      return {
+        tabId: t.tabId,
+        value,
+      };
+    }).filter((x): x is UpdatePrefillTextTabPayload => x !== null);
     
     console.table(prefillUpdates)
 
-    if (prefillUpdates.length > 0) {
-      await updateEnvelopePrefillTextTabs(draft.envelopeId, "1", prefillUpdates);
-    }
+    if (prefillUpdates.length > 0) {await updateEnvelopePrefillTextTabs(draft.envelopeId, "1", prefillUpdates);}
 
     // ===============================
     // 4.b) Armar payload de DOC GEN
@@ -184,107 +154,53 @@ const EnviarFormatoCard: React.FC = () => {
         {
           documentId: firstDoc.documentId,
           fields: firstDoc.docGenFormFieldList.map(f => {
-            const name = f.name.toUpperCase();
+            const label = f.name.toUpperCase();
             let value = f.value ?? "";
 
-            switch (name) {
-              case "NOMBRE":
-              case "NOMBRE_DE_LA_PERSONA":
-                value = varColaborador.NombreSeleccionado ?? varColaborador.Title ?? "";
-                break;
+            switch (label) {
+              case "nombre": value = varColaborador.NombreSeleccionado ?? varColaborador.Title ?? ""; break;
+              case "NOMBRE_DE_LA_PERSONA": value = varColaborador.NombreSeleccionado ?? varColaborador.Title ?? ""; break;
 
-              case "FECHACOMP":
-              case "FECHA_DE_INGRESO":
-                value =
-                  varColaborador.FECHA_x0020_REQUERIDA_x0020_PARA0 ??
-                  varColaborador.FechaIngreso ??
-                  "";
-                break;
+              case "FECHACOMP": value = varColaborador.FECHA_x0020_REQUERIDA_x0020_PARA0 ?? varColaborador.FechaIngreso ?? ""; break;
+              case "FECHA_DE_INGRESO": value = varColaborador.FECHA_x0020_REQUERIDA_x0020_PARA0 ?? varColaborador.FechaIngreso ?? ""; break;
+              case "fechaIngreso": value = varColaborador.FECHA_x0020_REQUERIDA_x0020_PARA0 ?? varColaborador.FechaIngreso ?? ""; break;
 
-              case "CARGO":
-                value = varColaborador.CARGO ?? varColaborador.Cargo ?? "";
-                break;
+              case "CARGO": value = varColaborador.CARGO ?? varColaborador.Cargo ?? ""; break;
+              case "cargo": value = varColaborador.CARGO ?? varColaborador.Cargo ?? ""; break;
 
-              case "CIUDAD":
-                value = varColaborador.CIUDAD ?? varColaborador.Ciudad ?? "";
-                break;
+              case "CIUDAD": value = varColaborador.CIUDAD ?? varColaborador.Ciudad ?? ""; break;
+              case "ciudad": value = varColaborador.CIUDAD ?? varColaborador.Ciudad ?? ""; break;
 
-              case "CONECTIVIDAD_EN_LETRAS":
-                value =
-                  varColaborador.auxconectividadtexto ??
-                  varColaborador.AuxilioTexto ??
-                  "";
-                break;
+              case "CONECTIVIDAD_EN_LETRAS": value = varColaborador.auxconectividadtexto ?? varColaborador.AuxilioTexto ?? ""; break;
+              case "auxConectividadLetras": value = varColaborador.auxconectividadtexto ?? varColaborador.AuxilioTexto ?? ""; break;
+              case "CONECTIVIDAD_VALOR": value = formatPesosEsCO(varColaborador.AuxilioValor ?? varColaborador.auxconectividadvalor ?? ""); break;
+              case "AuxConectividadNumero": value = formatPesosEsCO(varColaborador.AuxilioValor ?? varColaborador.auxconectividadvalor ?? ""); break;
+              case "AuxConectividadNu": value = formatPesosEsCO(varColaborador.AuxilioValor ?? varColaborador.auxconectividadvalor ?? ""); break;
+              case "auxConectividad": value = formatPesosEsCO(varColaborador.AuxilioValor ?? varColaborador.auxconectividadvalor ?? ""); break;
 
-              case "CONECTIVIDAD_VALOR":
-                value = formatPesosEsCO(
-                  varColaborador.AuxilioValor ??
-                    varColaborador.auxconectividadvalor ??
-                    ""
-                );
-                break;
+              case "GARANTIZADO_VALOR": value = formatPesosEsCO(varColaborador.VALOR_x0020_GARANTIZADO ?? varColaborador.ValorGarantizado ?? ""); break;
+              case "garantizadoNumero": value = formatPesosEsCO(varColaborador.VALOR_x0020_GARANTIZADO ?? varColaborador.ValorGarantizado ?? ""); break;
+              case "garantizadoNu": value = formatPesosEsCO(varColaborador.VALOR_x0020_GARANTIZADO ?? varColaborador.ValorGarantizado ?? ""); break;
+              case "GARANTIZADO": value = varColaborador.GarantizadoLetras ?? varColaborador.Garantizado_x0020_en_x0020_letra ?? ""; break;
+              case "garantizado": value = formatPesosEsCO(varColaborador.VALOR_x0020_GARANTIZADO) ?? formatPesosEsCO(varColaborador.ValorGarantizado) ?? ""; break; 
+              case "garantizadoLetras": value = varColaborador.GarantizadoLetras ?? varColaborador.Garantizado_x0020_en_x0020_letra ?? ""; break; 
 
-              case "GARANTIZADO_VALOR":
-                value = formatPesosEsCO(
-                  varColaborador.VALOR_x0020_GARANTIZADO ??
-                    varColaborador.ValorGarantizado ??
-                    ""
-                );
-                break;
+              case "IDENTIFICACI_N": value = varColaborador.Numero_x0020_identificaci_x00f3_ ?? varColaborador.NumeroDoc ??  varColaborador.NumeroDocumento ?? ""; break;
+              case "IDENTIFICACIÓN":  value = varColaborador.Numero_x0020_identificaci_x00f3_ ?? varColaborador.NumeroDoc ?? varColaborador.NumeroDocumento ?? ""; break;
+              case "numeroDoc":  value = varColaborador.Numero_x0020_identificaci_x00f3_ ?? varColaborador.NumeroDoc ?? varColaborador.NumeroDocumento ?? ""; break;
 
-              case "GARANTIZADO":
-                value =
-                  varColaborador.GarantizadoLetras ??
-                  varColaborador.Garantizado_x0020_en_x0020_letra ??
-                  "";
-                break;
+              case "SALARIO_EN_LETRAS": value = varColaborador.SalarioTexto ?? varColaborador.salariotexto ?? ""; break;
+              case "salarioLetras": value = varColaborador.SalarioTexto ?? varColaborador.salariotexto ?? ""; break;
 
-              case "IDENTIFICACI_N":
-              case "IDENTIFICACIÓN":
-                value =
-                  varColaborador.Numero_x0020_identificaci_x00f3_ ??
-                  varColaborador.NumeroDoc ??
-                  varColaborador.NumeroDocumento ??
-                  "";
-                break;
+              case "SALARIO_VALOR": value = formatPesosEsCO(varColaborador.SALARIO ?? varColaborador.Salario ?? "" ); break;
+              case "salario": value = formatPesosEsCO(varColaborador.SALARIO ?? varColaborador.Salario ?? "" ); break;
 
-              case "SALARIO_EN_LETRAS":
-                value =
-                  varColaborador.SalarioTexto ??
-                  varColaborador.salariotexto ??
-                  "";
-                break;
-
-              case "SALARIO_VALOR":
-                value = formatPesosEsCO(
-                  varColaborador.SALARIO ?? varColaborador.Salario ?? ""
-                );
-                break;
-
-              case "TIPO_DE_DOCUMENTO":
-                value =
-                  varColaborador.TipoDoc ??
-                  varColaborador.tipodoc ??
-                  varColaborador.Tipodoc ??
-                  "";
-                break;
-
-              case "TIPODOCCORT":
-                value =
-                  varColaborador.AbreviacionTipoDoc ??
-                  varColaborador.Tipo_x0020_de_x0020_documento_x0 ??
-                  "";
-                break;
-
-              case "TIPOTEL":
-                value =
-                  varColaborador.MODALIDAD_x0020_TELETRABAJO ??
-                  varColaborador.ModalidadTeletrabajo ??
-                  "";
-                break;
-
-              default:
-                break;
+              case "TIPO_DE_DOCUMENTO": value = varColaborador.TipoDoc ?? varColaborador.tipodoc ?? varColaborador.Tipodoc ?? ""; break;
+              case "tipoDoc": value = varColaborador.TipoDoc ?? varColaborador.tipodoc ?? varColaborador.Tipodoc ?? ""; break;
+              case "TIPODOCCORT": value =  varColaborador.AbreviacionTipoDoc ?? varColaborador.Tipo_x0020_de_x0020_documento_x0 ?? ""; break;
+        
+              case "TIPOTEL": value = varColaborador.MODALIDAD_x0020_TELETRABAJO ?? varColaborador.ModalidadTeletrabajo ?? ""; break; 
+              default: break;
             }
 
             return {
@@ -298,6 +214,7 @@ const EnviarFormatoCard: React.FC = () => {
       await updateEnvelopeDocGenFormFields(draft.envelopeId, docGenPayload);
     }
     setField("IdSobre", draft.envelopeId)
+    setField("Title", plantillaSelected?.label ?? "")
     setSegundoPaso(true)
     setLoading(false)
 

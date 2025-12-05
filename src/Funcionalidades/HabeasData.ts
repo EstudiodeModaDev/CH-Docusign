@@ -12,7 +12,7 @@ export function useHabeasData(HabeasDataSvc: HabeasDataService) {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const today = React.useMemo(() => toISODateFlex(new Date()), []);
-  const [range, setRange] = React.useState<DateRange>({ from: today, to: today });
+  const [range, setRange] = React.useState<DateRange>({ from: "", to: "" });
   const [pageSize, setPageSize] = React.useState<number>(10); 
   const [pageIndex, setPageIndex] = React.useState<number>(1);
   const [nextLink, setNextLink] = React.useState<string | null>(null);

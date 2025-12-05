@@ -1,0 +1,122 @@
+/* PreviewEnvioModal.css */
+
+.pe-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.pe-panel {
+  width: min(1100px, 96vw);
+  max-height: 90vh;
+  background: var(--surface); 
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22);
+  padding: 24px 28px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.pe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.pe-header h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.pe-close {
+  border: none;
+  background: transparent;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pe-body {
+  display: grid;
+  grid-template-columns: 1.05fr 1.3fr;
+  gap: 24px;
+  overflow: auto;
+}
+
+.pe-column-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 16px;
+  text-align: center;
+}
+
+.pe-fields,
+.pe-destinatarios {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pe-field-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 150px) 1fr;
+  align-items: center;
+  column-gap: 10px;
+}
+
+.pe-field-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.pe-field-value {
+  background: #f3f4f6;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: black;
+}
+
+.pe-destinatario-card {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--surface-elev);
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pe-destinatario-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.pe-footer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pe-btn {
+  border-radius: 999px;
+  border: none;
+  padding: 6px 18px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: #111827;
+  color: #ffffff;
+}

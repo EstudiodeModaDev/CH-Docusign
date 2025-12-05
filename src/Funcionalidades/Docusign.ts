@@ -1,6 +1,6 @@
 // src/hooks/useDocusignTemplates.ts
 import * as React from "react";
-import { createEnvelopeFromTemplateDraft, getEnvelopeRecipientsWithTabs, listTemplates, type EnvelopeBasic } from "../Services/DocusignAPI.service";
+import { createEnvelopeFromTemplateDraft, getEnvelopeDocGenFormFields, getEnvelopeDocumentTabs, getEnvelopeInfo, getEnvelopeRecipientsWithTabs, listTemplates, type DocGenFormFieldResponse, type EnvelopeBasic, type PrefillTabsResponse } from "../Services/DocusignAPI.service";
 import type { rsOption } from "../models/Commons";
 
 export interface DocusignTemplateSummary {
@@ -24,14 +24,14 @@ export type UseDocusignTemplatesOptions = {
   auto?: boolean; // si false, no carga automáticamente
 };
 
-export function useDocusignTemplates(
-  options?: UseDocusignTemplatesOptions
-) {
-  const { searchText, includeAdvanced, auto = true } = options || {};
+type EnvelopeTabsResult = {
+  tabs: PrefillTabsResponse;           // lo que devuelve getEnvelopeDocumentTabs
+  documentGeneration: DocGenFormFieldResponse; // lo que devuelve docGenFormFields
+};
 
-  const [templates, setTemplates] = React.useState<DocusignTemplateSummary[]>(
-    []
-  );
+export function useDocusignTemplates(options?: UseDocusignTemplatesOptions) {
+  const { searchText, includeAdvanced, auto = true } = options || {};
+  const [templates, setTemplates] = React.useState<DocusignTemplateSummary[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);
   const [meta, setMeta] = React.useState<Pick<ListTemplatesResponse, "resultSetSize" | "totalSetSize">>({});
@@ -68,13 +68,13 @@ export function useDocusignTemplates(
     void loadTemplates();
   }, [auto, loadTemplates]);
 
-    React.useEffect(() => {
+  React.useEffect(() => {
     console.table(templates)
     const seen = new Set<string>();
     const next: rsOption[] = templates
         .map((item) => ({
-        value: item.templateId,
-        label: item.name ?? "",
+          value: item.templateId,
+          label: item.name ?? "",
         }))
         .filter((opt) => {
         if (seen.has(opt.value)) return false;
@@ -114,10 +114,29 @@ export function useDocusignTemplates(
     return signers
   }, [searchText, includeAdvanced]);
 
+  const getTabsFromSendEnvelope = React.useCallback(
+    async (envelopeId: string): Promise<EnvelopeTabsResult> => {
+      const [tabs, documentGenerationsFields] = await Promise.all([
+        getEnvelopeDocumentTabs(envelopeId, "1"),   // documento 1
+        getEnvelopeDocGenFormFields(envelopeId),
+      ]);
+
+      return {
+        tabs,
+        documentGeneration: documentGenerationsFields,
+      };
+    },
+    []
+  );
+
+  const getenvelopeInfo = React.useCallback(async (envelopeId: string) => {
+    const info =await getEnvelopeInfo(envelopeId)
+    return info;
+  }, []);
 
 
   return {
     templates, loading, error, meta, templatesOptions,
-    reload: loadTemplates, createdraft, getRecipients
+    reload: loadTemplates, createdraft, getRecipients, getTabsFromSendEnvelope, getenvelopeInfo
   };
 }

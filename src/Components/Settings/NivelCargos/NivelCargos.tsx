@@ -10,7 +10,6 @@ export const NivelCargosManager: React.FC = () => {
     const [isEditing, setIsEditing] = React.useState(false);
     const [state, setState] = React.useState<campoUnico>({ Title: ""})
     const [isAdding, setIsAdding] = React.useState<boolean>(false)
-    const [search, setSearch] = React.useState<string>("")
 
     const handleAddNew = () => {
         if(!state.Title){
@@ -33,8 +32,8 @@ export const NivelCargosManager: React.FC = () => {
     };
 
     React.useEffect(() => {
-        reload(search);
-    }, [search, reload]);
+        reload();
+    }, [reload]);
 
 
     return (

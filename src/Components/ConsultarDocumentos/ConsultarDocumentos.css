@@ -1,0 +1,11 @@
+.estado-dot {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+
+/* opcional: centrar el círculo en la celda de "Estado" */
+.filas-envios table td:last-child {
+  text-align: center;
+}

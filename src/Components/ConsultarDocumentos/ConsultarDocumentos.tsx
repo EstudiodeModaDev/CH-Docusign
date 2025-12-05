@@ -1,9 +1,11 @@
 import * as React from "react";
 import "../RegistrarNuevo/Contratos/Contratos.css";
+import "./ConsultarDocumentos.css"
 import type { SortDir, SortField } from "../../models/Commons";
 import type { Envio,} from "../../models/Envios";
 import { useGraphServices } from "../../graph/graphContext";
 import { useEnvios } from "../../Funcionalidades/Envios";
+import { PreviewEnvioModal } from "./ModalCampos/ModalCampos";
 
 function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; dir: SortDir}>) {
   const idx = sorts.findIndex(s => s.field === field);
@@ -17,8 +19,7 @@ export default function TablaEnvios() {
   const [visible, setVisible] = React.useState<boolean>(false)
   const { Envios } = useGraphServices();
   const {reloadAll, pageIndex, nextPage, hasNext, pageSize, setPageSize, rows, setSearch, setRange, range, search, loading, error, toggleSort, sorts} = useEnvios(Envios);
-  const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Envio | null>(null);
-  const [tipoFormulario, setTipoFormulario] = React.useState<string>("");
+  const [envioSeleccionado, setEnvioSeleccionado] = React.useState<Envio | null>(null);
 
   return (
     <div className="rn-page">
@@ -69,18 +70,14 @@ export default function TablaEnvios() {
                 </thead>
                 <tbody>
                 {rows.map((envio: Envio) => (
-                    <tr key={envio.Id} /*onClick={() => {setNovedadSeleccionada(novedad); handleRowClick(novedad); setVisible(true)}}*/ tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setNovedadSeleccionada(envio)}>
+                    <tr key={envio.Id} onClick={() => {setEnvioSeleccionado(envio); setVisible(true)}} tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setEnvioSeleccionado(envio)}>
                     <td>{envio.Cedula}</td>
                     <td><span title={envio.Receptor}>{envio.Receptor}</span></td>
                     <td><span title={envio.CorreoReceptor}>{envio.CorreoReceptor}</span></td>
                     <td><span title={envio.EnviadoPor}>{envio.EnviadoPor}</span></td>
                     <td><span title={envio.Title}>{envio.Title}</span></td>
                     <td>{envio.Fechadeenvio || "–"}</td>
-                    <td><span title={envio.Estado}>{
-                        envio.Estado === "Sent" ? "Enviado" : 
-                        envio.Estado === "Completed" ? "Completado": 
-                        envio.Estado === "Declined" ? "Rechazado" :
-                        envio.Estado}</span></td>
+                    <td><EstadoCircle rawEstado={envio.Estado}/></td>
                     </tr>
                 ))}
                 </tbody>
@@ -110,6 +107,7 @@ export default function TablaEnvios() {
             )}
             </div>
 
+          <PreviewEnvioModal open={visible} onClose={() => { setVisible(false)} } envelopeId={envioSeleccionado?.IdSobre!}></PreviewEnvioModal>
         </div>
     </div>
   );
@@ -117,3 +115,35 @@ export default function TablaEnvios() {
 
 }
 
+type EstadoProps = {
+  rawEstado?: string | null;
+};
+
+const EstadoCircle: React.FC<EstadoProps> = ({ rawEstado }) => {
+  const getEstadoInfo = () => {
+    const key = rawEstado?.toLowerCase() ?? "";
+    switch (key) {
+      case "completed":
+      case "completado":
+        return { label: "Completado", color: "#16a34a" }; // verde
+      case "sent":
+      case "enviado":
+        return { label: "Enviado", color: "#dc2626" }; // rojo
+      case "declined":
+      case "rechazado":
+        return { label: "Rechazado", color: "#ca8a04" }; // amarillo
+      default:
+        return { label: rawEstado || "–", color: "#9ca3af" }; // gris
+    }
+
+    
+  };
+
+  const info = getEstadoInfo();
+
+  return (
+    <span className="estado-badge" title={info.label}>
+      <span className="estado-dot" style={{ backgroundColor: info.color}}/>
+    </span>
+  );
+};

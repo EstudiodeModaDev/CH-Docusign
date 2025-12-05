@@ -1,3 +1,22 @@
+export type GraphRecipient = {
+  emailAddress: {
+    address: string;
+  };
+};
+
+export type GraphSendMailPayload = {
+  message: {
+    subject: string;
+    body: {
+      contentType: "Text" | "HTML";
+      content: string;
+    };
+    toRecipients: GraphRecipient[];
+    ccRecipients?: GraphRecipient[];
+  };
+  saveToSentItems?: boolean;
+};
+
 export class GraphRest {
   private getToken: () => Promise<string>;
   private base = 'https://graph.microsoft.com/v1.0';
@@ -91,12 +110,7 @@ export class GraphRest {
     return this.call<void>('DELETE', path, undefined, init);
   }
 
-  async putBinary<T = any>(
-    path: string,
-    binary: Blob | ArrayBuffer | Uint8Array,
-    contentType?: string,
-    init?: RequestInit
-  ): Promise<T> {
+  async putBinary<T = any>(path: string,  binary: Blob | ArrayBuffer | Uint8Array, contentType?: string, init?: RequestInit): Promise<T> {
     const token = await this.getToken();
 
     const res = await fetch(this.base + path, {
@@ -176,4 +190,58 @@ export class GraphRest {
     if (!txt) return undefined as unknown as T;
     return ct.includes('application/json') ? JSON.parse(txt) as T : (txt as unknown as T);
   }
+
+  sendMail(fromUser: string, payload: GraphSendMailPayload) {
+    const encoded = encodeURIComponent(fromUser);
+    return this.post<void>(`/users/${encoded}/sendMail`, payload);
+  }
+
+  async postAbsoluteBinary<T = any>(url: string, binary: Blob | ArrayBuffer | Uint8Array, contentType?: string, init?: RequestInit): Promise<T> {
+    const token = await this.getToken();
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(contentType ? { "Content-Type": contentType } : {}),
+        ...(init?.headers || {}),
+      },
+      body: binary as any,
+      ...init,
+    });
+
+    if (!res.ok) {
+      let detail = "";
+      try {
+        const txt = await res.text();
+        if (txt) {
+          try {
+            const j = JSON.parse(txt);
+            detail = j?.error?.message || j?.message || txt;
+          } catch {
+            detail = txt;
+          }
+        }
+      } catch {}
+
+      throw new Error(
+        `POST (absolute) ${url} → ${res.status} ${res.statusText}${
+          detail ? `: ${detail}` : ""
+        }`
+      );
+    }
+
+    if (res.status === 204) return undefined as unknown as T;
+
+    const ct = res.headers.get("content-type") || "";
+    const txt = await res.text();
+    if (!txt) return undefined as unknown as T;
+
+    if (ct.includes("application/json")) {
+      return JSON.parse(txt) as T;
+    }
+
+    return txt as unknown as T;
+  }
+
 }

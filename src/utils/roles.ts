@@ -1,4 +1,3 @@
-// src/utils/roles.ts
 import type { GraphRest } from "../graph/graphRest";
 import type { Perfil } from "../models/Perfiles";
 import type { UsuariosSP } from "../models/User";

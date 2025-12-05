@@ -10,7 +10,6 @@ export const UnidadNegocioManager: React.FC = () => {
     const [isEditing, setIsEditing] = React.useState(false);
     const [state, setState] = React.useState<withCode>({ Title: "", Codigo: ""})
     const [isAdding, setIsAdding] = React.useState<boolean>(false)
-    const [search, setSearch] = React.useState<string>("")
 
     const handleAddNew = () => {
         if(!state.Title){
@@ -34,8 +33,8 @@ export const UnidadNegocioManager: React.FC = () => {
     };
 
     React.useEffect(() => {
-        reload(search);
-    }, [search, reload]);
+        reload();
+    }, [reload]);
 
 
     return (

@@ -23,6 +23,11 @@ import { EnviosService } from "../Services/Envios.service";
 import { PasosPromocionService } from "../Services/PasosPromocion.service";
 import { DetallesPasosPromocionService } from "../Services/DetallesPasosPromocion.service";
 import { ColaboradoresDHService, ColaboradoresEDMService } from "../Services/Bibliotecas.service";
+import { PazSalvosService } from "../Services/PazSalvos.service";
+import { PermisosPazSalvosService } from "../Services/PermisosPazSalvos.service";
+import { RenovarService } from "../Services/Renovar.service";
+import { FirmasService } from "../Services/Firmas.service";
+import { RespuestaService } from "../Services/Respuesta.service";
 
 /* ================== Tipos de config ================== */
 export type SiteConfig = {
@@ -58,6 +63,13 @@ export type UnifiedConfig = {
     DetallesPasosPromocion: string
     ColaboradoresEDM: string;
     ColaboradoresDH: string;
+
+    // Paz Salvos
+    PazSalvos: string;
+    PermisosPaz: string;
+    renovar: string;
+    Firma: string;
+    Respuesta: string;
     // TEST
   };
 };
@@ -89,7 +101,14 @@ export type GraphServices = {
   PasosPromocion: PasosPromocionService;
   DetallesPasosPromocion: DetallesPasosPromocionService
   ColaboradoresEDM: ColaboradoresEDMService,
-  ColaboradoresDH: ColaboradoresDHService
+  ColaboradoresDH: ColaboradoresDHService,
+
+  // Paz Salvos
+  PazSalvos: PazSalvosService;
+  PermisosPaz: PermisosPazSalvosService;
+  Renovar: RenovarService;
+  Firmas: FirmasService;
+  Respuesta: RespuestaService
   // TEST
 };
 
@@ -130,9 +149,17 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     PasosPromocion: "PasosPromocion",
     DetallesPasosPromocion: "DetallesPasosPromocion",
 
+    // Renovar
+    PazSalvos: "Paz y salvos",
+    PermisosPaz: "Permisos PazSalvos",
+    renovar: "Renovar",
+    Firma: "Firma",
+    Respuesta: "Respuestas",
+
     //Bibliotecas de documentos
     ColaboradoresEDM: "Colaboradores EDM",
-    ColaboradoresDH: "Colaboradores DH"
+    ColaboradoresDH: "Colaboradores DH",
+
 
     // TEST
   },
@@ -197,14 +224,22 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     const PasosPromocion          = new PasosPromocionService(graph, ch.hostname, ch.sitePath, lists.PasosPromocion);
     const DetallesPasosPromocion  = new DetallesPasosPromocionService(graph, ch.hostname, ch.sitePath, lists.DetallesPasosPromocion);
     const ColaboradoresEDM        = new ColaboradoresEDMService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresEDM);
-    const ColaboradoresDH         = new ColaboradoresDHService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresDH)
+    const ColaboradoresDH         = new ColaboradoresDHService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresDH);
+    const PazSalvos               = new PazSalvosService(graph, ch.hostname, ch.sitePath, lists.PazSalvos);
+    const PermisosPaz             = new PermisosPazSalvosService(graph, ch.hostname, ch.sitePath, lists.PermisosPaz);
+    const Renovar                 = new RenovarService(graph, ch.hostname, ch.sitePath, lists.renovar);  
+    const Firmas                  = new FirmasService (graph, ch.hostname, ch.sitePath, lists.Firma); 
+    const Respuesta               = new RespuestaService(graph, ch.hostname, ch.sitePath, lists.Respuesta)
 
     return {
       graph,
         
       //CH
       HabeasData, Usuarios, Perfiles, Contratos, Promociones, Empresa, tipoDocumento, cargo, modalidadTrabajo, especificidadCargo, NivelCargo, CentroCostos, CentroOperativo, UnidadNegocio,
-      OrigenSeleccion, TipoContrato, TipoVacante, DeptosYMunicipios, Envios, PasosPromocion, DetallesPasosPromocion, ColaboradoresEDM, ColaboradoresDH
+      OrigenSeleccion, TipoContrato, TipoVacante, DeptosYMunicipios, Envios, PasosPromocion, DetallesPasosPromocion, ColaboradoresEDM, ColaboradoresDH, 
+
+      //paz salvos
+      PazSalvos, PermisosPaz, Renovar, Firmas, Respuesta
       
       // TEST
 

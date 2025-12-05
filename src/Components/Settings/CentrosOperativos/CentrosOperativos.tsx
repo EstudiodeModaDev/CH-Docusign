@@ -1,7 +1,7 @@
 import * as React from "react";
 import "../Empresas.css";
 import { useGraphServices } from "../../../graph/graphContext";
-import { useCentroOperativo, useNivelCargo, } from "../../../Funcionalidades/Desplegables";
+import { useCentroOperativo, } from "../../../Funcionalidades/Desplegables";
 import type { withCode } from "../../../models/Maestros";
 
 export const CentroOperativoManager: React.FC = () => {
@@ -10,7 +10,6 @@ export const CentroOperativoManager: React.FC = () => {
     const [isEditing, setIsEditing] = React.useState(false);
     const [state, setState] = React.useState<withCode>({ Title: "", Codigo: ""})
     const [isAdding, setIsAdding] = React.useState<boolean>(false)
-    const [search, setSearch] = React.useState<string>("")
 
     const handleAddNew = () => {
         if(!state.Title){
@@ -34,8 +33,8 @@ export const CentroOperativoManager: React.FC = () => {
     };
 
     React.useEffect(() => {
-        reload(search);
-    }, [search, reload]);
+        reload();
+    }, [ reload]);
 
 
     return (

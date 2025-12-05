@@ -157,7 +157,7 @@ export function useEnvios(EnviosSvc: EnviosService) {
         Cedula: state.Cedula,
         Compa_x00f1_ia: state.Compa_x00f1_ia,
         CorreoReceptor: state.CorreoReceptor,
-        Datos: "",
+        Datos: state.Datos,
         EnviadoPor: account?.name ?? "",
         Estado: state.Estado,
         Fechadeenvio: toGraphDateTime(today) ?? "",

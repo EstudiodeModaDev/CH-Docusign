@@ -1,0 +1,18 @@
+.firma-alert {
+  display: flex;
+  flex-direction: column;
+  align-items: center;   /* centra horizontalmente */
+  justify-content: center;
+  text-align: center;    /* centra el texto */
+  gap: 6px;              /* espacio entre elementos */
+  padding: 8px 0;
+}
+
+.firma-alert p {
+  margin: 0 0 4px 0;
+  font-weight: 600;
+}
+
+.firma-alert small {
+  max-width: 4700px;      /* para que no se haga una línea eterna */
+}

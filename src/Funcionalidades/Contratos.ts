@@ -2,7 +2,7 @@ import React from "react";
 import type { DateRange, GetAllOpts, rsOption, SortDir, SortField, } from "../models/Commons";
 import type { ContratosService } from "../Services/Contratos.service";
 import type { Novedad, NovedadErrors } from "../models/Novedades";
-import { getTodayLocalISO, toGraphDateTime, toISODateFlex, toISODateTimeFlex } from "../utils/Date";
+import { getTodayLocalISO, toGraphDateTime, toISODateTimeFlex } from "../utils/Date";
 import { useAuth } from "../auth/authProvider";
 
 export function useContratos(ContratosSvc: ContratosService) {
@@ -11,8 +11,7 @@ export function useContratos(ContratosSvc: ContratosService) {
   const [workersOptions, setWorkersOptions] = React.useState<rsOption[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const today = React.useMemo(() => toISODateFlex(new Date()), []);
-  const [range, setRange] = React.useState<DateRange>({ from: today, to: today });
+  const [range, setRange] = React.useState<DateRange>({ from: "", to: "" });
   const [pageSize, setPageSize] = React.useState<number>(10); 
   const [pageIndex, setPageIndex] = React.useState<number>(1);
   const [nextLink, setNextLink] = React.useState<string | null>(null);

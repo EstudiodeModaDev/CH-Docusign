@@ -1,7 +1,7 @@
 import * as React from "react";
 import "../Empresas.css";
 import { useGraphServices } from "../../../graph/graphContext";
-import { useCargo, useModalidadTrabajo, } from "../../../Funcionalidades/Desplegables";
+import { useModalidadTrabajo, } from "../../../Funcionalidades/Desplegables";
 import type { campoUnico } from "../../../models/Desplegables";
 
 export const ModalidadesManager: React.FC = () => {
@@ -10,7 +10,6 @@ export const ModalidadesManager: React.FC = () => {
     const [isEditing, setIsEditing] = React.useState(false);
     const [state, setState] = React.useState<campoUnico>({ Title: ""})
     const [isAdding, setIsAdding] = React.useState<boolean>(false)
-    const [search, setSearch] = React.useState<string>("")
 
     const handleAddNew = () => {
         if(!state.Title){
@@ -33,8 +32,8 @@ export const ModalidadesManager: React.FC = () => {
     };
 
     React.useEffect(() => {
-        reload(search);
-    }, [search, reload]);
+        reload();
+    }, [reload]);
 
 
     return (

@@ -1,0 +1,123 @@
+.psm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.psm-modal {
+  background: #ffffff;
+  min-width: 520px;
+  max-width: 800px;
+  max-height: 80vh;
+  border-radius: 8px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.psm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f5f7fa;
+}
+
+.psm-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.psm-close {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.psm-body {
+  padding: 10px 14px;
+  overflow: auto;
+}
+
+/* Tabla */
+.psm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.psm-th {
+  background-color: #6bb6e8;
+  padding: 6px;
+  border-bottom: 1px solid #000;
+  text-align: center;
+  font-weight: 600;
+}
+
+.psm-td {
+  border-bottom: 1px solid #ddd;
+  padding: 4px 6px;
+  text-align: center;
+  vertical-align: top;
+}
+
+.psm-tr:nth-child(even) .psm-td {
+  background: #fafafa;
+}
+
+.psm-empty {
+  padding: 8px;
+  text-align: center;
+  font-style: italic;
+  color: #666;
+}
+
+/* Footer */
+.psm-footer {
+  padding: 8px 14px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+  background: #fafbfc;
+}
+
+.psm-btn {
+  min-width: 90px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background: #f3f4f6;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.psm-btn:hover {
+  background: #e5e7eb;
+}
+
+/* Link adjunto */
+.psm-link {
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.psm-motivo-html p {
+  margin: 0 0 4px;
+}
+
+.psm-motivo-html ol,
+.psm-motivo-html ul {
+  margin: 0;
+  padding-left: 18px;
+}

@@ -79,6 +79,8 @@ export interface DocusignRecipient {
   name: string;
   roleName?: string;
   tabs?: DocusignRecipientTabs;
+  routingOrder?: string;
+  status?: string;
 }
 
 export interface EnvelopeRecipients {
@@ -193,6 +195,7 @@ export async function getEnvelopeRecipientsWithTabs(envelopeId: string): Promise
   });
 
   const data = await resp.json();
+
   if (!resp.ok) {
     console.error("Error obteniendo recipients del envelope:", data);
     throw new Error("DocuSign devolvió error al obtener los recipients");
@@ -267,6 +270,11 @@ export async function getEnvelopeDocumentTabs(envelopeId: string, documentId: st
     }
   );
 
+  if(resp.status === 404) {
+    alert("El sobre no tiene campos de prefill tabs.");
+    return { prefillTabs: { textTabs: [] } };
+  }
+
   const data = await resp.json();
   if (!resp.ok) {
     console.error("Error obteniendo document tabs:", data);
@@ -285,6 +293,11 @@ export async function getEnvelopeDocGenFormFields(envelopeId: string): Promise<D
       headers: { Authorization: `Bearer ${auth.accessToken}` },
     }
   );
+
+  if(resp.status === 400) {
+    alert("El sobre no tiene campos de generación de documentos.");
+    return { docGenFormFields: [] };
+  }
 
   const data = await resp.json();
   if (!resp.ok) {
@@ -393,4 +406,22 @@ export async function updateEnvelopeRecipients(envelopeId: string, recipients: E
     signers: (data.signers ?? []) as DocusignRecipient[],
     // agrega otros tipos si los manejas
   };
+}
+
+export async function getEnvelopeInfo(envelopeId: string) {
+  const auth = await getAuthOrThrow();
+
+  const url = `${BASE_URL}/v2.1/accounts/${ACCOUNT_ID}/envelopes/${envelopeId}`;
+
+  const resp = await fetch(url, {
+    headers: { Authorization: `Bearer ${auth.accessToken}` },
+  });
+
+  const data = await resp.json();
+  if (!resp.ok) {
+    console.error("Error obteniendo envelope info:", data);
+    throw new Error("DocuSign devolvió error al obtener info del sobre");
+  }
+
+  return data;
 }

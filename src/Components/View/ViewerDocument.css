@@ -1,6 +1,6 @@
 .colab-explorer {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: 160px minmax(0, 1fr);
   height: 100%;
   background: #ffffff;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
@@ -13,7 +13,7 @@
   padding: 20px 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 16px;;
 }
 
 .colab-explorer__sidebar-title {

@@ -11,8 +11,7 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
   const [workersOptions, setWorkersOptions] = React.useState<rsOption[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const today = React.useMemo(() => toISODateFlex(new Date()), []);
-  const [range, setRange] = React.useState<DateRange>({ from: today, to: today });
+  const [range, setRange] = React.useState<DateRange>({ from: "", to: "" });
   const [pageSize, setPageSize] = React.useState<number>(10); 
   const [pageIndex, setPageIndex] = React.useState<number>(1);
   const [nextLink, setNextLink] = React.useState<string | null>(null);
@@ -366,7 +365,7 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
     const next: rsOption[] = workers
       .map(item => ({
         value: item.Id!, // solo el Id
-        label: `Nombre: ${item.NombreSeleccionado} - Promocion - Cargo: ${item.Cargo} - Fecha de ingreso: ${toGraphDateTime(item.FechaIngreso)}.`,
+        label: `Nombre: ${item.NombreSeleccionado} - Promocion - Cargo: ${item.Cargo} - Fecha de ingreso: ${toISODateFlex(item.FechaIngreso)}.`,
       }))
       .filter(opt => {
         if (!opt.value) return false;

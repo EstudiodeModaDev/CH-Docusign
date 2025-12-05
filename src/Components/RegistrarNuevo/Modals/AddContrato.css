@@ -128,7 +128,8 @@
 .ft-field input[type="text"],
 .ft-field input[type="number"],
 .ft-field input[type="email"],
-.ft-field input[type="date"]{
+.ft-field input[type="date"],
+.ft-field select {
   border-radius: 10px;
   border: 1px solid #e2e8f0;
   padding: 8px 10px;

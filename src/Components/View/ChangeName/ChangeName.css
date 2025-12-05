@@ -1,0 +1,80 @@
+.rm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.rm-modal {
+  min-width: 520px;
+  max-width: 620px;
+  background: #ffffff;
+  border-radius: 4px;
+  padding: 20px 24px 18px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+}
+
+.rm-current {
+  margin: 0 0 16px;
+  color: #222222;
+}
+
+.rm-label {
+  display: block;
+  margin-bottom: 4px;
+  color: #5a5a5a;
+}
+
+.rm-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border-radius: 2px;
+  border: 1px solid #d0d0d0;
+  background: #f8f8f8;
+  outline: none;
+}
+
+.rm-input:focus {
+  border-color: #0078d4;
+  background: #ffffff;
+}
+
+.rm-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.rm-btn {
+  min-width: 96px;
+  padding: 6px 16px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.rm-btn--ghost {
+  background: #ffffff;
+  border-color: #d0d0d0;
+}
+
+.rm-btn--ghost:hover {
+  background: #f3f3f3;
+}
+
+.rm-btn--primary {
+  background: #0078d4; /* azul tipo SharePoint */
+  color: #ffffff;
+}
+
+.rm-btn--primary:hover {
+  background: #005a9e;
+}

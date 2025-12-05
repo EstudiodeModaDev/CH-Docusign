@@ -52,28 +52,12 @@ type UseDesplegableResult<T> = {
 
 /* ================== Hook genérico ================== */
 
-export function useDesplegable<T>(
-  config: DesplegableConfig<T>
-): UseDesplegableResult<T> {
-  const {
-    load,
-    getId,
-    getLabel,
-    includeIdInLabel = true,
-    fallbackIfEmptyTitle = "(Sin título)",
-    idPrefix = "#",
-    addItem,
-    deleteItem,
-    editItem,
-  } = config;
-
+export function useDesplegable<T>(config: DesplegableConfig<T>): UseDesplegableResult<T> {
+  const {load, getId, getLabel, includeIdInLabel = true, fallbackIfEmptyTitle = "(Sin título)", idPrefix = "#", addItem, deleteItem, editItem,} = config;
   const [items, setItems] = React.useState<T[]>([]);
   const [options, setOptions] = React.useState<desplegablesOption[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [lastSearch, setLastSearch] = React.useState<string | undefined>(
-    undefined
-  );
 
   const reload = React.useCallback(
     async (search?: string) => {
@@ -158,15 +142,7 @@ export function useDesplegable<T>(
   }, [items, includeIdInLabel, fallbackIfEmptyTitle, idPrefix]);
 
   return {
-    items,
-    options,
-    loading,
-    error,
-    reload,
-    add: addItem ? add : undefined,
-    remove: deleteItem ? remove : undefined,
-    editItem,
-  };
+    items, options, loading, error, reload, add: addItem ? add : undefined, remove: deleteItem ? remove : undefined, editItem,};
 }
 
 /* ================== Hooks concretos ================== */
@@ -515,11 +491,5 @@ export function useDeptosMunicipios(DeptosSvc: DeptosYMunicipiosService) {
   );
 
   return useDesplegable<dobleCampo>({
-    load,
-    getId: (e) => e.Abreviacion,
-    getLabel: (e) => e.Title ?? "",
-    includeIdInLabel: false,
-    fallbackIfEmptyTitle: "(Sin nombre)",
-    idPrefix: "#",
-  });
+    load, getId: (e) => e.Abreviacion, getLabel: (e) => e.Title ?? "", includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",});
 }

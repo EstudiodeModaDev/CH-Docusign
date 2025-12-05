@@ -179,6 +179,39 @@ class BibliotecaBaseService {
       lastModified: driveItem.lastModifiedDateTime,
     };
   }
+
+  // Dentro de BibliotecaBaseService
+  async renameArchivo(archivo: Archivo,
+    nuevoNombreSinExtension: string
+  ): Promise<Archivo> {
+    await this.ensureIds();
+
+    // Mantener extensión original si NO es carpeta
+    let ext = "";
+    if (!archivo.isFolder) {
+      const dot = archivo.name.lastIndexOf(".");
+      if (dot > 0) {
+        ext = archivo.name.slice(dot); // incluye el punto, ej: ".pdf"
+      }
+    }
+
+    const newName = `${nuevoNombreSinExtension}${ext}`;
+    // PATCH al driveItem
+    const item = await this.graph.patch<any>(
+      `/drives/${this.driveId}/items/${archivo.id}`,
+      { name: newName }
+    );
+
+    return {
+      id: item.id,
+      name: item.name,
+      webUrl: item.webUrl,
+      isFolder: !!item.folder,
+      size: item.size,
+      lastModified: item.lastModifiedDateTime,
+    };
+  }
+
 }
 
 // Específicos para cada biblioteca (por si luego quieres métodos extra)

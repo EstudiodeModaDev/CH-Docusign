@@ -2,15 +2,16 @@ import * as React from "react";
 import "./ViewerDocument.css";
 import { useColaboradoresExplorer } from "../../Funcionalidades/DocumentViewer";
 import { SimpleFileUpload } from "../AddFile/AddFile";
-
-type EmpresaKey = "estudio" | "dh";
-
+import { parseDateFlex } from "../../utils/Date";
+import { RenameModal } from "./ChangeName/ChangeName";
+import type { Archivo } from "../../models/archivos";
 
 /* ================== Componente único ================== */
 export const ColaboradoresExplorer: React.FC = () => {
-    const { empresa, currentPath, items, loading, error, search,
-        setEmpresa, setSearch, depth, goUp, openItem} = useColaboradoresExplorer();
+    const { empresa, currentPath, items, loading, error, search, setEmpresa, setSearch, depth, goUp, openItem} = useColaboradoresExplorer();
     const [agregar, setAgregar] = React.useState<boolean>(false)
+    const [edit, setEdit] = React.useState<boolean>(false)
+    const [selectedFile, setSelectedFile] = React.useState<Archivo | null>(null)
  
     const hayRuta = !!currentPath.trim();
 
@@ -21,11 +22,11 @@ export const ColaboradoresExplorer: React.FC = () => {
                 <h2 className="colab-explorer__sidebar-title">Colaboradores</h2>
 
                 <button type="button" className={"colab-explorer__empresa-btn" + (empresa === "estudio" ? " colab-explorer__empresa-btn--active" : "")} onClick={() => setEmpresa("estudio")}>
-                Estudio de Moda
+                    Estudio de Moda
                 </button>
 
                 <button type="button"  className={"colab-explorer__empresa-btn" + (empresa === "dh" ? " colab-explorer__empresa-btn--active" : "")} onClick={() => setEmpresa("dh")}>
-                DH Retail
+                    DH Retail
                 </button>
             </aside>
 
@@ -45,7 +46,6 @@ export const ColaboradoresExplorer: React.FC = () => {
 
                     <div className="colab-explorer__toolbar-right">
                         <div className="colab-explorer__search">
-                            <span className="colab-explorer__search-icon" aria-hidden="true">🔍</span>
                             <input type="text" placeholder="Buscar por nombre" value={search} onChange={(e) => setSearch(e.target.value)} className="colab-explorer__search-input"/>
                         </div>
                     </div>
@@ -59,15 +59,24 @@ export const ColaboradoresExplorer: React.FC = () => {
                     )}
                     {!loading && !error &&
                         items.map((item) => (
-                            <button key={item.id} type="button" className="colab-explorer__row" onClick={() => openItem(item)} >
-                                <div className="colab-explorer__row-left">
-                                    <span   className={item.isFolder ? "colab-explorer__folder-icon" : "colab-explorer__file-icon"} aria-hidden="true"/>
-                                    <span className="colab-explorer__row-name">{item.name}</span>
-                                </div>
-                            </button>
+                            <>
+                                <button key={item.id} type="button" className="colab-explorer__row" onClick={() => openItem(item)} >
+                                    <div className="colab-explorer__row-left">
+                                        <span className={item.isFolder ? "colab-explorer__folder-icon" : "colab-explorer__file-icon"} aria-hidden="true"/>
+                                        <span className="colab-explorer__row-name">{item.name}</span>
+                                        <span className="colab-explorer__row-date">{parseDateFlex(item.lastModified ?? "")?.toLocaleDateString("es-CO") ?? ""}</span>
+                                        
+                                    </div>
+                                </button>
+                                {depth >= 2 ?
+                                    <span className="colab-explorer__row-date"><button className="btn btn-xs" onClick={() => {setSelectedFile(item); setEdit(true)}}>Edit</button></span>: null
+                                }
+                            </>
                         ))}
+                        
                 </div>
                 {agregar ? <SimpleFileUpload folderPath={currentPath} onClose={() => setAgregar(false)}></SimpleFileUpload> : null}
+                <RenameModal open={edit} selectedFile={selectedFile!} onClose={() => setEdit(false) } biblioteca={empresa}></RenameModal>
             </section>
         </div>
     );

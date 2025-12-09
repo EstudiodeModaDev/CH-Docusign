@@ -68,6 +68,7 @@ export function useColaboradoresExplorer() {
   const openItem = (item: Archivo) => {
     if (item.isFolder) {
         openFolder(item); // navegas
+        setSearch("")
     } else {
         // es archivo → lo abres en nueva pestaña, por ejemplo
         window.open(item.webUrl, "_blank");

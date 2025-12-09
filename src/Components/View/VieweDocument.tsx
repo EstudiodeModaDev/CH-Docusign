@@ -59,19 +59,44 @@ export const ColaboradoresExplorer: React.FC = () => {
                     )}
                     {!loading && !error &&
                         items.map((item) => (
-                            <>
-                                <button key={item.id} type="button" className="colab-explorer__row" onClick={() => openItem(item)} >
-                                    <div className="colab-explorer__row-left">
-                                        <span className={item.isFolder ? "colab-explorer__folder-icon" : "colab-explorer__file-icon"} aria-hidden="true"/>
-                                        <span className="colab-explorer__row-name">{item.name}</span>
-                                        <span className="colab-explorer__row-date">{parseDateFlex(item.lastModified ?? "")?.toLocaleDateString("es-CO") ?? ""}</span>
-                                        
-                                    </div>
-                                </button>
-                                {depth >= 2 ?
-                                    <span className="colab-explorer__row-date"><button className="btn btn-xs" onClick={() => {setSelectedFile(item); setEdit(true)}}>Edit</button></span>: null
+                            <button
+                            key={item.id}
+                            type="button"
+                            className="colab-explorer__row"
+                            onClick={() => openItem(item)}
+                            >
+                            <div className="colab-explorer__row-left">
+                                <span
+                                className={
+                                    item.isFolder
+                                    ? "colab-explorer__folder-icon"
+                                    : "colab-explorer__file-icon"
                                 }
-                            </>
+                                aria-hidden="true"
+                                />
+                                <span className="colab-explorer__row-name">{item.name}</span>
+                                <span className="colab-explorer__row-date">
+                                {parseDateFlex(item.lastModified ?? "")?.toLocaleDateString("es-CO") ??
+                                    ""}
+                                </span>
+                            </div>
+
+                            {depth >= 2 && (
+                                <div className="colab-explorer__row-right">
+                                <button
+                                    type="button"
+                                    className="btn btn-xs"
+                                    onClick={(e) => {
+                                    e.stopPropagation(); // evita que abra la carpeta
+                                    setSelectedFile(item);
+                                    setEdit(true);
+                                    }}
+                                >
+                                    Edit
+                                </button>
+                                </div>
+                            )}
+                            </button>
                         ))}
                         
                 </div>

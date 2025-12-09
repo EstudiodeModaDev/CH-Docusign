@@ -92,12 +92,13 @@
   border: none;
   background: transparent;
   padding: 8px 0;
-  display: grid;
+  display: flex;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   cursor: pointer;
   border-radius: 4px;
   transition: background 0.12s ease;
+  gap: 5px;
 }
 
 .colab-explorer__row:hover {

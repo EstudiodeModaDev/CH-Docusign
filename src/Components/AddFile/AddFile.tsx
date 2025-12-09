@@ -14,8 +14,9 @@ type SimpleFileUploadProps = {
 export const SimpleFileUpload: React.FC<SimpleFileUploadProps> = ({folderPath, onClose, onUploaded,}) => {
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
-     const [file, setFile] = React.useState<File | null>(null);
+    const [file, setFile] = React.useState<File | null>(null);
     const {handleUploadClick} = useColaboradoresExplorer();
+    const { setSearch} = useColaboradoresExplorer();
 
   const handleConfirm = async () => {
     if (!file) {
@@ -39,6 +40,9 @@ export const SimpleFileUpload: React.FC<SimpleFileUploadProps> = ({folderPath, o
     }
   };
 
+  React.useEffect(() => {
+    setSearch("")
+  }, []);
 
   return (
     <div className="sf-modal-backdrop" role="dialog" aria-modal="true">

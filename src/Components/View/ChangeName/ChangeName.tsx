@@ -13,6 +13,7 @@ type Props = {
 export const RenameModal: React.FC<Props> = ({open, selectedFile, onClose, biblioteca}) => {
   const [value, setValue] = React.useState("");
   const {ColaboradoresDH, ColaboradoresEDM} = useGraphServices()
+  
 
     const rename = React.useCallback(async (newName: string) => {
         if(!selectedFile) return

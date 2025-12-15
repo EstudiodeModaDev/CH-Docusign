@@ -92,11 +92,19 @@ export function useColaboradoresExplorer() {
     });
   };
 
-  const items: Archivo[] = React.useMemo(() => {
-    if (!search.trim()) return rawItems;
-    const term = search.toLowerCase();
-    return rawItems.filter((i) => i.name.toLowerCase().includes(term));
-  }, [rawItems, search]);
+const items: Archivo[] = React.useMemo(() => {
+  // base: lista original o filtrada por el buscador
+  const base = !search.trim()
+    ? rawItems
+    : rawItems.filter((i) =>
+        i.name.toLowerCase().includes(search.toLowerCase())
+      );
+
+  // devolvemos una copia ordenada por nombre
+  return [...base].sort((a, b) =>
+    a.name.localeCompare(b.name, "es", { sensitivity: "base" })
+  );
+}, [rawItems, search]);
 
   const depth = React.useMemo(() => {
     if (!currentPath) return 0;

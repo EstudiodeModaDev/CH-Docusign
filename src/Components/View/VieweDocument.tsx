@@ -57,47 +57,23 @@ export const ColaboradoresExplorer: React.FC = () => {
                     {!loading && !error && items.length === 0 && (
                         <p className="colab-explorer__info">No se encontraron elementos en esta carpeta.</p>
                     )}
-                    {!loading && !error &&
-                        items.map((item) => (
-                            <button
-                            key={item.id}
-                            type="button"
-                            className="colab-explorer__row"
-                            onClick={() => openItem(item)}
-                            >
+                    {!loading && !error && items.map((item) => (
+                        <button key={item.id} type="button" className="colab-explorer__row" onClick={() => openItem(item)}>
                             <div className="colab-explorer__row-left">
-                                <span
-                                className={
-                                    item.isFolder
-                                    ? "colab-explorer__folder-icon"
-                                    : "colab-explorer__file-icon"
-                                }
-                                aria-hidden="true"
-                                />
+                                <span className={item.isFolder ? "colab-explorer__folder-icon" : "colab-explorer__file-icon"} aria-hidden="true"/>
                                 <span className="colab-explorer__row-name">{item.name}</span>
-                                <span className="colab-explorer__row-date">
-                                {parseDateFlex(item.lastModified ?? "")?.toLocaleDateString("es-CO") ??
-                                    ""}
-                                </span>
+                                <span className="colab-explorer__row-date">{parseDateFlex(item.lastModified ?? "")?.toLocaleDateString("es-CO") ?? ""}</span>
                             </div>
 
                             {depth >= 2 && (
                                 <div className="colab-explorer__row-right">
-                                <button
-                                    type="button"
-                                    className="btn btn-xs"
-                                    onClick={(e) => {
-                                    e.stopPropagation(); // evita que abra la carpeta
-                                    setSelectedFile(item);
-                                    setEdit(true);
-                                    }}
-                                >
-                                    Edit
-                                </button>
+                                    <button type="button" className="colab-explorer__edit-btn" onClick={(e) => {e.stopPropagation(); setSelectedFile(item); setEdit(true);}} aria-label="Editar nombre"                            >
+                                        <span className="colab-explorer__edit-icon" aria-hidden="true" />
+                                    </button>
                                 </div>
                             )}
-                            </button>
-                        ))}
+                        </button>
+                    ))}
                         
                 </div>
                 {agregar ? <SimpleFileUpload folderPath={currentPath} onClose={() => setAgregar(false)}></SimpleFileUpload> : null}

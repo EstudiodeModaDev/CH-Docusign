@@ -1,4 +1,4 @@
-function filtrarNuevosYDuplicados<TExcel, TDestino>(filasExcel: TExcel[], existentesDestino: TDestino[], getKeyExcel: (row: TExcel) => string, getKeyDestino: (row: TDestino) => string) {
+/*function filtrarNuevosYDuplicados<TExcel, TDestino>(filasExcel: TExcel[], existentesDestino: TDestino[], getKeyExcel: (row: TExcel) => string, getKeyDestino: (row: TDestino) => string) {
   const existentes = new Set<string>(
     existentesDestino.map((r) => getKeyDestino(r))
   );
@@ -20,3 +20,4 @@ function filtrarNuevosYDuplicados<TExcel, TDestino>(filasExcel: TExcel[], existe
 
   return { nuevos, duplicados };
 }
+*/

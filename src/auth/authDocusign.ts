@@ -1,10 +1,10 @@
 // src/auth/authDocusign.ts
 import * as React from "react";
 
-const DS_CLIENT_ID = import.meta.env.VITE_DS_CLIENT_ID;
-const DS_ENV = import.meta.env.VITE_DS_ENV ?? "demo";
+const DS_CLIENT_ID = "39f5105e-3669-43c9-b345-e4cb2725f755";
+const DS_ENV = "prod";
 const REDIRECT_URI =
-  import.meta.env.VITE_DS_REDIRECT_URI || window.location.origin + "/";
+  "https://lively-coast-08111f510.3.azurestaticapps.net/" + "/";
 
 const AUTH_SERVER =
   DS_ENV === "prod"

@@ -1,7 +1,7 @@
 import {getStoredAuth, isAuthValid, type DocusignAuthState,} from "../auth/authDocusign";
 
-const ACCOUNT_ID = import.meta.env.VITE_DS_ACCOUNT_ID;
-const BASE_URL = import.meta.env.VITE_DS_BASE_URL; // https://demo.docusign.net/restapi
+const ACCOUNT_ID = "ad6ccb06-405a-421e-a436-22bf93803154";
+const BASE_URL = "https://na4.docusign.net/restapi"; // https://demo.docusign.net/restapi
 
 
 async function getAuthOrThrow(): Promise<DocusignAuthState> {

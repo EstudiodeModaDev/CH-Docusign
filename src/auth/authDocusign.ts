@@ -1,4 +1,3 @@
-// src/auth/authDocusign.ts
 import * as React from "react";
 
 const DS_ENV: "prod" | "demo" = "prod";
@@ -118,7 +117,8 @@ export function startDocusignLogin() {
         `&scope=${encodeURIComponent(SCOPES)}` +
         `&state=${encodeURIComponent(state)}` +
         `&code_challenge=${encodeURIComponent(challenge)}` +
-        `&code_challenge_method=S256`;
+        `&code_challenge_method=S256` +
+        `&prompt=consent`;
 
       window.location.href = authUrl;
     } catch (e) {
@@ -178,6 +178,10 @@ export async function handleDocusignRedirect(): Promise<DocusignAuthState | null
     expires_in: number;
   };
 
+  
+  console.log("TOKEN_SCOPE_FROM_DS:", data.scope); // 👈 AQUÍ
+  console.log("TOKEN_TYPE_FROM_DS:", data.token_type);
+
   const auth: DocusignAuthState = {
     accessToken: data.access_token,
     tokenType: data.token_type,
@@ -187,6 +191,7 @@ export async function handleDocusignRedirect(): Promise<DocusignAuthState | null
   };
 
   saveAuth(auth);
+  console.log("STORED_SCOPE:", auth.scope);
   localStorage.removeItem(STATE_KEY);
   localStorage.removeItem(VERIFIER_KEY);
 

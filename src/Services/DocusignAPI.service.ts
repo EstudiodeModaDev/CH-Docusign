@@ -39,7 +39,7 @@ export async function fetchUserInfo(accessToken: string, ): Promise<DsUserInfo> 
   const host = getAuthServer();
 
   const resp = await fetch(`${host}/oauth/userinfo`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: { Authorization: `Bearer ${accessToken}`,  "Content-Type": "application/json",},
   });
 
   const data = (await resp.json()) as DsUserInfo;

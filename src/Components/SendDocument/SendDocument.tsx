@@ -7,17 +7,7 @@ import { usePromocion } from "../../Funcionalidades/Promocion";
 import { ElegirColaboradorModal } from "./ModalSelect/ModalSelect";
 import { useHabeasData } from "../../Funcionalidades/HabeasData";
 import { useContratos } from "../../Funcionalidades/Contratos";
-import {
-  getEnvelopeDocGenFormFields,
-  getEnvelopeDocumentTabs,
-  sendEnvelope,
-  updateEnvelopeDocGenFormFields,
-  updateEnvelopePrefillTextTabs,
-  updateEnvelopeRecipients,
-  type DocGenUpdateDocPayload,
-  type DocusignRecipient,
-  type UpdatePrefillTextTabPayload,
-} from "../../Services/DocusignAPI.service";
+import { getEnvelopeDocGenFormFields, getEnvelopeDocumentTabs, sendEnvelope, updateEnvelopeDocGenFormFields, updateEnvelopePrefillTextTabs, updateEnvelopeRecipients, type DocGenUpdateDocPayload, type DocusignRecipient, type UpdatePrefillTextTabPayload,} from "../../Services/DocusignAPI.service";
 import { formatPesosEsCO } from "../../utils/Number";
 import type { Promocion } from "../../models/Promociones";
 import type { Novedad } from "../../models/Novedades";
@@ -138,25 +128,12 @@ const EnviarFormatoCard: React.FC = () => {
   const [signers, setSigners] = React.useState<DocusignRecipient[]>([]);
   const [varColaborador, setVarColaborador] = React.useState<Promocion | Novedad | HabeasData | null>(null);
   const [elegir, setElegir] = React.useState<boolean>(false);
-
   const { templatesOptions, createdraft, getRecipients } = useDocusignTemplates();
   const { Envios, Promociones, HabeasData, Contratos } = useGraphServices();
   const { state, setField, handleSubmit: crearRegistro } = useEnvios(Envios);
-
-  const {
-    searchWorker: searchWorkerHabeas,
-    workers: workersHabeas,
-    workersOptions: workerOptionsHabeas,
-  } = useHabeasData(HabeasData);
-
-  const {
-    searchWorker: searchWorkerContratos,
-    workers: workersContratos,
-    workersOptions: workerOptionsContratos,
-  } = useContratos(Contratos);
-
+  const { searchWorker: searchWorkerHabeas, workers: workersHabeas, workersOptions: workerOptionsHabeas,} = useHabeasData(HabeasData);
+  const { searchWorker: searchWorkerContratos, workers: workersContratos, workersOptions: workerOptionsContratos,} = useContratos(Contratos);
   const { searchWorker, workers, workersOptions } = usePromocion(Promociones);
-
   const plantillaSelected = templatesOptions.find((o) => o.value === templateId) ?? null;
 
   const pickValueFromLabel = (raw: string, vm: DocuSignVM) => {
@@ -194,6 +171,7 @@ const EnviarFormatoCard: React.FC = () => {
 
       case "garantizado":
       case "garantizadoletras":
+      case "GarantizadoAlfabetico":
         return vm.garantizadoLetras;
 
       case "identificaci_n":
@@ -452,15 +430,8 @@ const EnviarFormatoCard: React.FC = () => {
       <div className="ef-card">
         <form onSubmit={handleSubmit} className="ef-form">
           <div className="ef-field">
-            <label className="ef-label" htmlFor="proceso">
-              ¿Que clase de proceso hara?
-            </label>
-            <select
-              id="proceso"
-              className="ef-input"
-              value={proceso}
-              onChange={(e) => setProceso(e.target.value as Proceso | "")}
-            >
+            <label className="ef-label" htmlFor="proceso"> ¿Que clase de proceso hara? </label>
+            <select id="proceso" className="ef-input" value={proceso} onChange={(e) => setProceso(e.target.value as Proceso | "")}>
               <option value="">Selecciona un formato</option>
               <option value="Nuevo">Nuevo ingreso</option>
               <option value="Promocion">Promocion</option>
@@ -469,65 +440,29 @@ const EnviarFormatoCard: React.FC = () => {
           </div>
 
           <div className="ef-field">
-            <label className="ef-label" htmlFor="cedula">
-              Cédula del receptor
-            </label>
-            <input
-              id="cedula"
-              type="number"
-              className="ef-input"
-              disabled={disabled}
-              value={state.Cedula}
-              onBlur={(e) => handleLookWorker(e.target.value)}
-              onChange={(e) => setField("Cedula", e.target.value)}
-            />
+            <label className="ef-label" htmlFor="cedula"> Cédula del receptor </label>
+            <input id="cedula" type="number" className="ef-input" disabled={disabled} value={state.Cedula} onBlur={(e) => handleLookWorker(e.target.value)} onChange={(e) => setField("Cedula", e.target.value)}/>
           </div>
 
           <div className="ef-field">
-            <label className="ef-label" htmlFor="nombre">
-              Nombre del receptor
-            </label>
-            <input
-              id="nombre"
-              type="text"
-              className="ef-input"
-              disabled={disabled}
-              value={state.Receptor}
-              onChange={(e) => setField("Receptor", e.target.value)}
-            />
+            <label className="ef-label" htmlFor="nombre"> Nombre del receptor </label>
+            <input id="nombre" type="text" className="ef-input" disabled={disabled} value={state.Receptor} onChange={(e) => setField("Receptor", e.target.value)}/>
           </div>
 
           <div className="ef-field">
-            <label className="ef-label" htmlFor="correo">
-              Correo del receptor
-            </label>
-            <input
-              id="correo"
-              type="email"
-              className="ef-input"
-              disabled={disabled}
-              value={state.CorreoReceptor}
-              onChange={(e) => setField("CorreoReceptor", e.target.value)}
-            />
+            <label className="ef-label" htmlFor="correo"> Correo del receptor </label>
+            <input id="correo" type="email" className="ef-input" disabled={disabled} value={state.CorreoReceptor} onChange={(e) => setField("CorreoReceptor", e.target.value)}/>
           </div>
 
           <div className="ef-field">
-            <label className="ef-label" htmlFor="formato">
-              ¿Qué formato se va a enviar?
-            </label>
-            <select
-              id="formato"
-              className="ef-input"
-              disabled={disabled}
-              value={plantillaSelected?.value ?? ""}
-              onChange={(e) => {
-                const newTemplateId = e.target.value;
-                setTemplateId(newTemplateId);
+            <label className="ef-label" htmlFor="formato"> ¿Qué formato se va a enviar? </label>
+            <select id="formato" className="ef-input" disabled={disabled} value={plantillaSelected?.value ?? ""} onChange={(e) => {
+                                                                                                                    const newTemplateId = e.target.value;
+                                                                                                                    setTemplateId(newTemplateId);
 
-                const sel = templatesOptions.find((o) => o.value === newTemplateId);
-                setField("Title", sel?.label ?? "");
-              }}
-            >
+                                                                                                                    const sel = templatesOptions.find((o) => o.value === newTemplateId);
+                                                                                                                    setField("Title", sel?.label ?? "");
+                                                                                                                  }}>
               <option value="">Selecciona un formato</option>
               {templatesOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -545,28 +480,17 @@ const EnviarFormatoCard: React.FC = () => {
         </form>
       </div>
 
-      <ElegirColaboradorModal
-        open={elegir}
-        onClose={() => setElegir(false)}
-        onConfirm={handleConfirmWorker}
-        options={
-          proceso === "Promocion"
-            ? workersOptions
-            : proceso === "Habeas"
-            ? workerOptionsHabeas
-            : proceso === "Nuevo"
-            ? workerOptionsContratos
-            : workerOptionsContratos
-        }
-      />
+      <ElegirColaboradorModal open={elegir} onClose={() => setElegir(false)} onConfirm={handleConfirmWorker} options={
+                                                                                                              proceso === "Promocion"
+                                                                                                                ? workersOptions
+                                                                                                                : proceso === "Habeas"
+                                                                                                                ? workerOptionsHabeas
+                                                                                                                : proceso === "Nuevo"
+                                                                                                                ? workerOptionsContratos
+                                                                                                                : workerOptionsContratos
+                                                                                                            }/>
 
-      <SignersModal
-        open={segundoPaso}
-        signers={signers}
-        onClose={() => setSegundoPaso(false)}
-        onChangeSigner={handleChangeSigner}
-        onSave={handleSendEnvolope}
-      />
+      <SignersModal open={segundoPaso} signers={signers} onClose={() => setSegundoPaso(false)} onChangeSigner={handleChangeSigner} onSave={handleSendEnvolope}/>
     </div>
   );
 };
@@ -579,13 +503,7 @@ type SignersModalProps = {
   onSave?: () => void;
 };
 
-export const SignersModal: React.FC<SignersModalProps> = ({
-  open,
-  signers,
-  onChangeSigner,
-  onClose,
-  onSave,
-}) => {
+export const SignersModal: React.FC<SignersModalProps> = ({open, signers, onChangeSigner, onClose, onSave,}) => {
   const [sending, setSending] = React.useState<boolean>(false);
 
   if (!open) return null;
@@ -620,24 +538,12 @@ export const SignersModal: React.FC<SignersModalProps> = ({
                 <div className="signer-body">
                   <div className="signer-field">
                     <label className="signer-label">Nombre</label>
-                    <input
-                      className="signer-input"
-                      type="text"
-                      value={signer.name ?? ""}
-                      onChange={handleChange(idx, "name")}
-                      placeholder="Nombre del firmante"
-                    />
+                    <input className="signer-input" type="text" value={signer.name ?? ""} onChange={handleChange(idx, "name")} placeholder="Nombre del firmante"/>
                   </div>
 
                   <div className="signer-field">
                     <label className="signer-label">Correo electrónico</label>
-                    <input
-                      className="signer-input"
-                      type="email"
-                      value={signer.email ?? ""}
-                      onChange={handleChange(idx, "email")}
-                      placeholder="correo@ejemplo.com"
-                    />
+                    <input className="signer-input" type="email" value={signer.email ?? ""} onChange={handleChange(idx, "email")} placeholder="correo@ejemplo.com"/>
                   </div>
                 </div>
               </div>
@@ -651,20 +557,15 @@ export const SignersModal: React.FC<SignersModalProps> = ({
           </button>
 
           {onSave && (
-            <button
-              type="button"
-              className="btn btn-primary-final btn-xs"
-              disabled={sending}
-              onClick={async () => {
-                setSending(true);
-                try {
-                  await onSave();
-                  onClose();
-                } finally {
-                  setSending(false);
-                }
-              }}
-            >
+            <button type="button" className="btn btn-primary-final btn-xs" disabled={sending} onClick={async () => {
+                                                                                                        setSending(true);
+                                                                                                        try {
+                                                                                                          await onSave();
+                                                                                                          onClose();
+                                                                                                        } finally {
+                                                                                                          setSending(false);
+                                                                                                        }
+                                                                                                      }}>
               {sending ? "Enviando sobre..." : "Guardar cambios"}
             </button>
           )}

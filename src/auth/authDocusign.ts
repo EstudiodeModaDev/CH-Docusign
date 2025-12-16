@@ -1,15 +1,14 @@
 // src/auth/authDocusign.ts
 import * as React from "react";
 
-const DS_CLIENT_ID = "39f5105e-3669-43c9-b345-e4cb2725f755";
-const DS_ENV = "prod";
+const DS_CLIENT_ID = "b0bfe3da-718e-45cb-9ba5-4936c65d7144";
+//const DS_ENV = "prod";
 const REDIRECT_URI =
-  "https://lively-coast-08111f510.3.azurestaticapps.net/" + "/";
+  "https://lively-coast-08111f510.3.azurestaticapps.net" + "/";
 
 const AUTH_SERVER =
-  DS_ENV === "prod"
-    ? "https://account.docusign.com"
-    : "https://account-d.docusign.com";
+    //? "https://account.docusign.com"
+    "https://account-d.docusign.com";
 
 // Scopes básicos (puedes agregar más luego si hace falta)
 const SCOPES = "signature cors";

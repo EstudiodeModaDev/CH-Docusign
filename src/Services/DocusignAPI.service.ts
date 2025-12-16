@@ -111,9 +111,8 @@ async function getAuthOrThrow(): Promise<DocusignAuthState> {
  * ========================= */
 export async function listTemplates(params?: { searchText?: string; includeAdvanced?: boolean }) {
   const auth = await getAuthOrThrow();
-  const ctx = await getDocusignContext();
 
-  const url = new URL(`${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/templates`);
+  const url = new URL(`https://na4.docusign.net/restapi/v2.1/accounts/ad6ccb06-405a-421e-a436-22bf93803154/templates`);
 
   if (params?.searchText) url.searchParams.set("search_text", params.searchText);
   if (params?.includeAdvanced) url.searchParams.set("include_advanced_templates", "true");

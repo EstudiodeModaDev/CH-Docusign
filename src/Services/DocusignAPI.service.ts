@@ -25,8 +25,8 @@ export type DsContext = {
 const CTX_CACHE_KEY = "ds_ctx_v1";
 
 /** AUTH server por ambiente */
-function getAuthServer(env: "prod" | "demo") {
-  return env === "prod" ? "https://account.docusign.com" : "https://account-d.docusign.com";
+function getAuthServer() {
+  return "https://account.docusign.com";
 }
 
 async function readAuthOrThrow(): Promise<DocusignAuthState> {
@@ -35,8 +35,8 @@ async function readAuthOrThrow(): Promise<DocusignAuthState> {
   return auth!;
 }
 
-export async function fetchUserInfo(accessToken: string, env: "prod" | "demo"): Promise<DsUserInfo> {
-  const host = getAuthServer(env);
+export async function fetchUserInfo(accessToken: string, ): Promise<DsUserInfo> {
+  const host = getAuthServer();
 
   const resp = await fetch(`${host}/oauth/userinfo`, {
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -75,7 +75,7 @@ export async function getDocusignContext(forceRefresh = false): Promise<DsContex
     }
   }
 
-  const ui = await fetchUserInfo(auth.accessToken, auth.env);
+  const ui = await fetchUserInfo(auth.accessToken, );
 
   const acct =
     ui.accounts.find((a) => a.is_default) ??

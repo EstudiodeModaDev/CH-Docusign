@@ -1,11 +1,6 @@
 // src/auth/authDocusign.ts
 import * as React from "react";
 
-/**
- * Config
- * - Para PROD: account.docusign.com
- * - Para DEMO: account-d.docusign.com
- */
 const DS_ENV: "prod" | "demo" = "prod";
 
 const DS_CLIENT_ID = "39f5105e-3669-43c9-b345-e4cb2725f755";
@@ -15,10 +10,7 @@ const REDIRECT_URI = "https://lively-coast-08111f510.3.azurestaticapps.net/";
 /**
  * AUTH server según ambiente
  */
-const AUTH_SERVER =
-  DS_ENV === "prod"
-    ? "https://account.docusign.com"
-    : "https://account-d.docusign.com";
+const AUTH_SERVER = "https://account.docusign.com";
 
 /**
  * IMPORTANTE:

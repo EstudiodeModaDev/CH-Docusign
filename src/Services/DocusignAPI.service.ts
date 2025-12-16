@@ -1,48 +1,146 @@
-import {getStoredAuth, isAuthValid, type DocusignAuthState,} from "../auth/authDocusign";
+// src/services/docusignContext.ts
+import { getStoredAuth, isAuthValid, type DocusignAuthState } from "../auth/authDocusign";
 
-const ACCOUNT_ID = "ad6ccb06-405a-421e-a436-22bf93803154";
-const BASE_URL = "https://na4.docusign.net/restapi";//  "https://demo.docusign.net/restapi"
+export type DsUserInfoAccount = {
+  account_id: string;
+  base_uri: string; // ej: https://na4.docusign.net
+  is_default?: boolean;
+  account_name?: string;
+};
 
+export type DsUserInfo = {
+  sub: string;
+  name?: string;
+  email?: string;
+  accounts: DsUserInfoAccount[];
+};
 
-async function getAuthOrThrow(): Promise<DocusignAuthState> {
+export type DsContext = {
+  env: "prod" | "demo";
+  accountId: string;
+  baseUrl: string; // base_uri + "/restapi"
+  accountName?: string;
+};
+
+const CTX_CACHE_KEY = "ds_ctx_v1";
+
+/** AUTH server por ambiente */
+function getAuthServer(env: "prod" | "demo") {
+  return env === "prod" ? "https://account.docusign.com" : "https://account-d.docusign.com";
+}
+
+async function readAuthOrThrow(): Promise<DocusignAuthState> {
   const auth = getStoredAuth();
-  if (!isAuthValid(auth)) {
-    throw new Error("Token de DocuSign no disponible o expirado");
-  }
+  if (!isAuthValid(auth)) throw new Error("Token de DocuSign no disponible o expirado");
   return auth!;
 }
 
-/** Listar plantillas del account */
-export async function listTemplates(params?: {searchText?: string; includeAdvanced?: boolean;}) {
+export async function fetchUserInfo(accessToken: string, env: "prod" | "demo"): Promise<DsUserInfo> {
+  const host = getAuthServer(env);
+
+  const resp = await fetch(`${host}/oauth/userinfo`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  const data = (await resp.json()) as DsUserInfo;
+
+  if (!resp.ok) {
+    throw new Error(`userinfo error ${resp.status}: ${JSON.stringify(data)}`);
+  }
+  if (!data?.accounts?.length) {
+    throw new Error("userinfo no devolvió accounts (no hay cuentas asociadas al token)");
+  }
+  return data;
+}
+
+/**
+ * Obtiene el contexto real:
+ * - accountId
+ * - base_uri (na4, euX, etc)
+ * y lo cachea en localStorage
+ */
+export async function getDocusignContext(forceRefresh = false): Promise<DsContext> {
+  const auth = await readAuthOrThrow();
+
+  if (!forceRefresh) {
+    const raw = localStorage.getItem(CTX_CACHE_KEY);
+    if (raw) {
+      try {
+        const cached = JSON.parse(raw) as DsContext;
+        // si cambia el env, refrescamos
+        if (cached?.accountId && cached?.baseUrl && cached?.env === auth.env) return cached;
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  const ui = await fetchUserInfo(auth.accessToken, auth.env);
+
+  const acct =
+    ui.accounts.find((a) => a.is_default) ??
+    ui.accounts[0];
+
+  if (!acct?.account_id || !acct?.base_uri) {
+    throw new Error("No pude obtener account_id/base_uri desde userinfo");
+  }
+
+  const ctx: DsContext = {
+    env: auth.env,
+    accountId: acct.account_id,
+    baseUrl: `${acct.base_uri}/restapi`,
+    accountName: acct.account_name,
+  };
+
+  localStorage.setItem(CTX_CACHE_KEY, JSON.stringify(ctx));
+  return ctx;
+}
+
+export function clearDocusignContextCache() {
+  localStorage.removeItem(CTX_CACHE_KEY);
+}
+
+async function getAuthOrThrow(): Promise<DocusignAuthState> {
+  const auth = getStoredAuth();
+  if (!isAuthValid(auth)) throw new Error("Token de DocuSign no disponible o expirado");
+  return auth!;
+}
+
+/** =========================
+ * Listar plantillas
+ * ========================= */
+export async function listTemplates(params?: { searchText?: string; includeAdvanced?: boolean }) {
   const auth = await getAuthOrThrow();
+  const ctx = await getDocusignContext();
 
-  const url = new URL(
-    `${BASE_URL}/v2.1/accounts/${ACCOUNT_ID}/templates`
-  );
+  const url = new URL(`${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/templates`);
 
-  if (params?.searchText) {
-    url.searchParams.set("search_text", params.searchText);
-  }
-  if (params?.includeAdvanced) {
-    url.searchParams.set("include_advanced_templates", "true");
-  }
+  if (params?.searchText) url.searchParams.set("search_text", params.searchText);
+  if (params?.includeAdvanced) url.searchParams.set("include_advanced_templates", "true");
 
   const resp = await fetch(url.toString(), {
     headers: {
       Authorization: `Bearer ${auth.accessToken}`,
+      Accept: "application/json",
     },
   });
 
-  const data = await resp.json();
+  const text = await resp.text();
+  const data = text ? JSON.parse(text) : null;
+
   if (!resp.ok) {
-    console.error("Error listando plantillas:", data);
-    throw new Error("DocuSign devolvió error al listar plantillas");
+    console.error("URL:", url.toString());
+    console.error("Status:", resp.status, resp.statusText);
+    console.error("Body:", data);
+    throw new Error(`DocuSign error listTemplates: ${resp.status}`);
   }
 
-  return data; // viene algo como { envelopeTemplates: [ ... ], resultSetSize, ... }
+  return data; // { envelopeTemplates: [...], resultSetSize, ... }
 }
 
-// Tipos auxiliares para sobres
+/** =========================
+ * Tipos auxiliares
+ * ========================= */
 
 export interface DsTemplateRoleInput {
   roleName: string;
@@ -68,9 +166,6 @@ export interface DocusignRecipientTabs {
     tabLabel?: string;
     value?: string;
   }>;
-  // Si en el futuro usas más tipos, los agregas aquí:
-  // dateTabs?: Array<{ tabId: string; tabLabel?: string; value?: string }>;
-  // checkboxTabs?: Array<{ tabId: string; tabLabel?: string; selected?: 'true' | 'false' }>;
 }
 
 export interface DocusignRecipient {
@@ -135,98 +230,100 @@ export interface UpdateDocumentTabsResponse {
 
 export interface DocGenUpdateDocPayload {
   documentId: string;
-  fields: Array<{
-    name: string;
-    value: string;
-  }>;
+  fields: Array<{ name: string; value: string }>;
 }
 
-
-//Crear sobre desde plantilla en estado draft
-export async function createEnvelopeFromTemplateDraft(input: CreateDraftFromTemplateInput ): Promise<EnvelopeBasic> {
+/** =========================
+ * Crear sobre draft desde plantilla
+ * ========================= */
+export async function createEnvelopeFromTemplateDraft(
+  input: CreateDraftFromTemplateInput
+): Promise<EnvelopeBasic> {
   const auth = await getAuthOrThrow();
+  const ctx = await getDocusignContext();
 
   const body = {
     templateId: input.templateId,
     emailSubject: input.emailSubject,
     emailBlurb: input.emailBlurb,
-    templateRoles: input.roles.map(r => ({
+    templateRoles: input.roles.map((r) => ({
       email: r.email,
       name: r.name,
       roleName: r.roleName,
     })),
-    status: "created", // 👈 importante: se queda como borrador
+    status: "created", // draft
   };
 
-  const resp = await fetch(
-    `${BASE_URL}/v2.1/accounts/${ACCOUNT_ID}/envelopes`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${auth.accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    }
-  );
+  const resp = await fetch(`${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/envelopes`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${auth.accessToken}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(body),
+  });
 
-  const data = await resp.json();
+  const data = await resp.json().catch(() => ({}));
+
   if (!resp.ok) {
     console.error("Error creando envelope desde plantilla:", data);
-    throw new Error("DocuSign devolvió error al crear el sobre");
+    throw new Error(`DocuSign error createEnvelopeFromTemplateDraft: ${resp.status}`);
   }
 
-  return {
-    envelopeId: data.envelopeId,
-    status: data.status,
-  };
+  return { envelopeId: data.envelopeId, status: data.status };
 }
 
-//Obtener recipients
+/** =========================
+ * Obtener recipients
+ * ========================= */
 export async function getEnvelopeRecipientsWithTabs(envelopeId: string): Promise<EnvelopeRecipients> {
   const auth = await getAuthOrThrow();
+  const ctx = await getDocusignContext();
 
-  const url = `${BASE_URL}/v2.1/accounts/${ACCOUNT_ID}/envelopes/${envelopeId}/recipients`;
+  const url = `${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/envelopes/${envelopeId}/recipients`;
 
   const resp = await fetch(url, {
     headers: {
       Authorization: `Bearer ${auth.accessToken}`,
+      Accept: "application/json",
     },
   });
 
-  const data = await resp.json();
+  const data = await resp.json().catch(() => ({}));
 
   if (!resp.ok) {
     console.error("Error obteniendo recipients del envelope:", data);
-    throw new Error("DocuSign devolvió error al obtener los recipients");
+    throw new Error(`DocuSign error getEnvelopeRecipientsWithTabs: ${resp.status}`);
   }
 
-  
   const allRecipients = [
     ...(data.signers ?? []),
     ...(data.certifiedDeliveries ?? []),
   ] as DocusignRecipient[];
 
-  return {
-    signers: allRecipients as DocusignRecipient[],
-  };
+  return { signers: allRecipients };
 }
 
-//Actualizar tabs de un recipient (llenar campos)
+/** =========================
+ * Actualizar tabs de recipient
+ * ========================= */
 export async function updateRecipientTabs(
   envelopeId: string,
   recipientId: string,
   tabs: UpdateRecipientTabsPayload
 ): Promise<void> {
   const auth = await getAuthOrThrow();
+  const ctx = await getDocusignContext();
 
-  const url = `${BASE_URL}/v2.1/accounts/${ACCOUNT_ID}/envelopes/${envelopeId}/recipients/${recipientId}/tabs`;
+  const url = `${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/envelopes/${envelopeId}/recipients/${recipientId}/tabs`;
 
   const resp = await fetch(url, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${auth.accessToken}`,
       "Content-Type": "application/json",
+      Accept: "application/json",
     },
     body: JSON.stringify(tabs),
   });
@@ -234,21 +331,25 @@ export async function updateRecipientTabs(
   if (!resp.ok) {
     const data = await resp.json().catch(() => ({}));
     console.error("Error actualizando tabs del recipient:", data);
-    throw new Error("DocuSign devolvió error al actualizar los tabs");
+    throw new Error(`DocuSign error updateRecipientTabs: ${resp.status}`);
   }
 }
 
-// 4) Enviar el sobre (cambiar estado a sent)
+/** =========================
+ * Enviar sobre (status sent)
+ * ========================= */
 export async function sendEnvelope(envelopeId: string): Promise<void> {
   const auth = await getAuthOrThrow();
+  const ctx = await getDocusignContext();
 
-  const url = `${BASE_URL}/v2.1/accounts/${ACCOUNT_ID}/envelopes/${envelopeId}`;
+  const url = `${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/envelopes/${envelopeId}`;
 
   const resp = await fetch(url, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${auth.accessToken}`,
       "Content-Type": "application/json",
+      Accept: "application/json",
     },
     body: JSON.stringify({ status: "sent" }),
   });
@@ -256,64 +357,77 @@ export async function sendEnvelope(envelopeId: string): Promise<void> {
   if (!resp.ok) {
     const data = await resp.json().catch(() => ({}));
     console.error("Error enviando envelope:", data);
-    throw new Error("DocuSign devolvió error al enviar el sobre");
+    throw new Error(`DocuSign error sendEnvelope: ${resp.status}`);
   }
 }
 
-export async function getEnvelopeDocumentTabs(envelopeId: string, documentId: string ): Promise<PrefillTabsResponse> {
+/** =========================
+ * Tabs de documento
+ * ========================= */
+export async function getEnvelopeDocumentTabs(
+  envelopeId: string,
+  documentId: string
+): Promise<PrefillTabsResponse> {
   const auth = await getAuthOrThrow();
+  const ctx = await getDocusignContext();
 
   const resp = await fetch(
-    `${BASE_URL}/v2.1/accounts/${ACCOUNT_ID}/envelopes/${envelopeId}/documents/${documentId}/tabs`,
-    {
-      headers: { Authorization: `Bearer ${auth.accessToken}` },
-    }
+    `${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/envelopes/${envelopeId}/documents/${documentId}/tabs`,
+    { headers: { Authorization: `Bearer ${auth.accessToken}`, Accept: "application/json" } }
   );
 
-  if(resp.status === 404) {
-    alert("El sobre no tiene campos de prefill tabs.");
+  if (resp.status === 404) {
     return { prefillTabs: { textTabs: [] } };
   }
 
-  const data = await resp.json();
+  const data = await resp.json().catch(() => ({}));
   if (!resp.ok) {
     console.error("Error obteniendo document tabs:", data);
-    throw new Error("DocuSign devolvió error al obtener los document tabs");
+    throw new Error(`DocuSign error getEnvelopeDocumentTabs: ${resp.status}`);
   }
 
   return data as PrefillTabsResponse;
 }
 
+/** =========================
+ * DocGen form fields (GET)
+ * ========================= */
 export async function getEnvelopeDocGenFormFields(envelopeId: string): Promise<DocGenFormFieldResponse> {
   const auth = await getAuthOrThrow();
+  const ctx = await getDocusignContext();
 
   const resp = await fetch(
-    `${BASE_URL}/v2.1/accounts/${ACCOUNT_ID}/envelopes/${envelopeId}/docGenFormFields`,
-    {
-      headers: { Authorization: `Bearer ${auth.accessToken}` },
-    }
+    `${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/envelopes/${envelopeId}/docGenFormFields`,
+    { headers: { Authorization: `Bearer ${auth.accessToken}`, Accept: "application/json" } }
   );
 
-  if(resp.status === 400) {
-    alert("El sobre no tiene campos de generación de documentos.");
+  if (resp.status === 400) {
     return { docGenFormFields: [] };
   }
 
-  const data = await resp.json();
+  const data = await resp.json().catch(() => ({}));
   if (!resp.ok) {
     console.error("Error obteniendo docGenFormFields:", data);
-    throw new Error("DocuSign devolvió error al obtener los docGenFormFields");
+    throw new Error(`DocuSign error getEnvelopeDocGenFormFields: ${resp.status}`);
   }
 
   return data as DocGenFormFieldResponse;
 }
 
-export async function updateEnvelopePrefillTextTabs(envelopeId: string, documentId: string, tabs: UpdatePrefillTextTabPayload[]): Promise<UpdateDocumentTabsResponse> {
+/** =========================
+ * Prefill text tabs (PUT)
+ * ========================= */
+export async function updateEnvelopePrefillTextTabs(
+  envelopeId: string,
+  documentId: string,
+  tabs: UpdatePrefillTextTabPayload[]
+): Promise<UpdateDocumentTabsResponse> {
   const auth = await getAuthOrThrow();
+  const ctx = await getDocusignContext();
 
   const payload = {
     prefillTabs: {
-      textTabs: tabs.map(t => ({
+      textTabs: tabs.map((t) => ({
         tabId: t.tabId,
         value: t.value,
         documentId,
@@ -322,106 +436,119 @@ export async function updateEnvelopePrefillTextTabs(envelopeId: string, document
   };
 
   const resp = await fetch(
-    `${BASE_URL}/v2.1/accounts/${ACCOUNT_ID}/envelopes/${envelopeId}/documents/${documentId}/tabs`,
+    `${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/envelopes/${envelopeId}/documents/${documentId}/tabs`,
     {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${auth.accessToken}`,
         "Content-Type": "application/json",
+        Accept: "application/json",
       },
       body: JSON.stringify(payload),
     }
   );
 
   const data = await resp.json().catch(() => ({}));
-
   if (!resp.ok) {
     console.error("Error actualizando prefill tabs:", data);
-    throw new Error("DocuSign devolvió error al actualizar los prefill tabs");
+    throw new Error(`DocuSign error updateEnvelopePrefillTextTabs: ${resp.status}`);
   }
 
   return data as UpdateDocumentTabsResponse;
 }
 
-// DOC GEN — ACTUALIZAR
-export async function updateEnvelopeDocGenFormFields(envelopeId: string, docs: DocGenUpdateDocPayload[]): Promise<DocGenFormFieldResponse> {
+/** =========================
+ * DocGen update (PUT)
+ * ========================= */
+export async function updateEnvelopeDocGenFormFields(
+  envelopeId: string,
+  docs: DocGenUpdateDocPayload[]
+): Promise<DocGenFormFieldResponse> {
   const auth = await getAuthOrThrow();
+  const ctx = await getDocusignContext();
 
   const payload: DocGenFormFieldResponse = {
-    docGenFormFields: docs.map(d => ({
+    docGenFormFields: docs.map((d) => ({
       documentId: d.documentId,
-      docGenFormFieldList: d.fields.map(f => ({
-        name: f.name,
-        value: f.value,
-      })),
+      docGenFormFieldList: d.fields.map((f) => ({ name: f.name, value: f.value })),
     })),
   };
 
   const resp = await fetch(
-    `${BASE_URL}/v2.1/accounts/${ACCOUNT_ID}/envelopes/${envelopeId}/docGenFormFields`,
+    `${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/envelopes/${envelopeId}/docGenFormFields`,
     {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${auth.accessToken}`,
         "Content-Type": "application/json",
+        Accept: "application/json",
       },
       body: JSON.stringify(payload),
     }
   );
 
   const data = await resp.json().catch(() => ({}));
-
   if (!resp.ok) {
     console.error("Error actualizando DocGen form fields:", data);
-    throw new Error("DocuSign devolvió error al actualizar los DocGen form fields");
+    throw new Error(`DocuSign error updateEnvelopeDocGenFormFields: ${resp.status}`);
   }
 
   return data as DocGenFormFieldResponse;
 }
 
-export async function updateEnvelopeRecipients(envelopeId: string, recipients: EnvelopeRecipients, options?: { resendEnvelope?: boolean }): Promise<EnvelopeRecipients> {
+/** =========================
+ * Update recipients (PUT)
+ * ========================= */
+export async function updateEnvelopeRecipients(
+  envelopeId: string,
+  recipients: EnvelopeRecipients,
+  options?: { resendEnvelope?: boolean }
+): Promise<EnvelopeRecipients> {
   const auth = await getAuthOrThrow();
+  const ctx = await getDocusignContext();
 
   const resend = options?.resendEnvelope ? "true" : "false";
 
-  const url = `${BASE_URL}/v2.1/accounts/${ACCOUNT_ID}/envelopes/${envelopeId}/recipients?resend_envelope=${resend}`;
+  const url = `${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/envelopes/${envelopeId}/recipients?resend_envelope=${resend}`;
 
   const resp = await fetch(url, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${auth.accessToken}`,
       "Content-Type": "application/json",
+      Accept: "application/json",
     },
     body: JSON.stringify(recipients),
   });
 
-  const data = await resp.json();
+  const data = await resp.json().catch(() => ({}));
   if (!resp.ok) {
     console.error("Error actualizando recipients del envelope:", data);
-    throw new Error("DocuSign devolvió error al actualizar los recipients");
+    throw new Error(`DocuSign error updateEnvelopeRecipients: ${resp.status}`);
   }
 
-  // DocuSign responde con la estructura de recipients resultante
-  return {
-    signers: (data.signers ?? []) as DocusignRecipient[],
-    // agrega otros tipos si los manejas
-  };
+  return { signers: (data.signers ?? []) as DocusignRecipient[] };
 }
 
+/** =========================
+ * Envelope info (GET)
+ * ========================= */
 export async function getEnvelopeInfo(envelopeId: string) {
   const auth = await getAuthOrThrow();
+  const ctx = await getDocusignContext();
 
-  const url = `${BASE_URL}/v2.1/accounts/${ACCOUNT_ID}/envelopes/${envelopeId}`;
+  const url = `${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/envelopes/${envelopeId}`;
 
   const resp = await fetch(url, {
-    headers: { Authorization: `Bearer ${auth.accessToken}` },
+    headers: { Authorization: `Bearer ${auth.accessToken}`, Accept: "application/json" },
   });
 
-  const data = await resp.json();
+  const data = await resp.json().catch(() => ({}));
   if (!resp.ok) {
     console.error("Error obteniendo envelope info:", data);
-    throw new Error("DocuSign devolvió error al obtener info del sobre");
+    throw new Error(`DocuSign error getEnvelopeInfo: ${resp.status}`);
   }
 
   return data;
 }
+

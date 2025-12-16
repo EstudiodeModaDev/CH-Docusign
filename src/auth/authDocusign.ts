@@ -1,17 +1,31 @@
 // src/auth/authDocusign.ts
 import * as React from "react";
 
+/**
+ * Config
+ * - Para PROD: account.docusign.com
+ * - Para DEMO: account-d.docusign.com
+ */
+const DS_ENV: "prod" | "demo" = "prod";
+
 const DS_CLIENT_ID = "39f5105e-3669-43c9-b345-e4cb2725f755";
-//const DS_ENV = "prod";
-const REDIRECT_URI =
-  "https://lively-coast-08111f510.3.azurestaticapps.net" + "/";
 
+const REDIRECT_URI = "https://lively-coast-08111f510.3.azurestaticapps.net/";
+
+/**
+ * AUTH server según ambiente
+ */
 const AUTH_SERVER =
-     "https://account.docusign.com"
-    //"https://account-d.docusign.com";
+  DS_ENV === "prod"
+    ? "https://account.docusign.com"
+    : "https://account-d.docusign.com";
 
-// Scopes básicos (puedes agregar más luego si hace falta)
-const SCOPES = "signature cors";
+/**
+ * IMPORTANTE:
+ * - Para API calls típicos con OAuth, usa "signature impersonation"
+ * - "cors" no suele ser necesario aquí. Mejor déjalo limpio.
+ */
+const SCOPES = "signature impersonation";
 
 const STORAGE_KEY = "ds_auth";
 const STATE_KEY = "ds_oauth_state";
@@ -22,6 +36,7 @@ export type DocusignAuthState = {
   tokenType: string;
   scope: string;
   expiresAt: number; // timestamp en ms
+  env: "prod" | "demo";
 };
 
 /* ========== Helpers PKCE ========== */
@@ -29,7 +44,6 @@ export type DocusignAuthState = {
 function createCodeVerifier(): string {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
-  // hex de 64 chars
   return Array.from(array)
     .map((b) => ("0" + b.toString(16)).slice(-2))
     .join("");
@@ -37,20 +51,14 @@ function createCodeVerifier(): string {
 
 async function sha256(input: string): Promise<ArrayBuffer> {
   const encoder = new TextEncoder();
-  const data = encoder.encode(input);
-  return crypto.subtle.digest("SHA-256", data);
+  return crypto.subtle.digest("SHA-256", encoder.encode(input));
 }
 
 function base64UrlEncode(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let binary = "";
-  for (const b of bytes) {
-    binary += String.fromCharCode(b);
-  }
-  return btoa(binary)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 async function createCodeChallenge(verifier: string): Promise<string> {
@@ -61,9 +69,7 @@ async function createCodeChallenge(verifier: string): Promise<string> {
 /* ========== Storage helpers ========== */
 
 function generateState(): string {
-  if ("crypto" in window && "randomUUID" in crypto) {
-    return crypto.randomUUID();
-  }
+  if ("crypto" in window && "randomUUID" in crypto) return crypto.randomUUID();
   return Math.random().toString(36).slice(2);
 }
 
@@ -91,15 +97,14 @@ export function clearAuth() {
 
 export function isAuthValid(auth: DocusignAuthState | null): boolean {
   if (!auth) return false;
-  // margen de 60s
-  return auth.expiresAt > Date.now() + 60_000;
+  return auth.expiresAt > Date.now() + 60_000; // margen 60s
 }
 
 /* ========== Login (Authorization Code + PKCE) ========== */
 
 export function startDocusignLogin() {
   if (!DS_CLIENT_ID) {
-    console.error("VITE_DS_CLIENT_ID no está configurado");
+    console.error("DS_CLIENT_ID no está configurado");
     return;
   }
 
@@ -109,7 +114,6 @@ export function startDocusignLogin() {
   localStorage.setItem(STATE_KEY, state);
   localStorage.setItem(VERIFIER_KEY, verifier);
 
-  // calculamos el challenge de forma asíncrona
   void (async () => {
     try {
       const challenge = await createCodeChallenge(verifier);
@@ -133,10 +137,9 @@ export function startDocusignLogin() {
 
 /**
  * Procesa ?code=... al volver de DocuSign
- * Intercambia el code por access_token con /oauth/token
+ * Intercambia code por access_token con /oauth/token
  */
-export async function handleDocusignRedirect():
-  Promise<DocusignAuthState | null> {
+export async function handleDocusignRedirect(): Promise<DocusignAuthState | null> {
   const url = new URL(window.location.href);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
@@ -160,15 +163,13 @@ export async function handleDocusignRedirect():
     grant_type: "authorization_code",
     code,
     redirect_uri: REDIRECT_URI,
-    client_id: DS_CLIENT_ID!,
+    client_id: DS_CLIENT_ID,
     code_verifier: verifier,
   });
 
   const resp = await fetch(`${AUTH_SERVER}/oauth/token`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: body.toString(),
   });
 
@@ -178,20 +179,19 @@ export async function handleDocusignRedirect():
     throw new Error("No se pudo obtener token de DocuSign");
   }
 
-  const data = await resp.json() as {
+  const data = (await resp.json()) as {
     access_token: string;
     token_type: string;
     scope: string;
     expires_in: number;
   };
 
-  const expiresAt = Date.now() + data.expires_in * 1000;
-
   const auth: DocusignAuthState = {
     accessToken: data.access_token,
     tokenType: data.token_type,
     scope: data.scope,
-    expiresAt,
+    expiresAt: Date.now() + data.expires_in * 1000,
+    env: DS_ENV,
   };
 
   saveAuth(auth);
@@ -206,14 +206,13 @@ export async function handleDocusignRedirect():
   return auth;
 }
 
-/* ========== Hook para React ========== */
+/* ========== Hook React ========== */
 
 export function useDocusignAuth() {
   const [auth, setAuth] = React.useState<DocusignAuthState | null>(null);
 
   React.useEffect(() => {
     void (async () => {
-      // 1. ¿venimos de DocuSign con ?code=...?
       try {
         const fromRedirect = await handleDocusignRedirect();
         if (fromRedirect) {
@@ -224,20 +223,13 @@ export function useDocusignAuth() {
         console.error(e);
       }
 
-      // 2. Si no, intentar leer de localStorage
       const stored = getStoredAuth();
-      if (stored && isAuthValid(stored)) {
-        setAuth(stored);
-      } else if (stored) {
-        clearAuth();
-      }
+      if (stored && isAuthValid(stored)) setAuth(stored);
+      else if (stored) clearAuth();
     })();
   }, []);
 
-  const login = React.useCallback(() => {
-    startDocusignLogin();
-  }, []);
-
+  const login = React.useCallback(() => startDocusignLogin(), []);
   const logout = React.useCallback(() => {
     clearAuth();
     setAuth(null);

@@ -7,8 +7,8 @@ const REDIRECT_URI =
   "https://lively-coast-08111f510.3.azurestaticapps.net" + "/";
 
 const AUTH_SERVER =
-    //? "https://account.docusign.com"
-    "https://account-d.docusign.com";
+     "https://account.docusign.com"
+    //"https://account-d.docusign.com";
 
 // Scopes básicos (puedes agregar más luego si hace falta)
 const SCOPES = "signature cors";

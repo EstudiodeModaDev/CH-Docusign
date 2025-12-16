@@ -17,7 +17,7 @@ const AUTH_SERVER = "https://account.docusign.com";
  * - Para API calls típicos con OAuth, usa "signature impersonation"
  * - "cors" no suele ser necesario aquí. Mejor déjalo limpio.
  */
-const SCOPES = "signature impersonation";
+const SCOPES = "signature impersonation cors";
 
 const STORAGE_KEY = "ds_auth";
 const STATE_KEY = "ds_oauth_state";

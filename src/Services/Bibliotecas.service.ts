@@ -150,7 +150,7 @@ class BibliotecaBaseService {
     }));
   }
 
-  // --------- ⬇️ SUBIR ARCHIVO REUTILIZABLE ⬇️ ----------
+
   async uploadFile(
     folderPath: string,
     file: File
@@ -180,7 +180,7 @@ class BibliotecaBaseService {
     };
   }
 
-  // Dentro de BibliotecaBaseService
+  // Renombrar archivo
   async renameArchivo(archivo: Archivo,
     nuevoNombreSinExtension: string
   ): Promise<Archivo> {
@@ -211,6 +211,56 @@ class BibliotecaBaseService {
       lastModified: item.lastModifiedDateTime,
     };
   }
+
+  //Mover carpeta completa
+  async moveFolderByPath(sourceFolderPath: string, destParentFolderPath: string, opts?: { newName?: string }): Promise<Archivo> {
+    await this.ensureIds();
+
+    const enc = (p: string) =>
+      p.replace(/^\/|\/$/g, "")
+        .split("/")
+        .map(encodeURIComponent)
+        .join("/");
+
+    const srcPath = enc(sourceFolderPath);
+    const dstPath = enc(destParentFolderPath);
+
+    // 1) Resolver item origen (carpeta a mover)
+    const src = await this.graph.get<any>(
+      `/drives/${this.driveId}/root:/${srcPath}`
+    );
+    if (!src?.id || !src?.folder) {
+      throw new Error("La ruta origen no es una carpeta válida o no existe.");
+    }
+
+    // 2) Resolver item destino (carpeta PADRE)
+    const dst = await this.graph.get<any>(
+      `/drives/${this.driveId}/root:/${dstPath}`
+    );
+    if (!dst?.id || !dst?.folder) {
+      throw new Error("La ruta destino no es una carpeta válida o no existe.");
+    }
+
+    // 3) Mover (Forma A)
+    const body: any = { parentReference: { id: dst.id } };
+    const newName = opts?.newName?.trim();
+    if (newName) body.name = newName;
+
+    const moved = await this.graph.patch<any>(
+      `/drives/${this.driveId}/items/${src.id}`,
+      body
+    );
+
+    return {
+      id: moved.id,
+      name: moved.name,
+      webUrl: moved.webUrl,
+      isFolder: !!moved.folder,
+      size: moved.size,
+      lastModified: moved.lastModifiedDateTime,
+    };
+  }
+
 
 }
 

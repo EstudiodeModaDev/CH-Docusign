@@ -8,9 +8,10 @@ type Props = {
   selectedFile: Archivo
   onClose: () => void;
   biblioteca: string
+  recargar: () => void
 };
 
-export const RenameModal: React.FC<Props> = ({open, selectedFile, onClose, biblioteca}) => {
+export const RenameModal: React.FC<Props> = ({open, selectedFile, onClose, biblioteca, recargar}) => {
   const [value, setValue] = React.useState("");
   const {ColaboradoresDH, ColaboradoresEDM} = useGraphServices()
   
@@ -23,6 +24,7 @@ export const RenameModal: React.FC<Props> = ({open, selectedFile, onClose, bibli
             } else {
                 ColaboradoresDH.renameArchivo(selectedFile, newName)
             }
+          await recargar()
         } catch (e: any) {
         console.error(e?.message ?? "Error actualizando elemento de la carpeta.");
         } 

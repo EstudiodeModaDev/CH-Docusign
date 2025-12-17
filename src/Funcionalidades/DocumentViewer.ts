@@ -124,18 +124,49 @@ const items: Archivo[] = React.useMemo(() => {
       const item = await servicioColaboradores.uploadFile(path, file);
 
       console.log("Archivo subido:", item.webUrl);
+      await load()
       alert("Archivo subido correctamente");
-
-      // si quieres, aquí llamas a tu handleCompleteStep(detalle)
-      // await handleCompleteStep(detalle);
     } catch (e: any) {
       console.error(e);
       alert("Error subiendo archivo: " + e.message);
     }
   };
 
-  return {
-    empresa, currentPath, items, rawItems, loading, error, search, depth,
-    setEmpresa, setSearch, openFolder, goUp, reload: load, openItem, handleUploadClick
+  const parentPathOf = (path: string) => {
+    const parts = path.split("/").filter(Boolean);
+    parts.pop();
+    return parts.join("/");
   };
-}
+
+  const handleCancelProcess = async () => {
+    if (!currentPath) return;
+
+    const parentPath = parentPathOf(currentPath);
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      await activeService.moveFolderByPath(currentPath, "Procesos Cancelados");
+
+      setPaths(prev => ({
+        ...prev,
+        [empresa]: parentPath,
+      }));
+
+      // recargar lista del padre
+      const items = await activeService.getFilesInFolder(parentPath);
+      setRawItems(items);
+    } catch (e: any) {
+      console.error(e);
+      setError(e?.message ?? "No se pudo cancelar el proceso.");
+    } finally {
+      setLoading(false);
+    }
+  }
+    return {
+      empresa, currentPath, items, rawItems, loading, error, search, depth,
+      setEmpresa, setSearch, openFolder, goUp, reload: load, openItem, handleUploadClick, handleCancelProcess
+    };
+  }
+

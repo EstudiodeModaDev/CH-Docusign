@@ -8,7 +8,7 @@ import type { Archivo } from "../../models/archivos";
 
 /* ================== Componente único ================== */
 export const ColaboradoresExplorer: React.FC = () => {
-    const { empresa, currentPath, items, loading, error, search, setEmpresa, setSearch, depth, goUp, openItem} = useColaboradoresExplorer();
+    const { empresa, currentPath, items, loading, error, search, setEmpresa, setSearch, depth, goUp, openItem, reload, handleCancelProcess} = useColaboradoresExplorer();
     const [agregar, setAgregar] = React.useState<boolean>(false)
     const [edit, setEdit] = React.useState<boolean>(false)
     const [selectedFile, setSelectedFile] = React.useState<Archivo | null>(null)
@@ -37,10 +37,18 @@ export const ColaboradoresExplorer: React.FC = () => {
 
                         {hayRuta && (
                             <button type="button" className="colab-explorer__up-btn" onClick={goUp}>↑ Volver atras</button>
+                            
                         )}
 
                         {depth >= 2 && (
-                            <button type="button" className="colab-explorer__up-btn" onClick={() => setAgregar(true)}>Agregar archivo</button>
+                            <>
+                                <button type="button" className="colab-explorer__up-btn" onClick={() => setAgregar(true)}>Agregar archivo</button>
+                                {currentPath.toLocaleLowerCase().includes("activos") || currentPath.toLocaleLowerCase().includes("cancelados") ?
+                                    <button type="button" className="colab-explorer__up-btn btn-danger" onClick={() => handleCancelProcess()}>
+                                        {currentPath.toLocaleLowerCase().includes("activos") ? "Inactivar proceso" : "Reactivar proceso"}
+                                    </button> : null
+                                }
+                            </>
                         )}
                     </div>
 
@@ -77,7 +85,7 @@ export const ColaboradoresExplorer: React.FC = () => {
                         
                 </div>
                 {agregar ? <SimpleFileUpload folderPath={currentPath} onClose={() => setAgregar(false)}></SimpleFileUpload> : null}
-                <RenameModal open={edit} selectedFile={selectedFile!} onClose={() => setEdit(false) } biblioteca={empresa}></RenameModal>
+                <RenameModal open={edit} selectedFile={selectedFile!} onClose={() => setEdit(false) } biblioteca={empresa} recargar={reload}></RenameModal>
             </section>
         </div>
     );

@@ -364,6 +364,14 @@ input[type="checkbox"]:checked::after{
   --btn-bg: color-mix(in oklab, var(--ink) 24%, var(--surface) 76%);
 }
 
+.btn-danger{
+  background: #DC2626 !important;
+  color: #fff !important;
+  border: 1px solid #DC2626 !important;
+}
+.btn-danger:hover{ background:#B91C1C !important; border-color:#B91C1C !important; }
+.btn-danger:active{ background:#991B1B; border-color:#991B1B; }
+
 /* =========================================
    BOTÓN CIRCULAR (icon button)
    Mezclar con: .btn-final + variante + tamaño

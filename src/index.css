@@ -364,6 +364,52 @@ input[type="checkbox"]:checked::after{
   --btn-bg: color-mix(in oklab, var(--ink) 24%, var(--surface) 76%);
 }
 
+/* =========================
+   Botón Cuaterciary
+   ========================= */
+.btn-cuaterciary{
+  border: 1px solid var(--border, rgba(0,0,0,.12));
+
+  background: var(--surface-2, #F3F4F6); /* fondo suave */
+  color: var(--ink, #111827);
+
+  font: 600 13px/1 var(--font, Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif);
+  letter-spacing: .01em;
+
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color .15s ease,
+    border-color .15s ease,
+    box-shadow .15s ease,
+    transform .06s ease;
+}
+
+.btn-cuaterciary:hover{
+  background: var(--surface-3, #E5E7EB);
+  border-color: color-mix(in srgb, var(--ink, #111827) 18%, var(--border, rgba(0,0,0,.12)));
+}
+
+.btn-cuaterciary:active{
+  background: var(--surface-4, #D1D5DB);
+  transform: translateY(1px);
+}
+
+.btn-cuaterciary:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #22c55e) 30%, transparent);
+}
+
+/* Disabled */
+.btn-cuaterciary:disabled,
+.btn-cuaterciary[aria-disabled="true"]{
+  opacity: .55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+
 .btn-danger{
   background: #DC2626 !important;
   color: #fff !important;

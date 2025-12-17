@@ -12,7 +12,7 @@ import { useGraphServices } from "../../graph/graphContext";
 /* ================== Componente único ================== */
 export const ColaboradoresExplorer: React.FC = () => {
     const {Contratos, NovedadCancelada} = useGraphServices()
-    const { empresa, currentPath, items, loading, error, search, setEmpresa, setSearch, depth, goUp, openItem, reload, handleCancelProcess} = useColaboradoresExplorer();
+    const { empresa, currentPath, items, loading, error, search, setEmpresa, setSearch, depth, goUp, openItem, reload, handleCancelProcess, moveCarpeta} = useColaboradoresExplorer();
     const { handleCancelProcess: elimarProceso} = useContratos(Contratos,NovedadCancelada)
     const [agregar, setAgregar] = React.useState<boolean>(false)
     const [edit, setEdit] = React.useState<boolean>(false)
@@ -59,6 +59,13 @@ export const ColaboradoresExplorer: React.FC = () => {
                         {depth >= 2 && (
                             <>
                                 <button type="button" className="colab-explorer__up-btn" onClick={() => setAgregar(true)}>Agregar archivo</button>
+                                {currentPath.toLocaleLowerCase().includes("activos") || currentPath.toLocaleLowerCase().includes("retirados") ?
+                                    <button type="button" className="colab-explorer__up-btn" onClick={() => currentPath.toLocaleLowerCase().includes("activos") ?
+                                                                                                        moveCarpeta("Colaboradores Retirados"):
+                                                                                                        moveCarpeta("Colaboradores Activos")}>
+                                        {currentPath.toLocaleLowerCase().includes("activos") ? "Colaborador retirado" : "Reintegrar colaborador"}
+                                    </button> : null
+                                }
                                 {currentPath.toLocaleLowerCase().includes("activos") || currentPath.toLocaleLowerCase().includes("cancelados") ?
                                     <button type="button" className="colab-explorer__up-btn btn-danger" onClick={() => setCancelProcess(true)}>
                                         {currentPath.toLocaleLowerCase().includes("activos") ? "Inactivar proceso" : "Reactivar proceso"}

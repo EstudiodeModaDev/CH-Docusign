@@ -538,6 +538,8 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
     }
 }, [ContratosSvc]);
 
+
+
   return {
     rows, loading, error, pageSize, pageIndex, hasNext, range, search, errors, sorts, state, workers, workersOptions,
     nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, handleCancelProcess

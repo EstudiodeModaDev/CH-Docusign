@@ -162,9 +162,35 @@ const items: Archivo[] = React.useMemo(() => {
       setLoading(false);
     }
   }
+
+  const moveCarpeta = async (path: string) => {
+    if (!currentPath) return;
+
+    const parentPath = parentPathOf(currentPath);
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      await activeService.moveFolderByPath(currentPath, path);
+
+      setPaths(prev => ({
+        ...prev,
+        [empresa]: parentPath,
+      }));  
+      const items = await activeService.getFilesInFolder(parentPath);
+      setRawItems(items);
+    } catch (e: any) {
+      console.error(e);
+      setError(e?.message ?? "No se pudo cancelar el proceso.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
     return {
       empresa, currentPath, items, rawItems, loading, error, search, depth,
-      setEmpresa, setSearch, openFolder, goUp, reload: load, openItem, handleUploadClick, handleCancelProcess
+      setEmpresa, setSearch, openFolder, goUp, reload: load, openItem, handleUploadClick, handleCancelProcess, moveCarpeta
     };
   }
 

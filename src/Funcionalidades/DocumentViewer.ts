@@ -152,9 +152,7 @@ const items: Archivo[] = React.useMemo(() => {
       setPaths(prev => ({
         ...prev,
         [empresa]: parentPath,
-      }));
-
-      // recargar lista del padre
+      }));  
       const items = await activeService.getFilesInFolder(parentPath);
       setRawItems(items);
     } catch (e: any) {

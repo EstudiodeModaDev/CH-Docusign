@@ -19,8 +19,8 @@ function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; d
 
 export default function TablaContratos() {
   const [visible, setVisible] = React.useState<boolean>(false)
-  const { Contratos, Envios } = useGraphServices();
-  const {rows, loading, error, pageSize, pageIndex, hasNext, sorts, setRange, setPageSize, nextPage, reloadAll,  toggleSort, range, setSearch, search, loadFirstPage} = useContratos(Contratos);
+  const { Contratos, Envios, NovedadCancelada } = useGraphServices();
+  const {rows, loading, error, pageSize, pageIndex, hasNext, sorts, setRange, setPageSize, nextPage, reloadAll,  toggleSort, range, setSearch, search, loadFirstPage} = useContratos(Contratos, NovedadCancelada);
   const {canEdit} = useEnvios(Envios);
   const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Novedad | null>(null);
   const [tipoFormulario, setTipoFormulario] = React.useState<string>("");
@@ -68,6 +68,10 @@ export default function TablaContratos() {
                   Nombre {renderSortIndicator('Nombre', sorts)}
                 </th>
 
+                <th role="button" tabIndex={0} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  Cargo 
+                </th>
+
                 <th role="button" tabIndex={0} onClick={(e) => toggleSort('Salario', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Salario', e.shiftKey); }} aria-label="Ordenar por Salario" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   Salario {renderSortIndicator('Salario', sorts)}
                 </th>
@@ -85,6 +89,7 @@ export default function TablaContratos() {
                   <td>{novedad.Numero_x0020_identificaci_x00f3_}</td>
                   <td><span title={novedad.CIUDAD}>{novedad.CIUDAD}</span></td>
                   <td><span title={novedad.NombreSeleccionado}>{novedad.NombreSeleccionado}</span></td>
+                  <td><span title={novedad.CARGO}>{novedad.CARGO}</span></td>
                   <td><span title={novedad.SALARIO}>{formatPesosEsCO(novedad.SALARIO)}</span></td>
                   <td>{toISODateFlex(novedad.FECHA_x0020_REQUERIDA_x0020_PARA0) || "–"}</td>
                   <td><span title={novedad.Informaci_x00f3_n_x0020_enviada_}>{novedad.Informaci_x00f3_n_x0020_enviada_}</span></td>

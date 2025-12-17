@@ -4,16 +4,32 @@ import { useColaboradoresExplorer } from "../../Funcionalidades/DocumentViewer";
 import { SimpleFileUpload } from "../AddFile/AddFile";
 import { parseDateFlex } from "../../utils/Date";
 import { RenameModal } from "./ChangeName/ChangeName";
+import { CancelProcessModal} from "./CancelProcess/CancelProcess"
 import type { Archivo } from "../../models/archivos";
+import { useContratos } from "../../Funcionalidades/Contratos";
+import { useGraphServices } from "../../graph/graphContext";
 
 /* ================== Componente único ================== */
 export const ColaboradoresExplorer: React.FC = () => {
+    const {Contratos, NovedadCancelada} = useGraphServices()
     const { empresa, currentPath, items, loading, error, search, setEmpresa, setSearch, depth, goUp, openItem, reload, handleCancelProcess} = useColaboradoresExplorer();
+    const { handleCancelProcess: elimarProceso} = useContratos(Contratos,NovedadCancelada)
     const [agregar, setAgregar] = React.useState<boolean>(false)
     const [edit, setEdit] = React.useState<boolean>(false)
     const [selectedFile, setSelectedFile] = React.useState<Archivo | null>(null)
+    const [cancelProcess, setCancelProcess] = React.useState<boolean>(false)
  
     const hayRuta = !!currentPath.trim();
+
+    const handleCancel = async (razon: string) => {
+        const parts = currentPath.split("/").filter(Boolean);
+        const lastRoute = (parts.at(-1) ?? "").trim();
+        const lastRoutSplited =  lastRoute.split("-")
+        const cedula = (lastRoutSplited.at(0) ?? "").trim();
+        await elimarProceso(cedula, razon)
+        await handleCancelProcess()
+        setCancelProcess(false)
+    };
 
     return (
         <div className="colab-explorer">
@@ -44,7 +60,7 @@ export const ColaboradoresExplorer: React.FC = () => {
                             <>
                                 <button type="button" className="colab-explorer__up-btn" onClick={() => setAgregar(true)}>Agregar archivo</button>
                                 {currentPath.toLocaleLowerCase().includes("activos") || currentPath.toLocaleLowerCase().includes("cancelados") ?
-                                    <button type="button" className="colab-explorer__up-btn btn-danger" onClick={() => handleCancelProcess()}>
+                                    <button type="button" className="colab-explorer__up-btn btn-danger" onClick={() => setCancelProcess(true)}>
                                         {currentPath.toLocaleLowerCase().includes("activos") ? "Inactivar proceso" : "Reactivar proceso"}
                                     </button> : null
                                 }
@@ -86,6 +102,7 @@ export const ColaboradoresExplorer: React.FC = () => {
                 </div>
                 {agregar ? <SimpleFileUpload folderPath={currentPath} onClose={() => setAgregar(false)}></SimpleFileUpload> : null}
                 <RenameModal open={edit} selectedFile={selectedFile!} onClose={() => setEdit(false) } biblioteca={empresa} recargar={reload}></RenameModal>
+                <CancelProcessModal open={cancelProcess} onClose={() => setCancelProcess(false) } onEliminar={handleCancel}/>
             </section>
         </div>
     );

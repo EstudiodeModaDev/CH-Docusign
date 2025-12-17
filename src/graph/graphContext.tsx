@@ -28,6 +28,7 @@ import { PermisosPazSalvosService } from "../Services/PermisosPazSalvos.service"
 import { RenovarService } from "../Services/Renovar.service";
 import { FirmasService } from "../Services/Firmas.service";
 import { RespuestaService } from "../Services/Respuesta.service";
+import { NovedadCanceladaService } from "../Services/NovedadCancelada.service";
 
 /* ================== Tipos de config ================== */
 export type SiteConfig = {
@@ -63,6 +64,7 @@ export type UnifiedConfig = {
     DetallesPasosPromocion: string
     ColaboradoresEDM: string;
     ColaboradoresDH: string;
+    NovedadCancelada: string;
 
     // Paz Salvos
     PazSalvos: string;
@@ -102,6 +104,7 @@ export type GraphServices = {
   DetallesPasosPromocion: DetallesPasosPromocionService
   ColaboradoresEDM: ColaboradoresEDMService,
   ColaboradoresDH: ColaboradoresDHService,
+  NovedadCancelada: NovedadCanceladaService,
 
   // Paz Salvos
   PazSalvos: PazSalvosService;
@@ -148,6 +151,7 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     Envios: "Envios",
     PasosPromocion: "PasosPromocion",
     DetallesPasosPromocion: "DetallesPasosPromocion",
+    NovedadCancelada: "Novedades Canceladas",
 
     // Renovar
     PazSalvos: "Paz y salvos",
@@ -230,13 +234,14 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     const Renovar                 = new RenovarService(graph, ch.hostname, ch.sitePath, lists.renovar);  
     const Firmas                  = new FirmasService (graph, ch.hostname, ch.sitePath, lists.Firma); 
     const Respuesta               = new RespuestaService(graph, ch.hostname, ch.sitePath, lists.Respuesta)
+    const NovedadCancelada        = new NovedadCanceladaService(graph, ch.hostname, ch.sitePath, lists.NovedadCancelada)
 
     return {
       graph,
         
       //CH
       HabeasData, Usuarios, Perfiles, Contratos, Promociones, Empresa, tipoDocumento, cargo, modalidadTrabajo, especificidadCargo, NivelCargo, CentroCostos, CentroOperativo, UnidadNegocio,
-      OrigenSeleccion, TipoContrato, TipoVacante, DeptosYMunicipios, Envios, PasosPromocion, DetallesPasosPromocion, ColaboradoresEDM, ColaboradoresDH, 
+      OrigenSeleccion, TipoContrato, TipoVacante, DeptosYMunicipios, Envios, PasosPromocion, DetallesPasosPromocion, ColaboradoresEDM, ColaboradoresDH, NovedadCancelada,
 
       //paz salvos
       PazSalvos, PermisosPaz, Renovar, Firmas, Respuesta

@@ -53,22 +53,22 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     const [selectedDepto, setSelectedDepto] = React.useState<string>("");
     const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
 
-      React.useEffect(() => {
-          reloadEmpresas();
-          reloadTipoDoc();
-          reloadCargo();
-          reloadModalidadTrabajo();
-          reloadEspecidadCargo();
-          reloadNivelCargo(),
-          reloadCC(),
-          reloadCO(),
-          reloadDeptos(),
-          reloadUN(),
-          reloadOrigenSeleccion(),
-          reloadTipoContrato(),
-          reloadTipoContrato(),
-          reloadTipoVacante()
-      }, [reloadEmpresas, reloadTipoDoc, reloadCargo, reloadModalidadTrabajo, reloadEspecidadCargo]);
+    React.useEffect(() => {
+        reloadEmpresas();
+        reloadTipoDoc();
+        reloadCargo();
+        reloadModalidadTrabajo();
+        reloadEspecidadCargo();
+        reloadNivelCargo(),
+        reloadCC(),
+        reloadCO(),
+        reloadDeptos(),
+        reloadUN(),
+        reloadOrigenSeleccion(),
+        reloadTipoContrato(),
+        reloadTipoContrato(),
+        reloadTipoVacante()
+    }, [reloadEmpresas, reloadTipoDoc, reloadCargo, reloadModalidadTrabajo, reloadEspecidadCargo]);
 
     React.useEffect(() => {
       if (!selectedNovedad) return;
@@ -173,7 +173,6 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
         })),
         [municipiosFiltrados]
     );
-  
     const { state, setField, errors, handleEdit } = useContratos(Contratos);
     const selectedEmpresa = empresaOptions.find((o) => o.label.toLocaleLowerCase() === state.Empresa_x0020_que_x0020_solicita.toLocaleLowerCase()) ?? null;
     const selectedTipoDocumento = tipoDocOptions.find((o) => o.label === state.tipodoc.trim()) ?? null; 

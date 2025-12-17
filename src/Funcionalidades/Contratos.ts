@@ -1,11 +1,12 @@
 import React from "react";
 import type { DateRange, GetAllOpts, rsOption, SortDir, SortField, } from "../models/Commons";
 import type { ContratosService } from "../Services/Contratos.service";
-import type { Novedad, NovedadErrors } from "../models/Novedades";
+import type { Novedad, NovedadCancelada, NovedadErrors } from "../models/Novedades";
 import { getTodayLocalISO, toGraphDateTime, toISODateTimeFlex } from "../utils/Date";
 import { useAuth } from "../auth/authProvider";
+import { NovedadCanceladaService } from "../Services/NovedadCancelada.service";
 
-export function useContratos(ContratosSvc: ContratosService) {
+export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc?: NovedadCanceladaService) {
   const [rows, setRows] = React.useState<Novedad[]>([]);
   const [workers, setWorkers] = React.useState<Novedad[]>([]);
   const [workersOptions, setWorkersOptions] = React.useState<rsOption[]>([]);
@@ -88,7 +89,7 @@ export function useContratos(ContratosSvc: ContratosService) {
     const filters: string[] = [];
 
     if(search){
-        filters.push(`(startswith(fields/NombreSeleccionado, '${search}') or startswith(fields/Numero_x0020_identificaci_x00f3_, '${search}'))`)
+        filters.push(`(startswith(fields/NombreSeleccionado, '${search}') or startswith(fields/Numero_x0020_identificaci_x00f3_, '${search}') or startswith(fields/CARGO, '${search}'))`)
     }
 
     if (range.from && range.to && (range.from < range.to)) {
@@ -500,9 +501,46 @@ export function useContratos(ContratosSvc: ContratosService) {
     }
   }, [ContratosSvc]);
 
+  const handleCancelProcess = React.useCallback(async (documento: string, RazonCancelacion: string) => {
+    if(!novedadCanceladaSvc) return
+
+    try{
+      const procesosActivos = await ContratosSvc.getAll({filter: `fields/Numero_x0020_identificaci_x00f3_ eq '${documento}'`, orderby: "fields/Created desc", top: 1})
+
+      if(procesosActivos.items.length > 0){
+        const p = procesosActivos.items[0]
+        const paylod: NovedadCancelada = {
+          Barrio: p.BARRIO_x0020_,
+          Cargoqueibaaocupar: p.CARGO,
+          Celular: p.CELULAR_x0020_,
+          Ciudad: p.CIUDAD,
+          Correo: p.CORREO_x0020_ELECTRONICO_x0020_,
+          Direcciondomicilio: p.DIRECCION_x0020_DE_x0020_DOMICIL,
+          Empresaquesolicito: p.Empresa_x0020_que_x0020_solicita,
+          Especificidaddelcargo: p.ESPECIFICIDAD_x0020_DEL_x0020_CA,
+          Informacionenviadapor: p.Informaci_x00f3_n_x0020_enviada_,
+          Nivelcargo: p.NIVEL_x0020_DE_x0020_CARGO,
+          Nombre: p.NombreSeleccionado,
+          Origendelaseleccion: p.ORIGEN_x0020_DE_x0020_LA_x0020_S,
+          Numeroidentificacion: p.Numero_x0020_identificaci_x00f3_,
+          Procesocanceladopor: account?.name ?? "",
+          RazonCancelacion:  RazonCancelacion,
+          TipoDocumento: p.tipodoc,
+          Tipodocumentoabreviacion: p.Tipo_x0020_de_x0020_documento_x0,
+          Title: p.Title
+        }
+        await novedadCanceladaSvc.create(paylod)
+        await ContratosSvc.delete(p.Id ?? "")
+        alert("Se ha cancelado este proceso con éxito")
+      }
+    } catch {
+      throw new Error("Ha ocurrido un error cancelando el proceso");
+    }
+}, [ContratosSvc]);
+
   return {
     rows, loading, error, pageSize, pageIndex, hasNext, range, search, errors, sorts, state, workers, workersOptions,
-    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage
+    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, handleCancelProcess
   };
 }
 

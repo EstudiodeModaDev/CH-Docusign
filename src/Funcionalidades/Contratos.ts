@@ -287,12 +287,14 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
     })
   };
 
-  const handleSubmit = async () => {
-    if (!validate()) { return};
+  const handleSubmit = async (): Promise<boolean> => {
+    if (!validate()) { 
+      alert("Hay campos sin rellenar")
+      console.log(state)
+      return false
+    };
     setLoading(true);
     try {
-          
-      // Objeto de creación
       const payload: Novedad = {
         ADICIONALES_x0020_: state.ADICIONALES_x0020_,
         Ajustesalario: state.Ajustesalario,
@@ -357,7 +359,10 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
       };
       await ContratosSvc.create(payload);
       alert("Se ha creado el registro con éxito")
-    } finally {
+      return true
+    } catch{
+      return false
+    }finally {
         setLoading(false);
       }
   };

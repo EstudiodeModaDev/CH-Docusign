@@ -192,14 +192,13 @@ export default function FormContratacion({onClose}: Props){
 
   const handleCreateNovedad = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await handleSubmit();    
-      await loadFirstPage();
-      cleanState();
-      onClose();
-    } catch (err) {
-      console.error(err);
-    }
+
+    const ok = await handleSubmit(); // <- haz que devuelva true/false
+    if (!ok) return;
+
+    await loadFirstPage();
+    cleanState();
+    onClose();
   };
   
   return (
@@ -991,7 +990,7 @@ export default function FormContratacion({onClose}: Props){
         {/* Acciones */}
         <div className="ft-actions">
           <button type="submit" className="btn btn-primary btn-xs" onClick={(e) => {handleCreateNovedad(e);}}>Guardar Registro</button>
-          <button type="submit" className="btn btn-xs" onClick={() => onClose()}>Cancelar</button>
+          <button type="button" className="btn btn-xs" onClick={() => onClose()}>Cancelar</button>
         </div>
       </section>
     </div>

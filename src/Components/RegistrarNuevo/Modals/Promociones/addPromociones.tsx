@@ -165,10 +165,15 @@ export default function FormPromociones({onClose}: Props){
   }, [state.Salario, planFinanciado]);
 
   React.useEffect(() => {
-    let Valor
-    Valor = Number(state.Salario) * (porcentajeValor/100)
-    setValorGarantizado(Valor)
-  }, [porcentajeValor]);
+    const salario = Number(state.Salario || 0);
+    const porcentaje = Number(porcentajeValor || 0);
+
+    const valor = Math.round(salario * (porcentaje / 100)); 
+
+    setValorGarantizado(valor);
+    setField("ValorGarantizado", String(valor));
+    setField("GarantizadoLetras", valor > 0 ? numeroATexto(valor) : "");
+  }, [state.Salario, porcentajeValor, setField]);
 
   React.useEffect(() => {
     let promedio
@@ -191,11 +196,14 @@ export default function FormPromociones({onClose}: Props){
 
   }, [state.Autonomia, state.PresupuestoVentasMagnitudEconomi, state.ImpactoClienteExterno, state.ContribucionaLaEstrategia, promedio, grupoCVE]);
 
-  const handleCreatePromotion = async (e: React.FormEvent) => {
-    const created = await handleSubmit(e);
-    await loadPasosPromocion()
-    await handleCreateAllSteps(rows, created ?? "")
-    await onClose()
+  const handleCreatePromotion = async () => {
+    const created = await handleSubmit();
+
+    if(created.ok){
+      await loadPasosPromocion()
+      await handleCreateAllSteps(rows, created.created ?? "")
+      await onClose()
+    }
   };
 
   return (
@@ -902,7 +910,7 @@ export default function FormPromociones({onClose}: Props){
         {/* Acciones */}
 
         <div className="ft-actions">
-          <button type="submit" className="btn btn-primary btn-xs" onClick={(e) => {handleCreatePromotion(e)}}>Guardar Registro</button>
+          <button type="submit" className="btn btn-primary btn-xs" onClick={() => {handleCreatePromotion()}}>Guardar Registro</button>
           <button type="submit" className="btn btn-xs" onClick={() => onClose()}>Cancelar</button>
         </div>
       </section>

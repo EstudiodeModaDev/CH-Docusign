@@ -73,6 +73,7 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
   const [conectividadTexto, setConectividadTexto] = React.useState<string>("");
   const [planFinanciado, setPlanfinanciado] = React.useState<boolean>(false)
   const [garantizadoValor, setValorGarantizado] = React.useState<number>(0)
+  const [touchedPct, setTouchedPct] = React.useState<boolean>(false)
   const [porcentajeValor, setPorcentajeValor] = React.useState<number>(0)
   const [promedio, setPromedio] = React.useState<number>(0);
   const [grupoCVE, setGrupoCVE] = React.useState<string>("");
@@ -132,10 +133,35 @@ React.useEffect(() => {
   }, [state.Salario, planFinanciado]);
 
   React.useEffect(() => {
-    let Valor
-    Valor = Number(state.Salario) * (porcentajeValor/100)
-    setValorGarantizado(Valor)
-  }, [porcentajeValor]);
+    if (!touchedPct) return; 
+
+    const salario = toNumberFromEsCO(String(state.Salario ?? "0"));
+    const pct = Number(porcentajeValor || 0);
+
+    if (salario <= 0) return;
+
+    const valor = Math.round(salario * (pct / 100));
+
+    setValorGarantizado(valor);
+    setField("ValorGarantizado", String(valor));
+    setField("GarantizadoLetras", valor > 0 ? numeroATexto(valor) : "");
+  }, [touchedPct, porcentajeValor, state.Salario, setField]);
+
+  React.useEffect(() => {
+    const salario = toNumberFromEsCO(String(state.Salario ?? "0"));
+    const valorGarantizado = toNumberFromEsCO(String(state.ValorGarantizado ?? "0"));
+
+    if (salario > 0 && valorGarantizado > 0) {
+      const pct = Math.round((valorGarantizado / salario) * 100);
+      setPorcentajeValor(pct);
+      setValorGarantizado(valorGarantizado);
+    } else {
+      setPorcentajeValor(0);
+      setValorGarantizado(valorGarantizado || 0);
+    }
+
+    setTouchedPct(false);
+  }, [state.Salario, state.ValorGarantizado]);
 
   React.useEffect(() => {
     let promedio
@@ -218,6 +244,7 @@ React.useEffect(() => {
     setField("StatusIngreso", selectedPromocion.StatusIngreso)
     setField("GarantizadoLetras", selectedPromocion.GarantizadoLetras)
     setField("TipoNomina", selectedPromocion.TipoNomina)
+    setField("Garantizado_x00bf_SiNo_x003f_", selectedPromocion.Garantizado_x00bf_SiNo_x003f_)
   }, [selectedPromocion]);
 
   React.useEffect(() => {
@@ -504,7 +531,6 @@ React.useEffect(() => {
                     <span className="circle"></span>
                     <span className="text">Si</span>
                   </label>
-
                   <label className="ft-radio-custom">
                     <input disabled={isView} type="radio" name="garantizado" value="No" checked={state.Garantizado_x00bf_SiNo_x003f_ === "No"} onChange={() => setField("Garantizado_x00bf_SiNo_x003f_", "No")}/>
                     <span className="circle"></span>

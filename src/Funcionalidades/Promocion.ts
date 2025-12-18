@@ -210,9 +210,14 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent): Promise<string | null> => {
-    e.preventDefault();
-    if (!validate()) { return null};
+  const handleSubmit = async (): Promise<{created: string | null, ok: boolean}> => {
+    if (!validate()) { 
+      alert("Hay campos vacios")
+      return{
+        created: null,
+        ok: false
+      }
+    };
     setLoading(true);
     try {
       const payload: Promocion = {
@@ -275,7 +280,10 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
       };
       const created = await PromocionesSvc.create(payload);
       alert("Se ha creado el registro con éxito")
-      return created.Id!
+      return {
+        created: created.Id!,
+        ok: true
+      }
     } finally {
         setLoading(false);
       }

@@ -290,9 +290,9 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
   const handleSubmit = async (): Promise<boolean> => {
     if (!validate()) { 
       alert("Hay campos sin rellenar")
-      console.log(state)
       return false
     };
+    console.log(state)
     setLoading(true);
     try {
       const payload: Novedad = {

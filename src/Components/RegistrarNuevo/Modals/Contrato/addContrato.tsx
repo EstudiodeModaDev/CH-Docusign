@@ -454,7 +454,7 @@ export default function FormContratacion({onClose}: Props){
             <div className="ft-field">
               <label className="ft-label" htmlFor="porcentajeValor">Porcentaje del garantizado *</label>
               <input id="porcentajeValor" name="porcentajeValor" type="text" placeholder="Porcentaje del garantizado" value={porcentajeValor} 
-                  onBlur={(e) => setPorcentajeValor(Number(e.target.value))} autoComplete="off" required aria-required="true" maxLength={3}/>
+                  onChange={(e) => setPorcentajeValor(Number(e.target.value))} autoComplete="off" required aria-required="true" maxLength={3}/>
               <small>{errors.VALOR_x0020_GARANTIZADO}</small>
 
               <input id="VALOR_x0020_GARANTIZADO" name="VALOR_x0020_GARANTIZADO" type="text" placeholder="Total Garantizado" value={garantizadoValor}  autoComplete="off" required aria-required="true" maxLength={3}/>

@@ -287,8 +287,7 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
     })
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     if (!validate()) { return};
     setLoading(true);
     try {

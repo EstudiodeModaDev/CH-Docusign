@@ -191,10 +191,15 @@ export default function FormContratacion({onClose}: Props){
   }, [state.AUTONOM_x00cd_A_x0020_, state.PRESUPUESTO_x0020_VENTAS_x002f_M, state.IMPACTO_x0020_CLIENTE_x0020_EXTE, state.CONTRIBUCION_x0020_A_x0020_LA_x0, promedio, grupoCVE]);
 
   const handleCreateNovedad = async (e: React.FormEvent) => {
-    await handleSubmit(e);
-    await loadFirstPage()
-    cleanState();
-    onClose()
+    e.preventDefault();
+    try {
+      await handleSubmit();    
+      await loadFirstPage();
+      cleanState();
+      onClose();
+    } catch (err) {
+      console.error(err);
+    }
   };
   
   return (

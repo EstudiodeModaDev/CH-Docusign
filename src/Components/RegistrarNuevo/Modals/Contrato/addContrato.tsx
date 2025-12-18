@@ -164,12 +164,15 @@ export default function FormContratacion({onClose}: Props){
   }, [state.SALARIO, planFinanciado]);
 
   React.useEffect(() => {
-    let Valor
-    Valor = Number(state.SALARIO) * (porcentajeValor/100)
-    setValorGarantizado(Valor)
-    setField("VALOR_x0020_GARANTIZADO", String(Valor))
-    setField("Garantizado_x0020_en_x0020_letra", numeroATexto(Valor))
-  }, [porcentajeValor]);
+    const salario = Number(state.SALARIO || 0);
+    const porcentaje = Number(porcentajeValor || 0);
+
+    const valor = Math.round(salario * (porcentaje / 100)); // redondeo para evitar decimales raros
+
+    setValorGarantizado(valor);
+    setField("VALOR_x0020_GARANTIZADO", String(valor));
+    setField("Garantizado_x0020_en_x0020_letra", valor > 0 ? numeroATexto(valor) : "");
+  }, [state.SALARIO, porcentajeValor, setField]);
 
   React.useEffect(() => {
     let promedio
@@ -457,7 +460,7 @@ export default function FormContratacion({onClose}: Props){
                   onChange={(e) => setPorcentajeValor(Number(e.target.value))} autoComplete="off" required aria-required="true" maxLength={3}/>
               <small>{errors.VALOR_x0020_GARANTIZADO}</small>
 
-              <input id="VALOR_x0020_GARANTIZADO" name="VALOR_x0020_GARANTIZADO" type="text" placeholder="Total Garantizado" value={garantizadoValor}  autoComplete="off" required aria-required="true" maxLength={3}/>
+              <input id="VALOR_x0020_GARANTIZADO" name="VALOR_x0020_GARANTIZADO" type="text" placeholder="Total Garantizado" value={garantizadoValor ? formatPesosEsCO(String(garantizadoValor)) : ""}  autoComplete="off" required aria-required="true" maxLength={3}/>
               
             </div>
           )}

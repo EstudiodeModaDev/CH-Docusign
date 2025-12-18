@@ -171,7 +171,7 @@ const EnviarFormatoCard: React.FC = () => {
 
       case "garantizado":
       case "garantizadoletras":
-      case "GarantizadoAlfabetico":
+      case "garantizadoalfabetico":
         return vm.garantizadoLetras;
 
       case "identificaci_n":

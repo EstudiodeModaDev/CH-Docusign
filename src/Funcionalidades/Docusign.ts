@@ -1,4 +1,3 @@
-// src/hooks/useDocusignTemplates.ts
 import * as React from "react";
 import { createEnvelopeFromTemplateDraft, getEnvelopeDocGenFormFields, getEnvelopeDocumentTabs, getEnvelopeInfo, getEnvelopeRecipientsWithTabs, listTemplates, type DocGenFormFieldResponse, type EnvelopeBasic, type PrefillTabsResponse } from "../Services/DocusignAPI.service";
 import type { rsOption } from "../models/Commons";
@@ -84,8 +83,7 @@ export function useDocusignTemplates(options?: UseDocusignTemplatesOptions) {
     setTemplatesOptions(next);
     }, [templates]);
 
-  const createdraft = React.useCallback(
-    async (templateId: string): Promise<EnvelopeBasic> => {
+  const createdraft = React.useCallback(async (templateId: string): Promise<EnvelopeBasic> => {
       setLoading(true);
       setError(null);
       try {

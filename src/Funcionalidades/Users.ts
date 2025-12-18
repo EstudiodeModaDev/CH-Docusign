@@ -109,15 +109,6 @@ export function useUserRole(email?: string | null) {
     };
   }, [email, Usuarios, Graph, Perfiles, JSON.stringify(opts)]);
 
-  /** Alterna entre "Usuario" y "Administrador" sin I/O */
-  const changeUser = React.useCallback(() => {
-    setRole((prev) => (prev === "Administrador" ? "Usuario" : "Administrador"));
-    setSource("manual-toggle");
-    setLoading(false);
-    setError(null);
-    // aquí podrías cambiar permisos "fake" si quieres,
-    // pero por ahora dejamos los reales que vinieron de SP
-  }, []);
 
-  return { role, source, permisos, loading, error, changeUser };
+  return { role, source, permisos, loading, error, };
 }

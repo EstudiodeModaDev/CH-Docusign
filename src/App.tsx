@@ -27,6 +27,11 @@ type Section = {
 };
 
 const SECTIONS: Section[] = [
+  { id: "home", label: "Home", perm: "send", element: <EdmBrand/>, icon: 
+                                                                    <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                                                                      <path fill-rule="evenodd" d="M16 9l-3-3V2h-2v2L8 1L0 9h2l1 5c0 .55.45 1 1 1h8c.55 0 1-.45 1-1l1-5h2zm-4 5H9v-4H7v4H4L2.81 7.69L8 2.5l5.19 5.19L12 14z" fill="#ffffff"/>
+                                                                    </svg>
+  },
   { id: "nuevo", label: "Registrar Nuevo Ingreso", perm: "send", element: <RegistrarNuevoPage/>, icon: 
                                                                                                   <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 16 16">
                                                                                                     <path fill="white" d="M7.5 4a.5.5 0 0 1 .5.5V7h2.5a.5.5 0 0 1 0 1H8v2.5a.5.5 0 0 1-1 0V8H4.5a.5.5 0 0 1 0-1H7V4.5a.5.5 0 0 1 .5-.5"/>
@@ -135,13 +140,7 @@ type SidebarProps = {
   onToggle: () => void;
 };
 
-function SidebarSimple({
-  sections,
-  activeId,
-  onSelect,
-  collapsed,
-  onToggle,
-}: SidebarProps) {
+function SidebarSimple({sections, activeId, onSelect, collapsed, onToggle,}: SidebarProps) {
   return (
     <aside
       className={`gd-sidebar ${collapsed ? "gd-sidebar--collapsed" : ""}`}
@@ -180,10 +179,6 @@ function SidebarSimple({
     </aside>
   );
 }
-
-/* ============================================================
-   LoggedApp: sidebar + header + contenido
-   ============================================================ */
 
 function LoggedApp({ user }: { user: User }) {
   const { role, permisos } = useUserRole(user!.mail);

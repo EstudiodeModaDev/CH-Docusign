@@ -201,6 +201,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     const [porcentajeValor, setPorcentajeValor] = React.useState<number>(0)
     const [promedio, setPromedio] = React.useState<number>(0);
     const [grupoCVE, setGrupoCVE] = React.useState<string>("");
+    const [touchedPct, setTouchedPct] = React.useState(false);
     const {account} = useAuth()
     const today = getTodayLocalISO()
 
@@ -241,10 +242,36 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
   }, [state.SALARIO, planFinanciado]);
 
   React.useEffect(() => {
-    let Valor
-    Valor = Number(state.SALARIO) * (porcentajeValor/100)
-    setValorGarantizado(Valor)
-  }, [porcentajeValor]);
+    if (!touchedPct) return; // <-- clave para no pisar al cargar
+
+    const salario = toNumberFromEsCO(String(state.SALARIO ?? "0"));
+    const pct = Number(porcentajeValor || 0);
+
+    if (salario <= 0) return;
+
+    const valor = Math.round(salario * (pct / 100));
+
+    setValorGarantizado(valor);
+    setField("VALOR_x0020_GARANTIZADO", String(valor));
+    setField("Garantizado_x0020_en_x0020_letra", valor > 0 ? numeroATexto(valor) : "");
+  }, [touchedPct, porcentajeValor, state.SALARIO, setField]);
+
+  React.useEffect(() => {
+    const salario = toNumberFromEsCO(String(state.SALARIO ?? "0"));
+    const valorGarantizado = toNumberFromEsCO(String(state.VALOR_x0020_GARANTIZADO ?? "0"));
+
+    if (salario > 0 && valorGarantizado > 0) {
+      const pct = Math.round((valorGarantizado / salario) * 100);
+      setPorcentajeValor(pct);
+      setValorGarantizado(valorGarantizado);
+    } else {
+      setPorcentajeValor(0);
+      setValorGarantizado(valorGarantizado || 0);
+    }
+
+    setTouchedPct(false);
+  }, [state.SALARIO, state.VALOR_x0020_GARANTIZADO]);
+
 
   React.useEffect(() => {
     let promedio
@@ -265,7 +292,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     setField("PROMEDIO_x0020_", String(promedio));
     setField("GRUPO_x0020_CVE_x0020_", grupoCVE)
 
-  }, [state.AUTONOM_x00cd_A_x0020_, state.PRESUPUESTO_x0020_VENTAS_x002f_M, state.IMPACTO_x0020_CLIENTE_x0020_EXTE, state.CONTRIBUCION_x0020_A_x0020_LA_x0, promedio, grupoCVE]);
+  }, [state]);
 
   return (
     <div className="ft-modal-backdrop">
@@ -519,10 +546,12 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
             <div className="ft-field">
               <label className="ft-label" htmlFor="porcentajeValor">Porcentaje del garantizado *</label>
               <input id="porcentajeValor" name="porcentajeValor" type="text" placeholder="Porcentaje del garantizado" value={porcentajeValor} 
-                  onChange={(e) => setPorcentajeValor(Number(e.target.value))} autoComplete="off" required aria-required="true" maxLength={3}/>
+                  onChange={(e) => {    
+                    setTouchedPct(true);
+                    setPorcentajeValor(toNumberFromEsCO(e.target.value));}} autoComplete="off" required aria-required="true" maxLength={3}/>
               <small>{errors.VALOR_x0020_GARANTIZADO}</small>
 
-              <input id="VALOR_x0020_GARANTIZADO" name="VALOR_x0020_GARANTIZADO" type="text" placeholder="Total Garantizado" value={garantizadoValor}  autoComplete="off" required aria-required="true" maxLength={3}/>
+             <input id="VALOR_x0020_GARANTIZADO" name="VALOR_x0020_GARANTIZADO" type="text" placeholder="Total Garantizado" value={garantizadoValor ? formatPesosEsCO(String(garantizadoValor)) : state.Garantizado_x0020_en_x0020_letra ? state.Garantizado_x0020_en_x0020_letra : ""}  autoComplete="off" required aria-required="true" maxLength={3}/>
               
             </div>
           )}

@@ -167,8 +167,8 @@ export default function FormContratacion({onClose}: Props){
     let Valor
     Valor = Number(state.SALARIO) * (porcentajeValor/100)
     setValorGarantizado(Valor)
-    setField("VALOR_x0020_GARANTIZADO", String(garantizadoValor))
-    setField("Garantizado_x0020_en_x0020_letra", numeroATexto(garantizadoValor))
+    setField("VALOR_x0020_GARANTIZADO", String(Valor))
+    setField("Garantizado_x0020_en_x0020_letra", numeroATexto(Valor))
   }, [porcentajeValor]);
 
   React.useEffect(() => {
@@ -454,7 +454,7 @@ export default function FormContratacion({onClose}: Props){
             <div className="ft-field">
               <label className="ft-label" htmlFor="porcentajeValor">Porcentaje del garantizado *</label>
               <input id="porcentajeValor" name="porcentajeValor" type="text" placeholder="Porcentaje del garantizado" value={porcentajeValor} 
-                  onChange={(e) => setPorcentajeValor(Number(e.target.value))} autoComplete="off" required aria-required="true" maxLength={3}/>
+                  onBlur={(e) => setPorcentajeValor(Number(e.target.value))} autoComplete="off" required aria-required="true" maxLength={3}/>
               <small>{errors.VALOR_x0020_GARANTIZADO}</small>
 
               <input id="VALOR_x0020_GARANTIZADO" name="VALOR_x0020_GARANTIZADO" type="text" placeholder="Total Garantizado" value={garantizadoValor}  autoComplete="off" required aria-required="true" maxLength={3}/>

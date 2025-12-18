@@ -167,6 +167,8 @@ export default function FormContratacion({onClose}: Props){
     let Valor
     Valor = Number(state.SALARIO) * (porcentajeValor/100)
     setValorGarantizado(Valor)
+    setField("VALOR_x0020_GARANTIZADO", String(garantizadoValor))
+    setField("Garantizado_x0020_en_x0020_letra", formatPesosEsCO(String(garantizadoValor)))
   }, [porcentajeValor]);
 
   React.useEffect(() => {

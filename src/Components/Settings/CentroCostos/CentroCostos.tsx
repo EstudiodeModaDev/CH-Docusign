@@ -56,7 +56,7 @@ export const CentroCostosManager: React.FC = () => {
                 <section className="emp-list">
                 {items.map((CO) => (
                     <div key={CO.Id} className={ "emp-row"}>
-                    <button type="button" className="emp-row__name" onClick={() => {setIsEditing(true); setState({Codigo: CO.Abreviacion, Title: CO.T_x00ed_tulo1, Id: CO.Id});}}>
+                    <button type="button" className="emp-row__name" onClick={() => {setIsEditing(true); setState({Codigo: CO.Codigo, Title: CO.T_x00ed_tulo1, Id: CO.Id});}}>
                         {CO.T_x00ed_tulo1}
                     </button>
 

@@ -162,7 +162,7 @@ export function useEmpresasSelect(EmpresaSvc: MaestrosService) {
   );
 
   return useDesplegable<maestro>({
-    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
@@ -190,7 +190,7 @@ export function useCargo(CargoSvc: MaestrosService) {
   );
 
   return useDesplegable<maestro>({
-    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
@@ -217,7 +217,7 @@ export function useModalidadTrabajo(modalidadSvc: MaestrosService) {
   );
 
   return useDesplegable<maestro>({
-    load, addItem, deleteItem, editItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    load, addItem, deleteItem, editItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
@@ -244,7 +244,7 @@ export function useEspecificidadCargo(espeficidadSvc: MaestrosService) {
   );
 
   return useDesplegable<maestro>({
-    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
@@ -271,7 +271,7 @@ export function useNivelCargo(nivelSvc: MaestrosService) {
   );
 
   return useDesplegable<maestro>({
-    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
@@ -298,7 +298,7 @@ export function useOrigenSeleccion(origenSeleccionSvc: MaestrosService) {
   );
 
   return useDesplegable<maestro>({
-    load, deleteItem, addItem, editItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    load, deleteItem, addItem, editItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
@@ -325,7 +325,7 @@ export function useTipoContrato(tipoContratoSvc: MaestrosService) {
   );
 
   return useDesplegable<maestro>({
-    load, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.T_x00ed_tulo1 ?? "", addItem, deleteItem, editItem,
+    load, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "", addItem, deleteItem, editItem,
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
@@ -352,7 +352,7 @@ export function useTipoVacante(tipoVacante: MaestrosService) {
   );
 
   return useDesplegable<maestro>({
-    load, addItem, editItem, deleteItem,  getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    load, addItem, editItem, deleteItem,  getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
@@ -408,7 +408,7 @@ export function useCentroCostos(centroCostosSvc: MaestrosService) {
   );
 
   return useDesplegable<maestro>({
-    load, addItem, editItem, deleteItem, getId: (e) => e.Abreviacion, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    load, addItem, editItem, deleteItem, getId: (e) => e.Codigo, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
@@ -435,7 +435,7 @@ export function useCentroOperativo(centroOperativoSvc: MaestrosService) {
   );
 
   return useDesplegable<maestro>({
-    load, addItem, editItem, deleteItem, getId: (e) => e.Abreviacion, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    load, addItem, editItem, deleteItem, getId: (e) => e.Codigo, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
@@ -462,7 +462,7 @@ export function useUnidadNegocio(unidadNegocioSvc: MaestrosService) {
   );
 
   return useDesplegable<maestro>({
-    load, deleteItem, editItem, addItem, getId: (e) => e.Abreviacion, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    load, deleteItem, editItem, addItem, getId: (e) => e.Codigo, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }

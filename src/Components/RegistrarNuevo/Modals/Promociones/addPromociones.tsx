@@ -3,7 +3,7 @@ import "../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
 import { useGraphServices } from "../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../models/Desplegables";
-import {useCargo, useCentroCostos, useCentroOperativo, useDeptosMunicipios, useEmpresasSelect, useEspecificidadCargo, useModalidadTrabajo, useNivelCargo, useTipoContrato, useTipoDocumentoSelect, useTipoVacante, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
+import {useCargo, useCentroCostos, useCentroOperativo, useDeptosMunicipios, useEmpresasSelect, useEspecificidadCargo, useModalidadTrabajo, useNivelCargo, useTipoDocumentoSelect, useTipoVacante, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
 import {formatPesosEsCO, numeroATexto, toNumberFromEsCO,} from "../../../../utils/Number";
 import { useAuth } from "../../../../auth/authProvider";
 import { getTodayLocalISO } from "../../../../utils/Date";
@@ -45,7 +45,6 @@ export default function FormPromociones({onClose}: Props){
   const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
   const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
   const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
-  const { options: tipoContratoOptions, loading: loadingTipoContrato, reload: reloadTipoContrato} = useTipoContrato(Maestro);
   const { options: tipoVacanteOptions, loading: loadingTipoVacante, reload: reloadTipoVacante} = useTipoVacante(Maestro);
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
   const { options: dependenciaOptions, loading: loadingDependencias} = useDependencias();
@@ -91,7 +90,6 @@ export default function FormPromociones({onClose}: Props){
   const selectedCentroCostos = CentroCostosOptions.find((o) => o.value === state.CodigoCentroCostos) ?? null;
   const selectedCentroOperativo = COOptions.find((o) => o.value === state.CentroOperativo) ?? null;
   const selectedUnidadNegocio = UNOptions.find((o) => o.value === state.IDUnidadNegocio) ?? null;
-  const selectedTipoContrato = tipoContratoOptions.find((o) => o.label === state.TipoContrato) ?? null;
   const selectedTipoVacante = tipoVacanteOptions.find((o) => o.label === state.TipoVacante) ?? null;
   const selectedDependencia = dependenciaOptions.find((o) => o.label === state.Dependencia) ?? null;
   const opciones = [{ value: "Escritorio", label: "Escritorio" }, { value: "Silla", label: "Silla" }, { value: "Escritorio/Silla", label: "Escritorio/Silla" }];
@@ -122,8 +120,6 @@ export default function FormPromociones({onClose}: Props){
     reloadCO(),
     reloadDeptos(),
     reloadUN(),
-    reloadTipoContrato(),
-    reloadTipoContrato(),
     reloadTipoVacante()
   }, [reloadEmpresas, reloadTipoDoc, reloadCargo, reloadModalidadTrabajo, reloadEspecidadCargo]);
 
@@ -680,26 +676,6 @@ export default function FormPromociones({onClose}: Props){
                 <span className="text">No</span>
               </label>
             </div>
-          </div>
-
-          {/* ================= Tipo de contrato ================= */ }
-          <div className="ft-field">
-            <label className="ft-label" htmlFor="modalidadTrabajo">Tipo de contrato *</label>
-            <Select<desplegablesOption, false>
-              inputId="modalidadTrabajo"
-              options={tipoContratoOptions}
-              placeholder={loadingTipoContrato ? "Cargando opciones…" : "Buscar centro de costos..."}
-              value={selectedTipoContrato}
-              onChange={(opt) => {setField("TipoContrato", opt?.label ?? "");}}
-              classNamePrefix="rs"
-              isDisabled={loadingTipoContrato}
-              isLoading={loadingTipoContrato}
-              getOptionValue={(o) => String(o.value)}
-              getOptionLabel={(o) => o.label}
-              components={{ Option }}
-              isClearable
-            />
-            <small>{errors.TipoContrato}</small>
           </div>
 
           {/* ================= Tipo de vacante ================= */ }

@@ -1,12 +1,10 @@
-export type campoUnico = {
-    Id?: string;
-    Title: string
-}
+export type maestro = {
+  Id?: string,
+  Title : string,
+  T_x00ed_tulo1: string,
+  Abreviacion: string,
+  Codigo: string,
 
-export type dobleCampo = {
-    Id: string;
-    Title: string;
-    Abreviacion: string
 }
 
 export type desplegablesOption = {
@@ -14,4 +12,10 @@ export type desplegablesOption = {
   label: string;      //Nombre del ticket
 };
 
-export type CampoUnicoErrors = Partial<Record<keyof campoUnico, string>>;
+export type maestroErrors = Partial<Record<keyof maestro, string>>;
+
+export type dobleCampo = {
+    Id: string;
+    Title: string;
+    Abreviacion: string
+}

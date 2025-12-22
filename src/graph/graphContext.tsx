@@ -6,18 +6,7 @@ import { UsuariosSPService } from "../Services/Usuarios.service";
 import { PerfilesService } from "../Services/Perfiles.service";
 import { ContratosService } from "../Services/Contratos.service";
 import { PromocionesService } from "../Services/Promociones.service";
-import { EmpresaService } from "../Services/Empresas.service";
-import { tipoDocumentoService } from "../Services/TipoDocumento.service";
-import { CargoService } from "../Services/Cargo.service";
-import { ModalidadTrabajoService } from "../Services/ModalidadTrabajo.service";
-import { EspecificidadCargoService } from "../Services/EspecificidadCargo.service";
-import { NivelCargoService } from "../Services/NivelCargo.service";
-import { centroCostosService } from "../Services/CentroCostos.service";
-import { centroOperativoService } from "../Services/CentroOperativo.service";
-import { unidadNegocioService } from "../Services/UnidadNegocio.service";
-import { OrigenSeleccionService } from "../Services/OrigenSeleccion.service";
-import { TipoContratoService } from "../Services/TipoContrato.Service";
-import { TipoVacanteService } from "../Services/TipoVacante.service";
+import { MaestrosService } from "../Services/Maestros.service";
 import { DeptosYMunicipiosService } from "../Services/DeptosYMunicipios.service";
 import { EnviosService } from "../Services/Envios.service";
 import { PasosPromocionService } from "../Services/PasosPromocion.service";
@@ -46,19 +35,8 @@ export type UnifiedConfig = {
     Perfiles: string;
     Contratos: string;
     Promociones: string;
-    Empresa: string;
-    tipoDocumento: string;
-    cargo: string;
-    modalidadTrabajo: string;
-    especificidadCargo: string;
-    NivelCargo: string;
-    CentroCostos: string;
-    CentroOperativo: string;
-    UnidadNegocio: string,
-    OrigenSeleccion: string;
-    TipoContrato: string;
-    TipoVacante: string;
     DeptosYMunicipios: string;
+    Maestros: string;
     Envios: string;
     PasosPromocion: string;
     DetallesPasosPromocion: string
@@ -86,18 +64,7 @@ export type GraphServices = {
   Perfiles: PerfilesService;
   Contratos: ContratosService;
   Promociones: PromocionesService
-  Empresa: EmpresaService;
-  tipoDocumento: tipoDocumentoService;
-  cargo: CargoService;
-  modalidadTrabajo: ModalidadTrabajoService;
-  especificidadCargo: EspecificidadCargoService;
-  NivelCargo: NivelCargoService;
-  CentroCostos: centroCostosService;
-  CentroOperativo: centroOperativoService;
-  UnidadNegocio: unidadNegocioService;
-  OrigenSeleccion: OrigenSeleccionService;
-  TipoContrato: TipoContratoService;
-  TipoVacante: TipoVacanteService;
+  Maestro: MaestrosService
   DeptosYMunicipios: DeptosYMunicipiosService;
   Envios: EnviosService;
   PasosPromocion: PasosPromocionService;
@@ -135,18 +102,7 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     Perfiles: "Perfiles Novedades",
     Contratos: "Novedades Administrativas",
     Promociones: "Promociones",
-    Empresa: "Empresas",
-    tipoDocumento: "TipoDocumento",
-    cargo: "Cargos",
-    modalidadTrabajo: "ModalidadTrabajo",
-    especificidadCargo: "Especificidad de cargo",
-    NivelCargo: "Nivel Cargo",
-    CentroCostos: "Centro Costos",
-    CentroOperativo: "Centro Operativo",
-    UnidadNegocio: "Unidad de negocio",
-    OrigenSeleccion: "OrigenSeleccion",
-    TipoContrato: "TipoContrato",
-    TipoVacante: "TipoVacante",
+    Maestros: "Maestros",
     DeptosYMunicipios: "DeptosyMunicipios",
     Envios: "Envios",
     PasosPromocion: "PasosPromocion",
@@ -211,18 +167,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     const Perfiles                = new PerfilesService(graph, ch.hostname, ch.sitePath, lists.Perfiles);
     const Contratos               = new ContratosService(graph, ch.hostname, ch.sitePath, lists.Contratos)
     const Promociones             = new PromocionesService(graph, ch.hostname, ch.sitePath, lists.Promociones);
-    const Empresa                 = new EmpresaService(graph, ch.hostname, ch.sitePath, lists.Empresa);
-    const tipoDocumento           = new tipoDocumentoService(graph, ch.hostname, ch.sitePath, lists.tipoDocumento);
-    const cargo                   = new CargoService(graph, ch.hostname, ch.sitePath, lists.cargo);
-    const modalidadTrabajo        = new ModalidadTrabajoService(graph, ch.hostname, ch.sitePath, lists.modalidadTrabajo);
-    const especificidadCargo      = new EspecificidadCargoService(graph, ch.hostname, ch.sitePath, lists.especificidadCargo);
-    const NivelCargo              = new NivelCargoService(graph, ch.hostname, ch.sitePath, lists.NivelCargo);
-    const CentroCostos            = new centroCostosService(graph, ch.hostname, ch.sitePath, lists.CentroCostos)
-    const CentroOperativo         = new centroOperativoService(graph, ch.hostname, ch.sitePath, lists.CentroOperativo);
-    const UnidadNegocio           = new unidadNegocioService(graph, ch.hostname, ch.sitePath, lists.UnidadNegocio);
-    const OrigenSeleccion         = new OrigenSeleccionService(graph, ch.hostname, ch.sitePath, lists.OrigenSeleccion);
-    const TipoContrato            = new TipoContratoService(graph, ch.hostname, ch.sitePath, lists.TipoContrato);
-    const TipoVacante             = new TipoVacanteService(graph, ch.hostname, ch.sitePath, lists.TipoVacante)
+    const Maestro                 = new MaestrosService(graph, ch.hostname, ch.sitePath, lists.Maestros)
     const DeptosYMunicipios       = new DeptosYMunicipiosService(graph, ch.hostname, ch.sitePath, lists.DeptosYMunicipios)
     const Envios                  = new EnviosService(graph, ch.hostname, ch.sitePath, lists.Envios);
     const PasosPromocion          = new PasosPromocionService(graph, ch.hostname, ch.sitePath, lists.PasosPromocion);
@@ -240,8 +185,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       graph,
         
       //CH
-      HabeasData, Usuarios, Perfiles, Contratos, Promociones, Empresa, tipoDocumento, cargo, modalidadTrabajo, especificidadCargo, NivelCargo, CentroCostos, CentroOperativo, UnidadNegocio,
-      OrigenSeleccion, TipoContrato, TipoVacante, DeptosYMunicipios, Envios, PasosPromocion, DetallesPasosPromocion, ColaboradoresEDM, ColaboradoresDH, NovedadCancelada,
+      HabeasData, Usuarios, Perfiles, Contratos, Promociones, Maestro, DeptosYMunicipios, Envios, PasosPromocion, DetallesPasosPromocion, ColaboradoresEDM, ColaboradoresDH, NovedadCancelada,
 
       //paz salvos
       PazSalvos, PermisosPaz, Renovar, Firmas, Respuesta

@@ -1,9 +1,9 @@
 import type { GraphRest } from "../graph/graphRest";
 import type { GetAllOpts } from "../models/Commons";
-import type { campoUnico } from "../models/Desplegables";
+import type { maestro } from "../models/Desplegables";
 import { esc } from "../utils/text";
 
-export class CargoService {
+export class MaestrosService {
   private graph!: GraphRest;
   private hostname!: string;
   private sitePath!: string;
@@ -16,7 +16,7 @@ export class CargoService {
     graph: GraphRest,
     hostname = 'estudiodemoda.sharepoint.com',
     sitePath = '/sites/TransformacionDigital/IN/CH',
-    listName = 'Empresas'     
+    listName = 'Maestros'     
   ) {
     this.graph = graph;
     this.hostname = hostname;
@@ -25,11 +25,14 @@ export class CargoService {
   }
 
   // ---------- mapping ----------
-  private toModel(item: any): campoUnico {
+  private toModel(item: any): maestro {
     const f = item?.fields ?? {};
     return {
         Id: String(item?.id ?? ''),
-        Title: f.Title, 
+        Abreviacion: f.Abreviacion,
+        Title: f.Clave,
+        Codigo: f.Codigo,
+        T_x00ed_tulo1: f.T_x00ed_tulo1
     };
   }
   
@@ -75,7 +78,7 @@ export class CargoService {
 
 
   // ---------- CRUD ----------
-  async create(record: Omit<campoUnico, 'ID'>) {
+  async create(record: Omit<maestro, 'ID'>) {
     await this.ensureIds()
     const res = await this.graph.post<any>(
       `/sites/${this.siteId}/lists/${this.listId}/items`,
@@ -84,7 +87,7 @@ export class CargoService {
     return this.toModel(res);
   }
 
-  async update(id: string, changed: Partial<Omit<campoUnico, 'ID'>>) {
+  async update(id: string, changed: Partial<Omit<maestro, 'ID'>>) {
     await this.ensureIds()
     await this.graph.patch<any>(
       `/sites/${this.siteId}/lists/${this.listId}/items/${id}/fields`,

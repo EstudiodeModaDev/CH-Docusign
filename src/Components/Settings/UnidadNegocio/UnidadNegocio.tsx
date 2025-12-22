@@ -3,10 +3,11 @@ import "../Empresas.css";
 import { useGraphServices } from "../../../graph/graphContext";
 import { useUnidadNegocio, } from "../../../Funcionalidades/Desplegables";
 import type { withCode } from "../../../models/Maestros";
+import type { maestro } from "../../../models/Desplegables";
 
 export const UnidadNegocioManager: React.FC = () => {
-    const { UnidadNegocio, } = useGraphServices();
-    const { items, add, editItem, reload, remove} = useUnidadNegocio(UnidadNegocio);
+    const { Maestro, } = useGraphServices();
+    const { items, add, editItem, reload, remove} = useUnidadNegocio(Maestro);
     const [isEditing, setIsEditing] = React.useState(false);
     const [state, setState] = React.useState<withCode>({ Title: "", Codigo: ""})
     const [isAdding, setIsAdding] = React.useState<boolean>(false)
@@ -15,9 +16,11 @@ export const UnidadNegocioManager: React.FC = () => {
         if(!state.Title){
             alert("Rellene todos los campos")
         }
-        const payload = {
-            Title: state?.Title,
-            Codigo: state.Codigo
+        const payload: maestro = {
+            Abreviacion: "",
+            Title: "Unidad de negocio",
+            Codigo: state.Codigo,
+            T_x00ed_tulo1: state.Title,
         }
         return payload
     };
@@ -52,8 +55,8 @@ export const UnidadNegocioManager: React.FC = () => {
                 <section className="emp-list">
                 {items.map((CO) => (
                     <div key={CO.Id} className={ "emp-row"}>
-                    <button type="button" className="emp-row__name" onClick={() => {setIsEditing(true); setState({Codigo: CO.Abreviacion, Title: CO.Title, Id: CO.Id});}}>
-                        {CO.Title}
+                    <button type="button" className="emp-row__name" onClick={() => {setIsEditing(true); setState({Codigo: CO.Codigo, Title: CO.T_x00ed_tulo1, Id: CO.Id});}}>
+                        {CO.T_x00ed_tulo1}
                     </button>
 
                     <div className="emp-row__actions">

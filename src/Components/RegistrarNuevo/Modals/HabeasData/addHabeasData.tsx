@@ -29,11 +29,11 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormHabeas({onClose}: Props){
-  const { tipoDocumento, HabeasData, cargo, DeptosYMunicipios, Empresa} = useGraphServices();
-  const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(tipoDocumento);
-  const { loading: loadingCargo, reload: reloadCargo} = useCargo(cargo);
+  const { Maestro, HabeasData, DeptosYMunicipios} = useGraphServices();
+  const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
+  const { loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
-  const { options: empresaOptions, loading: loadingEmpresas, reload: reloadEmpresas} = useEmpresasSelect(Empresa);
+  const { options: empresaOptions, loading: loadingEmpresas, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
   const { state, setField, handleSubmit, errors, loadFirstPage, cleanState } = useHabeasData(HabeasData);
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");

@@ -31,21 +31,20 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormContratacion({onClose}: Props){
-  const { Empresa, tipoDocumento, Contratos, cargo, modalidadTrabajo, especificidadCargo, NivelCargo, CentroCostos, CentroOperativo, UnidadNegocio, OrigenSeleccion, 
-    TipoContrato, TipoVacante, DeptosYMunicipios} = useGraphServices();
+  const { Maestro, Contratos, DeptosYMunicipios} = useGraphServices();
   const { state, setField, handleSubmit, errors, cleanState, loadFirstPage } = useContratos(Contratos);
-  const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Empresa);
-  const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(tipoDocumento);
-  const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(cargo);
-  const { options: modalidadOptions, loading: loadingModalidad, reload: reloadModalidadTrabajo} = useModalidadTrabajo(modalidadTrabajo);
-  const { options: especificidadOptions, loading: loadingEspecificdad, reload: reloadEspecidadCargo} = useEspecificidadCargo(especificidadCargo);
-  const { options: nivelCargoOptions, loading: loadinNivelCargo, reload: reloadNivelCargo} = useNivelCargo(NivelCargo);
-  const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(CentroCostos);
-  const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(CentroOperativo);
-  const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(UnidadNegocio);
-  const { options: origenOptions, loading: loadingOrigen, reload: reloadOrigenSeleccion} = useOrigenSeleccion(OrigenSeleccion);
-  const { options: tipoContratoOptions, loading: loadingTipoContrato, reload: reloadTipoContrato} = useTipoContrato(TipoContrato);
-  const { options: tipoVacanteOptions, loading: loadingTipoVacante, reload: reloadTipoVacante} = useTipoVacante(TipoVacante);
+  const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
+  const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
+  const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
+  const { options: modalidadOptions, loading: loadingModalidad, reload: reloadModalidadTrabajo} = useModalidadTrabajo(Maestro);
+  const { options: especificidadOptions, loading: loadingEspecificdad, reload: reloadEspecidadCargo} = useEspecificidadCargo(Maestro);
+  const { options: nivelCargoOptions, loading: loadinNivelCargo, reload: reloadNivelCargo} = useNivelCargo(Maestro);
+  const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
+  const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
+  const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
+  const { options: origenOptions, loading: loadingOrigen, reload: reloadOrigenSeleccion} = useOrigenSeleccion(Maestro);
+  const { options: tipoContratoOptions, loading: loadingTipoContrato, reload: reloadTipoContrato} = useTipoContrato(Maestro);
+  const { options: tipoVacanteOptions, loading: loadingTipoVacante, reload: reloadTipoVacante} = useTipoVacante(Maestro);
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
   const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();
   const opciones = [{ value: "Escritorio", label: "Escritorio" }, { value: "Silla", label: "Silla" }, { value: "Escritorio/Silla", label: "Escritorio/Silla" }];

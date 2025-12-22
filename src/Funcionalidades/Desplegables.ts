@@ -1,25 +1,8 @@
 // src/Funcionalidades/Desplegables.ts
 import * as React from "react";
-import type {
-  desplegablesOption,
-  campoUnico,
-  dobleCampo,
-} from "../models/Desplegables";
-
-import type { EmpresaService } from "../Services/Empresas.service";
-import type { tipoDocumentoService } from "../Services/TipoDocumento.service";
-import type { CargoService } from "../Services/Cargo.service";
-import type { ModalidadTrabajoService } from "../Services/ModalidadTrabajo.service";
-import type { EspecificidadCargoService } from "../Services/EspecificidadCargo.service";
-import type { NivelCargoService } from "../Services/NivelCargo.service";
-import type { centroCostosService } from "../Services/CentroCostos.service";
-import type { centroOperativoService } from "../Services/CentroOperativo.service";
-import type { unidadNegocioService } from "../Services/UnidadNegocio.service";
-import type { OrigenSeleccionService } from "../Services/OrigenSeleccion.service";
-import type { TipoContratoService } from "../Services/TipoContrato.Service";
-import type { TipoVacanteService } from "../Services/TipoVacante.service";
+import type {desplegablesOption, dobleCampo, maestro,} from "../models/Desplegables";
 import type { DeptosYMunicipiosService } from "../Services/DeptosYMunicipios.service";
-import type { TipoDocumento, withCode } from "../models/Maestros";
+import type { MaestrosService } from "../Services/Maestros.service";
 
 /* ================== Tipos genéricos ================== */
 
@@ -149,27 +132,27 @@ export function useDesplegable<T>(config: DesplegableConfig<T>): UseDesplegableR
 /* ====== CAMPO ÚNICO ====== */
 
 // Empresas con filtro por search en memoria
-export function useEmpresasSelect(EmpresaSvc: EmpresaService) {
+export function useEmpresasSelect(EmpresaSvc: MaestrosService) {
   const load = React.useCallback(
     async (search?: string) => {
-      const items = await EmpresaSvc.getAll(); // back completo
+      const items = await EmpresaSvc.getAll({filter: "fields/Title eq 'Empresas'"}); // back completo
       if (!search) return items;
 
       const term = search.toLowerCase();
-      return items.filter((e:campoUnico) =>
-        (e.Title ?? "").toLowerCase().includes(term)
+      return items.filter((e:maestro) =>
+        (e.T_x00ed_tulo1 ?? "").toLowerCase().includes(term)
       );
     },
     [EmpresaSvc]
   );
 
   const addItem = React.useCallback(
-    (payload: campoUnico) => EmpresaSvc.create(payload),
+    (payload: maestro) => EmpresaSvc.create(payload),
     [EmpresaSvc]
   );
 
   const editItem = React.useCallback(
-    (payload: campoUnico, id: string) => EmpresaSvc.update(id, payload),
+    (payload: maestro, id: string) => EmpresaSvc.update(id, payload),
     [EmpresaSvc]
   );
 
@@ -178,26 +161,26 @@ export function useEmpresasSelect(EmpresaSvc: EmpresaService) {
     [EmpresaSvc]
   );
 
-  return useDesplegable<campoUnico>({
-    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.Title ?? "",
+  return useDesplegable<maestro>({
+    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
 // El resto ignora el search (pero el tipo lo acepta)
-export function useCargo(CargoSvc: CargoService) {
+export function useCargo(CargoSvc: MaestrosService) {
   const load = React.useCallback(
-    (_search?: string) => CargoSvc.getAll(),
+    (_search?: string) => CargoSvc.getAll({filter: "fields/Title eq 'Cargos'"}),
     [CargoSvc]
   );
 
   const addItem = React.useCallback(
-    (payload: campoUnico) => CargoSvc.create(payload),
+    (payload: maestro) => CargoSvc.create(payload),
     [CargoSvc]
   );
 
   const editItem = React.useCallback(
-    (payload: campoUnico, id: string) => CargoSvc.update(id, payload),
+    (payload: maestro, id: string) => CargoSvc.update(id, payload),
     [CargoSvc]
   );
 
@@ -206,25 +189,25 @@ export function useCargo(CargoSvc: CargoService) {
     [CargoSvc]
   );
 
-  return useDesplegable<campoUnico>({
-    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.Title ?? "",
+  return useDesplegable<maestro>({
+    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
-export function useModalidadTrabajo(modalidadSvc: ModalidadTrabajoService) {
+export function useModalidadTrabajo(modalidadSvc: MaestrosService) {
   const load = React.useCallback(
-    () => modalidadSvc.getAll(),
+    () => modalidadSvc.getAll({filter: "fields/Title eq 'Modalidades teletrabajo'"}),
     [modalidadSvc]
   );
 
   const addItem = React.useCallback(
-    (payload: campoUnico) => modalidadSvc.create(payload),
+    (payload: maestro) => modalidadSvc.create(payload),
     [modalidadSvc]
   );
 
   const editItem = React.useCallback(
-    (payload: campoUnico, id: string) => modalidadSvc.update(id, payload),
+    (payload: maestro, id: string) => modalidadSvc.update(id, payload),
     [modalidadSvc]
   );
 
@@ -233,25 +216,25 @@ export function useModalidadTrabajo(modalidadSvc: ModalidadTrabajoService) {
     [modalidadSvc]
   );
 
-  return useDesplegable<campoUnico>({
-    load, addItem, deleteItem, editItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.Title ?? "",
+  return useDesplegable<maestro>({
+    load, addItem, deleteItem, editItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
-export function useEspecificidadCargo(espeficidadSvc: EspecificidadCargoService) {
+export function useEspecificidadCargo(espeficidadSvc: MaestrosService) {
   const load = React.useCallback(
-    () => espeficidadSvc.getAll(),
+    () => espeficidadSvc.getAll({filter: "fields/Title eq 'Especifidad de cargos'"}),
     [espeficidadSvc]
   );
 
   const addItem = React.useCallback(
-    (payload: campoUnico) => espeficidadSvc.create(payload),
+    (payload: maestro) => espeficidadSvc.create(payload),
     [espeficidadSvc]
   );
 
   const editItem = React.useCallback(
-    (payload: campoUnico, id: string) => espeficidadSvc.update(id, payload),
+    (payload: maestro, id: string) => espeficidadSvc.update(id, payload),
     [espeficidadSvc]
   );
 
@@ -260,25 +243,25 @@ export function useEspecificidadCargo(espeficidadSvc: EspecificidadCargoService)
     [espeficidadSvc]
   );
 
-  return useDesplegable<campoUnico>({
-    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.Title ?? "",
+  return useDesplegable<maestro>({
+    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
-export function useNivelCargo(nivelSvc: NivelCargoService) {
+export function useNivelCargo(nivelSvc: MaestrosService) {
   const load = React.useCallback(
-    () => nivelSvc.getAll(),
+    () => nivelSvc.getAll({filter: "fields/Title eq 'Nivel de cargos'"}),
     [nivelSvc]
   );
 
   const addItem = React.useCallback(
-    (payload: campoUnico) => nivelSvc.create(payload),
+    (payload: maestro) => nivelSvc.create(payload),
     [nivelSvc]
   );
 
   const editItem = React.useCallback(
-    (payload: campoUnico, id: string) => nivelSvc.update(id, payload),
+    (payload: maestro, id: string) => nivelSvc.update(id, payload),
     [nivelSvc]
   );
 
@@ -287,25 +270,25 @@ export function useNivelCargo(nivelSvc: NivelCargoService) {
     [nivelSvc]
   );
 
-  return useDesplegable<campoUnico>({
-    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.Title ?? "",
+  return useDesplegable<maestro>({
+    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
-export function useOrigenSeleccion(origenSeleccionSvc: OrigenSeleccionService) {
+export function useOrigenSeleccion(origenSeleccionSvc: MaestrosService) {
   const load = React.useCallback(
-    () => origenSeleccionSvc.getAll(),
+    () => origenSeleccionSvc.getAll({filter: "fields/Title eq 'Origenes selecciones'"}),
     [origenSeleccionSvc]
   );
 
   const addItem = React.useCallback(
-    (payload: campoUnico) => origenSeleccionSvc.create(payload),
+    (payload: maestro) => origenSeleccionSvc.create(payload),
     [origenSeleccionSvc]
   );
 
   const editItem = React.useCallback(
-    (payload: campoUnico, id: string) => origenSeleccionSvc.update(id, payload),
+    (payload: maestro, id: string) => origenSeleccionSvc.update(id, payload),
     [origenSeleccionSvc]
   );
 
@@ -314,25 +297,25 @@ export function useOrigenSeleccion(origenSeleccionSvc: OrigenSeleccionService) {
     [origenSeleccionSvc]
   );
 
-  return useDesplegable<campoUnico>({
-    load, deleteItem, addItem, editItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.Title ?? "",
+  return useDesplegable<maestro>({
+    load, deleteItem, addItem, editItem, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
-export function useTipoContrato(tipoContratoSvc: TipoContratoService) {
+export function useTipoContrato(tipoContratoSvc: MaestrosService) {
   const load = React.useCallback(
-    (_search?: string) => tipoContratoSvc.getAll(),
+    (_search?: string) => tipoContratoSvc.getAll({filter: "fields/Title eq 'Tipo de contrato'"}),
     [tipoContratoSvc]
   );
 
   const addItem = React.useCallback(
-    (payload: TipoDocumento) => tipoContratoSvc.create(payload),
+    (payload: maestro) => tipoContratoSvc.create(payload),
     [tipoContratoSvc]
   );
 
   const editItem = React.useCallback(
-    (payload: campoUnico, id: string) => tipoContratoSvc.update(id, payload),
+    (payload: maestro, id: string) => tipoContratoSvc.update(id, payload),
     [tipoContratoSvc]
   );
 
@@ -341,25 +324,25 @@ export function useTipoContrato(tipoContratoSvc: TipoContratoService) {
     [tipoContratoSvc]
   );
 
-  return useDesplegable<campoUnico>({
-    load, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.Title ?? "", addItem, deleteItem, editItem,
+  return useDesplegable<maestro>({
+    load, getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.T_x00ed_tulo1 ?? "", addItem, deleteItem, editItem,
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
-export function useTipoVacante(tipoVacante: TipoVacanteService) {
+export function useTipoVacante(tipoVacante: MaestrosService) {
   const load = React.useCallback(
-    (_search?: string) => tipoVacante.getAll(),
+    (_search?: string) => tipoVacante.getAll({filter: "fields/Title eq 'Tipo vacante'"}),
     [tipoVacante]
   );
 
   const addItem = React.useCallback(
-    (payload: TipoDocumento) => tipoVacante.create(payload),
+    (payload: maestro) => tipoVacante.create(payload),
     [tipoVacante]
   );
 
   const editItem = React.useCallback(
-    (payload: campoUnico, id: string) => tipoVacante.update(id, payload),
+    (payload: maestro, id: string) => tipoVacante.update(id, payload),
     [tipoVacante]
   );
 
@@ -368,27 +351,27 @@ export function useTipoVacante(tipoVacante: TipoVacanteService) {
     [tipoVacante]
   );
 
-  return useDesplegable<campoUnico>({
-    load, addItem, editItem, deleteItem,  getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.Title ?? "",
+  return useDesplegable<maestro>({
+    load, addItem, editItem, deleteItem,  getId: (e) => e.Id ?? e.Title, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
 /* ====== DOBLE CAMPO ====== */
 
-export function useTipoDocumentoSelect(tipoDocumentoSvc: tipoDocumentoService) {
+export function useTipoDocumentoSelect(tipoDocumentoSvc: MaestrosService) {
   const load = React.useCallback(
-    (_search?: string) => tipoDocumentoSvc.getAll(),
+    (_search?: string) => tipoDocumentoSvc.getAll({filter: "fields/Title eq 'Tipos de documentos'"}),
     [tipoDocumentoSvc]
   );
 
   const addItem = React.useCallback(
-    (payload: TipoDocumento) => tipoDocumentoSvc.create(payload),
+    (payload: maestro) => tipoDocumentoSvc.create(payload),
     [tipoDocumentoSvc]
   );
 
   const editItem = React.useCallback(
-    (payload: campoUnico, id: string) => tipoDocumentoSvc.update(id, payload),
+    (payload: maestro, id: string) => tipoDocumentoSvc.update(id, payload),
     [tipoDocumentoSvc]
   );
 
@@ -397,25 +380,25 @@ export function useTipoDocumentoSelect(tipoDocumentoSvc: tipoDocumentoService) {
     [tipoDocumentoSvc]
   );
 
-  return useDesplegable<dobleCampo>({
-    load, addItem, editItem, deleteItem, getId: (e) => e.Abreviacion, getLabel: (e) => e.Title ?? "",
+  return useDesplegable<maestro>({
+    load, addItem, editItem, deleteItem, getId: (e) => e.Abreviacion, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
-export function useCentroCostos(centroCostosSvc: centroCostosService) {
+export function useCentroCostos(centroCostosSvc: MaestrosService) {
   const load = React.useCallback(
-    (_search?: string) => centroCostosSvc.getAll(),
+    (_search?: string) => centroCostosSvc.getAll({filter: "fields/Title eq 'Centro de costos'"}),
     [centroCostosSvc]
   );
 
   const addItem = React.useCallback(
-    (payload: withCode) => centroCostosSvc.create(payload),
+    (payload: maestro) => centroCostosSvc.create(payload),
     [centroCostosSvc]
   );
 
   const editItem = React.useCallback(
-    (payload: campoUnico, id: string) => centroCostosSvc.update(id, payload),
+    (payload: maestro, id: string) => centroCostosSvc.update(id, payload),
     [centroCostosSvc]
   );
 
@@ -424,25 +407,25 @@ export function useCentroCostos(centroCostosSvc: centroCostosService) {
     [centroCostosSvc]
   );
 
-  return useDesplegable<dobleCampo>({
-    load, addItem, editItem, deleteItem, getId: (e) => e.Abreviacion, getLabel: (e) => e.Title ?? "",
+  return useDesplegable<maestro>({
+    load, addItem, editItem, deleteItem, getId: (e) => e.Abreviacion, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
-export function useCentroOperativo(centroOperativoSvc: centroOperativoService) {
+export function useCentroOperativo(centroOperativoSvc: MaestrosService) {
   const load = React.useCallback(
-    () => centroOperativoSvc.getAll(),
+    () => centroOperativoSvc.getAll({filter: "fields/Title eq 'Centros operativos'"}),
     [centroOperativoSvc]
   );
 
   const addItem = React.useCallback(
-    (payload: campoUnico) => centroOperativoSvc.create(payload),
+    (payload: maestro) => centroOperativoSvc.create(payload),
     [centroOperativoSvc]
   );
 
   const editItem = React.useCallback(
-    (payload: campoUnico, id: string) => centroOperativoSvc.update(id, payload),
+    (payload: maestro, id: string) => centroOperativoSvc.update(id, payload),
     [centroOperativoSvc]
   );
 
@@ -451,25 +434,25 @@ export function useCentroOperativo(centroOperativoSvc: centroOperativoService) {
     [centroOperativoSvc]
   );
 
-  return useDesplegable<dobleCampo>({
-    load, addItem, editItem, deleteItem, getId: (e) => e.Abreviacion, getLabel: (e) => e.Title ?? "",
+  return useDesplegable<maestro>({
+    load, addItem, editItem, deleteItem, getId: (e) => e.Abreviacion, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
-export function useUnidadNegocio(unidadNegocioSvc: unidadNegocioService) {
+export function useUnidadNegocio(unidadNegocioSvc: MaestrosService) {
   const load = React.useCallback(
-    () => unidadNegocioSvc.getAll(),
+    () => unidadNegocioSvc.getAll({filter: "fields/Title eq 'Unidad de negocio'"}),
     [unidadNegocioSvc]
   );
 
   const addItem = React.useCallback(
-    (payload: campoUnico) => unidadNegocioSvc.create(payload),
+    (payload: maestro) => unidadNegocioSvc.create(payload),
     [unidadNegocioSvc]
   );
 
   const editItem = React.useCallback(
-    (payload: campoUnico, id: string) => unidadNegocioSvc.update(id, payload),
+    (payload: maestro, id: string) => unidadNegocioSvc.update(id, payload),
     [unidadNegocioSvc]
   );
 
@@ -478,8 +461,8 @@ export function useUnidadNegocio(unidadNegocioSvc: unidadNegocioService) {
     [unidadNegocioSvc]
   );
 
-  return useDesplegable<dobleCampo>({
-    load, deleteItem, editItem, addItem, getId: (e) => e.Abreviacion, getLabel: (e) => e.Title ?? "",
+  return useDesplegable<maestro>({
+    load, deleteItem, editItem, addItem, getId: (e) => e.Abreviacion, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
     includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }

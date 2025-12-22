@@ -16,15 +16,15 @@ type Props = {
 };
 
 export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
-  const {PazSalvos, CentroOperativo, Empresa, cargo, Renovar, Firmas} = useGraphServices()
+  const {PazSalvos, Maestro, Renovar, Firmas} = useGraphServices()
   const {account} = useAuth()
   const {getFirmaInline} = useFirmaUsuario(Firmas, account?.username!)
   const {state, setField, handleSubmit, errors, loading} = usePazSalvo(PazSalvos);
   const {loadRenovables, handleSubmit: createRenovar, setField: setRenovableField,} = useRenovar(Renovar)
   const { workersOptions, loadingWorkers, error: usersError } = useWorkers({onlyEnabled: true,});
-  const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(CentroOperativo);
-  const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Empresa);
-  const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(cargo);
+  const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
+  const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
+  const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
   const [aprobadorSelected, setSelectedAprobador] = React.useState<UserOption | null>(null);
   const selectedJefe = workersOptions.find((o) => o.value.trim().toLocaleLowerCase() === state.CorreoJefe.trim().toLocaleLowerCase()) ?? null;
   const selectedEmpresa = empresaOptions.find((o) => o.label.trim().toLocaleLowerCase() === state.Empresa.trim().toLocaleLowerCase()) ?? null;

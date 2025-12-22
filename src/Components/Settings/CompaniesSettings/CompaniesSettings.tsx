@@ -2,18 +2,21 @@ import * as React from "react";
 import "../Empresas.css";
 import { useGraphServices } from "../../../graph/graphContext";
 import { useEmpresasSelect } from "../../../Funcionalidades/Desplegables";
-import type { campoUnico } from "../../../models/Desplegables";
+import type { maestro } from "../../../models/Desplegables";
 
 export const EmpresasManager: React.FC = ({}) => {
-    const { Empresa, } = useGraphServices();
-    const { items, add, editItem, reload, remove} = useEmpresasSelect(Empresa);
+    const { Maestro, } = useGraphServices();
+    const { items, add, editItem, reload, remove} = useEmpresasSelect(Maestro);
     const [isEditing, setIsEditing] = React.useState(false);
-    const [stateUnico, setStateUnico] = React.useState<campoUnico | null>(null)
+    const [state, setState] = React.useState<maestro>({ T_x00ed_tulo1: "", Abreviacion: "", Title: "", Codigo: ""})
     const [isAdding, setIsAdding] = React.useState<boolean>(false)
 
     const handleAddNew = () => {
-        const payload = {
-            Title: stateUnico?.Title
+        const payload: maestro = {
+            Abreviacion: "",
+            Title: "Empresas",
+            Codigo: "",
+            T_x00ed_tulo1: state.T_x00ed_tulo1,
         }
         return payload
     };
@@ -36,7 +39,7 @@ export const EmpresasManager: React.FC = ({}) => {
         <div className="emp-page">
         {/* Botón superior */}
         <div className="emp-header">
-            <button type="button" className="btn btn-primary" onClick={() => {setIsAdding(true); setStateUnico({...stateUnico, Title: ""})}}>
+            <button type="button" className="btn btn-primary" onClick={() => {setIsAdding(true); setState({...state, T_x00ed_tulo1: ""})}}>
                 <span className="emp-add-btn__icon">＋</span>
                 Añadir Empresas
             </button>
@@ -47,8 +50,8 @@ export const EmpresasManager: React.FC = ({}) => {
             <section className="emp-list">
             {items.map((emp) => (
                 <div key={emp.Id} className={ "emp-row"}>
-                <button type="button" className="emp-row__name" onClick={() => {setIsEditing(true); setStateUnico(emp)}}>
-                    {emp.Title}
+                <button type="button" className="emp-row__name" onClick={() => {setIsEditing(true); setState(emp)}}>
+                    {emp.T_x00ed_tulo1}
                 </button>
 
                 <div className="emp-row__actions">
@@ -66,15 +69,14 @@ export const EmpresasManager: React.FC = ({}) => {
                     <section className="emp-form">
                         <div className="emp-field">
                             <label className="emp-label" htmlFor="empresaNombre">Nombre de la empresa</label>
-                            <input id="empresaNombre" type="text" className="emp-input" placeholder="Nombre de la empresa" value={stateUnico?.Title} onChange={(e) => setStateUnico({...stateUnico, Title: e.target.value})}/>
+                            <input id="empresaNombre" type="text" className="emp-input" placeholder="Nombre de la empresa" value={state?.T_x00ed_tulo1} onChange={(e) => setState({...state, T_x00ed_tulo1: e.target.value})}/>
                         </div>
                         { isEditing &&
                             <div className="emp-actions">
                                 <button type="button" className="emp-btn emp-btn--cancel" onClick={() => {setIsEditing(false); setIsAdding(false)}}>✕</button>
                                 <button type="button" className="emp-btn emp-btn--ok" onClick={async () => {
-                                                                                        console.table(stateUnico)
                                                                                         if(editItem){
-                                                                                            await editItem({Title: stateUnico?.Title}, stateUnico!.Id ?? "", );
+                                                                                            await editItem({Title: state?.T_x00ed_tulo1}, state!.Id ?? "", );
                                                                                             reload()
                                                                                         }
                                                                                         setIsEditing(false);}}>✔</button>

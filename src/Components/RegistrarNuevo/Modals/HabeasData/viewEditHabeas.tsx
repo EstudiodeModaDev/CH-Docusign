@@ -32,9 +32,9 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function ViewHabeas({ onClose, selectedHabeas, tipo }: Props) {
-  const { tipoDocumento, HabeasData, cargo, DeptosYMunicipios } = useGraphServices();
-  const { options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(tipoDocumento);
-  const { loading: loadingCargo, reload: reloadCargo} = useCargo(cargo);
+  const { Maestro, HabeasData, DeptosYMunicipios } = useGraphServices();
+  const { options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
+  const { loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
   const { state, setField, errors, handleEdit, cleanState} = useHabeasData(HabeasData);
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");

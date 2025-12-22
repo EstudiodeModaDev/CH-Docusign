@@ -3,10 +3,11 @@ import "../Empresas.css";
 import { useGraphServices } from "../../../graph/graphContext";
 import { useCentroCostos, } from "../../../Funcionalidades/Desplegables";
 import type { withCode } from "../../../models/Maestros";
+import type { maestro } from "../../../models/Desplegables";
 
 export const CentroCostosManager: React.FC = () => {
-    const { CentroCostos, } = useGraphServices();
-    const { items, add, editItem, reload, remove} = useCentroCostos(CentroCostos);
+    const { Maestro, } = useGraphServices();
+    const { items, add, editItem, reload, remove} = useCentroCostos(Maestro);
     const [isEditing, setIsEditing] = React.useState(false);
     const [state, setState] = React.useState<withCode>({ Title: "", Codigo: ""})
     const [isAdding, setIsAdding] = React.useState<boolean>(false)
@@ -15,9 +16,12 @@ export const CentroCostosManager: React.FC = () => {
         if(!state.Title || !state.Codigo){
             alert("Rellene todos los campos")
         }
-        const payload = {
-            Title: state?.Title,
-            Codigo: state.Codigo
+        const payload: maestro = {
+            T_x00ed_tulo1: state?.Title,
+            Codigo: state.Codigo,
+            Abreviacion: "",
+            Title: "Centro de costos",
+
         }
         return payload
     };
@@ -52,8 +56,8 @@ export const CentroCostosManager: React.FC = () => {
                 <section className="emp-list">
                 {items.map((CO) => (
                     <div key={CO.Id} className={ "emp-row"}>
-                    <button type="button" className="emp-row__name" onClick={() => {setIsEditing(true); setState({Codigo: CO.Abreviacion, Title: CO.Title, Id: CO.Id});}}>
-                        {CO.Title}
+                    <button type="button" className="emp-row__name" onClick={() => {setIsEditing(true); setState({Codigo: CO.Abreviacion, Title: CO.T_x00ed_tulo1, Id: CO.Id});}}>
+                        {CO.T_x00ed_tulo1}
                     </button>
 
                     <div className="emp-row__actions">

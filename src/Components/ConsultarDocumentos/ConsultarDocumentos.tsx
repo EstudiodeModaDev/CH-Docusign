@@ -65,7 +65,7 @@ export default function TablaEnvios() {
                     Fecha de envio {renderSortIndicator('fecha', sorts)}
                     </th>
 
-                    <th>Estado</th>
+                    <th style={{textAlign: 'center'}}>Estado</th>
                 </tr>
                 </thead>
                 <tbody>

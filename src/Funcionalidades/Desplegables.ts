@@ -469,10 +469,10 @@ export function useUnidadNegocio(unidadNegocioSvc: MaestrosService) {
 
 export function useDeptosMunicipios(DeptosSvc: DeptosYMunicipiosService) {
   const load = React.useCallback(
-    (_search?: string) => DeptosSvc.getAll(),
+    (_search?: string) => DeptosSvc.getAll({top: 2000}),
     [DeptosSvc]
   );
 
   return useDesplegable<dobleCampo>({
     load, getId: (e) => e.Abreviacion, getLabel: (e) => e.Title ?? "", includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",});
-}
+} 

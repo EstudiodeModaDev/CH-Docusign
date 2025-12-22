@@ -2,6 +2,7 @@
 import * as React from "react";
 import { useGraphServices } from "../graph/graphContext";
 import type { Archivo } from "../models/archivos";
+import { parseDateFlex } from "../utils/Date";
 
 export type EmpresaKey = "estudio" | "dh";
 
@@ -20,6 +21,7 @@ export function useColaboradoresExplorer() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [search, setSearch] = React.useState("");
+  const [organizacion, setOrganizacion] = React.useState("asc")
 
   const currentPath = empresa === "estudio" ? paths.estudio : paths.dh;
 
@@ -92,19 +94,30 @@ export function useColaboradoresExplorer() {
     });
   };
 
-  const items: Archivo[] = React.useMemo(() => {
-    // base: lista original o filtrada por el buscador
-    const base = !search.trim()
-      ? rawItems
-      : rawItems.filter((i) =>
-          i.name.toLowerCase().includes(search.toLowerCase())
-        );
+const items: Archivo[] = React.useMemo(() => {
+  const base = !search.trim()
+    ? rawItems
+    : rawItems.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()));
 
-    // devolvemos una copia ordenada por nombre
-    return [...base].sort((a, b) =>
-      a.name.localeCompare(b.name, "es", { sensitivity: "base" })
-    );
-  }, [rawItems, search]);
+  const getTime = (x: Archivo) => {
+    const d = parseDateFlex(x.lastModified ?? "");
+    return d ? d.getTime() : 0; // si no hay fecha, al inicio
+  };
+
+  const sorted = [...base].sort((a, b) => {
+    // si quieres que carpetas siempre vayan arriba:
+    if (a.isFolder !== b.isFolder) return a.isFolder ? -1 : 1;
+
+    if (organizacion === "asc") {
+      // más antiguos primero
+      return getTime(a) - getTime(b);
+    }
+    // "desc" más nuevos primero
+    return getTime(b) - getTime(a);
+  });
+
+  return sorted;
+}, [rawItems, search, organizacion]);
 
   const depth = React.useMemo(() => {
     if (!currentPath) return 0;
@@ -189,8 +202,8 @@ export function useColaboradoresExplorer() {
   }
 
     return {
-      empresa, currentPath, items, rawItems, loading, error, search, depth,
-      setEmpresa, setSearch, openFolder, goUp, reload: load, openItem, handleUploadClick, handleCancelProcess, moveCarpeta
+      empresa, currentPath, items, rawItems, loading, error, search, depth, organizacion,
+      setEmpresa, setSearch, openFolder, goUp, reload: load, openItem, handleUploadClick, handleCancelProcess, moveCarpeta, setOrganizacion
     };
   }
 

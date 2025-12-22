@@ -233,6 +233,7 @@
   align-items: center;
   justify-content: flex-end;
   flex: 1;
+  gap: 10px
 }
 
 /* Lado izquierdo inferior (botón subir nivel) */
@@ -384,5 +385,73 @@
   transform: rotate(-45deg);
   bottom: 4px;
   left: 4px;
+}
+
+/* Contenedor opcional (si quieres alinearlo con label) */
+.select-wrap{
+  display: inline-grid;
+  gap: 6px;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+/* Select base */
+#orden{
+  appearance: none;        /* quita estilo nativo */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  width: 100%;
+  min-width: 0px;
+  max-width: 200px;
+  height: 30px;
+
+  padding: 0px 38px 0px 12px;
+  border: 1px solid rgba(0,0,0,.14);
+  border-radius: 12px;
+
+  background: #fff;
+  color: #111827;
+  font-size: 14px;
+  line-height: 30px;
+
+  cursor: pointer;
+  outline: none;
+
+  transition: border-color .15s ease, box-shadow .15s ease, transform .02s ease;
+}
+
+/* Hover */
+#orden:hover{
+  border-color: rgba(0,0,0,.28);
+}
+
+/* Focus accesible */
+#orden:focus{
+  border-color: rgba(59,130,246,.75);
+  box-shadow: 0 0 0 4px rgba(59,130,246,.18);
+}
+
+/* Disabled */
+#orden:disabled{
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* Flecha custom con background (sin pseudo-elementos) */
+#orden{
+  background-image:
+    linear-gradient(45deg, transparent 50%, #6b7280 50%),
+    linear-gradient(135deg, #6b7280 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 12px) 50%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+/* Opcional: cuando haces click */
+#orden:active{
+  transform: translateY(1px);
 }
 

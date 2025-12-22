@@ -12,7 +12,7 @@ import { useGraphServices } from "../../graph/graphContext";
 /* ================== Componente único ================== */
 export const ColaboradoresExplorer: React.FC = () => {
     const {Contratos, NovedadCancelada} = useGraphServices()
-    const { empresa, currentPath, items, loading, error, search, setEmpresa, setSearch, depth, goUp, openItem, reload, handleCancelProcess, moveCarpeta} = useColaboradoresExplorer();
+    const { empresa, currentPath, items, loading, error, search, setEmpresa, setSearch, depth, goUp, openItem, reload, handleCancelProcess, moveCarpeta, organizacion, setOrganizacion} = useColaboradoresExplorer();
     const { handleCancelProcess: elimarProceso} = useContratos(Contratos,NovedadCancelada)
     const [agregar, setAgregar] = React.useState<boolean>(false)
     const [edit, setEdit] = React.useState<boolean>(false)
@@ -76,6 +76,10 @@ export const ColaboradoresExplorer: React.FC = () => {
                     </div>
 
                     <div className="colab-explorer__toolbar-right">
+                        <select name="orden" id="orden" onChange={(e) => setOrganizacion(e.target.value)} value={organizacion}>
+                            <option value="asc" selected>Mas antiguas primero</option>
+                            <option value="desc">Mas nuevas primero</option>
+                        </select>
                         <div className="colab-explorer__search">
                             <input type="text" placeholder="Buscar por nombre" value={search} onChange={(e) => setSearch(e.target.value)} className="colab-explorer__search-input"/>
                         </div>

@@ -44,6 +44,14 @@ export const ColaboradoresExplorer: React.FC = () => {
                 <button type="button"  className={"colab-explorer__empresa-btn" + (empresa === "dh" ? " colab-explorer__empresa-btn--active" : "")} onClick={() => setEmpresa("dh")}>
                     DH Retail
                 </button>
+
+                <button type="button"  className={"colab-explorer__empresa-btn" + (empresa === "denim" ? " colab-explorer__empresa-btn--active" : "")} onClick={() => setEmpresa("denim")}>
+                    Denim Head
+                </button>
+
+                <button type="button"  className={"colab-explorer__empresa-btn" + (empresa === "visual" ? " colab-explorer__empresa-btn--active" : "")} onClick={() => setEmpresa("visual")}>
+                    Visual
+                </button>
             </aside>
 
         {/* Panel derecho */}

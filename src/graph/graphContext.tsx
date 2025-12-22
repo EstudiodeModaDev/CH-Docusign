@@ -11,7 +11,7 @@ import { DeptosYMunicipiosService } from "../Services/DeptosYMunicipios.service"
 import { EnviosService } from "../Services/Envios.service";
 import { PasosPromocionService } from "../Services/PasosPromocion.service";
 import { DetallesPasosPromocionService } from "../Services/DetallesPasosPromocion.service";
-import { ColaboradoresDHService, ColaboradoresEDMService } from "../Services/Bibliotecas.service";
+import { ColaboradoresDenimService, ColaboradoresDHService, ColaboradoresEDMService, ColaboradoresVisualService } from "../Services/Bibliotecas.service";
 import { PazSalvosService } from "../Services/PazSalvos.service";
 import { PermisosPazSalvosService } from "../Services/PermisosPazSalvos.service";
 import { RenovarService } from "../Services/Renovar.service";
@@ -42,6 +42,8 @@ export type UnifiedConfig = {
     DetallesPasosPromocion: string
     ColaboradoresEDM: string;
     ColaboradoresDH: string;
+    ColaboradoresDenim: string;
+    ColaboradoresVisual: string
     NovedadCancelada: string;
 
     // Paz Salvos
@@ -71,6 +73,8 @@ export type GraphServices = {
   DetallesPasosPromocion: DetallesPasosPromocionService
   ColaboradoresEDM: ColaboradoresEDMService,
   ColaboradoresDH: ColaboradoresDHService,
+  ColaboradoresDenim: ColaboradoresDenimService,
+  ColaboradoresVisual: ColaboradoresVisualService
   NovedadCancelada: NovedadCanceladaService,
 
   // Paz Salvos
@@ -119,8 +123,8 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     //Bibliotecas de documentos
     ColaboradoresEDM: "Colaboradores EDM",
     ColaboradoresDH: "Colaboradores DH",
-
-
+    ColaboradoresDenim: "Colaboradores DENIM",
+    ColaboradoresVisual: "Colaboradores Visual"
     // TEST
   },
 };
@@ -180,12 +184,14 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     const Firmas                  = new FirmasService (graph, ch.hostname, ch.sitePath, lists.Firma); 
     const Respuesta               = new RespuestaService(graph, ch.hostname, ch.sitePath, lists.Respuesta)
     const NovedadCancelada        = new NovedadCanceladaService(graph, ch.hostname, ch.sitePath, lists.NovedadCancelada)
+    const ColaboradoresDenim      = new ColaboradoresDenimService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresDenim)
+    const ColaboradoresVisual     = new ColaboradoresVisualService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresVisual)
 
     return {
       graph,
         
       //CH
-      HabeasData, Usuarios, Perfiles, Contratos, Promociones, Maestro, DeptosYMunicipios, Envios, PasosPromocion, DetallesPasosPromocion, ColaboradoresEDM, ColaboradoresDH, NovedadCancelada,
+      HabeasData, Usuarios, Perfiles, Contratos, Promociones, Maestro, DeptosYMunicipios, Envios, PasosPromocion, DetallesPasosPromocion, ColaboradoresEDM, ColaboradoresDH, ColaboradoresDenim, NovedadCancelada, ColaboradoresVisual,
 
       //paz salvos
       PazSalvos, PermisosPaz, Renovar, Firmas, Respuesta

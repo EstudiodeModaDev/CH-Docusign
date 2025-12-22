@@ -277,3 +277,17 @@ export class ColaboradoresDHService extends BibliotecaBaseService {
   }
 }
 
+export class ColaboradoresDenimService extends BibliotecaBaseService {
+  constructor(graph: GraphRest, hostname: string, sitePath: string, name: string) {
+    super(graph, hostname, sitePath, name);
+  }
+}
+
+
+export class ColaboradoresVisualService extends BibliotecaBaseService {
+  constructor(graph: GraphRest, hostname: string, sitePath: string, name: string) {
+    super(graph, hostname, sitePath, name);
+  }
+}
+
+

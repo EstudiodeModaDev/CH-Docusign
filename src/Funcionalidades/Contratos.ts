@@ -203,7 +203,6 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
     if(!state.CELULAR_x0020_) e.CELULAR_x0020_ = "Ingrese el celular del seleccionado"
     if(!state.DIRECCION_x0020_DE_x0020_DOMICIL) e.DIRECCION_x0020_DE_x0020_DOMICIL = "Ingrese la direccion de domicilio"
     if(!state.BARRIO_x0020_) e.BARRIO_x0020_ = "Ingrese el barrio"
-    if(!state.ESPECIFICIDAD_x0020_DEL_x0020_CA)e.ESPECIFICIDAD_x0020_DEL_x0020_CA = "Seleccione la especificidad del cargo"
     if(!!state.Ajustesalario && !state.SALARIO_x0020_AJUSTADO) e.SALARIO_x0020_AJUSTADO = "Debe ingresar el porcentaje de ajuste"
     if(state.GARANTIZADO_x0020__x0020__x00bf_.toLocaleLowerCase() === "si" && Number(state.VALOR_x0020_GARANTIZADO) < 1) e.VALOR_x0020_GARANTIZADO = "Debe ingresar el porcentaje de ajuste en el garantizado"
     if(!!state.Auxilioderodamientosiono && !state.Auxilio_x0020_de_x0020_rodamient) e.Auxilio_x0020_de_x0020_rodamient = "Ingrese el valor del auxilio de rodamiento"

@@ -659,7 +659,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
 
           {/* ================= Especificidad de cargo ================= */}
           <div className="ft-field">
-            <label className="ft-label" htmlFor="modalidadTrabajo">Especificidad de cargo *</label>
+            <label className="ft-label" htmlFor="modalidadTrabajo">Especificidad de cargo</label>
             <Select<desplegablesOption, false>
               inputId="modalidadTrabajo"
               options={especificidadOptions}

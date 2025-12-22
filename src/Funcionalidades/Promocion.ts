@@ -198,7 +198,6 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
     if(state.AjusteSioNo && !state.SalarioAjustado) e.SalarioAjustado = "Ingrese el porcentaje con el que se ajustara"
     if(state.Garantizado_x00bf_SiNo_x003f_.toLocaleLowerCase() === "si" && !state.ValorGarantizado) e.ValorGarantizado = "Ingrese el porcentaje del garantizado"
     if(state.AuxilioRodamientoSioNo && !state.AuxilioRodamiento) e.AuxilioRodamiento = "Ingrese el auxilio de rodamiento"
-    if(!state.EspecificidadCargo)e.EspecificidadCargo = "Seleccione la especificidad del cargo"
     if(!state.NivelCargo) e.NivelCargo = "Seleccione el nivel de cargo"
     if(!state.Dependencia) e.Dependencia = "Seleccione la dependencia"
     if(!state.DescripcionCentroCostos) e.DescripcionCentroCostos = "Seleccione un CC"

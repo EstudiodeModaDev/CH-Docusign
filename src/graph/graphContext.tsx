@@ -105,12 +105,12 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     Usuarios: "Permisos Docu",
     Perfiles: "Perfiles Novedades",
     Contratos: "Novedades Administrativas",
-    Promociones: "Promociones",
+    Promociones: "Promocion - Promociones",
     Maestros: "Maestros",
     DeptosYMunicipios: "DeptosyMunicipios",
     Envios: "Envios",
-    PasosPromocion: "PasosPromocion",
-    DetallesPasosPromocion: "DetallesPasosPromocion",
+    PasosPromocion: "Promocion - Pasos",
+    DetallesPasosPromocion: "Promocion - Detalles Pasos",
     NovedadCancelada: "Novedades Canceladas",
 
     // Renovar

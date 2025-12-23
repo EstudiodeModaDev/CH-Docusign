@@ -16,7 +16,7 @@ export class PasosPromocionService {
     graph: GraphRest,
     hostname = 'estudiodemoda.sharepoint.com',
     sitePath = '/sites/TransformacionDigital/IN/CH',
-    listName = 'PasosPromocion'     
+    listName = 'Promocion - Pasos'     
   ) {
     this.graph = graph;
     this.hostname = hostname;

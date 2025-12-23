@@ -104,7 +104,7 @@ export default function FormHabeas({onClose}: Props){
               options={empresaOptions}
               placeholder={loadingEmpresas ? "Cargando Empresas..." : "Selecciona una empresa..."}
               value={ selectedEmpresa }
-              onChange={(e) => { setField("Empresa", e?.value ?? ""); }}
+              onChange={(e) => { setField("Empresa", e?.label ?? ""); }}
               classNamePrefix="rs"
               isDisabled={loadingEmpresas}
               isLoading={loadingEmpresas}

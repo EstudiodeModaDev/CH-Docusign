@@ -6,6 +6,7 @@ import { useCesaciones } from "../../../Funcionalidades/Cesaciones";
 import { useEnvios } from "../../../Funcionalidades/Envios";
 import type { Cesacion } from "../../../models/Cesaciones";
 import { toISODateFlex } from "../../../utils/Date";
+import FormCesacion from "../Modals/Cesaciones/addCesacion";
 
 
 function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; dir: SortDir}>) {
@@ -29,6 +30,7 @@ export default function CesacionesTabla() {
     const modo = await canEdit(String(cesacion.Id), "Cesaciones");
     setTipoFormulario(modo);
     setVisible(true);
+    console.log(cesacionSeleccionada, tipoFormulario)
   };
 
   const onClose = async () => {
@@ -121,7 +123,7 @@ export default function CesacionesTabla() {
           )}
         </div>
 
-        {/*visible ? <FormCesacion selectedNovedad={novedadSeleccionada!} tipo={tipoFormulario} onClose={() => onClose()}/> : null */}
+        {visible ? <FormCesacion onClose={() => onClose()}/> : null }
     </div>
   );
 

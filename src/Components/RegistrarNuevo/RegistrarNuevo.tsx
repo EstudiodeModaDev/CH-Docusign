@@ -6,6 +6,8 @@ import TablaPromociones from "./Promociones/Promociones";
 import FormContratacion from "./Modals/Contrato/addContrato";
 import FormHabeas from "./Modals/HabeasData/addHabeasData";
 import FormPromociones from "./Modals/Promociones/addPromociones";
+import CesacionesTabla from "./Cesaciones/Cesaciones";
+import FormCesacion from "./Modals/Cesaciones/addCesacion";
 export default function RegistrarNuevoPage() {
   const [orden, setOrden] = React.useState("contrataciones");
   const [modal, setModal] = React.useState<boolean>(false)
@@ -16,6 +18,7 @@ export default function RegistrarNuevoPage() {
       <div className="rn-toolbar">
         <div className="rn-toolbar__right">
           <select  id="orden" className="rn-select" value={orden} onChange={(e) => setOrden(e.target.value)} aria-label="Ordenar resultados">
+            <option value="cesaciones">Cesaciones</option>
             <option value="habeas">Habeas Data</option>
             <option value="contrataciones">Contrataciones</option>
             <option value="promociones">Promociones</option>
@@ -24,12 +27,19 @@ export default function RegistrarNuevoPage() {
         </div>
       </div>
 
-      {orden === "contrataciones" ? <TablaContratos /> : orden === "habeas" ? <TablaHabeas/> : <TablaPromociones/>}
+      {
+        orden === "contrataciones" ? ( <TablaContratos />) : 
+        orden === "habeas" ? (<TablaHabeas />) : 
+        orden === "promociones" ? (<TablaPromociones />) : 
+        orden === "cesaciones" ? (<CesacionesTabla />) : null
+      }
+      
 
       {/* MODALES AGREGAR */}
       {orden === "contrataciones" && modal ? <FormContratacion onClose={() => setModal(false)}/> : null}
       {orden === "habeas" && modal ? <FormHabeas onClose={() => setModal(false)}/> : null}
       {orden === "promociones" && modal ? <FormPromociones onClose={() => setModal(false)}/> : null}
+      {orden === "cesaciones" && modal ? <FormCesacion onClose={() => setModal(false)}/> : null}
 
     </div>
   );

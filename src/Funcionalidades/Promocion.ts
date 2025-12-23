@@ -203,7 +203,6 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
     if(!state.DescripcionCentroCostos) e.DescripcionCentroCostos = "Seleccione un CC"
     if(!state.DescripcionCentroOperativo) e.DescripcionCentroOperativo = "Seleccione un CO"
     if(!state.UnidadNegocio) e.UnidadNegocio = "Seleccione una UN"
-    if(!state.TipoContrato) e.TipoContrato = "Seleccione un tipo de contrato"
     if(!state.TipoVacante) e.TipoVacante = "Seleccione un tipo de vacante"
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -211,6 +210,7 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
 
   const handleSubmit = async (): Promise<{created: string | null, ok: boolean}> => {
     if (!validate()) { 
+      console.log(state)
       alert("Hay campos vacios")
       return{
         created: null,

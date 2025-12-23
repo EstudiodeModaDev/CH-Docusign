@@ -18,6 +18,7 @@ import { RenovarService } from "../Services/Renovar.service";
 import { FirmasService } from "../Services/Firmas.service";
 import { RespuestaService } from "../Services/Respuesta.service";
 import { NovedadCanceladaService } from "../Services/NovedadCancelada.service";
+import { CesacionesService } from "../Services/Cesaciones.service";
 
 /* ================== Tipos de config ================== */
 export type SiteConfig = {
@@ -29,22 +30,37 @@ export type UnifiedConfig = {
   ch: SiteConfig;    // sitio principal (CH)
   test: SiteConfig;  // sitio de pruebas (Paz y salvos)
   lists: {
-    // CH
+    // Habeas Data
     HabeasData: string;
-    Usuarios: string;
-    Perfiles: string;
+
+    //Novedades
     Contratos: string;
+    NovedadCancelada: string;
+
+    //Promociones
     Promociones: string;
-    DeptosYMunicipios: string;
-    Maestros: string;
-    Envios: string;
     PasosPromocion: string;
     DetallesPasosPromocion: string
+
+    //Cesaciones
+    Cesaciones: string
+
+    //Desplegables
+    DeptosYMunicipios: string;
+    Maestros: string;
+
+    //Seguridad
+    Usuarios: string;
+    Perfiles: string;
+
+    //Envios
+    Envios: string;
+
+    //Bibliotecas
     ColaboradoresEDM: string;
     ColaboradoresDH: string;
     ColaboradoresDenim: string;
     ColaboradoresVisual: string
-    NovedadCancelada: string;
 
     // Paz Salvos
     PazSalvos: string;
@@ -52,7 +68,7 @@ export type UnifiedConfig = {
     renovar: string;
     Firma: string;
     Respuesta: string;
-    // TEST
+    
   };
 };
 
@@ -60,22 +76,37 @@ export type UnifiedConfig = {
 export type GraphServices = {
   graph: GraphRest;
 
-  // CH
+  // Habeas
   HabeasData: HabeasDataService;
-  Usuarios: UsuariosSPService;
-  Perfiles: PerfilesService;
+
+  //Novedades
   Contratos: ContratosService;
+  NovedadCancelada: NovedadCanceladaService,
+
+  //Promociones
   Promociones: PromocionesService
-  Maestro: MaestrosService
-  DeptosYMunicipios: DeptosYMunicipiosService;
-  Envios: EnviosService;
   PasosPromocion: PasosPromocionService;
   DetallesPasosPromocion: DetallesPasosPromocionService
+
+  //Cesaciones
+  Cesaciones: CesacionesService
+
+  //Desplegables
+  Maestro: MaestrosService
+  DeptosYMunicipios: DeptosYMunicipiosService;
+
+  // Seguridad
+  Usuarios: UsuariosSPService;
+  Perfiles: PerfilesService;
+
+  //Envios
+  Envios: EnviosService;
+
+  //Bibliotecas
   ColaboradoresEDM: ColaboradoresEDMService,
   ColaboradoresDH: ColaboradoresDHService,
   ColaboradoresDenim: ColaboradoresDenimService,
   ColaboradoresVisual: ColaboradoresVisualService
-  NovedadCancelada: NovedadCanceladaService,
 
   // Paz Salvos
   PazSalvos: PazSalvosService;
@@ -83,7 +114,7 @@ export type GraphServices = {
   Renovar: RenovarService;
   Firmas: FirmasService;
   Respuesta: RespuestaService
-  // TEST
+
 };
 
 /* ================== Contexto ================== */
@@ -100,32 +131,44 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     sitePath: "/sites/TransformacionDigital/IN/Test",
   },
   lists: {
-    // CH
+    // Habeas Data
     HabeasData: "Habeas Data",
-    Usuarios: "Permisos Docu",
-    Perfiles: "Perfiles Novedades",
+
+    //Novedades
     Contratos: "Novedades Administrativas",
-    Promociones: "Promocion - Promociones",
-    Maestros: "Maestros",
-    DeptosYMunicipios: "DeptosyMunicipios",
-    Envios: "Envios",
-    PasosPromocion: "Promocion - Pasos",
-    DetallesPasosPromocion: "Promocion - Detalles Pasos",
     NovedadCancelada: "Novedades Canceladas",
 
-    // Renovar
+    //Promociones
+    Promociones: "Promocion - Promociones",
+    PasosPromocion: "Promocion - Pasos",
+    DetallesPasosPromocion: "Promocion - Detalles Pasos",
+
+    //Cesaciones
+    Cesaciones: "Cesasion - Cesaciones",
+
+    //Desplegables
+    Maestros: "Maestros",
+    DeptosYMunicipios: "DeptosyMunicipios",
+
+    //Seguridad
+    Usuarios: "Permisos Docu",
+    Perfiles: "Perfiles Novedades",
+
+    //Envios
+    Envios: "Envios",
+
+    //Bibliotecas
+    ColaboradoresEDM: "Colaboradores EDM",
+    ColaboradoresDH: "Colaboradores DH",
+    ColaboradoresDenim: "Colaboradores DENIM",
+    ColaboradoresVisual: "Colaboradores Visual",
+
+    // Paz y salvos
     PazSalvos: "Paz y salvos",
     PermisosPaz: "Permisos PazSalvos",
     renovar: "Renovar",
     Firma: "Firma",
     Respuesta: "Respuestas",
-
-    //Bibliotecas de documentos
-    ColaboradoresEDM: "Colaboradores EDM",
-    ColaboradoresDH: "Colaboradores DH",
-    ColaboradoresDenim: "Colaboradores DENIM",
-    ColaboradoresVisual: "Colaboradores Visual"
-    // TEST
   },
 };
 
@@ -165,39 +208,64 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
   const services = React.useMemo<GraphServices>(() => {
     const { ch, lists } = cfg;
 
-    // CH
+    // Habeas Data
     const HabeasData              = new HabeasDataService(graph, ch.hostname,  ch.sitePath,  lists.HabeasData);
-    const Usuarios                = new UsuariosSPService(graph, ch.hostname, ch.sitePath, lists.Usuarios);
-    const Perfiles                = new PerfilesService(graph, ch.hostname, ch.sitePath, lists.Perfiles);
+
+    //Novedades
     const Contratos               = new ContratosService(graph, ch.hostname, ch.sitePath, lists.Contratos)
+    const NovedadCancelada        = new NovedadCanceladaService(graph, ch.hostname, ch.sitePath, lists.NovedadCancelada)
+
+    //Promociones
     const Promociones             = new PromocionesService(graph, ch.hostname, ch.sitePath, lists.Promociones);
-    const Maestro                 = new MaestrosService(graph, ch.hostname, ch.sitePath, lists.Maestros)
-    const DeptosYMunicipios       = new DeptosYMunicipiosService(graph, ch.hostname, ch.sitePath, lists.DeptosYMunicipios)
-    const Envios                  = new EnviosService(graph, ch.hostname, ch.sitePath, lists.Envios);
     const PasosPromocion          = new PasosPromocionService(graph, ch.hostname, ch.sitePath, lists.PasosPromocion);
     const DetallesPasosPromocion  = new DetallesPasosPromocionService(graph, ch.hostname, ch.sitePath, lists.DetallesPasosPromocion);
+
+    //Cesaciones
+    const Cesaciones              = new CesacionesService(graph, ch.hostname, ch.sitePath, lists.Cesaciones)
+
+    //Desplegables
+    const Maestro                 = new MaestrosService(graph, ch.hostname, ch.sitePath, lists.Maestros)
+    const DeptosYMunicipios       = new DeptosYMunicipiosService(graph, ch.hostname, ch.sitePath, lists.DeptosYMunicipios)
+
+    //Seguridad
+    const Usuarios                = new UsuariosSPService(graph, ch.hostname, ch.sitePath, lists.Usuarios);
+    const Perfiles                = new PerfilesService(graph, ch.hostname, ch.sitePath, lists.Perfiles);
+    
+    //Envios
+    const Envios                  = new EnviosService(graph, ch.hostname, ch.sitePath, lists.Envios);
+
+    //Bibliotecas
     const ColaboradoresEDM        = new ColaboradoresEDMService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresEDM);
     const ColaboradoresDH         = new ColaboradoresDHService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresDH);
+    const ColaboradoresDenim      = new ColaboradoresDenimService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresDenim)
+    const ColaboradoresVisual     = new ColaboradoresVisualService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresVisual)
+    
+    //Paz y salvos
     const PazSalvos               = new PazSalvosService(graph, ch.hostname, ch.sitePath, lists.PazSalvos);
     const PermisosPaz             = new PermisosPazSalvosService(graph, ch.hostname, ch.sitePath, lists.PermisosPaz);
     const Renovar                 = new RenovarService(graph, ch.hostname, ch.sitePath, lists.renovar);  
     const Firmas                  = new FirmasService (graph, ch.hostname, ch.sitePath, lists.Firma); 
     const Respuesta               = new RespuestaService(graph, ch.hostname, ch.sitePath, lists.Respuesta)
-    const NovedadCancelada        = new NovedadCanceladaService(graph, ch.hostname, ch.sitePath, lists.NovedadCancelada)
-    const ColaboradoresDenim      = new ColaboradoresDenimService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresDenim)
-    const ColaboradoresVisual     = new ColaboradoresVisualService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresVisual)
-
     return {
       graph,
-        
-      //CH
-      HabeasData, Usuarios, Perfiles, Contratos, Promociones, Maestro, DeptosYMunicipios, Envios, PasosPromocion, DetallesPasosPromocion, ColaboradoresEDM, ColaboradoresDH, ColaboradoresDenim, NovedadCancelada, ColaboradoresVisual,
-
+      //Habeas
+      HabeasData, 
+      //Novedades
+      Contratos, NovedadCancelada,
+      //Promociones
+      Promociones, PasosPromocion, DetallesPasosPromocion,
+      //Cesaciones
+      Cesaciones,
+      //Desplegables
+      Maestro, DeptosYMunicipios,
+      //Seguridad
+      Usuarios, Perfiles,
+      //Envios
+      Envios,
+      //Bibliotecas
+      ColaboradoresEDM, ColaboradoresDH, ColaboradoresDenim, ColaboradoresVisual, 
       //paz salvos
       PazSalvos, PermisosPaz, Renovar, Firmas, Respuesta
-      
-      // TEST
-
     };
   }, [graph, cfg]);
 

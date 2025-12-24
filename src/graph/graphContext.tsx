@@ -19,6 +19,7 @@ import { FirmasService } from "../Services/Firmas.service";
 import { RespuestaService } from "../Services/Respuesta.service";
 import { NovedadCanceladaService } from "../Services/NovedadCancelada.service";
 import { CesacionesService } from "../Services/Cesaciones.service";
+import { SalariosService } from "../Services/Salarios.service";
 
 /* ================== Tipos de config ================== */
 export type SiteConfig = {
@@ -48,6 +49,7 @@ export type UnifiedConfig = {
     //Desplegables
     DeptosYMunicipios: string;
     Maestros: string;
+    salarios: string;
 
     //Seguridad
     Usuarios: string;
@@ -94,6 +96,7 @@ export type GraphServices = {
   //Desplegables
   Maestro: MaestrosService
   DeptosYMunicipios: DeptosYMunicipiosService;
+  salarios: SalariosService
 
   // Seguridad
   Usuarios: UsuariosSPService;
@@ -149,6 +152,7 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     //Desplegables
     Maestros: "Maestros",
     DeptosYMunicipios: "DeptosyMunicipios",
+    salarios: "Cargos - Salarios Recomendados",
 
     //Seguridad
     Usuarios: "Permisos Docu",
@@ -226,6 +230,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     //Desplegables
     const Maestro                 = new MaestrosService(graph, ch.hostname, ch.sitePath, lists.Maestros)
     const DeptosYMunicipios       = new DeptosYMunicipiosService(graph, ch.hostname, ch.sitePath, lists.DeptosYMunicipios)
+    const salarios                = new SalariosService(graph, ch.hostname, ch.sitePath, lists.salarios)
 
     //Seguridad
     const Usuarios                = new UsuariosSPService(graph, ch.hostname, ch.sitePath, lists.Usuarios);
@@ -257,7 +262,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       //Cesaciones
       Cesaciones,
       //Desplegables
-      Maestro, DeptosYMunicipios,
+      Maestro, DeptosYMunicipios, salarios,
       //Seguridad
       Usuarios, Perfiles,
       //Envios

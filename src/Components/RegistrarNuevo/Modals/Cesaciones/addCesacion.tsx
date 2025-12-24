@@ -3,10 +3,12 @@ import "../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
 import { useGraphServices } from "../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../models/Desplegables";
-import {useCargo, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useTipoDocumentoSelect,} from "../../../../Funcionalidades/Desplegables";
+import {useCargo, useCentroCostos, useCentroOperativo, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
 import { useAuth } from "../../../../auth/authProvider";
 import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
 import { useDependencias } from "../../../../Funcionalidades/Dependencias";
+import { formatPesosEsCO } from "../../../../utils/Number";
+//import { useSalarios } from "../../../../Funcionalidades/Salario";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -29,14 +31,18 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormCesacion({onClose}: Props){
-  const { Maestro, Cesaciones, DeptosYMunicipios } = useGraphServices();
+  const { Maestro, Cesaciones, DeptosYMunicipios, /*salarios*/ } = useGraphServices();
   const { state, setField, handleSubmit, errors, cleanState, loadFirstPage } = useCesaciones(Cesaciones);
+  //const { loadSpecificSalary } = useSalarios(salarios);
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
   const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
   const { options: tipoDocOptions, loading: loadingTipoDoc, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
   const { options: nivelCargoOptions, loading: loadinNivelCargo, reload: reloadNivelCargo} = useNivelCargo(Maestro);
-  const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();
+  const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();  
+  const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
+  const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
+  const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
 
 
   React.useEffect(() => {
@@ -44,21 +50,30 @@ export default function FormCesacion({onClose}: Props){
       reloadCargo();
       reloadTipoDoc();
       reloadDeptos()
-      reloadNivelCargo()
-  }, [reloadEmpresas, reloadCargo, reloadTipoDoc, reloadDeptos, reloadNivelCargo]);
+      reloadNivelCargo();
+      reloadCC();
+      reloadCO();
+      reloadUN();
+  }, [reloadEmpresas, reloadCargo, reloadTipoDoc, reloadDeptos, reloadNivelCargo, reloadCC]);
 
   const selectedEmpresa = empresaOptions.find((o) => o.label === state.Empresaalaquepertenece) ?? null;
   const selectedCargo = cargoOptions.find((o) => o.label === state.Cargo) ?? null;
   const selectedTipoDocumento = tipoDocOptions.find((o) => o.label === state.TipoDoc) ?? null;
   const selectedNivelCargo = nivelCargoOptions.find((o) => o.label === state.Niveldecargo) ?? null;   
-  const selectedDependencia = dependenciaOptions.find((o) => o.value === state.Dependencia) ?? null;
+  const selectedDependencia = dependenciaOptions.find((o) => o.value === state.Dependencia) ?? null;  
+  const selectedCentroCostos = CentroCostosOptions.find((o) => o.value === state.CodigoCC) ?? null;
+  const selectedCentroOperativo = COOptions.find((o) => o.value === state.CodigoCO) ?? null;
+  const selectedUnidadNegocio = UNOptions.find((o) => o.value === state.DescripcionUN) ?? null;
 
 
   /* ================== Display local para campos monetarios ================== */
-  //const [conectividad, setConectividad] = React.useState<Number>(0);
-  //const [conectividadTexto, setConectividadTexto] = React.useState<string>("");
+  const [conectividad, setConectividad] = React.useState<Number>(0);
+  const [conectividadTexto, setConectividadTexto] = React.useState<string>("");
+  const [displaySalario, setDisplaySalario] = React.useState<string>("");
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");  
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
+  const [promedio, setPromedio] = React.useState<number>(0);
+  const [grupoCVE, setGrupoCVE] = React.useState<string>("");
   const {account} = useAuth()
 
   const deptos = React.useMemo(() => {
@@ -90,45 +105,36 @@ export default function FormCesacion({onClose}: Props){
     [municipiosFiltrados]
   );
 
-  /*
   React.useEffect(() => {
-    if (state.SALARIO != null && state.SALARIO !== "") {
-      setDisplaySalario(formatPesosEsCO(String(state.SALARIO)));
+    setPromedio(1),
+    setGrupoCVE("")
+  }, [state.Cargo]);
+
+  React.useEffect(() => {
+    if (state.Salario != null && state.Salario !== "") {
+      setDisplaySalario(formatPesosEsCO(String(state.Salario)));
     } else {
       setDisplaySalario("");
     }
-  }, [state.SALARIO]);*/
+  }, [state.Salario]);
 
-/*
   React.useEffect(() => {
     const dosSalarios = 2846000
-    const valor = Number(state.SALARIO)
+    const valor = Number(state.Salario)
     if(valor <= dosSalarios){
       setConectividadTexto("Doscientos mil pesos");
       setConectividad(200000)
       
-    } else if (valor > dosSalarios && planFinanciado){
+    } /*else if (valor > dosSalarios && planFinanciado){
       setConectividad(23095)
-      setConectividadTexto("veintitrés mil noventa y cinco pesos")
-    } else if(valor > dosSalarios || state.CARGO.toLocaleLowerCase().includes("aprendiz") || state.CARGO.toLocaleLowerCase().includes("practicante")){
+      setConectividadTexto("veintitrés mil noventa y cinco pesos")*/
+    else if(valor > dosSalarios || state.Cargo.toLocaleLowerCase().includes("aprendiz") || state.Cargo.toLocaleLowerCase().includes("practicante")){
       setConectividad(46150)
       setConectividadTexto("Cuarenta y seis mil ciento noventa pesos")
     }
-    setField("auxconectividadtexto", conectividadTexto)
-    setField("auxconectividadvalor", String(conectividad))
-  }, [state.SALARIO, planFinanciado]);*/
-
-  /*
-  React.useEffect(() => {
-    const salario = Number(state.SALARIO || 0);
-    const porcentaje = Number(porcentajeValor || 0);
-
-    const valor = Math.round(salario * (porcentaje / 100)); // redondeo para evitar decimales raros
-
-    setValorGarantizado(valor);
-    setField("VALOR_x0020_GARANTIZADO", String(valor));
-    setField("Garantizado_x0020_en_x0020_letra", valor > 0 ? numeroATexto(valor) : "");
-  }, [state.SALARIO, porcentajeValor, setField]);*/
+    setField("auxConectividadTexto", conectividadTexto)
+    setField("auxConectividadValor", String(conectividad))
+  }, [state.Salario]);
 
   const handleCreateNovedad = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -241,6 +247,13 @@ export default function FormCesacion({onClose}: Props){
             <small>{errors.FechaIngreso}</small>
           </div>
 
+
+            {/* Fecha salida cesacion */}
+          <div className="ft-field">
+            <label className="ft-label" htmlFor="Fechaenlaquesereporta">Fecha en la que se reporta *</label>
+            <input id="Fechaenlaquesereporta" name="Fechaenlaquesereporta" type="date" value={state.Fechaenlaquesereporta ?? ""} autoComplete="off" required aria-required="true"/>
+          </div>
+
           {/* Fecha limite documentos */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="FechaLimiteDocumentos">Fecha limite documentos *</label>
@@ -267,6 +280,18 @@ export default function FormCesacion({onClose}: Props){
               isClearable
             />
             <small>{errors.Cargo}</small>
+          </div>
+
+          {/* Salario */}
+          <div className="ft-field">
+            <label className="ft-label" htmlFor="abreviacionDoc"> Salario *</label>
+            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={displaySalario} readOnly/>
+          </div>
+
+          {/* Salario */}
+          <div className="ft-field">
+            <label className="ft-label" htmlFor="abreviacionDoc"> Salario en letras *</label>
+            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={displaySalario} readOnly/>
           </div>
 
           {/* ================= Nivel de cargo ================= */ }
@@ -400,11 +425,167 @@ export default function FormCesacion({onClose}: Props){
             <small>{errors.Title}</small>
           </div>
 
-            {/* Fecha salida cesacion */}
+          {/* ================= Centro de costos ================= */ }
           <div className="ft-field">
-            <label className="ft-label" htmlFor="Fechaenlaquesereporta">Fecha en la que se reporta *</label>
-            <input id="Fechaenlaquesereporta" name="Fechaenlaquesereporta" type="date" value={state.Fechaenlaquesereporta ?? ""} autoComplete="off" required aria-required="true"/>
+            <label className="ft-label" htmlFor="modalidadTrabajo">Centro de costos *</label>
+            <Select<desplegablesOption, false>
+              inputId="modalidadTrabajo"
+              options={CentroCostosOptions}
+              placeholder={loadingCC ? "Cargando opciones…" : "Buscar centro de costos..."}
+              value={selectedCentroCostos}
+              onChange={(opt) => {setField("DescripcionCC", opt?.label ?? ""); setField("CodigoCC", opt?.value ?? "")}}
+              classNamePrefix="rs"
+              isDisabled={loadingCC}
+              isLoading={loadingCC}
+              getOptionValue={(o) => String(o.value)}
+              getOptionLabel={(o) => o.label}
+              components={{ Option }}
+              isClearable
+            />
+            <small>{errors.CodigoCC}</small>
           </div>
+
+          {/* Codigo CC */}
+          <div className="ft-field">
+            <label className="ft-label" htmlFor="abreviacionDoc"> Codigo centro de costos *</label>
+            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo de documento" value={state.CodigoCC} readOnly/>
+          </div>
+
+          {/* ================= Centro Operativo ================= */ }
+          <div className="ft-field">
+            <label className="ft-label" htmlFor="modalidadTrabajo">Descripcion Centro Operativo *</label>
+            <Select<desplegablesOption, false>
+              inputId="modalidadTrabajo"
+              options={COOptions}
+              placeholder={loadingCO ? "Cargando opciones…" : "Buscar centro operativo..."}
+              value={selectedCentroOperativo}
+              onChange={(opt) => {setField("DescripcionCO", opt?.label ?? ""); setField("CodigoCO", opt?.value ?? "")}}
+              classNamePrefix="rs"
+              isDisabled={loadingCO}
+              isLoading={loadingCO}
+              getOptionValue={(o) => String(o.value)}
+              getOptionLabel={(o) => o.label}
+              components={{ Option }}
+              isClearable
+            />
+            <small>{errors.CodigoCO}</small>
+          </div>
+          
+          {/* Codigo CO */}
+          <div className="ft-field">
+            <label className="ft-label" htmlFor="abreviacionDoc"> Codigo centro de operativo *</label>
+            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoCO} readOnly/>
+          </div>
+
+          {/* ================= Unidad de negocio ================= */ }
+          <div className="ft-field">
+            <label className="ft-label" htmlFor="modalidadTrabajo">Descripcion unidad de negocio *</label>
+            <Select<desplegablesOption, false>
+              inputId="modalidadTrabajo"
+              options={UNOptions}
+              placeholder={loadingUN ? "Cargando opciones…" : "Buscar centro de costos..."}
+              value={selectedUnidadNegocio}
+              onChange={(opt) => {setField("DescripcionUN", opt?.label ?? ""); setField("CodigoUN", opt?.value ?? "")}}
+              classNamePrefix="rs"
+              isDisabled={loadingUN}
+              isLoading={loadingUN}
+              getOptionValue={(o) => String(o.value)}
+              getOptionLabel={(o) => o.label}
+              components={{ Option }}
+              isClearable
+            />
+            <small>{errors.CodigoUN}</small>
+          </div>
+          
+          {/* Codigo UN */}
+          <div className="ft-field">
+            <label className="ft-label" htmlFor="abreviacionDoc"> Codigo centro de operativo *</label>
+            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoUN} readOnly/>
+          </div>
+
+          {/* ¿Pertenece al modelo? */}
+          <div className="ft-field">
+            <label className="ft-label"> ¿Pertenece al modelo? *</label>
+            <div className="ft-radio-group">
+              <label className="ft-radio-custom">
+                <input type="radio" name="modelo" value="Si" checked={!!state.Pertenecealmodelo} onChange={() => setField("Pertenecealmodelo", true)}/>
+                <span className="circle"></span>
+                <span className="text">Si</span>
+              </label>
+
+              <label className="ft-radio-custom">
+                <input type="radio" name="modelo" value="No" checked={!state.Pertenecealmodelo} onChange={() => setField("Pertenecealmodelo", false)}/>
+                <span className="circle"></span>
+                <span className="text">No</span>
+              </label>
+            </div>
+          </div>
+
+          {state.Pertenecealmodelo && (
+            <>
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="Autonomia">Autonomía *</label>
+                <select name="Autonomia" onChange={(e) => setField("Autonomia", e.target.value)}>
+                  <option value="0" selected>0</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                </select>
+                <small>{errors.Autonomia}</small>
+              </div>
+              
+
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="presupuesto">Presupuesto ventas/magnitud económica *</label>
+                <select name="presupuesto" onChange={(e) => setField("PresupuestaVentas", e.target.value)}>
+                  <option value="0" selected>0</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                </select>
+                <small>{errors.PresupuestaVentas}</small>
+              </div>
+
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="impacto">Impacto cliente externo *</label>
+                <select name="impacto" onChange={(e) => setField("ImpactoCliente", e.target.value)}>
+                  <option value="0" selected>0</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                </select>
+                <small>{errors.ImpactoCliente}</small>
+              </div>
+
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="contribucion">Contribución a la estrategia *</label>
+                <select name="contribucion" onChange={(e) => setField("contribucionEstrategia", e.target.value)}>
+                  <option value="0" selected>0</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                </select>
+                <small>{errors.contribucionEstrategia}</small>
+              </div>
+
+              {/* Promedio */}
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="cve"> Promedio *</label>
+                <input id="cve" name="cve" type="text" placeholder="Rellene los campos anteriores" value={promedio} readOnly/>
+              </div>
+            
+              {/* Grupo de CVE */}
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="cve"> Grupo CVE *</label>
+                <input id="cve" name="cve" type="text" placeholder="Rellene los campos anteriores" value={grupoCVE} readOnly/>
+              </div>
+            </>
+          )}
+
 
 
           {/* Informacion enviada por */}

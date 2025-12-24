@@ -166,3 +166,58 @@
 @media (prefers-reduced-motion: reduce){
   .tabla-novedades tbody tr{ transition: none; }
 }
+
+/* ===============================
+   REACT-SELECT (classNamePrefix="rs")
+   Solo para que el MENÚ se vea bien
+   =============================== */
+
+/* El menú */
+.rs__menu{
+  margin-top: 8px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--bd);
+  background: var(--surface);
+  box-shadow: 0 18px 40px rgba(0,0,0,.28);
+  z-index: 9999; /* encima del modal */
+}
+
+/* La lista interna (scroll) */
+.rs__menu-list{
+  padding: 6px;
+  max-height: 240px;
+}
+
+/* Cada opción */
+.rs__option{
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: var(--ink);
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Hover */
+.rs__option--is-focused{
+  background: color-mix(in oklab, var(--primary) 14%, transparent);
+}
+
+/* Seleccionada */
+.rs__option--is-selected{
+  background: color-mix(in oklab, var(--primary) 22%, transparent);
+  color: var(--ink);
+}
+
+/* Texto largo bonito */
+.rs__option,
+.rs__single-value{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Si el modal/página tiene overflow que corta el menú */
+.ft-card, .ft-form, .ft-modal-backdrop{
+  overflow: visible;
+}

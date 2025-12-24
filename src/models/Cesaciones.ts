@@ -22,7 +22,22 @@ export type Cesacion = {
     CargoCritico: string;
     Dependencia: string;
     CodigoCC : string;
-    DescripcionCC: string
+    DescripcionCC: string;
+    CodigoCO: string;
+    DescripcionCO: string;
+    CodigoUN: string;
+    DescripcionUN: string;
+    Salario: string;
+    SalarioTexto: string;
+    auxConectividadTexto: string;
+    auxConectividadValor: string;
+    Pertenecealmodelo: boolean;
+    GrupoCVE: string;
+    PresupuestaVentas: string;
+    Autonomia: string,
+    ImpactoCliente: string;
+    contribucionEstrategia: string;
+    Promedio: string
 }
 
 export type CesacionErrors = Partial<Record<keyof Cesacion, string>>;

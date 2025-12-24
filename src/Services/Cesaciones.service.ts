@@ -94,7 +94,22 @@ export class CesacionesService {
       CargoCritico: f.CargoCritico,
       Dependencia: f.Dependencia,
       DescripcionCC: f.DescripcionCC,
-      CodigoCC: f.CodigoCC
+      CodigoCC: f.CodigoCC,
+      CodigoCO: f.CodigoCO,
+      DescripcionCO: f.DescripcionCO,
+      CodigoUN: f.CodigoUN,
+      DescripcionUN: f.DescripcionUN,
+      Salario: f.Salario,
+      SalarioTexto: f.SalarioTexto,
+      auxConectividadValor: f.auxConectividadValor,
+      auxConectividadTexto: f.auxConectividadTexto,
+      Pertenecealmodelo: f.Pertenecealmodelo,
+      GrupoCVE: f.GrupoCVE,
+      PresupuestaVentas: f.PresupuestaVentas,
+      Autonomia: f.Autonomia,
+      ImpactoCliente: f.ImpactoCliente,
+      contribucionEstrategia: f.contribucionEstrategia,
+      Promedio: f.Promedio
     };
   }
 

@@ -25,7 +25,7 @@ export default function TablaHabeas() {
 
   const handleRowClick = async (habeas: HabeasData) => {
     setHabeasSeleccionado(habeas);
-    const modo = await canEdit(String(habeas.Id), "Habeas"); // asegúrate de que tenga Id
+    const modo = await canEdit(String(habeas.Id), "Habeas"); 
     setTipoFormulario(modo);
     setVisible(true);
   };

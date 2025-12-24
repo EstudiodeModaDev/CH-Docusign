@@ -42,7 +42,22 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
     CargoCritico: "",
     Dependencia: "",
     CodigoCC: "",
-    DescripcionCC: ""
+    DescripcionCC: "",
+    CodigoCO: "",
+    DescripcionCO: "",
+    CodigoUN: "",
+    DescripcionUN: "",
+    Salario: "",
+    SalarioTexto: "",
+    auxConectividadTexto: "",
+    auxConectividadValor: "",
+    Pertenecealmodelo: false,
+    GrupoCVE: "",
+    PresupuestaVentas: "",
+    Autonomia: "",
+    ImpactoCliente: "",
+    contribucionEstrategia: "",
+    Promedio: ""
   });
   const [errors, setErrors] = React.useState<CesacionErrors>({});
   const setField = <K extends keyof Cesacion>(k: K, v: Cesacion[K]) => setState((s) => ({ ...s, [k]: v }));
@@ -195,7 +210,22 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
       CargoCritico: "",
       Dependencia: "",
       CodigoCC: "",
-      DescripcionCC: ""
+      DescripcionCC: "",
+      CodigoCO: "",
+      DescripcionCO: "",
+      CodigoUN: "",
+      DescripcionUN: "",
+      Salario: "",
+      SalarioTexto: "",
+      auxConectividadTexto: "",
+      auxConectividadValor: "",
+      Pertenecealmodelo: false,
+      GrupoCVE: "",
+      PresupuestaVentas: "",
+      Autonomia: "",
+      ImpactoCliente: "",
+      contribucionEstrategia: "",
+      Promedio: ""
     })
   };
 
@@ -231,7 +261,22 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
         CargoCritico: state.CargoCritico,
         Dependencia: state.Dependencia,
         CodigoCC: state.CodigoCC,
-        DescripcionCC: state.DescripcionCC
+        DescripcionCC: state.DescripcionCC,
+        CodigoCO: state.CodigoCO,
+        DescripcionCO: state.DescripcionCO,
+        CodigoUN: state.CodigoUN,
+        DescripcionUN: state.DescripcionUN,
+        Salario: state.Salario,
+        SalarioTexto: state.SalarioTexto,
+        auxConectividadTexto: state.auxConectividadTexto,
+        auxConectividadValor: state.auxConectividadValor,
+        Pertenecealmodelo: state.Pertenecealmodelo,
+        GrupoCVE: state.GrupoCVE,
+        PresupuestaVentas: state.PresupuestaVentas,
+        Autonomia: state.Autonomia,
+        ImpactoCliente: state.ImpactoCliente,
+        contribucionEstrategia: state.contribucionEstrategia,
+        Promedio: state.Promedio
       };
       await CesacionesSvc.create(payload);
       alert("Se ha creado el registro con éxito")
@@ -272,6 +317,21 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
         Dependencia: CesacionSeleccionada.Dependencia !== state.Dependencia ? state.Dependencia : CesacionSeleccionada.Dependencia,
         CodigoCC: CesacionSeleccionada.CodigoCC !== state.CodigoCC ? state.CodigoCC : CesacionSeleccionada.CodigoCC,
         DescripcionCC: CesacionSeleccionada.DescripcionCC !== state.DescripcionCC ? state.DescripcionCC : CesacionSeleccionada.DescripcionCC, 
+        CodigoCO: CesacionSeleccionada.CodigoCO !== state.CodigoCO ? state.CodigoCO : CesacionSeleccionada.CodigoCO, 
+        DescripcionCO: CesacionSeleccionada.DescripcionCO !== state.DescripcionCO ? state.DescripcionCO : CesacionSeleccionada.DescripcionCO, 
+        CodigoUN: CesacionSeleccionada.CodigoUN !== state.CodigoUN ? state.CodigoUN : CesacionSeleccionada.CodigoUN, 
+        DescripcionUN: CesacionSeleccionada.DescripcionUN !== state.DescripcionUN ? state.DescripcionUN : CesacionSeleccionada.DescripcionUN, 
+        Salario: CesacionSeleccionada.Salario !== state.Salario ? state.Salario : CesacionSeleccionada.Salario, 
+        SalarioTexto: CesacionSeleccionada.SalarioTexto !== state.SalarioTexto ? state.SalarioTexto : CesacionSeleccionada.SalarioTexto, 
+        auxConectividadTexto: CesacionSeleccionada.auxConectividadTexto !== state.auxConectividadTexto ? state.auxConectividadTexto : CesacionSeleccionada.auxConectividadTexto, 
+        auxConectividadValor: CesacionSeleccionada.auxConectividadValor !== state.auxConectividadValor ? state.auxConectividadValor : CesacionSeleccionada.auxConectividadValor, 
+        Pertenecealmodelo: CesacionSeleccionada.Pertenecealmodelo !== state.Pertenecealmodelo ? state.Pertenecealmodelo : CesacionSeleccionada.Pertenecealmodelo, 
+        GrupoCVE: CesacionSeleccionada.GrupoCVE !== state.GrupoCVE ? state.GrupoCVE : CesacionSeleccionada.GrupoCVE,
+        PresupuestaVentas: CesacionSeleccionada.PresupuestaVentas !== state.PresupuestaVentas ? state.PresupuestaVentas : CesacionSeleccionada.PresupuestaVentas,
+        Autonomia: CesacionSeleccionada.Autonomia !== state.Autonomia ? state.Autonomia : CesacionSeleccionada.Autonomia,
+        ImpactoCliente: CesacionSeleccionada.ImpactoCliente !== state.ImpactoCliente ? state.ImpactoCliente : CesacionSeleccionada.ImpactoCliente,
+        contribucionEstrategia: CesacionSeleccionada.contribucionEstrategia !== state.contribucionEstrategia ? state.contribucionEstrategia : CesacionSeleccionada.contribucionEstrategia,
+        Promedio: CesacionSeleccionada.Promedio !== state.Promedio ? state.Promedio : CesacionSeleccionada.Promedio,
       };
       await CesacionesSvc.update(CesacionSeleccionada.Id!, payload);
       alert("Se ha actualizado el registro con éxito")

@@ -19,3 +19,11 @@ export type dobleCampo = {
     Title: string;
     Abreviacion: string
 }
+
+export type salario = {
+  Id?: string;
+  Title : string;
+  Salariorecomendado: string;
+}
+
+export type salarioErrors = Partial<Record<keyof salario, string>>;

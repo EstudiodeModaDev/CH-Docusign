@@ -137,6 +137,9 @@ export default function FormHabeas({onClose}: Props){
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
               components={{ Option }}
+              menuPortalTarget={document.body}
+              menuPosition="fixed"
+              menuShouldBlockScroll
               isClearable
             />
             <small>{errors.Tipodoc}</small>
@@ -184,6 +187,9 @@ export default function FormHabeas({onClose}: Props){
               getOptionLabel={(o) => o.label}
               components={{ Option }}
               isClearable
+              menuPortalTarget={document.body}
+              menuPosition="fixed"
+              menuShouldBlockScroll
             />
             <small>{errors.Ciudad}</small>
           </div>
@@ -208,6 +214,9 @@ export default function FormHabeas({onClose}: Props){
               getOptionLabel={(o) => o.label}
               components={{ Option }}
               isClearable
+              menuPortalTarget={document.body}
+              menuPosition="fixed"
+              menuShouldBlockScroll
             />
             <small>{errors.Ciudad}</small>
           </div>

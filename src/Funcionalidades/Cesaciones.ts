@@ -239,11 +239,14 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
     })
   };
 
-  const handleSubmit = async (): Promise<boolean> => {
+  const handleSubmit = async (): Promise<{created: string | null, ok: boolean}> => {
     if (!validate()) { 
     console.log(state)  
       alert("Hay campos sin rellenar")
-      return false
+      return {
+        ok: false,
+        created: null
+      }
     };
     console.log(state)
     setLoading(true);
@@ -288,11 +291,17 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
         contribucionEstrategia: state.contribucionEstrategia,
         Promedio: state.Promedio
       };
-      await CesacionesSvc.create(payload);
+      const creado = await CesacionesSvc.create(payload);
       alert("Se ha creado el registro con éxito")
-      return true
+      return {
+        ok: true,
+        created: creado.Id ?? ""
+      }
     } catch{
-      return false
+      return {
+        ok: false,
+        created: null
+      }
     }finally {
         setLoading(false);
       }

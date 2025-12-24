@@ -64,7 +64,7 @@ export type PasosPromocion = {
     Id?: string;
     Title: string;
     NombrePaso: string;
-    Orden: string;
+    Orden: number;
     Requiereevidencia: boolean;
     NombreEvidencia: string;
     RequiereNotas: boolean;
@@ -73,7 +73,7 @@ export type PasosPromocion = {
 export type DetallesPasosPromocion = {
     Id?: string;
     Title: string //IdPromocion
-    Paso: string;
+    Paso: number;
     NumeroPaso: string;
     EstadoPaso: string;
     CompletadoPor: string;

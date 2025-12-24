@@ -20,6 +20,8 @@ import { RespuestaService } from "../Services/Respuesta.service";
 import { NovedadCanceladaService } from "../Services/NovedadCancelada.service";
 import { CesacionesService } from "../Services/Cesaciones.service";
 import { SalariosService } from "../Services/Salarios.service";
+import { PasosCesacionService } from "../Services/PasosCesaciones.service";
+import { DetallesPasosCesacionService } from "../Services/DetallesPasosCesacion.service";
 
 /* ================== Tipos de config ================== */
 export type SiteConfig = {
@@ -45,6 +47,8 @@ export type UnifiedConfig = {
 
     //Cesaciones
     Cesaciones: string
+    PasosCesacion: string
+    DetallesPasosCesacion: string;
 
     //Desplegables
     DeptosYMunicipios: string;
@@ -92,6 +96,8 @@ export type GraphServices = {
 
   //Cesaciones
   Cesaciones: CesacionesService
+  PasosCesacion: PasosCesacionService
+  DetallesPasosCesacion: DetallesPasosCesacionService
 
   //Desplegables
   Maestro: MaestrosService
@@ -148,6 +154,8 @@ const DEFAULT_CONFIG: UnifiedConfig = {
 
     //Cesaciones
     Cesaciones: "Cesasion - Cesaciones",
+    PasosCesacion: "Cesacion - Pasos",
+    DetallesPasosCesacion: "Cesacion - Detalles Pasos",
 
     //Desplegables
     Maestros: "Maestros",
@@ -226,6 +234,8 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
 
     //Cesaciones
     const Cesaciones              = new CesacionesService(graph, ch.hostname, ch.sitePath, lists.Cesaciones)
+    const PasosCesacion           = new PasosCesacionService(graph, ch.hostname, ch.sitePath, lists.PasosCesacion)
+    const DetallesPasosCesacion   = new DetallesPasosCesacionService(graph, ch.hostname, ch.sitePath, lists.DetallesPasosCesacion)
 
     //Desplegables
     const Maestro                 = new MaestrosService(graph, ch.hostname, ch.sitePath, lists.Maestros)
@@ -260,7 +270,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       //Promociones
       Promociones, PasosPromocion, DetallesPasosPromocion,
       //Cesaciones
-      Cesaciones,
+      Cesaciones, PasosCesacion, DetallesPasosCesacion,
       //Desplegables
       Maestro, DeptosYMunicipios, salarios,
       //Seguridad

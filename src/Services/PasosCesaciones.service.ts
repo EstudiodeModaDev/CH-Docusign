@@ -3,7 +3,7 @@ import type { GetAllOpts } from "../models/Commons";
 import type { PasosPromocion } from "../models/Promociones";
 import { esc } from "../utils/text";
 
-export class PasosPromocionService {
+export class PasosCesacionService {
   private graph!: GraphRest;
   private hostname!: string;
   private sitePath!: string;

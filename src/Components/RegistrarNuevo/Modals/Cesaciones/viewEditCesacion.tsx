@@ -10,7 +10,9 @@ import { useDependencias } from "../../../../Funcionalidades/Dependencias";
 import { formatPesosEsCO, numeroATexto,  } from "../../../../utils/Number";
 import { useSalarios } from "../../../../Funcionalidades/Salario";
 import { useGroupMembers } from "../../../../Funcionalidades/GroupMembers";
-import { useDetallesPasosCesacion, usePasosCesacion } from "../../../../Funcionalidades/PasosCesacion";
+import type { Cesacion } from "../../../../models/Cesaciones";
+import { toISODateFlex } from "../../../../utils/Date";
+import { CesacionSteps } from "./procesoCesacion";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -29,39 +31,85 @@ export const Option = (props: OptionProps<desplegablesOption, false>) => {
 
 type Props = {
   onClose: () => void;
+  selectedCesacion:  Cesacion
+  tipo: string
 };
 
 /* ================== Formulario ================== */
-export default function FormCesacion({onClose}: Props){
-  const { Maestro, Cesaciones, DeptosYMunicipios, salarios, DetallesPasosCesacion, PasosCesacion, ColaboradoresDH, ColaboradoresDenim, ColaboradoresEDM, ColaboradoresVisual } = useGraphServices();
-  const { state, setField, handleSubmit, errors, } = useCesaciones(Cesaciones);
-  const { loadSpecificSalary } = useSalarios(salarios);
-  const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
-  const { allOptions, loading } = useGroupMembers("ca8b6719-431a-498a-ba9f-2c58242b1403");
-  const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
-  const { options: tipoDocOptions, loading: loadingTipoDoc, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
-  const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
-  const { options: nivelCargoOptions, loading: loadinNivelCargo, reload: reloadNivelCargo} = useNivelCargo(Maestro);
-  const { loadPasosCesacion, rows} = usePasosCesacion(PasosCesacion, DetallesPasosCesacion,ColaboradoresDH, ColaboradoresEDM, ColaboradoresDenim, ColaboradoresVisual)
-  const { handleCreateAllSteps} = useDetallesPasosCesacion(DetallesPasosCesacion)
-  const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();  
-  const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
-  const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
-  const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
+export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
+    const { Maestro, Cesaciones, DeptosYMunicipios, salarios } = useGraphServices();
+    const { state, setField, handleEdit, errors, } = useCesaciones(Cesaciones);
+    const { loadSpecificSalary } = useSalarios(salarios);
+    const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
+    const { allOptions, loading } = useGroupMembers("ca8b6719-431a-498a-ba9f-2c58242b1403");
+    const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
+    const { options: tipoDocOptions, loading: loadingTipoDoc, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
+    const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
+    const { options: nivelCargoOptions, loading: loadinNivelCargo, reload: reloadNivelCargo} = useNivelCargo(Maestro);
+    const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();  
+    const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
+    const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
+    const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
 
-  const showCargos = React.useMemo(() => new Set<string>(["31", "42", "9", "33"]), []);
-  const filteredCargoOptions = React.useMemo(() => cargoOptions.filter(o => showCargos.has(String(o.value))), [cargoOptions, showCargos]);
+    const showCargos = React.useMemo(() => new Set<string>(["31", "42", "9", "33"]), []);
+        const filteredCargoOptions = React.useMemo(
+        () => cargoOptions.filter(o => showCargos.has(String(o.value))),
+        [cargoOptions, showCargos]
+    );
 
-  React.useEffect(() => {
-      reloadEmpresas();
-      reloadCargo();
-      reloadTipoDoc();
-      reloadDeptos()
-      reloadNivelCargo();
-      reloadCC();
-      reloadCO();
-      reloadUN();
-  }, []);
+    React.useEffect(() => {
+        reloadEmpresas();
+        reloadCargo();
+        reloadTipoDoc();
+        reloadDeptos()
+        reloadNivelCargo();
+        reloadCC();
+        reloadCO();
+        reloadUN();
+    }, []);
+
+    React.useEffect(() => {
+        if (!selectedCesacion) return;
+        setField("Id", selectedCesacion?.Id ?? "");
+        setField("Autonomia", selectedCesacion?.Autonomia ?? "");
+        setField("Cargo", selectedCesacion.Cargo ?? "");
+        setField("CargoCritico", selectedCesacion.CargoCritico ?? "");
+        setField("Celular", selectedCesacion.Celular ?? "");
+        setField("Ciudad", selectedCesacion.Ciudad ?? "");
+        setField("CodigoCC", selectedCesacion.CodigoCC ?? "");
+        setField("CodigoCO", selectedCesacion.CodigoCO ?? "");
+        setField("CodigoUN", selectedCesacion.CodigoUN ?? "");
+        setField("Departamento", selectedCesacion.Departamento ?? "");
+        setField("Correoelectronico", selectedCesacion.Correoelectronico ?? "");
+        setField("Dependencia", selectedCesacion.Dependencia ?? "");
+        setField("DescripcionCC", selectedCesacion.DescripcionCC ?? "" as any);
+        setField("DescripcionCO", selectedCesacion.DescripcionCO ?? "");
+        setField("DescripcionUN", selectedCesacion.DescripcionUN ?? false);
+        setField("Empresaalaquepertenece", selectedCesacion.Empresaalaquepertenece ?? "" as any);
+        setField("FechaIngreso", toISODateFlex(selectedCesacion.FechaIngreso) ?? null);
+        setField("FechaIngresoCesacion", toISODateFlex(selectedCesacion.FechaIngresoCesacion) ?? null);
+        setField("FechaLimiteDocumentos", toISODateFlex(selectedCesacion.FechaLimiteDocumentos) ?? null);
+        setField("FechaSalidaCesacion", toISODateFlex(selectedCesacion.FechaSalidaCesacion) ?? null as any);
+        setField("Fechaenlaquesereporta", toISODateFlex(selectedCesacion.Fechaenlaquesereporta) ?? "");
+        setField("GrupoCVE", selectedCesacion.GrupoCVE ?? "");
+        setField("ImpactoCliente", selectedCesacion.ImpactoCliente ?? "");
+        setField("Jefedezona", selectedCesacion.Jefedezona ?? "");
+        setField("Niveldecargo", selectedCesacion.Niveldecargo ?? "");
+        setField("Nombre", selectedCesacion.Nombre ?? "");
+        setField("Pertenecealmodelo", selectedCesacion.Pertenecealmodelo ?? "No");
+        setField("PresupuestaVentas", selectedCesacion.PresupuestaVentas ?? "");
+        setField("Promedio", selectedCesacion.Promedio ?? "");
+        setField("Reportadopor", selectedCesacion.Reportadopor ?? "");
+        setField("Salario", selectedCesacion.Salario ?? "");
+        setField("SalarioTexto", selectedCesacion.SalarioTexto ?? "");
+        setField("Temporal", selectedCesacion.Temporal ?? "");
+        setField("Tienda", selectedCesacion.Tienda ?? "");
+        setField("TipoDoc", selectedCesacion.TipoDoc ?? "No");
+        setField("Title", selectedCesacion.Title ?? "No");
+        setField("auxConectividadTexto", selectedCesacion.auxConectividadTexto ?? "");
+        setField("auxConectividadValor", selectedCesacion.auxConectividadValor ?? "");
+        setField("contribucionEstrategia", selectedCesacion.contribucionEstrategia ?? "");
+    }, [selectedCesacion]);
 
   const selectedEmpresa = empresaOptions.find((o) => o.label === state.Empresaalaquepertenece) ?? null;
   const selectedCargo = cargoOptions.find((o) => o.label === state.Cargo) ?? null;
@@ -82,7 +130,9 @@ export default function FormCesacion({onClose}: Props){
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
   const [promedio, setPromedio] = React.useState<number>(0);
   const [grupoCVE, setGrupoCVE] = React.useState<string>("");
+  const [modal, setModal] = React.useState<boolean>(false)
   const {account} = useAuth()
+  const isView = tipo === "view"
 
   const deptos = React.useMemo(() => {
     const set = new Set<string>();
@@ -189,21 +239,15 @@ export default function FormCesacion({onClose}: Props){
       setField("GrupoCVE", nextGrupo);
     }
   }, [state.Autonomia, state.ImpactoCliente, state.contribucionEstrategia, state.PresupuestaVentas, state.Promedio, state.GrupoCVE, setField]);
-
-  const handleCreateCesacion = async () => {
-    const created = await handleSubmit();
-
-    if(created.ok){
-      await loadPasosCesacion()
-      await handleCreateAllSteps(rows, created.created ?? "")
-      await onClose()
-    }
-  };
   
   return (
     <div className="ft-modal-backdrop">
       <section className="ft-scope ft-card" role="region" aria-labelledby="ft_title">
+        { modal ? <CesacionSteps titulo={"Detalles cesacion de: " + selectedCesacion.Title + " - " + selectedCesacion.Nombre} selectedCesacion={selectedCesacion} onClose={() => setModal(false)}/>
+          : 
+        <>
         <h2 id="ft_title" className="ft-title">Nueva Cesación</h2>
+
         <form className="ft-form" noValidate>
           {/* ================= Empresa ================= */}
           <div className="ft-field">
@@ -215,7 +259,7 @@ export default function FormCesacion({onClose}: Props){
               value={selectedEmpresa}
               onChange={(opt) => setField("Empresaalaquepertenece", opt?.label ?? "")}
               classNamePrefix="rs"
-              isDisabled={loadingEmp}
+              isDisabled={loadingEmp || isView}
               isLoading={loadingEmp}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -234,7 +278,7 @@ export default function FormCesacion({onClose}: Props){
               value={selectedTipoDocumento}
               onChange={(opt) => {setField("TipoDoc", opt?.label ?? "");}}
               classNamePrefix="rs"
-              isDisabled={loadingTipoDoc}
+              isDisabled={loadingTipoDoc || isView}
               isLoading={loadingTipoDoc}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -248,14 +292,14 @@ export default function FormCesacion({onClose}: Props){
           <div className="ft-field">
             <label className="ft-label" htmlFor="numeroIdent">Número de identificación *</label>
             <input id="Title" name="Title" type="number" placeholder="Ingrese el número de documento" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value)}
-              autoComplete="off" required aria-required="true" maxLength={300}/>
+              autoComplete="off" required aria-required="true" maxLength={300} disabled={isView}/>
             <small>{errors.Title}</small>
           </div>
 
           {/* Nombre seleccionado */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="Nombre"> Nombre del seleccionado *</label>
-            <input id="Nombre" name="Nombre" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Nombre ?? ""} onChange={(e) => setField("Nombre", e.target.value)} autoComplete="off" required aria-required="true" maxLength={300}/>
+            <input id="Nombre" name="Nombre" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Nombre ?? ""} onChange={(e) => setField("Nombre", e.target.value)} autoComplete="off" required aria-required="true" maxLength={300} disabled={isView}/>
             <small>{errors.Nombre}</small>
           </div>
 
@@ -263,7 +307,7 @@ export default function FormCesacion({onClose}: Props){
           <div className="ft-field">
             <label className="ft-label" htmlFor="correo">Correo electrónico *</label>
             <input id="correo" name="Correoelectronico" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.Correoelectronico ?? ""} onChange={(e) => setField("Correoelectronico", e.target.value)}
-              autoComplete="off" required aria-required="true" maxLength={300}/>
+              autoComplete="off" required aria-required="true" maxLength={300} disabled={isView}/>
             <small>{errors.Correoelectronico}</small>
           </div>
 
@@ -271,7 +315,7 @@ export default function FormCesacion({onClose}: Props){
           <div className="ft-field">
             <label className="ft-label" htmlFor="numeroIdent">Celular</label>
             <input id="Title" name="Title" type="number" placeholder="Ingrese el numero de celular" value={state.Celular ?? ""} onChange={(e) => setField("Celular", e.target.value)}
-              autoComplete="off" required aria-required="true" maxLength={300}/>
+              autoComplete="off" required aria-required="true" maxLength={300} disabled={isView}/>
             <small>{errors.Title}</small>
           </div>
 
@@ -279,23 +323,23 @@ export default function FormCesacion({onClose}: Props){
           <div className="ft-field">
             <label className="ft-label" htmlFor="fechaIngreso">Fecha de ingreso *</label>
             <input id="FechaIngreso" name="FechaIngreso" type="date" value={state.FechaIngreso ?? ""} onChange={(e) => setField("FechaIngreso", e.target.value)}
-              autoComplete="off" required aria-required="true"/>
-            <small>{errors.FechaIngresoCesacion}</small>
+              autoComplete="off" required aria-required="true" disabled={isView}/>
+            <small>{errors.FechaIngreso}</small>
           </div>
 
           {/* Fecha salida cesacion */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="FechaSalidaCesacion">Fecha salida cesación *</label>
             <input id="FechaSalidaCesacion" name="FechaSalidaCesacion" type="date" value={state.FechaSalidaCesacion ?? ""} onChange={(e) => setField("FechaSalidaCesacion", e.target.value)}
-              autoComplete="off" required aria-required="true"/>
-            <small>{errors.FechaSalidaCesacion}</small>
+              autoComplete="off" required aria-required="true" disabled={isView}/>
+            <small>{errors.FechaIngreso}</small>
           </div>
 
           {/* Fecha ingreso cesacion */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="FechaIngresoCesacion">Fecha de ingreso cesacion*</label>
             <input id="FechaIngresoCesacion" name="FechaIngresoCesacion" type="date" value={state.FechaIngresoCesacion ?? ""} onChange={(e) => setField("FechaIngresoCesacion", e.target.value)}
-              autoComplete="off" required aria-required="true"/>
+              autoComplete="off" required aria-required="true" disabled={isView}/>
             <small>{errors.FechaIngreso}</small>
           </div>
 
@@ -303,8 +347,8 @@ export default function FormCesacion({onClose}: Props){
           <div className="ft-field">
             <label className="ft-label" htmlFor="FechaLimiteDocumentos">Fecha limite documentos *</label>
             <input id="FechaLimiteDocumentos" name="FechaLimiteDocumentos" type="date" value={state.FechaLimiteDocumentos ?? ""} onChange={(e) => setField("FechaLimiteDocumentos", e.target.value)}
-              autoComplete="off" required aria-required="true"/>
-            <small>{errors.FechaLimiteDocumentos}</small>
+              autoComplete="off" required aria-required="true" disabled={isView}/>
+            <small>{errors.FechaIngreso}</small>
           </div>
 
           {/* ================= Cargo ================= */}
@@ -317,7 +361,7 @@ export default function FormCesacion({onClose}: Props){
               value={selectedCargo}
               onChange={(opt) => {setField("Cargo", opt?.label ?? "");}}
               classNamePrefix="rs"
-              isDisabled={loadingCargo}
+              isDisabled={loadingCargo || isView}
               isLoading={loadingCargo}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -337,7 +381,7 @@ export default function FormCesacion({onClose}: Props){
               value={selectedNivelCargo}
               onChange={(opt) => {setField("Niveldecargo", opt?.label ?? "");}}
               classNamePrefix="rs"
-              isDisabled={loadinNivelCargo}
+              isDisabled={loadinNivelCargo || isView}
               isLoading={loadinNivelCargo}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -352,26 +396,23 @@ export default function FormCesacion({onClose}: Props){
             <label className="ft-label"> ¿Cargo critico? *</label>
             <div className="ft-radio-group">
               <label className="ft-radio-custom">
-                <input type="radio" name="critico" value="Si" checked={state.CargoCritico === "Si"} onChange={() => setField("CargoCritico", "Si")}/>
+                <input type="radio" name="critico" value="Si" checked={state.CargoCritico === "Si"} onChange={() => setField("CargoCritico", "Si")} disabled={isView}/>
                 <span className="circle"></span>
                 <span className="text">Si</span>
               </label>
 
               <label className="ft-radio-custom">
-                <input type="radio" name="critico" value="No" checked={state.CargoCritico === "No"} onChange={() => setField("CargoCritico", "No")}/>
+                <input type="radio" name="critico" value="No" checked={state.CargoCritico === "No"} onChange={() => setField("CargoCritico", "No")} disabled={isView}/>
                 <span className="circle"></span>
                 <span className="text">No</span>
               </label>
             </div>
-
-            <small>{errors.CargoCritico}</small>
           </div>
 
           {/* Salario */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="abreviacionDoc"> Salario *</label>
-            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={displaySalario} onChange={(e) => setField("Salario", e.target.value)}/>
-            <small>{errors.Salario}</small>
+            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" disabled={isView} value={displaySalario} onChange={(e) => setField("Salario", e.target.value)}/>
           </div>
 
           {/* Salario */}
@@ -402,7 +443,7 @@ export default function FormCesacion({onClose}: Props){
               value={selectedDependencia}
               onChange={(opt) => {setField("Dependencia", opt?.value ?? "");}}
               classNamePrefix="rs"
-              isDisabled={loadingDependencias}
+              isDisabled={loadingDependencias || isView}
               isLoading={loadingDependencias}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -422,14 +463,14 @@ export default function FormCesacion({onClose}: Props){
               value={selectedJefeZona}
               onChange={(opt) => {setField("Jefedezona", opt?.label ?? "");}}
               classNamePrefix="rs"
-              isDisabled={loading}
+              isDisabled={loading || isView}
               isLoading={loading}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
               components={{ Option }}
               isClearable
             />
-            <small>{errors.Jefedezona}</small>
+            <small>{errors.Cargo}</small>
           </div>
 
             {/*Departamento */}
@@ -447,7 +488,7 @@ export default function FormCesacion({onClose}: Props){
                 setField("Departamento", value);  
               }}
               classNamePrefix="rs"
-              isDisabled={loadingDepto}
+              isDisabled={loadingDepto || isView}
               isLoading={loadingDepto}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -471,7 +512,7 @@ export default function FormCesacion({onClose}: Props){
                 setField("Ciudad", value);          
               }}
               classNamePrefix="rs"
-              isDisabled={!selectedDepto  || loadingCargo}
+              isDisabled={!selectedDepto  || loadingCargo || isView}
               isLoading={loadingCargo}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -485,16 +526,16 @@ export default function FormCesacion({onClose}: Props){
           <div className="ft-field">
             <label className="ft-label" htmlFor="numeroIdent">Temporal *</label>
             <input id="Title" name="Title" type="text" placeholder="Ingrese la temporal" value={state.Temporal ?? ""} onChange={(e) => setField("Temporal", e.target.value)}
-              autoComplete="off" required aria-required="true" maxLength={300}/>
-            <small>{errors.Temporal}</small>
+              autoComplete="off" required aria-required="true" maxLength={300} disabled={isView}/>
+            <small>{errors.Title}</small>
           </div>
 
           {/* Tienda */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="numeroIdent">Tienda *</label>
             <input id="Title" name="Title" type="text" placeholder="Ingrese la tienda" value={state.Tienda ?? ""} onChange={(e) => setField("Tienda", e.target.value)}
-              autoComplete="off" required aria-required="true" maxLength={300}/>
-            <small>{errors.Tienda}</small>
+              autoComplete="off" required aria-required="true" maxLength={300} disabled={isView}/>
+            <small>{errors.Title}</small>
           </div>
 
           {/* ================= Centro de costos ================= */ }
@@ -507,7 +548,7 @@ export default function FormCesacion({onClose}: Props){
               value={selectedCentroCostos}
               onChange={(opt) => {setField("DescripcionCC", opt?.label ?? ""); setField("CodigoCC", opt?.value ?? "")}}
               classNamePrefix="rs"
-              isDisabled={loadingCC}
+              isDisabled={loadingCC || isView}
               isLoading={loadingCC}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -533,7 +574,7 @@ export default function FormCesacion({onClose}: Props){
               value={selectedCentroOperativo}
               onChange={(opt) => {setField("DescripcionCO", opt?.label ?? ""); setField("CodigoCO", opt?.value ?? "")}}
               classNamePrefix="rs"
-              isDisabled={loadingCO}
+              isDisabled={loadingCO || isView}
               isLoading={loadingCO}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -559,7 +600,7 @@ export default function FormCesacion({onClose}: Props){
               value={selectedUnidadNegocio}
               onChange={(opt) => {setField("DescripcionUN", opt?.label ?? ""); setField("CodigoUN", opt?.value ?? "")}}
               classNamePrefix="rs"
-              isDisabled={loadingUN}
+              isDisabled={loadingUN || isView}
               isLoading={loadingUN}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -580,13 +621,13 @@ export default function FormCesacion({onClose}: Props){
             <label className="ft-label"> ¿Pertenece al modelo? *</label>
             <div className="ft-radio-group">
               <label className="ft-radio-custom">
-                <input type="radio" name="modelo" value="Si" checked={!!state.Pertenecealmodelo} onChange={() => setField("Pertenecealmodelo", true)}/>
+                <input type="radio" name="modelo" value="Si" checked={!!state.Pertenecealmodelo} onChange={() => setField("Pertenecealmodelo", true)} disabled={isView}/>
                 <span className="circle"></span>
                 <span className="text">Si</span>
               </label>
 
               <label className="ft-radio-custom">
-                <input type="radio" name="modelo" value="No" checked={!state.Pertenecealmodelo} onChange={() => setField("Pertenecealmodelo", false)}/>
+                <input type="radio" name="modelo" value="No" checked={!state.Pertenecealmodelo} onChange={() => setField("Pertenecealmodelo", false)} disabled={isView}/>
                 <span className="circle"></span>
                 <span className="text">No</span>
               </label>
@@ -597,7 +638,7 @@ export default function FormCesacion({onClose}: Props){
             <>
               <div className="ft-field">
                 <label className="ft-label" htmlFor="Autonomia">Autonomía *</label>
-                <select name="Autonomia" onChange={(e) => setField("Autonomia", e.target.value)}>
+                <select name="Autonomia" onChange={(e) => setField("Autonomia", e.target.value)} disabled={isView}>
                   <option value="0" selected>0</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
@@ -610,7 +651,7 @@ export default function FormCesacion({onClose}: Props){
 
               <div className="ft-field">
                 <label className="ft-label" htmlFor="presupuesto">Presupuesto ventas/magnitud económica *</label>
-                <select name="presupuesto" onChange={(e) => setField("PresupuestaVentas", e.target.value)}>
+                <select name="presupuesto" onChange={(e) => setField("PresupuestaVentas", e.target.value)} disabled={isView}>
                   <option value="0" selected>0</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
@@ -622,7 +663,7 @@ export default function FormCesacion({onClose}: Props){
 
               <div className="ft-field">
                 <label className="ft-label" htmlFor="impacto">Impacto cliente externo *</label>
-                <select name="impacto" onChange={(e) => setField("ImpactoCliente", e.target.value)}>
+                <select name="impacto" onChange={(e) => setField("ImpactoCliente", e.target.value)} disabled={isView}>
                   <option value="0" selected>0</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
@@ -634,7 +675,7 @@ export default function FormCesacion({onClose}: Props){
 
               <div className="ft-field">
                 <label className="ft-label" htmlFor="contribucion">Contribución a la estrategia *</label>
-                <select name="contribucion" onChange={(e) => setField("contribucionEstrategia", e.target.value)}>
+                <select name="contribucion" onChange={(e) => setField("contribucionEstrategia", e.target.value)} disabled={isView}>
                   <option value="0" selected>0</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
@@ -674,10 +715,12 @@ export default function FormCesacion({onClose}: Props){
         </form>
         {/* Acciones */}
         <div className="ft-actions">
-          <button type="submit" className="btn btn-primary btn-xs" onClick={() => {handleCreateCesacion();}}>Guardar Registro</button>
+          {!isView ? <button type="submit" className="btn btn-primary btn-xs" onClick={(e) => {handleEdit(e, selectedCesacion);}}>Guardar Registro</button> : <small>Este registro ya ha sido usado, no puede ser editado</small>}
+          <button type="button" className="btn btn-xs" onClick={() => {setModal(true)}}>Detalles</button>
           <button type="button" className="btn btn-xs" onClick={() => onClose()}>Cancelar</button>
         </div>
+        </>
+        }
       </section>
-    </div>
-  );
+    </div>)
 };

@@ -8,7 +8,7 @@ import { useAuth } from "../../../../auth/authProvider";
 import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
 import { useDependencias } from "../../../../Funcionalidades/Dependencias";
 import { formatPesosEsCO } from "../../../../utils/Number";
-//import { useSalarios } from "../../../../Funcionalidades/Salario";
+import { useSalarios } from "../../../../Funcionalidades/Salario";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -31,9 +31,9 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormCesacion({onClose}: Props){
-  const { Maestro, Cesaciones, DeptosYMunicipios, /*salarios*/ } = useGraphServices();
+  const { Maestro, Cesaciones, DeptosYMunicipios, salarios } = useGraphServices();
   const { state, setField, handleSubmit, errors, cleanState, loadFirstPage } = useCesaciones(Cesaciones);
-  //const { loadSpecificSalary } = useSalarios(salarios);
+  const { loadSpecificSalary } = useSalarios(salarios);
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
   const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
   const { options: tipoDocOptions, loading: loadingTipoDoc, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
@@ -43,7 +43,6 @@ export default function FormCesacion({onClose}: Props){
   const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
   const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
   const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
-
 
   React.useEffect(() => {
       reloadEmpresas();
@@ -106,9 +105,22 @@ export default function FormCesacion({onClose}: Props){
   );
 
   React.useEffect(() => {
-    setPromedio(1),
-    setGrupoCVE("")
-  }, [state.Cargo]);
+    let cancelled = false;
+
+    const run = async () => {
+      const salario = await loadSpecificSalary(state.Cargo);
+
+      if (!cancelled && salario !== null) {
+        setField("Salario", salario.Salariorecomendado);
+      }
+    };
+
+    if (state.Cargo) run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.Cargo, loadSpecificSalary, setField]);
 
   React.useEffect(() => {
     if (state.Salario != null && state.Salario !== "") {
@@ -135,6 +147,23 @@ export default function FormCesacion({onClose}: Props){
     setField("auxConectividadTexto", conectividadTexto)
     setField("auxConectividadValor", String(conectividad))
   }, [state.Salario]);
+
+ React.useEffect(() => {
+    let promedio
+    promedio = (Number(state.Autonomia) * 0.2) + (Number(state.ImpactoCliente) * 0.2)+ (Number(state.contribucionEstrategia) * 0.3) + (Number(state.PresupuestaVentas) * 0.3)  
+    setPromedio(promedio)
+    const promedioRedondeado = Math.floor(promedio)
+    switch(promedioRedondeado){
+      case 1: {setGrupoCVE("Constructores");} break;
+      case 2: setGrupoCVE("Desarrolladores"); break;
+      case 3: setGrupoCVE("Imaginarios"); break;
+      case 4: setGrupoCVE("Soñadores"); break;
+      default: setGrupoCVE("")
+    }
+    setField("Promedio", String(promedio));
+    setField("GrupoCVE", grupoCVE)
+
+  }, [state.Autonomia, state.PresupuestaVentas, state.ImpactoCliente, state.contribucionEstrategia, promedio, grupoCVE]);
 
   const handleCreateNovedad = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -285,7 +314,7 @@ export default function FormCesacion({onClose}: Props){
           {/* Salario */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="abreviacionDoc"> Salario *</label>
-            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={displaySalario} readOnly/>
+            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.Salario} onChange={(e) => setField("Salario", e.target.value)}/>
           </div>
 
           {/* Salario */}

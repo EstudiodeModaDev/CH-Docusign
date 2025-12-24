@@ -297,7 +297,6 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     <div className="ft-modal-backdrop">
       <section className="ft-scope ft-card" role="region" aria-labelledby="ft_title">
         <h2 id="ft_title" className="ft-title">Contratación {selectedNovedad.NombreSeleccionado}</h2>
-
         <form className="ft-form" noValidate>
           {/* ================= Empresa ================= */}
           <div className="ft-field">
@@ -307,7 +306,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
               options={empresaOptions}
               placeholder={loadingEmp ? "Cargando opciones…" : "Buscar empresa..."}
               value={selectedEmpresa}
-              onChange={(opt) => setField("Empresa_x0020_que_x0020_solicita", opt?.value ?? "")}
+              onChange={(opt) => setField("Empresa_x0020_que_x0020_solicita", opt?.label ?? "")}
               classNamePrefix="rs"
               isDisabled={loadingEmp || isView}
               isLoading={loadingEmp}
@@ -964,7 +963,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
             <>
               <div className="ft-field">
                 <label className="ft-label" htmlFor="Autonomia">Autonomía *</label>
-                <select disabled={isView} name="Autonomia" onChange={(e) => setField("AUTONOM_x00cd_A_x0020_", e.target.value)}>
+                <select disabled={isView} name="Autonomia" onChange={(e) => setField("AUTONOM_x00cd_A_x0020_", e.target.value)} value={state.AUTONOM_x00cd_A_x0020_}>
                   <option value="0" selected>0</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
@@ -976,7 +975,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
             
               <div className="ft-field">
                 <label className="ft-label" htmlFor="presupuesto">Presupuesto ventas/magnitud económica *</label>
-                <select disabled={isView} name="presupuesto" onChange={(e) => setField("PRESUPUESTO_x0020_VENTAS_x002f_M", e.target.value)}>
+                <select disabled={isView} name="presupuesto" onChange={(e) => setField("PRESUPUESTO_x0020_VENTAS_x002f_M", e.target.value)} value={state.PRESUPUESTO_x0020_VENTAS_x002f_M}>
                   <option value="0" selected>0</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
@@ -988,7 +987,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
 
               <div className="ft-field">
                 <label className="ft-label" htmlFor="impacto">Impacto cliente externo *</label>
-                <select disabled={isView} name="impacto" onChange={(e) => setField("IMPACTO_x0020_CLIENTE_x0020_EXTE", e.target.value)}>
+                <select disabled={isView} name="impacto" onChange={(e) => setField("IMPACTO_x0020_CLIENTE_x0020_EXTE", e.target.value)} value={state.IMPACTO_x0020_CLIENTE_x0020_EXTE}>
                   <option value="0" selected>0</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
@@ -1000,7 +999,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
 
               <div className="ft-field">
                 <label className="ft-label" htmlFor="contribucion">Contribución a la estrategia *</label>
-                <select disabled={isView} name="contribucion" onChange={(e) => setField("CONTRIBUCION_x0020_A_x0020_LA_x0", e.target.value)}>
+                <select disabled={isView} name="contribucion" onChange={(e) => setField("CONTRIBUCION_x0020_A_x0020_LA_x0", e.target.value)} value={state.CONTRIBUCION_x0020_A_x0020_LA_x0}>
                   <option value="0" selected>0</option>
                   <option value="1">1</option>
                   <option value="2">2</option>

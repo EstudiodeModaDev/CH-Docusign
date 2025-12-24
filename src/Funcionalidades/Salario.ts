@@ -25,7 +25,7 @@ export function useSalarios(salariosSvc: SalariosService) {
     const loadSpecificSalary = React.useCallback(async (cargo: string): Promise<salario | null> => {
         setLoading(true);
         setError(null);
-
+        if(!cargo) return null
         try {
             const items = await salariosSvc.getAll({filter: `fields/Title eq '${cargo}'`,});
             return items.length > 0 ? items[0] : null;

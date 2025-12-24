@@ -78,10 +78,8 @@ export default function CesacionesTabla() {
                 </th>
 
                 <th role="button" tabIndex={0} onClick={(e) => toggleSort('ingreso', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('ingreso', e.shiftKey); }} aria-label="Ordenar por ingreso" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  Fecha de Ingreso {renderSortIndicator('ingreso', sorts)}
+                  Fecha limite documentos {renderSortIndicator('ingreso', sorts)}
                 </th>
-
-                <th>Reportado por</th>
               </tr>
             </thead>
             <tbody>
@@ -92,8 +90,7 @@ export default function CesacionesTabla() {
                   <td><span title={cesacion.Jefedezona}>{cesacion.Jefedezona}</span></td>
                   <td><span title={cesacion.Temporal}>{cesacion.Temporal}</span></td>
                   <td><span title={cesacion.Tienda}>{cesacion.Tienda}</span></td>
-                  <td>{toISODateFlex(cesacion.FechaIngreso) || "–"}</td>
-                  <td><span title={cesacion.Reportadopor}>{cesacion.Reportadopor}</span></td>
+                  <td>{toISODateFlex(cesacion.FechaLimiteDocumentos) || "–"}</td>
                 </tr>
               ))}
             </tbody>

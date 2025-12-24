@@ -2,6 +2,7 @@
 import * as React from "react";
 import type { GraphListResponse, GraphUser } from "../models/GraphUsers"
 import { useAuth } from "../auth/authProvider";
+import type { rsOption } from "../models/Commons";
 
 /* ============================
    Utilidades HTTP contra Graph
@@ -244,6 +245,17 @@ export function useGroupMembers(groupId: string) {
   const nextPage = () => hasNext && setPageIndex((i) => i + 1);
   const prevPage = () => setPageIndex((i) => Math.max(0, i - 1));
 
+
+  const allOptions = React.useMemo<rsOption[]>(() => {
+    return rows
+      .filter(r => !!r.correo || !!r.id)
+      .map(r => ({
+        value: (r.correo || r.id).trim(),
+        label: r.correo ? `${r.nombre} — ${r.correo}` : r.nombre,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [rows]);
+
   /* ===========
      Acciones
      =========== */
@@ -292,7 +304,7 @@ export function useGroupMembers(groupId: string) {
     // datos
     rows: pageRows,
     loading,
-    error,
+    error, allOptions, 
 
     // búsqueda/paginación
     search, setSearch,

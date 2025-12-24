@@ -41,3 +41,4 @@ export type Cesacion = {
 }
 
 export type CesacionErrors = Partial<Record<keyof Cesacion, string>>;
+

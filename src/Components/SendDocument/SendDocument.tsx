@@ -136,6 +136,11 @@ const EnviarFormatoCard: React.FC = () => {
   const { searchWorker, workers, workersOptions } = usePromocion(Promociones);
   const plantillaSelected = templatesOptions.find((o) => o.value === templateId) ?? null;
 
+  const vm = React.useMemo(() => {
+    if (!proceso || !varColaborador) return null;
+    return toDocuSignVM(proceso as Proceso, varColaborador);
+  }, [proceso, varColaborador]);
+
   const pickValueFromLabel = (raw: string, vm: DocuSignVM) => {
     const label = (raw ?? "").trim().toLowerCase();
     switch (label) {
@@ -490,7 +495,7 @@ const EnviarFormatoCard: React.FC = () => {
                                                                                                                 : workerOptionsContratos
                                                                                                             }/>
 
-      <SignersModal open={segundoPaso} signers={signers} onClose={() => setSegundoPaso(false)} onChangeSigner={handleChangeSigner} onSave={handleSendEnvolope}/>
+      <SignersModal open={segundoPaso} signers={signers} onClose={() => setSegundoPaso(false)} onChangeSigner={handleChangeSigner} onSave={handleSendEnvolope} vm={vm} vmEmail={state.CorreoReceptor ?? ""}/>
     </div>
   );
 };
@@ -501,9 +506,10 @@ type SignersModalProps = {
   onChangeSigner?: (index: number, updated: Partial<DocusignRecipient>) => void;
   onClose: () => void;
   onSave?: () => void;
+  vm: DocuSignVM | null;
+  vmEmail: string;
 };
-
-export const SignersModal: React.FC<SignersModalProps> = ({open, signers, onChangeSigner, onClose, onSave,}) => {
+export const SignersModal: React.FC<SignersModalProps> = ({open, signers, onChangeSigner, onClose, onSave, vm, vmEmail}) => {
   const [sending, setSending] = React.useState<boolean>(false);
 
   if (!open) return null;
@@ -528,26 +534,77 @@ export const SignersModal: React.FC<SignersModalProps> = ({open, signers, onChan
           <div className="signers-wrapper">
             {signers.length === 0 && <p className="signers-empty">No hay firmantes asignados.</p>}
 
-            {signers.map((signer, idx) => (
-              <div key={signer.recipientId ?? idx} className="signer-card">
-                <div className="signer-header">
-                  <span className="signer-index">Firmante {idx + 1}</span>
-                  {signer.roleName && <span className="signer-role">{signer.roleName}</span>}
-                </div>
+            {signers.map((signer, idx) => {
+              const autoName = vm?.nombre ?? "";
+              const autoEmail = vmEmail ?? "";
 
-                <div className="signer-body">
-                  <div className="signer-field">
-                    <label className="signer-label">Nombre</label>
-                    <input className="signer-input" type="text" value={signer.name ?? ""} onChange={handleChange(idx, "name")} placeholder="Nombre del firmante"/>
+              // el check está "true" si ya coincide con el VM
+              const isFilledFromVM =
+                !!vm &&
+                (signer.name ?? "") === autoName &&
+                (signer.email ?? "") === autoEmail;
+
+              return (
+                <div key={signer.recipientId ?? idx} className="signer-card">
+                  <div className="signer-header">
+                    <span className="signer-index">Firmante {idx + 1}</span>
+                    {signer.roleName && <span className="signer-role">{signer.roleName}</span>}
                   </div>
 
-                  <div className="signer-field">
-                    <label className="signer-label">Correo electrónico</label>
-                    <input className="signer-input" type="email" value={signer.email ?? ""} onChange={handleChange(idx, "email")} placeholder="correo@ejemplo.com"/>
+                  <div className="signer-body">
+                    <div className="signer-field">
+                      <label className="signer-label">Nombre</label>
+                      <input
+                        className="signer-input"
+                        type="text"
+                        value={signer.name ?? ""}
+                        onChange={handleChange(idx, "name")}
+                        placeholder="Nombre del firmante"
+                      />
+                    </div>
+
+                    <div className="signer-field">
+                      <label className="signer-label">Correo electrónico</label>
+                      <input
+                        className="signer-input"
+                        type="email"
+                        value={signer.email ?? ""}
+                        onChange={handleChange(idx, "email")}
+                        placeholder="correo@ejemplo.com"
+                      />
+                    </div>
+
+                    {/* ✅ CHECK: al marcar => llena con VM; al desmarcar => limpia */}
+                    <label className="signer-check">
+                      <input
+                        className="signer-check__input"
+                        type="checkbox"
+                        disabled={!vm || !onChangeSigner}
+                        checked={isFilledFromVM}
+                        onChange={(e) => {
+                          if (!onChangeSigner) return;
+
+                          if (e.target.checked) {
+                            onChangeSigner(idx, {
+                              name: autoName,
+                              email: autoEmail,
+                            });
+                          } else {
+                            onChangeSigner(idx, {
+                              name: "",
+                              email: "",
+                            });
+                          }
+                        }}
+                      />
+                      <span className="signer-check__text">
+                        Usar datos del colaborador (VM)
+                      </span>
+                    </label>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

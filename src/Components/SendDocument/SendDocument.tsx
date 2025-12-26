@@ -576,29 +576,24 @@ export const SignersModal: React.FC<SignersModalProps> = ({open, signers, onChan
 
                     {/* ✅ CHECK: al marcar => llena con VM; al desmarcar => limpia */}
                     <label className="signer-check">
-                      <input
-                        className="signer-check__input"
-                        type="checkbox"
-                        disabled={!vm || !onChangeSigner}
-                        checked={isFilledFromVM}
-                        onChange={(e) => {
-                          if (!onChangeSigner) return;
+                      <input className="signer-check__input" type="checkbox" disabled={!vm || !onChangeSigner} checked={isFilledFromVM} onChange={(e) => {
+                                                                                                                                                    if (!onChangeSigner) return;
 
-                          if (e.target.checked) {
-                            onChangeSigner(idx, {
-                              name: autoName,
-                              email: autoEmail,
-                            });
-                          } else {
-                            onChangeSigner(idx, {
-                              name: "",
-                              email: "",
-                            });
-                          }
-                        }}
-                      />
+                                                                                                                                                    if (e.target.checked) {
+                                                                                                                                                      onChangeSigner(idx, {
+                                                                                                                                                        name: autoName,
+                                                                                                                                                        email: autoEmail,
+                                                                                                                                                      });
+                                                                                                                                                    } else {
+                                                                                                                                                      onChangeSigner(idx, {
+                                                                                                                                                        name: "",
+                                                                                                                                                        email: "",
+                                                                                                                                                      });
+                                                                                                                                                    }
+                                                                                                                                                  }}
+                                                                                                                                                />
                       <span className="signer-check__text">
-                        Usar datos del colaborador (VM)
+                        Usar datos del colaborador
                       </span>
                     </label>
                   </div>

@@ -218,4 +218,67 @@
   max-width: 70px;
 }
 
+/* =========================
+   Checkbox "Usar datos del colaborador (VM)"
+   ========================= */
+
+.signer-check{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+
+  padding: 10px 12px;
+  border: 1px solid var(--border, rgba(0,0,0,.12));
+  border-radius: 12px;
+  background: var(--surface, #fff);
+
+  cursor: pointer;
+  user-select: none;
+}
+
+/* mejora el hit area */
+.signer-check__input{
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex: 0 0 auto;
+
+  accent-color: var(--brand-600, var(--accent, #2563eb));
+  cursor: pointer;
+}
+
+.signer-check__text{
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--muted, #64748b);
+}
+
+/* hover suave */
+.signer-check:hover{
+  border-color: var(--bd-strong, color-mix(in oklab, var(--border, rgba(0,0,0,.12)) 70%, black));
+  background: color-mix(in oklab, var(--surface, #fff) 92%, var(--brand-600, #2563eb));
+}
+
+/* focus accesible */
+.signer-check:focus-within{
+  outline: 2px solid color-mix(in oklab, var(--brand-600, #2563eb) 55%, transparent);
+  outline-offset: 2px;
+}
+
+/* disabled (cuando vm es null o no hay onChangeSigner) */
+.signer-check:has(.signer-check__input:disabled){
+  opacity: .65;
+  cursor: not-allowed;
+}
+
+.signer-check__input:disabled{
+  cursor: not-allowed;
+}
+
+/* Si quieres que el texto cambie cuando está marcado */
+.signer-check__input:checked + .signer-check__text{
+  color: var(--ink, #0f172a);
+  font-weight: 600;
+}
 

@@ -514,11 +514,10 @@ export const SignersModal: React.FC<SignersModalProps> = ({open, signers, onChan
 
   if (!open) return null;
 
-  const handleChange =
-    (index: number, field: keyof DocusignRecipient) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (index: number, field: keyof DocusignRecipient) => (e: React.ChangeEvent<HTMLInputElement>) => {
       if (!onChangeSigner) return;
       onChangeSigner(index, { [field]: e.target.value });
-    };
+  };
 
   return (
     <div className="signers-modal-backdrop">
@@ -554,24 +553,12 @@ export const SignersModal: React.FC<SignersModalProps> = ({open, signers, onChan
                   <div className="signer-body">
                     <div className="signer-field">
                       <label className="signer-label">Nombre</label>
-                      <input
-                        className="signer-input"
-                        type="text"
-                        value={signer.name ?? ""}
-                        onChange={handleChange(idx, "name")}
-                        placeholder="Nombre del firmante"
-                      />
+                      <input className="signer-input" type="text" value={signer.name ?? ""} onChange={handleChange(idx, "name")} placeholder="Nombre del firmante"/>
                     </div>
 
                     <div className="signer-field">
                       <label className="signer-label">Correo electrónico</label>
-                      <input
-                        className="signer-input"
-                        type="email"
-                        value={signer.email ?? ""}
-                        onChange={handleChange(idx, "email")}
-                        placeholder="correo@ejemplo.com"
-                      />
+                      <input className="signer-input" type="email" value={signer.email ?? ""} onChange={handleChange(idx, "email")} placeholder="correo@ejemplo.com"/>
                     </div>
 
                     {/* ✅ CHECK: al marcar => llena con VM; al desmarcar => limpia */}

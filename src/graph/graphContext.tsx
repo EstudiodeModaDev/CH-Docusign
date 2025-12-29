@@ -22,6 +22,7 @@ import { CesacionesService } from "../Services/Cesaciones.service";
 import { SalariosService } from "../Services/Salarios.service";
 import { PasosCesacionService } from "../Services/PasosCesaciones.service";
 import { DetallesPasosCesacionService } from "../Services/DetallesPasosCesacion.service";
+import { MailService } from "../Services/Mail.service";
 
 /* ================== Tipos de config ================== */
 export type SiteConfig = {
@@ -110,6 +111,9 @@ export type GraphServices = {
 
   //Envios
   Envios: EnviosService;
+
+  //Envio correo
+  mail: MailService
 
   //Bibliotecas
   ColaboradoresEDM: ColaboradoresEDMService,
@@ -249,6 +253,9 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     //Envios
     const Envios                  = new EnviosService(graph, ch.hostname, ch.sitePath, lists.Envios);
 
+    //Enviar correo
+    const mail                    = new MailService(graph)
+
     //Bibliotecas
     const ColaboradoresEDM        = new ColaboradoresEDMService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresEDM);
     const ColaboradoresDH         = new ColaboradoresDHService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresDH);
@@ -277,6 +284,8 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       Usuarios, Perfiles,
       //Envios
       Envios,
+      //Enviar Correo
+      mail,
       //Bibliotecas
       ColaboradoresEDM, ColaboradoresDH, ColaboradoresDenim, ColaboradoresVisual, 
       //paz salvos

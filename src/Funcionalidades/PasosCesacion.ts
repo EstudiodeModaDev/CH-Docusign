@@ -5,6 +5,7 @@ import type { Archivo } from "../models/archivos";
 import { ColaboradoresDenimService, ColaboradoresDHService, ColaboradoresEDMService, ColaboradoresVisualService } from "../Services/Bibliotecas.service";
 import type { PasosCesacionService } from "../Services/PasosCesaciones.service";
 import type { DetallesPasosCesacionService } from "../Services/DetallesPasosCesacion.service";
+import type { TipoPaso } from "../Components/RegistrarNuevo/Modals/Cesaciones/procesoCesacion";
 
 export function usePasosCesacion(PasosCesacionSvc: PasosCesacionService, DetallesPasosCesacionSvc: DetallesPasosCesacionService, ColaboradoresDH: ColaboradoresDHService, ColaboradoresEDM: ColaboradoresEDMService, ColaboradoresVisual: ColaboradoresVisualService, ColaboradoresDenim: ColaboradoresDenimService) {
   const [rows, setRows] = React.useState<PasosPromocion[]>([]);
@@ -47,84 +48,80 @@ export function usePasosCesacion(PasosCesacionSvc: PasosCesacionService, Detalle
   }, [loadPasosCesacion]);
 
   
+
   const handleCompleteStep = async (detalle: DetallesPasosPromocion, path?: string) => {
     const idDetalle = detalle.Id;
     if (!idDetalle) return;
 
-    const paso: PasosPromocion | null = byId[detalle.NumeroPaso] ?? null;
+    const paso: any = byId[detalle.NumeroPaso] ?? null;
     if (!paso) return;
 
     const estadoAnterior = detalle.EstadoPaso;
-    if (estadoAnterior === "Completado") return; 
+    if (estadoAnterior === "Completado") return;
 
-    const requiereEvidencia = paso.Requiereevidencia;
-    const requiereNotas = paso.RequiereNotas;
+    const userName = account?.name ?? "";
+
+    const tipoPaso: TipoPaso = (paso.TipoPaso as TipoPaso);
+
+  // ========= 1) SUBIDA DOCUMENTO =========
+  if (tipoPaso === "SubidaDocumento") {
     const nombreEvidencia = paso.NombreEvidencia;
-    const userName = account?.name ?? ""; 
+    const archivo = nombreEvidencia;
 
-    // ========== 1) Caso: requiere evidencia ==========
-    if (requiereEvidencia) {
-      const archivo = nombreEvidencia;
-      
-      if(path){
-        load(path)
-      }
+    if (path) {
+      await load(path);
+    }
 
-      const tieneArchivo = colaboradores.some(
-        (c) => c.name.includes(archivo) 
-      );
+    const tieneArchivo = colaboradores.some((c) => c.name.includes(archivo));
 
-      if (!tieneArchivo) {
-        alert(`Debe subir la evidencia ${archivo} a la carpeta del colaborador`,);
-        return;
-      }
-
-      await DetallesPasosCesacionSvc.update(idDetalle, {
-        EstadoPaso: "Completado",
-        CompletadoPor: userName,
-        FechaCompletacion: todayISO(),
-      });
-      alert("Se ha completado con éxito")
+    if (!tieneArchivo) {
+      alert(`Debe subir la evidencia ${archivo} a la carpeta del colaborador`);
       return;
     }
 
-    // ========== 2) Caso: requiere notas ==========
-    if (requiereNotas) {
-      const decision = decisiones[idDetalle] ?? ""; 
-      const motivo = motivos[idDetalle] ?? "";
+    await DetallesPasosCesacionSvc.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(), Notas: "Archivo subido"});
 
-      // Si es rechazado y no hay motivo → error
-      if (decision === "Rechazado" && !motivo.trim()) {
-        alert("Debe indicar el motivo del rechazo");
-        return;
-      }
+    alert("Se ha completado con éxito");
+    return;
+  }
 
-      if(!decision){
-        alert("Debe seleccionar un estado")
-        return
-      }
+  // ========= 2) APROBACIÓN =========
+  if (tipoPaso === "Aprobacion") {
+    // soporta tu estado actual (decisiones/motivos del hook)
+    const decision = (decisiones[idDetalle] ?? "") as | "" | "Aceptado" | "Rechazado";
 
-      const notas = decision === "Rechazado"  ? `${decision} con el motivo: ${motivo}` : decision || "";
+    const motivo = (motivos[idDetalle] ?? "").toString();
 
-      await DetallesPasosCesacionSvc.update(idDetalle, {
-        EstadoPaso: "Completado",
-        CompletadoPor: userName,
-        FechaCompletacion: todayISO(),
-        Notas: notas,
-      });
-      alert("Se ha completado con éxito")
-      return ;
+    if (!decision) {
+      alert("Debe seleccionar un estado");
+      return;
     }
 
-    // ========== 3) Caso: no requiere ni notas ni evidencia ==========
-    if (!requiereNotas && !requiereEvidencia) {
-      await DetallesPasosCesacionSvc.update(idDetalle, {
-        EstadoPaso: "Completado",
-        CompletadoPor: userName,
-        FechaCompletacion: todayISO(),
-      });
-      alert("Se ha completado con éxito")
+    if (decision === "Rechazado" && !motivo.trim()) {
+      alert("Debe indicar el motivo del rechazo");
+      return;
     }
+
+    const notas = decision === "Rechazado" ? `Rechazado con el motivo: ${motivo}` : "Aceptado";
+
+    await DetallesPasosCesacionSvc.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(), Notas: notas,});
+
+    alert("Se ha completado con éxito");
+    return;
+  }
+
+  // ========= 3) NOTIFICACIÓN =========
+    if (tipoPaso === "Notificacion") {
+
+      await DetallesPasosCesacionSvc.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(), Notas: "Notificación enviada",});
+
+      alert("Se ha completado con éxito");
+      return;
+    }
+
+  // ========= 4) fallback =========
+    await DetallesPasosCesacionSvc.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(),});
+    alert("Se ha completado con éxito");
   };
 
   const load = async (docNumber: string) => {

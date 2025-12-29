@@ -202,3 +202,71 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* =========================
+   Textarea (Notificación)
+   ========================= */
+.step-card__textarea{
+  width: 45%;
+  min-height: 0px;
+  resize: vertical;
+
+  /* spacing */
+  padding: 12px 12px;
+
+  /* typography */
+  font: inherit;
+  line-height: 1.35;
+  letter-spacing: .01em;
+
+  /* look */
+  background: var(--surface, #fff);
+  color: var(--ink, #0f172a);
+
+  border-radius: 12px;
+
+  /* prevents weird shrink in grids */
+  min-width: 0;
+
+  /* nicer caret */
+  caret-color: var(--brand-600, var(--accent, #2563eb));
+
+  /* smooth */
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+.step-card__textarea::placeholder{
+  color: var(--muted, #64748b);
+  opacity: .9;
+}
+
+/* Focus ring sin “color fijo” fuerte */
+.step-card__textarea:focus{
+  outline: none;
+  border-color: color-mix(in oklab, var(--brand-600, #2563eb) 35%, var(--border, #e5e7eb));
+  box-shadow:
+    0 0 0 3px color-mix(in oklab, var(--brand-600, #2563eb) 18%, transparent);
+}
+
+/* Disabled */
+.step-card__textarea:disabled{
+  opacity: .65;
+  cursor: not-allowed;
+  background: color-mix(in oklab, var(--surface, #fff) 85%, black);
+}
+
+/* (Opcional) cuando haya error de validación: agrega clase .is-invalid */
+.step-card__textarea.is-invalid{
+  border-color: color-mix(in oklab, #ef4444 55%, var(--border, #e5e7eb));
+  box-shadow: 0 0 0 3px color-mix(in oklab, #ef4444 18%, transparent);
+}
+
+/* Responsive: un poco menos alto en móvil */
+@media (max-width: 520px){
+  .step-card__textarea{
+    min-height: 120px;
+    padding: 10px 10px;
+    border-radius: 10px;
+  }
+}
+

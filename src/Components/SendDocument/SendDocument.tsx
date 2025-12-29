@@ -12,8 +12,10 @@ import { formatPesosEsCO } from "../../utils/Number";
 import type { Promocion } from "../../models/Promociones";
 import type { Novedad } from "../../models/Novedades";
 import type { HabeasData } from "../../models/HabeasData";
+import type { Cesacion } from "../../models/Cesaciones";
+import { useCesaciones } from "../../Funcionalidades/Cesaciones";
 
-type Proceso = "Promocion" | "Habeas" | "Nuevo";
+type Proceso = "Promocion" | "Habeas" | "Nuevo" | "Cesacion";
 
 type DocuSignVM = {
   nombre: string;
@@ -100,7 +102,23 @@ function mapHabeasToVM(h: HabeasData): DocuSignVM {
   };
 }
 
-function toDocuSignVM(proceso: Proceso, data: Promocion | Novedad | HabeasData): DocuSignVM {
+function mapCesacionToVM(p: Cesacion): DocuSignVM {
+  return {
+    ...emptyVM(),
+    nombre: p.Nombre ?? "",
+    fechaIngreso: p.FechaIngreso ?? "",
+    cargo: p.Cargo ?? "",
+    ciudad: p.Ciudad ?? "",
+    conectividadLetras: p.auxConectividadValor ?? "",
+    conectividadValor: p.auxConectividadValor ?? "",
+    identificacion: p.Title ?? "",
+    salarioLetras: p.SalarioTexto ?? "",
+    salarioValor: p.Salario ?? "",
+    tipoDoc: p.TipoDoc ?? "",
+  };
+}
+
+function toDocuSignVM(proceso: Proceso, data: Promocion | Novedad | HabeasData | Cesacion): DocuSignVM {
   switch (proceso) {
     case "Promocion":
       return mapPromocionToVM(data as Promocion);
@@ -108,6 +126,8 @@ function toDocuSignVM(proceso: Proceso, data: Promocion | Novedad | HabeasData):
       return mapNovedadToVM(data as Novedad);
     case "Habeas":
       return mapHabeasToVM(data as HabeasData);
+    case "Cesacion":
+      return mapCesacionToVM(data as Cesacion)
   }
 }
 
@@ -126,14 +146,15 @@ const EnviarFormatoCard: React.FC = () => {
   const [loading, setLoading] = React.useState<boolean>(false);
   const [proceso, setProceso] = React.useState<Proceso | "">("");
   const [signers, setSigners] = React.useState<DocusignRecipient[]>([]);
-  const [varColaborador, setVarColaborador] = React.useState<Promocion | Novedad | HabeasData | null>(null);
+  const [varColaborador, setVarColaborador] = React.useState<Promocion | Novedad | HabeasData | Cesacion |null>(null);
   const [elegir, setElegir] = React.useState<boolean>(false);
   const { templatesOptions, createdraft, getRecipients } = useDocusignTemplates();
-  const { Envios, Promociones, HabeasData, Contratos } = useGraphServices();
+  const { Envios, Promociones, HabeasData, Contratos, Cesaciones } = useGraphServices();
   const { state, setField, handleSubmit: crearRegistro } = useEnvios(Envios);
   const { searchWorker: searchWorkerHabeas, workers: workersHabeas, workersOptions: workerOptionsHabeas,} = useHabeasData(HabeasData);
   const { searchWorker: searchWorkerContratos, workers: workersContratos, workersOptions: workerOptionsContratos,} = useContratos(Contratos);
   const { searchWorker, workers, workersOptions } = usePromocion(Promociones);
+  const { searchWorker: searchWorkerCesacion, workersOptions: workerOptionsCesaciones } = useCesaciones(Cesaciones)
   const plantillaSelected = templatesOptions.find((o) => o.value === templateId) ?? null;
 
   const vm = React.useMemo(() => {
@@ -310,6 +331,28 @@ const EnviarFormatoCard: React.FC = () => {
         }
         break;
 
+      case "Cesacion":
+        results = await searchWorkerCesacion(query);
+        cantidad = results.length;
+
+        if (cantidad === 0) {
+          alert("No se encontró el colaborador");
+        } else if (cantidad === 1) {
+          const unico = results[0] as Cesacion;
+          setVarColaborador(unico);
+
+          setField("CorreoReceptor", unico.Correoelectronico ?? "");
+          setField("Receptor", unico.Nombre ?? "");
+          setField("Fuente", "Cesación");
+          setField("Cedula", unico.Title ?? "");
+          setField("Compa_x00f1_ia", unico.Empresaalaquepertenece ?? "");
+          setField("Estado", "Enviado");
+          setField("ID_Novedad", unico.Id ?? "");
+        } else {
+          setElegir(true);
+        }
+        break;
+
       case "Habeas":
         results = await searchWorkerHabeas(query);
         cantidad = results.length;
@@ -441,6 +484,7 @@ const EnviarFormatoCard: React.FC = () => {
               <option value="Nuevo">Nuevo ingreso</option>
               <option value="Promocion">Promocion</option>
               <option value="Habeas">Habeas Data</option>
+              <option value="Cesacion">Cesación</option>
             </select>
           </div>
 
@@ -486,13 +530,11 @@ const EnviarFormatoCard: React.FC = () => {
       </div>
 
       <ElegirColaboradorModal open={elegir} onClose={() => setElegir(false)} onConfirm={handleConfirmWorker} options={
-                                                                                                              proceso === "Promocion"
-                                                                                                                ? workersOptions
-                                                                                                                : proceso === "Habeas"
-                                                                                                                ? workerOptionsHabeas
-                                                                                                                : proceso === "Nuevo"
-                                                                                                                ? workerOptionsContratos
-                                                                                                                : workerOptionsContratos
+                                                                                                              proceso === "Promocion" ? workersOptions
+                                                                                                                : proceso === "Habeas"? workerOptionsHabeas
+                                                                                                                : proceso === "Nuevo" ? workerOptionsContratos
+                                                                                                                : proceso === "Cesacion" ? workerOptionsCesaciones:
+                                                                                                                workersOptions
                                                                                                             }/>
 
       <SignersModal open={segundoPaso} signers={signers} onClose={() => setSegundoPaso(false)} onChangeSigner={handleChangeSigner} onSave={handleSendEnvolope} vm={vm} vmEmail={state.CorreoReceptor ?? ""}/>

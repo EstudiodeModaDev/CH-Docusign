@@ -359,7 +359,7 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
 
   const searchWorker = async (query: string): Promise<Cesacion[]> => {
     const resp = await CesacionesSvc.getAll({
-      filter: `fields/Numero_x0020_identificaci_x00f3_ eq '${query}'`,
+      filter: `fields/Title eq '${query}'`,
       top: 200,
     });
 
@@ -371,7 +371,7 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
     const next: rsOption[] = workers
       .map(item => ({
         value: item.Id!, // solo el Id
-        label: `Nombre: ${item.Nombre} - Promocion - Cargo: ${item.Cargo} - Fecha ingreso cesacion: ${toISODateTimeFlex(item.FechaIngresoCesacion)}.`,
+        label: `Nombre: ${item.Nombre} - Cesacion - Cargo: ${item.Cargo} - Fecha ingreso cesacion: ${toISODateTimeFlex(item.FechaIngresoCesacion)}.`,
       }))
       .filter(opt => {
         if (!opt.value) return false;

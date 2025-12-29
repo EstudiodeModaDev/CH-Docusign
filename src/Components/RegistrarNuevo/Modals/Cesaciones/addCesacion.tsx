@@ -466,14 +466,6 @@ export default function FormCesacion({onClose}: Props){
             <small>{errors.Temporal}</small>
           </div>
 
-          {/* Tienda */}
-          <div className="ft-field">
-            <label className="ft-label" htmlFor="numeroIdent">Tienda *</label>
-            <input id="Title" name="Title" type="text" placeholder="Ingrese la tienda" value={state.Tienda ?? ""} onChange={(e) => setField("Tienda", e.target.value)}
-              autoComplete="off" required aria-required="true" maxLength={300}/>
-            <small>{errors.Tienda}</small>
-          </div>
-
           {/* ================= Centro de costos ================= */ }
           <div className="ft-field">
             <label className="ft-label" htmlFor="modalidadTrabajo">Centro de costos *</label>

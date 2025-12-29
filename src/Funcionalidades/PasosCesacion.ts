@@ -1,5 +1,5 @@
 import React from "react";
-import type { DetallesPasosPromocion, PasosPromocion, } from "../models/Promociones";
+import type { DetallesPasosPromocion, } from "../models/Promociones";
 import { useAuth } from "../auth/authProvider";
 import type { Archivo } from "../models/archivos";
 import { ColaboradoresDenimService, ColaboradoresDHService, ColaboradoresEDMService, ColaboradoresVisualService } from "../Services/Bibliotecas.service";
@@ -184,7 +184,7 @@ export function useDetallesPasosCesacion(DetallesSvc: DetallesPasosCesacionServi
       loadDetallesCesacion();
   }, [loadDetallesCesacion]);
 
-  const handleCreateAllSteps = async (pasos: PasosPromocion[], promocionId: string) => {
+  const handleCreateAllSteps = async (pasos: PasoCesacion[], promocionId: string) => {
     if(!pasos || pasos.length===0){
       alert("No hay un proceso definido")
       return

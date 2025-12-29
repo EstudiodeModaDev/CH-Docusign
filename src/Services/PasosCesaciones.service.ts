@@ -33,7 +33,6 @@ export class PasosCesacionService {
         NombreEvidencia: f.NombreEvidencia,
         NombrePaso: f.NombrePaso,
         Orden: f.Orden,
-        Requiereevidencia: f.Requiereevidencia,
         RequiereNotas: f.RequiereNotas, 
         TipoPaso: f.TipoPaso
     };

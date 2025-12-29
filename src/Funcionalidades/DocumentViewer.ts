@@ -133,10 +133,8 @@ const items: Archivo[] = React.useMemo(() => {
       return;
     }
 
-    const servicioColaboradores = empresa === "dh" ? ColaboradoresDH : ColaboradoresEDM;
-
     try {
-      const item = await servicioColaboradores.uploadFile(path, file);
+      const item = await activeService.uploadFile(path, file);
 
       console.log("Archivo subido:", item.webUrl);
       await load()

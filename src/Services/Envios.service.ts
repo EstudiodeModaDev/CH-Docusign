@@ -112,10 +112,10 @@ export class EnviosService {
         return this.toModel(res);
   }
 
-  async delete(id: string) {
+ /* async delete(id: string) {
       await this.ensureIds();
       await this.graph.delete(`/sites/${this.siteId}/lists/${this.listId}/items/${id}`);
-  }
+  } */
 
   async get(id: string) {
       await this.ensureIds();

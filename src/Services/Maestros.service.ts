@@ -112,7 +112,7 @@ export class MaestrosService {
     return this.toModel(res);
   }
 
-  async getAll(opts?: GetAllOpts) {
+  async getAll(opts?: GetAllOpts): Promise<maestro[]> {
     await this.ensureIds()
     // ID -> id, Title -> fields/Title (cuando NO está prefijado con '/')
     const normalizeFieldTokens = (s: string) =>

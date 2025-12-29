@@ -17,10 +17,11 @@ export const CargosManager: React.FC = () => {
         }
         const payload: maestro = {
             Abreviacion: "",
-            Title: "",
-            Codigo: "Cargos",
-            T_x00ed_tulo1: state.T_x00ed_tulo1
+            Title: "Cargos",
+            Codigo: "",
+            T_x00ed_tulo1: state.T_x00ed_tulo1.toLocaleUpperCase()
         }
+        setState({ T_x00ed_tulo1: "", Abreviacion: "", Title: "", Codigo: ""})
         return payload
     };
 
@@ -90,7 +91,7 @@ export const CargosManager: React.FC = () => {
                             { isAdding &&
                                 <div className="emp-actions">
                                     <button type="button" className="emp-btn emp-btn--cancel" onClick={() => {setIsEditing(false); setIsAdding(false)}}>✕</button>
-                                    <button type="button" className="emp-btn emp-btn--ok" onClick={() => add ? add(handleAddNew()) : null}>✔</button>
+                                    <button type="button" className="emp-btn emp-btn--ok" onClick={() => {add ? add(handleAddNew()) : null}}>✔</button>
                                 </div>
                             }
                         </section>

@@ -4,6 +4,8 @@ import { useGraphServices } from "../../../graph/graphContext";
 import { useCentroCostos, } from "../../../Funcionalidades/Desplegables";
 import type { withCode } from "../../../models/Maestros";
 import type { maestro } from "../../../models/Desplegables";
+import { masiveCharge } from "../../../Funcionalidades/CargaMasiva";
+import type { MaestrosService } from "../../../Services/Maestros.service";
 
 export const CentroCostosManager: React.FC = () => {
     const { Maestro, } = useGraphServices();
@@ -11,6 +13,7 @@ export const CentroCostosManager: React.FC = () => {
     const [isEditing, setIsEditing] = React.useState(false);
     const [state, setState] = React.useState<withCode>({ Title: "", Codigo: ""})
     const [isAdding, setIsAdding] = React.useState<boolean>(false)
+    const [plantilla, setPlantilla] = React.useState<boolean>(false)
 
     const handleAddNew = () => {
         if(!state.Title || !state.Codigo){
@@ -48,6 +51,10 @@ export const CentroCostosManager: React.FC = () => {
                 <button type="button" className="btn btn-primary btn-xs" onClick={() => {setIsAdding(true); setState({...state, Title: "", Codigo: ""})}}>
                     <span className="emp-add-btn__icon">＋</span>
                     Añadir nuevo CC
+                </button>
+                <button type="button" className="btn btn-primary btn-xs" onClick={() => {setPlantilla(true); setState({...state, Title: "", Codigo: ""})}}>
+                    <span className="emp-add-btn__icon">＋</span>
+                    Añadir por plantilla
                 </button>
             </div>
 
@@ -103,6 +110,138 @@ export const CentroCostosManager: React.FC = () => {
                     </>
                 }
             </div>
+            <MasiveChargeModal open={plantilla} onClose={() => setPlantilla(false)} maestroSvc={Maestro}/>
         </div>
     );
+};
+
+type Props = {
+  open: boolean;
+  onClose: () => void;
+  maestroSvc: MaestrosService;
+};
+
+export const MasiveChargeModal: React.FC<Props> = ({ open, onClose, maestroSvc }) => {
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
+  const [file, setFile] = React.useState<File | null>(null);
+  const [error, setError] = React.useState<string>("");
+  const [loading, setLoading] = React.useState(false);
+  const [doneMsg, setDoneMsg] = React.useState<string>("");
+
+  React.useEffect(() => {
+    if (!open) {
+      setFile(null);
+      setError("");
+      setDoneMsg("");
+      setLoading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  }, [open]);
+
+  if (!open) return null;
+
+  const validateFile = (f: File | null) => {
+    setError("");
+    setDoneMsg("");
+
+    if (!f) {
+      setError("Selecciona un archivo .xlsx");
+      return false;
+    }
+
+    // Validación por extensión (la más confiable en front)
+    const okExt = f.name.toLowerCase().endsWith(".xlsx") || f.name.toLowerCase().endsWith(".xls");
+    if (!okExt) {
+      setError("El archivo debe ser .xlsx");
+      return false;
+    }
+
+    // Validación adicional por mime (no siempre viene bien)
+    const allowedMimes = [
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+    "application/vnd.ms-excel", // .xls
+    ];
+
+    const okMime =
+    !f.type || allowedMimes.includes(f.type);
+
+    if (!okMime) {
+    setError("Tipo de archivo no válido. Debe ser un Excel (.xls o .xlsx)");
+    return false;
+    }
+
+    return true;
+  };
+
+  const onPickFile: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    const f = e.target.files?.[0] ?? null;
+    setFile(f);
+    validateFile(f);
+  };
+
+  const onSubmit = async () => {
+    setError("");
+    setDoneMsg("");
+
+    if (!validateFile(file)) return;
+
+    try {
+      setLoading(true);
+      await masiveCharge(file!, maestroSvc);
+      setDoneMsg("Carga masiva completada.");
+      // si quieres cerrar automático:
+      // onClose();
+    } catch (err: any) {
+      setError(err?.message ?? "Ocurrió un error durante la carga masiva.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mc-modal__backdrop" role="dialog" aria-modal="true">
+      <div className="mc-modal__card">
+        <header className="mc-modal__header">
+          <h2 className="mc-modal__title">Carga masiva (Centros de costos)</h2>
+
+          <button type="button" className="mc-modal__close"  onClick={() => !loading && onClose()} aria-label="Cerrar">
+            ✕
+          </button>
+        </header>
+
+        <div className="mc-modal__body">
+          <label className="mc-modal__label" htmlFor="mcFile"> Archivo Excel (.xlsx)</label>
+
+          <input ref={inputRef} id="mcFile" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={onPickFile} disabled={loading} className="mc-modal__file"/>
+
+          {file && (
+            <div className="mc-modal__hint">
+              Seleccionado: <b>{file.name}</b>
+            </div>
+          )}
+
+          {error && <div className="mc-modal__error">{error}</div>}
+          {doneMsg && <div className="mc-modal__success">{doneMsg}</div>}
+        </div>
+
+        <footer className="mc-modal__footer">
+          <button type="button" className="mc-btn mc-btn--ghost"
+            onClick={() => !loading && onClose()}
+            disabled={loading}
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="button"
+            className="mc-btn mc-btn--primary"
+            onClick={onSubmit}
+            disabled={loading || !file}
+          >
+            {loading ? "Cargando..." : "Cargar"}
+          </button>
+        </footer>
+      </div>
+    </div>
+  );
 };

@@ -19,8 +19,10 @@ export const NivelCargosManager: React.FC = () => {
             Abreviacion: state?.Abreviacion,
             Title: "Nivel de cargos",
             Codigo: "",
-            T_x00ed_tulo1: state.T_x00ed_tulo1
+            T_x00ed_tulo1: state.T_x00ed_tulo1.toUpperCase()
         }
+        setState({ T_x00ed_tulo1: "", Abreviacion: "", Title: "", Codigo: ""})
+        alert("Se ha añadido con éxito")
         return payload
     };
 

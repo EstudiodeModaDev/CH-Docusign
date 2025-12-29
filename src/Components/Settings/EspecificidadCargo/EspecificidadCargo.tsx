@@ -17,10 +17,12 @@ export const EspecificidadManager: React.FC = () => {
         }
         const payload: maestro = {
             Abreviacion: "",
-            Title: "",
-            Codigo: "Especifidad de cargos",
-            T_x00ed_tulo1: state.T_x00ed_tulo1
+            Title: "Especifidad de cargos",
+            Codigo: "",
+            T_x00ed_tulo1: state.T_x00ed_tulo1.toUpperCase()
         }
+        setState({ T_x00ed_tulo1: "", Abreviacion: "", Title: "", Codigo: ""})
+        alert("Se ha añadido con éxito")
         return payload
     };
 

@@ -19,7 +19,7 @@ export const DocumentTypeManager: React.FC = () => {
             Abreviacion: state.Abreviacion,
             Title: "Tipos de documentos",
             Codigo: "",
-            T_x00ed_tulo1: state.Abreviacion
+            T_x00ed_tulo1: state.T_x00ed_tulo1
         }
         return payload
     };

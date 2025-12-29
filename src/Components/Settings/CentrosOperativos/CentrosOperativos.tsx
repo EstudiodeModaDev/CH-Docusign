@@ -12,6 +12,7 @@ export const CentroOperativoManager: React.FC = () => {
     const [state, setState] = React.useState<withCode>({ Title: "", Codigo: ""})
     const [isAdding, setIsAdding] = React.useState<boolean>(false)
 
+
     const handleAddNew = () => {
         if(!state.Title){
             alert("Rellene todos los campos")
@@ -102,6 +103,10 @@ export const CentroOperativoManager: React.FC = () => {
                     </>
                 }
             </div>
+            
+
         </div>
     );
 };
+
+

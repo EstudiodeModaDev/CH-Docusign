@@ -176,7 +176,6 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
     if(!state.FechaLimiteDocumentos) e.FechaLimiteDocumentos = "Seleccione una fecha limite documentos"
     if(!state.Niveldecargo) e.Niveldecargo = "Seleccione un nivel de cargo"
     if(!state.Dependencia) e.Dependencia = "Seleccione una dependencia"
-    if(!state.Jefedezona) e.Jefedezona = "Seleccione un jefe de zona"
     if(!state.Departamento) e.Departamento = "Seleccione un departamento"
     if(!state.Ciudad) e.Ciudad = "Seleccione una ciudad"
     if(!state.CodigoCC) e.CodigoCC = "Seleccione un CC"
@@ -191,7 +190,6 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
     if(!state.Correoelectronico) e.Correoelectronico = "Ingrese el correo electronico"
     if(!state.Salario) e.Salario = "Ingrese el salario"
     if(!state.Temporal) e.Temporal = "Ingrese la temporal"
-    if(!state.Tienda) e.Tienda = "Ingrese la tienda"
     setErrors(e);
     return Object.keys(e).length === 0;
   };

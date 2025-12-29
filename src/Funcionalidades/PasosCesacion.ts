@@ -6,9 +6,10 @@ import { ColaboradoresDenimService, ColaboradoresDHService, ColaboradoresEDMServ
 import type { PasosCesacionService } from "../Services/PasosCesaciones.service";
 import type { DetallesPasosCesacionService } from "../Services/DetallesPasosCesacion.service";
 import type { TipoPaso } from "../Components/RegistrarNuevo/Modals/Cesaciones/procesoCesacion";
+import type { PasoCesacion } from "../models/Cesaciones";
 
 export function usePasosCesacion(PasosCesacionSvc: PasosCesacionService, DetallesPasosCesacionSvc: DetallesPasosCesacionService, ColaboradoresDH: ColaboradoresDHService, ColaboradoresEDM: ColaboradoresEDMService, ColaboradoresVisual: ColaboradoresVisualService, ColaboradoresDenim: ColaboradoresDenimService) {
-  const [rows, setRows] = React.useState<PasosPromocion[]>([]);
+  const [rows, setRows] = React.useState<PasoCesacion[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -16,7 +17,8 @@ export function usePasosCesacion(PasosCesacionSvc: PasosCesacionService, Detalle
   const [colaboradores, setColaboradores] = React.useState<Archivo[]>([]);
   const [decisiones, setDecisiones] = React.useState<Record<string, "" | "Aceptado" | "Rechazado">>({});
   const [motivos, setMotivos] = React.useState<Record<string, string>>({});
-
+  const [state, setState] = React.useState<PasoCesacion>({NombreEvidencia: "", NombrePaso: "", Orden: 0, RequiereNotas: false, TipoPaso: "", Title: "",});
+  const setField = <K extends keyof PasoCesacion>(k: K, v: PasoCesacion[K]) => setState((s) => ({ ...s, [k]: v }));
 
   const loadPasosCesacion = React.useCallback(async () => {
     setLoading(true); setError(null);
@@ -32,14 +34,14 @@ export function usePasosCesacion(PasosCesacionSvc: PasosCesacionService, Detalle
     }, [PasosCesacionSvc,]);
 
   const byId = React.useMemo(() => {
-      const map: Record<string, PasosPromocion> = {};
+      const map: Record<string, PasoCesacion> = {};
       for (const r of rows) {
         if (r.Id) map[r.Id] = r;
       }
       return map;
   }, [rows]);
 
-  const searchStep = React.useCallback((idPaso: string): PasosPromocion | null => {
+  const searchStep = React.useCallback((idPaso: string): PasoCesacion | null => {
       return byId[idPaso] ?? null;
   },[byId]);
 
@@ -155,8 +157,8 @@ export function usePasosCesacion(PasosCesacionSvc: PasosCesacionService, Detalle
   };
 
   return {
-    rows, loading, error, byId, motivos, decisiones,
-    searchStep , setMotivos, setDecisiones, loadPasosCesacion, handleCompleteStep
+    rows, loading, error, byId, motivos, decisiones, state,
+    searchStep , setMotivos, setDecisiones, loadPasosCesacion, handleCompleteStep, setField, setState
   };
 }
 
@@ -213,7 +215,7 @@ export function useDetallesPasosCesacion(DetallesSvc: DetallesPasosCesacionServi
   }
 
   return {
-    rows, loading, error, loadDetallesCesacion, handleCreateAllSteps
+    rows, loading, error, loadDetallesCesacion, handleCreateAllSteps, 
   };
 }
 

@@ -1,0 +1,420 @@
+.csx{
+  --card: var(--surface, #fff);
+  --ink: var(--ink, #0f172a);
+  --muted: var(--muted, #64748b);
+  --bd: var(--border, #e5e7eb);
+  --shadow: var(--shadow, 0 10px 30px rgba(0,0,0,.08));
+  --r: var(--radius-3xl, 18px);
+  color: var(--ink);
+  margin-top: 10px;
+  padding: 10px;
+}
+
+.csx__head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+
+.csx__title{ margin:0; font-size:18px; font-weight:900; line-height:1.1; }
+.csx__subtitle{ margin-top:4px; color:var(--muted); font-size:13px; }
+
+.csx__actions{ display:flex; gap:10px; flex-wrap:wrap; }
+
+.csx__error{
+  border:1px solid color-mix(in oklab, red 30%, var(--bd));
+  background: color-mix(in oklab, red 8%, var(--card));
+  color: color-mix(in oklab, red 65%, var(--ink));
+  padding:10px 12px;
+  border-radius:14px;
+  margin-bottom:12px;
+  font-size:13px;
+}
+
+.csx__grid{
+  display:grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap:12px;
+}
+@media (max-width: 900px){
+  .csx__grid{ grid-template-columns: 1fr; }
+}
+
+.csx__card{
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 14px;
+}
+
+.csx__cardHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.csx__cardTitle{ margin:0; font-size:14px; font-weight:900; }
+
+.csx__badge{
+  min-width:28px;
+  height:28px;
+  display:inline-grid;
+  place-items:center;
+  border-radius:999px;
+  border:1px solid var(--bd);
+  color:var(--muted);
+  font-weight:900;
+  font-size:12px;
+  padding:0 8px;
+}
+
+.csx__muted{ color: var(--muted); font-size: 13px; }
+
+.csx__list{ list-style:none; padding:0; margin:0; display:grid; gap:10px; }
+
+.csx__item{
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  padding: 12px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.csx__item.is-editing{
+  border-color: color-mix(in oklab, var(--brand-600, #2563eb) 40%, var(--bd));
+}
+
+.csx__row{ display:flex; align-items:center; gap:10px; }
+.csx__order{
+  font-weight: 900;
+  color: var(--muted);
+  border: 1px solid var(--bd);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+.csx__name{ font-weight: 900; }
+
+.csx__meta{
+  margin-top:8px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.csx__pill{
+  font-size:12px;
+  color: var(--muted);
+  border: 1px solid var(--bd);
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: color-mix(in oklab, var(--card) 92%, black);
+}
+
+.csx__itemBtns{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+.csx__form{ display:grid; gap:10px; }
+.csx__field{ display:grid; gap:6px; }
+.csx__label{ font-size:12px; color:var(--muted); font-weight:800; }
+
+.csx__input{
+  width:100%;
+  border:1px solid var(--bd);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: transparent;
+  color: inherit;
+  outline: none;
+}
+
+.csx__row2{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+@media (max-width: 520px){ .csx__row2{ grid-template-columns: 1fr; } }
+
+.csx__checks{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.csx__check{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  color: var(--muted);
+}
+
+.csx__formBtns{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:6px;
+}
+
+.csx-btn{
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-weight: 900;
+  border: 1px solid var(--bd);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.csx-btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+.csx-btn--primary{
+  background: var(--brand-600, #2563eb);
+  border-color: color-mix(in oklab, var(--brand-600, #2563eb) 70%, black);
+  color: white;
+}
+.csx-btn--ghost{
+  background: transparent;
+}
+.csx-btn--danger{
+  border-color: color-mix(in oklab, red 35%, var(--bd));
+  color: color-mix(in oklab, red 65%, var(--ink));
+}
+
+/* ===============================
+   Compacto en pantallas chicas
+   =============================== */
+@media (max-width: 1100px){
+  .csx__grid{
+    grid-template-columns: 1fr;  /* antes lo tenías en 900px */
+    gap: 10px;
+  }
+}
+
+@media (max-width: 720px){
+  .csx__head{
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .csx__title{ font-size: 16px; }
+  .csx__subtitle{ font-size: 12px; }
+
+  .csx__actions{
+    gap: 8px;
+  }
+
+  .csx__card{
+    padding: 12px; /* antes 14 */
+  }
+
+  .csx__cardHead{
+    margin-bottom: 8px;
+  }
+
+  .csx__cardTitle{
+    font-size: 13px;
+  }
+
+  .csx__list{ gap: 8px; }
+
+  .csx__item{
+    padding: 10px;  /* antes 12 */
+    gap: 10px;
+    flex-direction: column; /* clave: evita que todo quede apretado en la misma fila */
+    align-items: stretch;
+  }
+
+  .csx__itemBtns{
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  .csx__row{
+    gap: 8px;
+  }
+
+  .csx__order{
+    font-size: 11px;
+    padding: 2px 7px;
+  }
+
+  .csx__name{
+    font-size: 14px;
+    line-height: 1.2;
+  }
+
+  .csx__meta{
+    margin-top: 6px;
+    gap: 6px;
+  }
+
+  .csx__pill{
+    font-size: 11px;
+    padding: 4px 9px;
+  }
+
+  .csx__form{
+    gap: 8px;
+  }
+
+  .csx__label{
+    font-size: 11px;
+  }
+
+  .csx__input{
+    border-radius: 12px;  /* un poco más compacto */
+    padding: 9px 10px;    /* antes 10px 12px */
+  }
+
+  .csx__checks{
+    gap: 10px;
+  }
+
+  .csx__check{
+    font-size: 12px;
+  }
+
+  .csx__formBtns{
+    gap: 8px;
+  }
+
+  .csx-btn{
+    border-radius: 12px;
+    padding: 9px 11px; /* antes 10px 12px */
+    font-size: 13px;
+  }
+}
+
+/* Extra compacto (teléfonos muy pequeños) */
+@media (max-width: 420px){
+  .csx__card{ padding: 10px; }
+  .csx__item{ padding: 9px; }
+  .csx__name{ font-size: 13px; }
+  .csx-btn{ padding: 8px 10px; font-size: 12px; }
+}
+
+/* =========================
+   MODAL - Pasos cesación
+   ========================= */
+.csx-modal__backdrop{
+  position: fixed;
+  inset: 0;
+  background: color-mix(in oklab, black 45%, transparent);
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  z-index: 9999;
+}
+
+.csx-modal__card{
+  width: min(720px, 100%);
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-3xl, 18px);
+  box-shadow: var(--shadow, 0 16px 50px rgba(0,0,0,.18));
+  overflow: hidden;
+}
+
+.csx-modal__head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+.csx-modal__title{
+  margin: 0;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.csx-modal__body{
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.csx__error--inModal{
+  margin: 12px 16px 0;
+}
+
+.csx-modal__row2{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 520px){
+  .csx-modal__row2{
+    grid-template-columns: 1fr;
+  }
+}
+
+.csx-modal__footer{
+  display:flex;
+  justify-content:flex-end;
+  gap: 10px;
+  padding-top: 6px;
+}
+
+/* =========================
+   FIX inputs montándose en modal
+   ========================= */
+
+/* MUY IMPORTANTE: permite que los hijos del grid se encojan */
+.csx-modal__row2 > * {
+  min-width: 0;
+}
+
+/* Asegura que inputs/select no se salgan del contenedor */
+.csx-modal__row2 .csx__input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Evita que los bordes redondeados “empujen” el layout */
+.csx__input {
+  overflow: hidden;
+}
+
+/* Opcional: reduce un poco el radio SOLO dentro del modal */
+.csx-modal__card .csx__input {
+  border-radius: 12px; /* antes 14–18 */
+}
+
+/* =========================================
+   FIX definitivo: inputs no se salen del modal
+   ========================================= */
+
+/* El modal nunca debe permitir overflow horizontal */
+.csx-modal__card,
+.csx-modal__body{
+  overflow-x: hidden;
+}
+
+/* Asegura que TODOS los campos en modal puedan encogerse */
+.csx-modal__body .csx__field{
+  min-width: 0;
+}
+
+/* Asegura que cualquier input/select dentro del modal sea block y no crezca de más */
+.csx-modal__body input.csx__input,
+.csx-modal__body select.csx__input{
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Si algún estilo global mete márgenes/paddings raros */
+.csx-modal__body .csx__input{
+  margin: 0;
+}
+
+/* Si el problema es por el border-radius + overflow visual */
+.csx-modal__body .csx__input{
+  overflow: hidden;
+}

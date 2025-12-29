@@ -47,7 +47,6 @@ export type PasoCesacion = {
     Title: string;
     NombrePaso: string;
     Orden: number;
-    Requiereevidencia: boolean;
     NombreEvidencia: string;
     RequiereNotas: boolean;
     TipoPaso: string;

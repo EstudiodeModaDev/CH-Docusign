@@ -11,6 +11,7 @@ import { UnidadNegocioManager } from "./UnidadNegocio/UnidadNegocio";
 import { TipoContratoManager } from "./TipoContrato/TipoContrato";
 import { TipoVacanteManager } from "./TipoVacante/TipoVacante";
 import { CentroCostosManager } from "./CentroCostos/CentroCostos";
+import { CesacionStepsManager } from "./CesacionManager/CesacionManager";
 
 export type ParamTab = {
   id: string;
@@ -79,6 +80,7 @@ const TABS = [
   { id: "tipocontrato", label: "Tipo de contrato" },
   { id: "tipovacante", label: "Tipo vacante" },
   { id: "centrocostos", label: "Centro de costos" },
+  { id: "cesaciones", label: "Proceso cesación" },
 ];
 
 export const ParametrosPage: React.FC = () => {
@@ -100,6 +102,7 @@ export const ParametrosPage: React.FC = () => {
       {active === "tipocontrato" && <TipoContratoManager/>}
       {active === "tipovacante" && <TipoVacanteManager/>}
       {active === "centrocostos" && <CentroCostosManager/>}
+      {active === "cesaciones" && <CesacionStepsManager></CesacionStepsManager>}
     </section>
   );
 };

@@ -291,3 +291,9 @@ export class ColaboradoresVisualService extends BibliotecaBaseService {
 }
 
 
+export class ColaboradoresMetaService extends BibliotecaBaseService {
+  constructor(graph: GraphRest, hostname: string, sitePath: string, name: string) {
+    super(graph, hostname, sitePath, name);
+  }
+}
+

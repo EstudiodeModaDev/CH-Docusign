@@ -4,19 +4,20 @@ import { useGraphServices } from "../graph/graphContext";
 import type { Archivo } from "../models/archivos";
 import { parseDateFlex } from "../utils/Date";
 
-export type EmpresaKey = "estudio" | "dh" | "denim" | "visual";
+export type EmpresaKey = "estudio" | "dh" | "denim" | "visual" | "meta";
 
-type PathsState = {estudio: string; dh: string; denim: string; visual: string};
+type PathsState = {estudio: string; dh: string; denim: string; visual: string; meta: string};
 
 export function useColaboradoresExplorer() {
-  const { ColaboradoresEDM, ColaboradoresDH, ColaboradoresDenim, ColaboradoresVisual } = useGraphServices();
+  const { ColaboradoresEDM, ColaboradoresDH, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta } = useGraphServices();
 
   const [empresa, setEmpresaState] = React.useState<EmpresaKey>("estudio");
   const [paths, setPaths] = React.useState<PathsState>({
     estudio: "",
     dh: "",
     denim: "",
-    visual: ""
+    visual: "", 
+    meta: ""
   });
 
   const [rawItems, setRawItems] = React.useState<Archivo[]>([]);
@@ -25,8 +26,8 @@ export function useColaboradoresExplorer() {
   const [search, setSearch] = React.useState("");
   const [organizacion, setOrganizacion] = React.useState("asc")
 
-  const currentPath = empresa === "estudio" ? paths.estudio : empresa === "dh" ? paths.dh : empresa === "denim" ? paths.denim : empresa === "visual" ? paths.visual : "";
-  const activeService = empresa === "estudio" ? ColaboradoresEDM : empresa === "dh" ? ColaboradoresDH : empresa === "denim" ? ColaboradoresDenim : empresa=== "visual" ? ColaboradoresVisual : ColaboradoresEDM;
+  const currentPath = empresa === "estudio" ? paths.estudio : empresa === "dh" ? paths.dh : empresa === "denim" ? paths.denim : empresa === "visual" ? paths.visual : empresa === "meta" ? paths.meta : "";
+  const activeService = empresa === "estudio" ? ColaboradoresEDM : empresa === "dh" ? ColaboradoresDH : empresa === "denim" ? ColaboradoresDenim : empresa=== "visual" ? ColaboradoresVisual : empresa === "meta" ? ColaboradoresMeta: ColaboradoresEDM;
 
   const load = React.useCallback(async () => {
     setLoading(true);

@@ -49,6 +49,10 @@ export const ColaboradoresExplorer: React.FC = () => {
                     DENIM HEAD
                 </button>
 
+                <button type="button"  className={"colab-explorer__empresa-btn" + (empresa === "meta" ? " colab-explorer__empresa-btn--active" : "")} onClick={() => setEmpresa("meta")}>
+                    METAGRAPHICS
+                </button>
+
                 <button type="button"  className={"colab-explorer__empresa-btn" + (empresa === "visual" ? " colab-explorer__empresa-btn--active" : "")} onClick={() => setEmpresa("visual")}>
                     VISUAL
                 </button>

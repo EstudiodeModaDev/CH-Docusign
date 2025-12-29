@@ -11,7 +11,7 @@ import { DeptosYMunicipiosService } from "../Services/DeptosYMunicipios.service"
 import { EnviosService } from "../Services/Envios.service";
 import { PasosPromocionService } from "../Services/PasosPromocion.service";
 import { DetallesPasosPromocionService } from "../Services/DetallesPasosPromocion.service";
-import { ColaboradoresDenimService, ColaboradoresDHService, ColaboradoresEDMService, ColaboradoresVisualService } from "../Services/Bibliotecas.service";
+import { ColaboradoresDenimService, ColaboradoresDHService, ColaboradoresEDMService, ColaboradoresMetaService, ColaboradoresVisualService } from "../Services/Bibliotecas.service";
 import { PazSalvosService } from "../Services/PazSalvos.service";
 import { PermisosPazSalvosService } from "../Services/PermisosPazSalvos.service";
 import { RenovarService } from "../Services/Renovar.service";
@@ -67,7 +67,8 @@ export type UnifiedConfig = {
     ColaboradoresEDM: string;
     ColaboradoresDH: string;
     ColaboradoresDenim: string;
-    ColaboradoresVisual: string
+    ColaboradoresVisual: string;
+    ColaboradoresMeta: string
 
     // Paz Salvos
     PazSalvos: string;
@@ -120,6 +121,7 @@ export type GraphServices = {
   ColaboradoresDH: ColaboradoresDHService,
   ColaboradoresDenim: ColaboradoresDenimService,
   ColaboradoresVisual: ColaboradoresVisualService
+  ColaboradoresMeta: ColaboradoresMetaService
 
   // Paz Salvos
   PazSalvos: PazSalvosService;
@@ -178,6 +180,7 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     ColaboradoresDH: "Colaboradores DH",
     ColaboradoresDenim: "Colaboradores DENIM",
     ColaboradoresVisual: "Colaboradores Visual",
+    ColaboradoresMeta: "Colaboradores METAGRAPHICS",
 
     // Paz y salvos
     PazSalvos: "Paz y salvos",
@@ -260,7 +263,8 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     const ColaboradoresEDM        = new ColaboradoresEDMService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresEDM);
     const ColaboradoresDH         = new ColaboradoresDHService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresDH);
     const ColaboradoresDenim      = new ColaboradoresDenimService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresDenim)
-    const ColaboradoresVisual     = new ColaboradoresVisualService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresVisual)
+    const ColaboradoresVisual     = new ColaboradoresVisualService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresVisual);
+    const ColaboradoresMeta       = new ColaboradoresMetaService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresMeta)
     
     //Paz y salvos
     const PazSalvos               = new PazSalvosService(graph, ch.hostname, ch.sitePath, lists.PazSalvos);
@@ -287,7 +291,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       //Enviar Correo
       mail,
       //Bibliotecas
-      ColaboradoresEDM, ColaboradoresDH, ColaboradoresDenim, ColaboradoresVisual, 
+      ColaboradoresEDM, ColaboradoresDH, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta,
       //paz salvos
       PazSalvos, PermisosPaz, Renovar, Firmas, Respuesta
     };

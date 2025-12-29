@@ -9,7 +9,6 @@ import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
 import { useDependencias } from "../../../../Funcionalidades/Dependencias";
 import { formatPesosEsCO, numeroATexto,  } from "../../../../utils/Number";
 import { useSalarios } from "../../../../Funcionalidades/Salario";
-import { useGroupMembers } from "../../../../Funcionalidades/GroupMembers";
 import type { Cesacion } from "../../../../models/Cesaciones";
 import { toISODateFlex } from "../../../../utils/Date";
 import { CesacionSteps } from "./procesoCesacion";
@@ -41,7 +40,6 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
     const { state, setField, handleEdit, errors, } = useCesaciones(Cesaciones);
     const { loadSpecificSalary } = useSalarios(salarios);
     const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
-    const { allOptions, loading } = useGroupMembers("ca8b6719-431a-498a-ba9f-2c58242b1403");
     const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
     const { options: tipoDocOptions, loading: loadingTipoDoc, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
     const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
@@ -113,7 +111,6 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
 
   const selectedEmpresa = empresaOptions.find((o) => o.label === state.Empresaalaquepertenece) ?? null;
   const selectedCargo = cargoOptions.find((o) => o.label === state.Cargo) ?? null;
-  const selectedJefeZona = allOptions.find((o) => o.label === state.Jefedezona) ?? null;
   const selectedTipoDocumento = tipoDocOptions.find((o) => o.label === state.TipoDoc) ?? null;
   const selectedNivelCargo = nivelCargoOptions.find((o) => o.label === state.Niveldecargo) ?? null;   
   const selectedDependencia = dependenciaOptions.find((o) => o.value === state.Dependencia) ?? null;  
@@ -451,26 +448,6 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
               isClearable
             />
             <small>{errors.Dependencia}</small>
-          </div>
-
-          {/* Jefe de zona */}
-          <div className="ft-field">
-            <label className="ft-label" htmlFor="cargo">Jefe de zona * </label>
-            <Select<desplegablesOption, false>
-              inputId="cargo"
-              options={allOptions}
-              placeholder={loading ? "Cargando opciones…" : "Buscar jefe de zona..."}
-              value={selectedJefeZona}
-              onChange={(opt) => {setField("Jefedezona", opt?.label ?? "");}}
-              classNamePrefix="rs"
-              isDisabled={loading || isView}
-              isLoading={loading}
-              getOptionValue={(o) => String(o.value)}
-              getOptionLabel={(o) => o.label}
-              components={{ Option }}
-              isClearable
-            />
-            <small>{errors.Cargo}</small>
           </div>
 
             {/*Departamento */}

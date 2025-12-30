@@ -84,6 +84,8 @@ export const EspecificidadManager: React.FC = () => {
                                                                                             if(editItem){
                                                                                                 await editItem({Title: "Especifidad de cargos", T_x00ed_tulo1: state?.T_x00ed_tulo1}, state!.Id ?? "", );
                                                                                                 alert("Se ha editado con exito la especificidad del cargo")
+                                                                                                setIsAdding(false)
+                                                                                                setIsEditing(false)
                                                                                                 reload()
                                                                                             }
                                                                                             setIsEditing(false);}}>✔</button>

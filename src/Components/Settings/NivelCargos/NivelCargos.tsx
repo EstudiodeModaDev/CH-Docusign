@@ -83,7 +83,10 @@ export const NivelCargosManager: React.FC = () => {
                                     <button type="button" className="emp-btn emp-btn--ok" onClick={async () => {
                                                                                             console.table(state)
                                                                                             if(editItem){
-                                                                                                await editItem({Title: state?.T_x00ed_tulo1}, state!.Id ?? "", );
+                                                                                                await editItem({Title: "Nivel de cargos", T_x00ed_tulo1: state?.T_x00ed_tulo1}, state!.Id ?? "", );
+                                                                                                alert("Se ha editado con exito el nivel de cargo")
+                                                                                                setIsAdding(false)
+                                                                                                setIsEditing(false)
                                                                                                 reload()
                                                                                             }
                                                                                             setIsEditing(false);}}>✔</button>
@@ -92,7 +95,22 @@ export const NivelCargosManager: React.FC = () => {
                             { isAdding &&
                                 <div className="emp-actions">
                                     <button type="button" className="emp-btn emp-btn--cancel" onClick={() => {setIsEditing(false); setIsAdding(false)}}>✕</button>
-                                    <button type="button" className="emp-btn emp-btn--ok" onClick={() => add ? add(handleAddNew()) : null}>✔</button>
+                                    <button type="button" className="emp-btn emp-btn--ok" onClick={async () => {
+                                                                                                    try {
+                                                                                                    if (!add) return;
+
+                                                                                                    const payload = await handleAddNew(); // ✅ esperar
+                                                                                                    if (!payload?.T_x00ed_tulo1?.trim()) return;
+
+                                                                                                    await add(payload); // ✅ esperar
+                                                                                                    alert("Se ha agregado con éxito el nivel de cargo");
+                                                                                                    setIsEditing(false)
+                                                                                                    setIsAdding(false)
+                                                                                                    } catch (e: any) {
+                                                                                                    console.error(e);
+                                                                                                    alert("Error agregando el cargo: " + (e?.message ?? e));
+                                                                                                    }
+                                                                                                }}>✔</button>
                                 </div>
                             }
                         </section>

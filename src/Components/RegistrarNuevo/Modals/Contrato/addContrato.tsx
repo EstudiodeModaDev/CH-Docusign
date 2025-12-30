@@ -10,6 +10,7 @@ import { useAuth } from "../../../../auth/authProvider";
 import { getTodayLocalISO } from "../../../../utils/Date";
 import { useDependencias } from "../../../../Funcionalidades/Dependencias";
 import { useDetallesPasosNovedades, usePasosNoveades } from "../../../../Funcionalidades/PasosNovedades";
+import { useSalarios } from "../../../../Funcionalidades/Salario";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -32,7 +33,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormContratacion({onClose}: Props){
-  const { Maestro, Contratos, DeptosYMunicipios, DetallesPasosNovedades} = useGraphServices();
+  const { Maestro, Contratos, DeptosYMunicipios, DetallesPasosNovedades, salarios} = useGraphServices();
   const { state, setField, handleSubmit, errors, } = useContratos(Contratos);
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
   const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
@@ -48,6 +49,7 @@ export default function FormContratacion({onClose}: Props){
   const { options: tipoVacanteOptions, loading: loadingTipoVacante, reload: reloadTipoVacante} = useTipoVacante(Maestro);
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
   const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();
+  const { loadSpecificSalary } = useSalarios(salarios);
   const { loadPasosNovedad, rows} = usePasosNoveades()
   const { handleCreateAllSteps} = useDetallesPasosNovedades(DetallesPasosNovedades,)
   const opciones = [{ value: "Escritorio", label: "Escritorio" }, { value: "Silla", label: "Silla" }, { value: "Escritorio/Silla", label: "Escritorio/Silla" }];
@@ -196,6 +198,25 @@ export default function FormContratacion({onClose}: Props){
     setField("GRUPO_x0020_CVE_x0020_", grupoCVE)
 
   }, [state.AUTONOM_x00cd_A_x0020_, state.PRESUPUESTO_x0020_VENTAS_x002f_M, state.IMPACTO_x0020_CLIENTE_x0020_EXTE, state.CONTRIBUCION_x0020_A_x0020_LA_x0, promedio, grupoCVE]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      const salario = await loadSpecificSalary(state.CARGO);
+
+      if (!cancelled && salario !== null) {
+        setField("SALARIO", salario.Salariorecomendado);
+        setField("salariotexto", numeroATexto(Number(salario.Salariorecomendado)))
+      }
+    };
+
+    if (state.CARGO) run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.CARGO,]);
 
   const handleCreateNovedad = async () => {
     const created = await handleSubmit();

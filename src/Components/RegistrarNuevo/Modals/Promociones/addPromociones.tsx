@@ -10,6 +10,7 @@ import { getTodayLocalISO } from "../../../../utils/Date";
 import { useDependencias } from "../../../../Funcionalidades/Dependencias";
 import { usePromocion } from "../../../../Funcionalidades/Promocion";
 import { useDetallesPasosPromocion, usePasosPromocion } from "../../../../Funcionalidades/PasosPromocion";
+import { useSalarios } from "../../../../Funcionalidades/Salario";
 
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -32,7 +33,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormPromociones({onClose}: Props){
-  const { Maestro, Promociones, DeptosYMunicipios, DetallesPasosPromocion,} = useGraphServices();
+  const { Maestro, Promociones, DeptosYMunicipios, DetallesPasosPromocion, salarios} = useGraphServices();
   const { state, setField, handleSubmit, errors } = usePromocion(Promociones);
   const { loadPasosPromocion, rows } = usePasosPromocion()
   const { handleCreateAllSteps } = useDetallesPasosPromocion(DetallesPasosPromocion)
@@ -48,6 +49,7 @@ export default function FormPromociones({onClose}: Props){
   const { options: tipoVacanteOptions, loading: loadingTipoVacante, reload: reloadTipoVacante} = useTipoVacante(Maestro);
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
   const { options: dependenciaOptions, loading: loadingDependencias} = useDependencias();
+  const { loadSpecificSalary } = useSalarios(salarios);
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
 
@@ -190,6 +192,25 @@ export default function FormPromociones({onClose}: Props){
     setField("GrupoCVE", grupoCVE)
 
   }, [state.Autonomia, state.PresupuestoVentasMagnitudEconomi, state.ImpactoClienteExterno, state.ContribucionaLaEstrategia, promedio, grupoCVE]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      const salario = await loadSpecificSalary(state.Cargo);
+
+      if (!cancelled && salario !== null) {
+        setField("Salario", salario.Salariorecomendado);
+        setField("SalarioTexto", numeroATexto(Number(salario.Salariorecomendado)))
+      }
+    };
+
+    if (state.Cargo) run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.Cargo,]);
 
   const handleCreatePromotion = async () => {
     const created = await handleSubmit();

@@ -82,11 +82,11 @@ export const CentroCostosManager: React.FC = () => {
                         <section className="emp-form">
                             <div className="emp-field">
                                 <label className="emp-label" htmlFor="empresaNombre">Centro de costos</label>
-                                <input id="empresaNombre" type="text" className="emp-input" placeholder="Centro de costos" value={state?.Title} onChange={(e) => setState({...state, Title: e.target.value})}/>
+                                <input id="empresaNombre" type="text" className="emp-input" placeholder="Centro de costos" value={state?.Title} onChange={(e) => setState({...state, Title: e.target.value.toUpperCase()})}/>
                             </div>
                             <div className="emp-field">
                                 <label className="emp-label" htmlFor="empresaNombre">Codigo</label>
-                                <input id="empresaNombre" type="text" className="emp-input" placeholder="Codigo" value={state?.Codigo} onChange={(e) => setState({...state, Codigo: e.target.value})}/>
+                                <input id="empresaNombre" type="text" className="emp-input" placeholder="Codigo" value={state?.Codigo} onChange={(e) => setState({...state, Codigo: e.target.value.toUpperCase()})}/>
                             </div>
                             { isEditing &&
                                 <div className="emp-actions">
@@ -94,8 +94,11 @@ export const CentroCostosManager: React.FC = () => {
                                     <button type="button" className="emp-btn emp-btn--ok" onClick={async () => {
                                                                                             console.table(state)
                                                                                             if(editItem){
-                                                                                                await editItem({Title: state?.Title}, state!.Id ?? "", );
+                                                                                                await editItem({Title: "Centro de costos", T_x00ed_tulo1: state?.Title, Codigo: state.Codigo}, state!.Id ?? "", );
                                                                                                 reload()
+                                                                                                alert("Se ha editado con éxito el CC")
+                                                                                                setIsAdding(false)
+                                                                                                setIsEditing(false)
                                                                                             }
                                                                                             setIsEditing(false);}}>✔</button>
                                 </div>
@@ -103,7 +106,22 @@ export const CentroCostosManager: React.FC = () => {
                             { isAdding &&
                                 <div className="emp-actions">
                                     <button type="button" className="emp-btn emp-btn--cancel" onClick={() => {setIsEditing(false); setIsAdding(false)}}>✕</button>
-                                    <button type="button" className="emp-btn emp-btn--ok" onClick={() => add ? add(handleAddNew()) : null}>✔</button>
+                                    <button type="button" className="emp-btn emp-btn--ok" onClick={async () => {
+                                                                                                    try {
+                                                                                                    if (!add) return;
+
+                                                                                                    const payload = await handleAddNew(); // ✅ esperar
+                                                                                                    if (!payload?.T_x00ed_tulo1?.trim()) return;
+
+                                                                                                    await add(payload); // ✅ esperar
+                                                                                                    alert("Se ha agregado con éxito el centro de costos");
+                                                                                                    setIsEditing(false)
+                                                                                                    setIsAdding(false)
+                                                                                                    } catch (e: any) {
+                                                                                                    console.error(e);
+                                                                                                    alert("Error agregando el cargo: " + (e?.message ?? e));
+                                                                                                    }
+                                                                                                }}>✔</button>
                                 </div>
                             }
                         </section>

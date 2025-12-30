@@ -69,14 +69,17 @@ export const EmpresasManager: React.FC = ({}) => {
                     <section className="emp-form">
                         <div className="emp-field">
                             <label className="emp-label" htmlFor="empresaNombre">Nombre de la empresa</label>
-                            <input id="empresaNombre" type="text" className="emp-input" placeholder="Nombre de la empresa" value={state?.T_x00ed_tulo1} onChange={(e) => setState({...state, T_x00ed_tulo1: e.target.value})}/>
+                            <input id="empresaNombre" type="text" className="emp-input" placeholder="Nombre de la empresa" value={state?.T_x00ed_tulo1} onChange={(e) => setState({...state, T_x00ed_tulo1: e.target.value.toUpperCase()})}/>
                         </div>
                         { isEditing &&
                             <div className="emp-actions">
                                 <button type="button" className="emp-btn emp-btn--cancel" onClick={() => {setIsEditing(false); setIsAdding(false)}}>✕</button>
                                 <button type="button" className="emp-btn emp-btn--ok" onClick={async () => {
                                                                                         if(editItem){
-                                                                                            await editItem({Title: state?.T_x00ed_tulo1}, state!.Id ?? "", );
+                                                                                            await editItem({Title: "Empresas", T_x00ed_tulo1: state.T_x00ed_tulo1.toUpperCase()}, state!.Id ?? "", );
+                                                                                            alert("Se ha editado con éxito la empresa")
+                                                                                            setIsEditing(false)
+                                                                                            setIsAdding(false)
                                                                                             reload()
                                                                                         }
                                                                                         setIsEditing(false);}}>✔</button>
@@ -85,7 +88,22 @@ export const EmpresasManager: React.FC = ({}) => {
                         { isAdding &&
                             <div className="emp-actions">
                                 <button type="button" className="emp-btn emp-btn--cancel" onClick={() => {setIsEditing(false); setIsAdding(false)}}>✕</button>
-                                <button type="button" className="emp-btn emp-btn--ok" onClick={() => add ? add(handleAddNew()): null}>✔</button>
+                                <button type="button" className="emp-btn emp-btn--ok"  onClick={async () => {
+                                                                                                    try {
+                                                                                                    if (!add) return;
+
+                                                                                                    const payload = await handleAddNew(); // ✅ esperar
+                                                                                                    if (!payload?.T_x00ed_tulo1?.trim()) return;
+
+                                                                                                    await add(payload); // ✅ esperar
+                                                                                                    alert("Se ha agregado con éxito el cargo");
+                                                                                                    setIsEditing(false)
+                                                                                                    setIsAdding(false)
+                                                                                                    } catch (e: any) {
+                                                                                                    console.error(e);
+                                                                                                    alert("Error agregando el cargo: " + (e?.message ?? e));
+                                                                                                    }
+                                                                                                }}>✔</button>
                             </div>
                         }
                     </section>

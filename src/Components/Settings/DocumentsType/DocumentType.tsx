@@ -72,11 +72,11 @@ export const DocumentTypeManager: React.FC = () => {
                     <section className="emp-form">
                         <div className="emp-field">
                             <label className="emp-label" htmlFor="empresaNombre">Tipo de documento</label>
-                            <input id="empresaNombre" type="text" className="emp-input" placeholder="Tipo de documento" value={state?.T_x00ed_tulo1} onChange={(e) => setState({...state, T_x00ed_tulo1: e.target.value})}/>
+                            <input id="empresaNombre" type="text" className="emp-input" placeholder="Tipo de documento" value={state?.T_x00ed_tulo1.toUpperCase()} onChange={(e) => setState({...state, T_x00ed_tulo1: e.target.value})}/>
                         </div>
                         <div className="emp-field">
                             <label className="emp-label" htmlFor="empresaNombre">Abreviación del tipo</label>
-                            <input id="empresaNombre" type="text" className="emp-input" placeholder="Abreviación" value={state?.Abreviacion} onChange={(e) => setState({...state, Abreviacion   : e.target.value})}/>
+                            <input id="empresaNombre" type="text" className="emp-input" placeholder="Abreviación" value={state?.Abreviacion.toUpperCase()} onChange={(e) => setState({...state, Abreviacion   : e.target.value})}/>
                         </div>
                         { isEditing &&
                             <div className="emp-actions">
@@ -85,6 +85,9 @@ export const DocumentTypeManager: React.FC = () => {
                                                                                         console.table(state)
                                                                                         if(editItem){
                                                                                             await editItem({T_x00ed_tulo1: state?.T_x00ed_tulo1, Abreviacion: state.Abreviacion}, state!.Id ?? "", );
+                                                                                            alert("Se ha actualizado con éxito el tipo de documento")
+                                                                                            setIsAdding(false)
+                                                                                            setIsEditing(false)
                                                                                             reload()
                                                                                         }
                                                                                         setIsEditing(false);}}>✔</button>
@@ -93,7 +96,22 @@ export const DocumentTypeManager: React.FC = () => {
                         { isAdding &&
                             <div className="emp-actions">
                                 <button type="button" className="emp-btn emp-btn--cancel" onClick={() => {setIsEditing(false); setIsAdding(false)}}>✕</button>
-                                <button type="button" className="emp-btn emp-btn--ok" onClick={() => add ? add(handleAddNew()) : null}>✔</button>
+                                <button type="button" className="emp-btn emp-btn--ok"  onClick={async () => {
+                                                                                                    try {
+                                                                                                    if (!add) return;
+
+                                                                                                    const payload = await handleAddNew(); // ✅ esperar
+                                                                                                    if (!payload?.T_x00ed_tulo1?.trim()) return;
+
+                                                                                                    await add(payload); // ✅ esperar
+                                                                                                    alert("Se ha agregado con éxito el tipo de documento");
+                                                                                                    setIsEditing(false)
+                                                                                                    setIsAdding(false)
+                                                                                                    } catch (e: any) {
+                                                                                                    console.error(e);
+                                                                                                    alert("Error agregando el cargo: " + (e?.message ?? e));
+                                                                                                    }
+                                                                                                }}>✔</button>
                             </div>
                         }
                     </section>

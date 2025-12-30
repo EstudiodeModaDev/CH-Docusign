@@ -151,7 +151,7 @@ const DEFAULT_CONFIG: UnifiedConfig = {
 
     //Novedades
     Contratos: "Novedades Administrativas",
-    NovedadCancelada: "Novedades Canceladas",
+    NovedadCancelada: "Novedades - Novedades Canceladas",
 
     //Promociones
     Promociones: "Promocion - Promociones",

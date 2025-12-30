@@ -16,7 +16,7 @@ export class NovedadCanceladaService {
     graph: GraphRest,
     hostname = 'estudiodemoda.sharepoint.com',
     sitePath = '/sites/TransformacionDigital/IN/CH',
-    listName = 'Novedades Canceladas'     
+    listName = 'Novedades - Novedades Canceladas'     
   ) {
     this.graph = graph;
     this.hostname = hostname;

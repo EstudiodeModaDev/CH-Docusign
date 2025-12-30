@@ -17,7 +17,7 @@ export class ContratosService {
     graph: GraphRest,
     hostname = 'estudiodemoda.sharepoint.com',
     sitePath = '/sites/TransformacionDigital/IN/CH',
-    listName = 'Novedades Administrativas'
+    listName = 'Novedades - Novedades Administrativas'
   ) {
     this.graph = graph;
     this.hostname = hostname;

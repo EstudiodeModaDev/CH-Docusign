@@ -150,7 +150,7 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     HabeasData: "Habeas Data",
 
     //Novedades
-    Contratos: "Novedades Administrativas",
+    Contratos: "Novedades - Novedades Administrativas",
     NovedadCancelada: "Novedades - Novedades Canceladas",
 
     //Promociones

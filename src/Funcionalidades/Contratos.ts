@@ -286,10 +286,13 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
     })
   };
 
-  const handleSubmit = async (): Promise<boolean> => {
+  const handleSubmit = async (): Promise<{created: string | null, ok: boolean}> => {
     if (!validate()) { 
       alert("Hay campos sin rellenar")
-      return false
+      return {
+        created: null,
+        ok: false        
+      }
     };
     console.log(state)
     setLoading(true);
@@ -355,12 +358,18 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
         VALOR_x0020_GARANTIZADO: state.VALOR_x0020_GARANTIZADO,
         Cargo_x0020_de_x0020_la_x0020_pe: state.Cargo_x0020_de_x0020_la_x0020_pe,
         FechaReporte: state.FechaReporte
-      };
-      await ContratosSvc.create(payload);
+      }; 
+      const created = await ContratosSvc.create(payload);
       alert("Se ha creado el registro con éxito")
-      return true
+      return {
+        created: created.Id ?? "",
+        ok: true        
+      }
     } catch{
-      return false
+      return {
+        created: null,
+        ok: false        
+      }
     }finally {
         setLoading(false);
       }

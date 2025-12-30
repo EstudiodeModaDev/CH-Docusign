@@ -1,10 +1,10 @@
 import React from "react";
 import { useAuth } from "../auth/authProvider";
 import type { Archivo } from "../models/archivos";
-import type { DetallesPasosCesacionService } from "../Services/DetallesPasosCesacion.service";
 import type { TipoPaso } from "../Components/RegistrarNuevo/Modals/Cesaciones/procesoCesacion";
 import type { DetallesPasos, PasosProceso } from "../models/Cesaciones";
 import { useGraphServices } from "../graph/graphContext";
+import type { DetallesPasosNovedadesService } from "../Services/DetallesPasosNovedades.service";
 
 export function usePasosNoveades() {
     const {PasosNovedades, ColaboradoresDH, ColaboradoresEDM, ColaboradoresVisual, ColaboradoresDenim, ColaboradoresMeta, DetallesPasosNovedades } = useGraphServices()
@@ -159,12 +159,12 @@ export function usePasosNoveades() {
   };
 }
 
-export function useDetallesPasosNovedades(DetallesSvc: DetallesPasosCesacionService, selected?: string) {
+export function useDetallesPasosNovedades(DetallesSvc: DetallesPasosNovedadesService, selected?: string) {
   const [rows, setRows] = React.useState<DetallesPasos[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  const loadDetallesCesacion = React.useCallback(async () => {
+  const loadDetallesNovedades = React.useCallback(async () => {
       setLoading(true); setError(null);
       try {
       const items = await DetallesSvc.getAll({filter: `fields/Title eq ${selected}`, orderby: "fields/NumeroPaso asc"})
@@ -178,8 +178,8 @@ export function useDetallesPasosNovedades(DetallesSvc: DetallesPasosCesacionServ
   }, [selected,]);
 
   React.useEffect(() => {
-      loadDetallesCesacion();
-  }, [loadDetallesCesacion]);
+      loadDetallesNovedades();
+  }, [loadDetallesNovedades]);
 
   const handleCreateAllSteps = async (pasos: PasosProceso[], promocionId: string) => {
     if(!pasos || pasos.length===0){
@@ -213,7 +213,7 @@ export function useDetallesPasosNovedades(DetallesSvc: DetallesPasosCesacionServ
   }
 
   return {
-    rows, loading, error, loadDetallesCesacion, handleCreateAllSteps, 
+    rows, loading, error, loadDetallesNovedades, handleCreateAllSteps, 
   };
 }
 

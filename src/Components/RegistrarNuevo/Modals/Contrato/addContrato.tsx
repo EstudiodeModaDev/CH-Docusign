@@ -9,6 +9,7 @@ import {formatPesosEsCO, numeroATexto, toNumberFromEsCO,} from "../../../../util
 import { useAuth } from "../../../../auth/authProvider";
 import { getTodayLocalISO } from "../../../../utils/Date";
 import { useDependencias } from "../../../../Funcionalidades/Dependencias";
+import { useDetallesPasosNovedades, usePasosNoveades } from "../../../../Funcionalidades/PasosNovedades";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -31,8 +32,8 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormContratacion({onClose}: Props){
-  const { Maestro, Contratos, DeptosYMunicipios} = useGraphServices();
-  const { state, setField, handleSubmit, errors, cleanState, loadFirstPage } = useContratos(Contratos);
+  const { Maestro, Contratos, DeptosYMunicipios, DetallesPasosNovedades} = useGraphServices();
+  const { state, setField, handleSubmit, errors, } = useContratos(Contratos);
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
   const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
   const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
@@ -47,6 +48,8 @@ export default function FormContratacion({onClose}: Props){
   const { options: tipoVacanteOptions, loading: loadingTipoVacante, reload: reloadTipoVacante} = useTipoVacante(Maestro);
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
   const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();
+  const { loadPasosNovedad, rows} = usePasosNoveades()
+  const { handleCreateAllSteps} = useDetallesPasosNovedades(DetallesPasosNovedades,)
   const opciones = [{ value: "Escritorio", label: "Escritorio" }, { value: "Silla", label: "Silla" }, { value: "Escritorio/Silla", label: "Escritorio/Silla" }];
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
@@ -194,15 +197,14 @@ export default function FormContratacion({onClose}: Props){
 
   }, [state.AUTONOM_x00cd_A_x0020_, state.PRESUPUESTO_x0020_VENTAS_x002f_M, state.IMPACTO_x0020_CLIENTE_x0020_EXTE, state.CONTRIBUCION_x0020_A_x0020_LA_x0, promedio, grupoCVE]);
 
-  const handleCreateNovedad = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateNovedad = async () => {
+    const created = await handleSubmit();
 
-    const ok = await handleSubmit(); // <- haz que devuelva true/false
-    if (!ok) return;
-
-    await loadFirstPage();
-    cleanState();
-    onClose();
+    if(created.ok){
+      await loadPasosNovedad()
+      await handleCreateAllSteps(rows, created.created ?? "")
+      await onClose()
+    }
   };
   
   return (
@@ -993,7 +995,7 @@ export default function FormContratacion({onClose}: Props){
         </form>
         {/* Acciones */}
         <div className="ft-actions">
-          <button type="submit" className="btn btn-primary btn-xs" onClick={(e) => {handleCreateNovedad(e);}}>Guardar Registro</button>
+          <button type="submit" className="btn btn-primary btn-xs" onClick={() => {handleCreateNovedad();}}>Guardar Registro</button>
           <button type="button" className="btn btn-xs" onClick={() => onClose()}>Cancelar</button>
         </div>
       </section>

@@ -5,12 +5,13 @@ import type { Cesacion, DetallesPasos, PasosProceso } from "../../../../models/C
 import type { GraphSendMailPayload } from "../../../../graph/graphRest";
 import type { Promocion } from "../../../../models/Promociones";
 import { toUnifyVM, type Proceso } from "../../../../utils/unify";
+import type { Novedad } from "../../../../models/Novedades";
 
 export type TipoPaso = "Aprobacion" | "Notificacion" | "SubidaDocumento";
 
 type Props = {
   titulo: string;
-  selectedCesacion: Cesacion | Promocion;
+  selectedCesacion: Cesacion | Promocion | Novedad;
   loadingPasos: boolean
   errorPasos: string | null;
   pasosById: Record<string, PasosProceso>,

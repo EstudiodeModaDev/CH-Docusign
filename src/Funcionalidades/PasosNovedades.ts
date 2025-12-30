@@ -6,48 +6,50 @@ import type { TipoPaso } from "../Components/RegistrarNuevo/Modals/Cesaciones/pr
 import type { DetallesPasos, PasosProceso } from "../models/Cesaciones";
 import { useGraphServices } from "../graph/graphContext";
 
-export function usePasosCesacion() {
-  const {PasosCesacion, DetallesPasosCesacion, ColaboradoresDH, ColaboradoresEDM, ColaboradoresVisual, ColaboradoresDenim, ColaboradoresMeta} = useGraphServices()
-  const [rows, setRows] = React.useState<PasosProceso[]>([]);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const todayISO = () => new Date().toISOString().slice(0, 10);
-  const {account} = useAuth()
-  const [colaboradores, setColaboradores] = React.useState<Archivo[]>([]);
-  const [decisiones, setDecisiones] = React.useState<Record<string, "" | "Aceptado" | "Rechazado">>({});
-  const [motivos, setMotivos] = React.useState<Record<string, string>>({});
+export function usePasosNoveades() {
+    const {PasosNovedades, ColaboradoresDH, ColaboradoresEDM, ColaboradoresVisual, ColaboradoresDenim, ColaboradoresMeta, DetallesPasosNovedades } = useGraphServices()
+  
+    const [rows, setRows] = React.useState<PasosProceso[]>([]);
+    const [loading, setLoading] = React.useState(false);
+    const [error, setError] = React.useState<string | null>(null);
+    const todayISO = () => new Date().toISOString().slice(0, 10);
+    const {account} = useAuth()
+    const [colaboradores, setColaboradores] = React.useState<Archivo[]>([]);
+    const [decisiones, setDecisiones] = React.useState<Record<string, "" | "Aceptado" | "Rechazado">>({});
+    const [motivos, setMotivos] = React.useState<Record<string, string>>({});
+    const [state, setState] = React.useState<PasosProceso>({NombreEvidencia: "", NombrePaso: "", Orden: 0, TipoPaso: "", Title: "",});
+    const setField = <K extends keyof PasosProceso>(k: K, v: PasosProceso[K]) => setState((s) => ({ ...s, [k]: v }));
 
-  const loadPasosCesacion = React.useCallback(async () => {
-    setLoading(true); setError(null);
-    try {
-      const items = await PasosCesacion.getAll({orderby: "fields/Orden asc"})
-      setRows(items);
-    } catch (e: any) {
-      setError(e?.message ?? "Error cargando pasos de la promoción");
-      setRows([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [PasosCesacion,]);
+    const loadPasosNovedad = React.useCallback(async () => {
+        setLoading(true); setError(null);
+        try {
+            const items = await PasosNovedades.getAll({orderby: "fields/Orden asc"})
+            setRows(items);
+        } catch (e: any) {
+            setError(e?.message ?? "Error cargando pasos de la promoción");
+            setRows([]);
+        } finally {
+            setLoading(false);
+        }
+    }, [PasosNovedades,]);
 
-  const byId = React.useMemo(() => {
-      const map: Record<string, PasosProceso> = {};
-      for (const r of rows) {
-        if (r.Id) map[r.Id] = r;
-      }
-      return map;
-  }, [rows]);
+    const byId = React.useMemo(() => {
+        const map: Record<string, PasosProceso> = {};
+        for (const r of rows) {
+            if (r.Id) map[r.Id] = r;
+        }
+        return map;
+    }, [rows]);
 
-  const searchStep = React.useCallback((idPaso: string): PasosProceso | null => {
-      return byId[idPaso] ?? null;
-  },[byId]);
+    const searchStep = React.useCallback((idPaso: string): PasosProceso | null => {
+        return byId[idPaso] ?? null;
+    },[byId]);
 
-  React.useEffect(() => {
-      loadPasosCesacion();
-  }, [loadPasosCesacion]);
+    React.useEffect(() => {
+        loadPasosNovedad();
+    }, [loadPasosNovedad]);
 
   
-
   const handleCompleteStep = async (detalle: DetallesPasos, path?: string) => {
     const idDetalle = detalle.Id;
     if (!idDetalle) return;
@@ -78,7 +80,7 @@ export function usePasosCesacion() {
       return;
     }
 
-    await DetallesPasosCesacion.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(), Notas: "Archivo subido"});
+    await DetallesPasosNovedades.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(), Notas: "Archivo subido"});
 
     alert("Se ha completado con éxito");
     return;
@@ -103,7 +105,7 @@ export function usePasosCesacion() {
 
     const notas = decision === "Rechazado" ? `Rechazado con el motivo: ${motivo}` : "Aceptado";
 
-    await DetallesPasosCesacion.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(), Notas: notas,});
+    await DetallesPasosNovedades.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(), Notas: notas,});
 
     alert("Se ha completado con éxito");
     return;
@@ -112,14 +114,14 @@ export function usePasosCesacion() {
   // ========= 3) NOTIFICACIÓN =========
     if (tipoPaso === "Notificacion") {
 
-      await DetallesPasosCesacion.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(), Notas: "Notificación enviada",});
+      await DetallesPasosNovedades.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(), Notas: "Notificación enviada",});
 
       alert("Se ha completado con éxito");
       return;
     }
 
   // ========= 4) fallback =========
-    await DetallesPasosCesacion.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(),});
+    await DetallesPasosNovedades.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(),});
     alert("Se ha completado con éxito");
   };
 
@@ -130,7 +132,7 @@ export function usePasosCesacion() {
       ColaboradoresDH.findFolderByDocNumber(docNumber),
       ColaboradoresVisual.findFolderByDocNumber(docNumber),
       ColaboradoresDenim.findFolderByDocNumber(docNumber),
-      ColaboradoresMeta.findFolderByDocNumber(docNumber)
+      ColaboradoresMeta.findFolderByDocNumber(docNumber),
     ]);
 
     if (!edm && !dh && !visual && !denim && !meta) {
@@ -144,7 +146,7 @@ export function usePasosCesacion() {
       dh ? ColaboradoresDH.getFilesByFolderId(dh.id) : Promise.resolve([]),
       visual ? ColaboradoresVisual.getFilesByFolderId(visual.id) : Promise.resolve([]),
       denim ? ColaboradoresDenim.getFilesByFolderId(denim.id) : Promise.resolve([]),
-      meta ? ColaboradoresMeta.getFilesByFolderId(meta.id) : Promise.resolve([]),
+      meta ? ColaboradoresMeta.getFilesByFolderId(meta.id) : Promise.resolve([])
     ]);
 
     // 3) Unir resultados de ambas bibliotecas
@@ -152,12 +154,12 @@ export function usePasosCesacion() {
   };
 
   return {
-    rows, loading, error, byId, motivos, decisiones,
-    searchStep , setMotivos, setDecisiones, loadPasosCesacion, handleCompleteStep, 
+    rows, loading, error, byId, motivos, decisiones, state,
+    searchStep , setMotivos, setDecisiones, loadPasosNovedad, handleCompleteStep, setField, setState
   };
 }
 
-export function useDetallesPasosCesacion(DetallesSvc: DetallesPasosCesacionService, selected?: string) {
+export function useDetallesPasosNovedades(DetallesSvc: DetallesPasosCesacionService, selected?: string) {
   const [rows, setRows] = React.useState<DetallesPasos[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);

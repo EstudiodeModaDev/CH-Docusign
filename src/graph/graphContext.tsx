@@ -23,6 +23,8 @@ import { SalariosService } from "../Services/Salarios.service";
 import { PasosCesacionService } from "../Services/PasosCesaciones.service";
 import { DetallesPasosCesacionService } from "../Services/DetallesPasosCesacion.service";
 import { MailService } from "../Services/Mail.service";
+import { PasosNovedadesService } from "../Services/PasosNovedades.service";
+import { DetallesPasosNovedadesService } from "../Services/DetallesPasosNovedades.service";
 
 /* ================== Tipos de config ================== */
 export type SiteConfig = {
@@ -40,6 +42,8 @@ export type UnifiedConfig = {
     //Novedades
     Contratos: string;
     NovedadCancelada: string;
+    PasosNovedades: string;
+    DetallesPasosNovedad: string;
 
     //Promociones
     Promociones: string;
@@ -90,6 +94,8 @@ export type GraphServices = {
   //Novedades
   Contratos: ContratosService;
   NovedadCancelada: NovedadCanceladaService,
+  PasosNovedades: PasosNovedadesService,
+  DetallesPasosNovedades: DetallesPasosNovedadesService,
 
   //Promociones
   Promociones: PromocionesService
@@ -152,6 +158,8 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     //Novedades
     Contratos: "Novedades - Novedades Administrativas",
     NovedadCancelada: "Novedades - Novedades Canceladas",
+    PasosNovedades: "Novedades - Pasos",
+    DetallesPasosNovedad: "Novedades - Detalles Pasos",
 
     //Promociones
     Promociones: "Promocion - Promociones",
@@ -233,6 +241,8 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     //Novedades
     const Contratos               = new ContratosService(graph, ch.hostname, ch.sitePath, lists.Contratos)
     const NovedadCancelada        = new NovedadCanceladaService(graph, ch.hostname, ch.sitePath, lists.NovedadCancelada)
+    const PasosNovedades          = new PasosNovedadesService(graph, ch.hostname, ch.sitePath, lists.PasosNovedades)
+    const DetallesPasosNovedades  = new DetallesPasosNovedadesService(graph, ch.hostname, ch.sitePath, lists.DetallesPasosNovedad)
 
     //Promociones
     const Promociones             = new PromocionesService(graph, ch.hostname, ch.sitePath, lists.Promociones);
@@ -277,7 +287,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       //Habeas
       HabeasData, 
       //Novedades
-      Contratos, NovedadCancelada,
+      Contratos, NovedadCancelada, PasosNovedades, DetallesPasosNovedades,
       //Promociones
       Promociones, PasosPromocion, DetallesPasosPromocion,
       //Cesaciones

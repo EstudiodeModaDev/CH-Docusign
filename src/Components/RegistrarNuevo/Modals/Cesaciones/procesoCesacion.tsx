@@ -1,9 +1,7 @@
 import * as React from "react";
 import "../PasosPromocion.css";
 import { useGraphServices } from "../../../../graph/graphContext";
-import type { DetallesPasosPromocion, PasosPromocion } from "../../../../models/Promociones";
-import type { Cesacion, DetallesPasosCesacion } from "../../../../models/Cesaciones";
-import { useDetallesPasosCesacion, usePasosCesacion } from "../../../../Funcionalidades/PasosCesacion";
+import type { Cesacion, DetallesPasos, PasosProceso } from "../../../../models/Cesaciones";
 import type { GraphSendMailPayload } from "../../../../graph/graphRest";
 
 export type TipoPaso = "Aprobacion" | "Notificacion" | "SubidaDocumento";
@@ -11,18 +9,27 @@ export type TipoPaso = "Aprobacion" | "Notificacion" | "SubidaDocumento";
 type Props = {
   titulo: string;
   selectedCesacion: Cesacion;
-  onChangeActionValue?: (detalle: DetallesPasosPromocion, value: string) => void;
+  loadingPasos: boolean
+  errorPasos: string | null;
+  pasosById: Record<string, PasosProceso>,
+  decisiones: Record<string, "" | "Aceptado" | "Rechazado">;
+  motivos: Record<string, string>;
+  setMotivos: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  setDecisiones: React.Dispatch<React.SetStateAction<Record<string, "" | "Aceptado" | "Rechazado">>>;
   onClose: () => void;
+  handleCompleteStep: (detalle: DetallesPasos, path?: string) => void
+  detallesRows: DetallesPasos[],
+  loadingDetalles: boolean,
+  errorDetalles: string | null,
+  loadDetalles: () => void
 };
 
 function safeString(v: any) {
   return (v ?? "").toString();
 }
 
-export const CesacionSteps: React.FC<Props> = ({ titulo, selectedCesacion, onClose }) => {
-  const {PasosCesacion, DetallesPasosCesacion: DetallesSvc, ColaboradoresDH, ColaboradoresEDM, ColaboradoresDenim, ColaboradoresVisual, mail}: any = useGraphServices();
-  const { loading: loadingPasos, error: errorPasos, byId: pasosById, decisiones, motivos, setMotivos, setDecisiones, handleCompleteStep,} = usePasosCesacion(PasosCesacion, DetallesSvc, ColaboradoresEDM, ColaboradoresDH, ColaboradoresVisual, ColaboradoresDenim); 
-  const { rows: detallesRows, loading: loadingDetalles, error: errorDetalles, loadDetallesCesacion,} = useDetallesPasosCesacion(DetallesSvc, selectedCesacion.Id ?? "");
+export const ProcessDetail: React.FC<Props> = ({detallesRows, loadingDetalles, errorDetalles, loadDetalles, titulo, selectedCesacion, onClose, loadingPasos, errorPasos, pasosById, decisiones, motivos, setMotivos, setDecisiones, handleCompleteStep }) => {
+  const {ColaboradoresDH, ColaboradoresEDM, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta, mail}: any = useGraphServices();
 
   const [files, setFiles] = React.useState<Record<string, File | null>>({});
   const [destinatario, setDestinatario] = React.useState<string>("")
@@ -31,19 +38,19 @@ export const CesacionSteps: React.FC<Props> = ({ titulo, selectedCesacion, onClo
   const [sending, setSending] = React.useState<boolean>(false)
   const [uploading, setUploading] = React.useState<boolean>(false);
 
-  const detectTipoPaso = (paso: DetallesPasosCesacion): TipoPaso => {
+  const detectTipoPaso = (paso: DetallesPasos): TipoPaso => {
     const t = (paso?.TipoPaso ?? "");
     if (t === "Aprobacion" || t === "Notificacion" || t === "SubidaDocumento") return t;
     return "Aprobacion";
   };
 
-  const handleSubmit = async (detalle: DetallesPasosPromocion) => {
+  const handleSubmit = async (detalle: DetallesPasos) => {
     await handleCompleteStep(detalle,);
-    await loadDetallesCesacion();
+    await loadDetalles();
   };
 
   /** ======= Subida de documento ======= */
-  const handleUploadAndComplete = async (detalle: DetallesPasosPromocion, paso: any) => {
+  const handleUploadAndComplete = async (detalle: DetallesPasos, paso: any) => {
     const idDetalle = detalle.Id ?? "";
     const file = files[idDetalle];
 
@@ -54,13 +61,11 @@ export const CesacionSteps: React.FC<Props> = ({ titulo, selectedCesacion, onClo
 
     const empresa = selectedCesacion.Empresaalaquepertenece?.toLocaleLowerCase().trim() ?? "";
     const servicioColaboradores =
-      empresa === "dh retail"
-        ? ColaboradoresDH
-        : empresa === "movimiento"
-        ? ColaboradoresVisual
-        : empresa === "denim head"
-        ? ColaboradoresDenim
-        : ColaboradoresEDM;
+      empresa === "dh retail" ? ColaboradoresDH: 
+      empresa === "movimiento" ? ColaboradoresVisual:
+      empresa === "denim head" ? ColaboradoresDenim:
+      empresa === "estudio de moda" ? ColaboradoresEDM:
+      empresa === "metagraphics" ? ColaboradoresMeta : ColaboradoresEDM
 
     // Nombre final del archivo (si hay NombreEvidencia definido)
     const ext = file.name.split(".").pop() ?? "pdf";
@@ -108,7 +113,7 @@ export const CesacionSteps: React.FC<Props> = ({ titulo, selectedCesacion, onClo
     throw new Error("No hay MailService disponible. Conecta aquí tu envío (Graph o Power Automate).");
   };
 
-  const handleSendAndComplete = async (detalle: DetallesPasosPromocion,) => {
+  const handleSendAndComplete = async (detalle: DetallesPasos,) => {
     const isDone = detalle.EstadoPaso === "Completado";
     if (isDone) return;
 
@@ -146,7 +151,7 @@ export const CesacionSteps: React.FC<Props> = ({ titulo, selectedCesacion, onClo
   };
 
   /** ======= Aprobación ======= */
-  const handleApproveAndComplete = async (detalle: DetallesPasosPromocion) => {
+  const handleApproveAndComplete = async (detalle: DetallesPasos) => {
     const idDetalle = detalle.Id ?? "";
     const decision = (decisiones[idDetalle] ?? "") as "" | "Aceptado" | "Rechazado";
     const motivo = safeString(motivos[idDetalle] ?? "");
@@ -165,7 +170,7 @@ export const CesacionSteps: React.FC<Props> = ({ titulo, selectedCesacion, onClo
 
   if (loadingPasos || loadingDetalles) return <div>Cargando pasos…</div>;
 
-  if (errorPasos || errorDetalles) {
+  if (errorPasos|| errorDetalles) {
     return (
       <div>
         Error cargando la información.
@@ -184,7 +189,7 @@ export const CesacionSteps: React.FC<Props> = ({ titulo, selectedCesacion, onClo
       <div className="promo-steps__grid">
         {detallesRows.map((detalle, index) => {
           const idDetalle = detalle.Id ?? "";
-          const paso: PasosPromocion | any = pasosById[detalle.NumeroPaso] ?? null;
+          const paso: PasosProceso | any = pasosById[detalle.NumeroPaso] ?? null;
 
           const previous = detallesRows[index - 1];
           const isVisible = index === 0 || previous?.EstadoPaso === "Completado";

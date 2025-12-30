@@ -2,7 +2,6 @@
   --card: var(--surface, #fff);
   --ink: var(--ink, #0f172a);
   --muted: var(--muted, #64748b);
-  --bd: var(--border, #e5e7eb);
   --shadow: var(--shadow, 0 10px 30px rgba(0,0,0,.08));
   --r: var(--radius-3xl, 18px);
   color: var(--ink);
@@ -44,7 +43,6 @@
 
 .csx__card{
   background: var(--card);
-  border: 1px solid var(--bd);
   border-radius: var(--r);
   box-shadow: var(--shadow);
   padding: 14px;

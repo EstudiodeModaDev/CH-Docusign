@@ -59,24 +59,3 @@ export type Promocion = {
 }
 
 export type PromocionErrors = Partial<Record<keyof Promocion, string>>;
-
-export type PasosPromocion = {
-    Id?: string;
-    Title: string;
-    NombrePaso: string;
-    Orden: number;
-    Requiereevidencia: boolean;
-    NombreEvidencia: string;
-    RequiereNotas: boolean;
-}
-
-export type DetallesPasosPromocion = {
-    Id?: string;
-    Title: string //IdPromocion
-    Paso: number;
-    NumeroPaso: string;
-    EstadoPaso: string;
-    CompletadoPor: string;
-    FechaCompletacion: string;
-    Notas: string;
-}

@@ -9,9 +9,10 @@ import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
 import { useDependencias } from "../../../../Funcionalidades/Dependencias";
 import { formatPesosEsCO, numeroATexto,  } from "../../../../utils/Number";
 import { useSalarios } from "../../../../Funcionalidades/Salario";
-import type { Cesacion } from "../../../../models/Cesaciones";
+import type { Cesacion, DetallesPasos } from "../../../../models/Cesaciones";
 import { toISODateFlex } from "../../../../utils/Date";
-import { CesacionSteps } from "./procesoCesacion";
+import { ProcessDetail } from "./procesoCesacion";
+import { useDetallesPasosCesacion, usePasosCesacion } from "../../../../Funcionalidades/PasosCesacion";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -36,8 +37,10 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
-    const { Maestro, Cesaciones, DeptosYMunicipios, salarios } = useGraphServices();
+    const { Maestro, Cesaciones, DeptosYMunicipios, salarios, DetallesPasosCesacion } = useGraphServices();
     const { state, setField, handleEdit, errors, } = useCesaciones(Cesaciones);
+    const { byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep, error: errorPasos, loading: loadingPasos} = usePasosCesacion()
+    const { loading: loadingDetalles, rows: rowsDetalles, error: errorDetalles, loadDetallesCesacion} = useDetallesPasosCesacion(DetallesPasosCesacion, selectedCesacion.Id ?? "")
     const { loadSpecificSalary } = useSalarios(salarios);
     const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
     const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
@@ -240,8 +243,22 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
   return (
     <div className="ft-modal-backdrop">
       <section className="ft-scope ft-card" role="region" aria-labelledby="ft_title">
-        { modal ? <CesacionSteps titulo={"Detalles cesacion de: " + selectedCesacion.Title + " - " + selectedCesacion.Nombre} selectedCesacion={selectedCesacion} onClose={() => setModal(false)}/>
-          : 
+        { modal ? <ProcessDetail 
+                    titulo={"Detalles cesacion de: " + selectedCesacion.Title + " - " + selectedCesacion.Nombre}
+                    selectedCesacion={selectedCesacion}
+                    onClose={() => setModal(false)}
+                    loadingPasos={loadingPasos}
+                    errorPasos={errorPasos}
+                    pasosById={byId}
+                    decisiones={decisiones}
+                    motivos={motivos}
+                    setMotivos={setMotivos}
+                    setDecisiones={setDecisiones}
+                    handleCompleteStep={(detalle: DetallesPasos, path?: string) => handleCompleteStep(detalle, path)} 
+                    detallesRows={rowsDetalles} 
+                    loadingDetalles={loadingDetalles} 
+                    errorDetalles={errorDetalles} 
+                    loadDetalles={() => loadDetallesCesacion()}/>: 
         <>
         <h2 id="ft_title" className="ft-title">Nueva Cesación</h2>
 

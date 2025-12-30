@@ -42,17 +42,16 @@ export type Cesacion = {
 
 export type CesacionErrors = Partial<Record<keyof Cesacion, string>>;
 
-export type PasoCesacion = {
+export type PasosProceso = {
     Id?: string;
     Title: string;
     NombrePaso: string;
     Orden: number;
     NombreEvidencia: string;
-    RequiereNotas: boolean;
     TipoPaso: string;
 }
 
-export type DetallesPasosCesacion = {
+export type DetallesPasos = {
     Id?: string;
     Title: string //IdPromocion
     Paso: number;

@@ -1,13 +1,14 @@
 import React from "react";
-import type { DetallesPasosPromocion, PasosPromocion, } from "../models/Promociones";
-import { PasosPromocionService } from "../Services/PasosPromocion.service";
 import { DetallesPasosPromocionService } from "../Services/DetallesPasosPromocion.service";
 import { useAuth } from "../auth/authProvider";
 import type { Archivo } from "../models/archivos";
-import { ColaboradoresDHService, ColaboradoresEDMService } from "../Services/Bibliotecas.service";
+import type { DetallesPasos, PasosProceso } from "../models/Cesaciones";
+import { useGraphServices } from "../graph/graphContext";
 
-export function usePasosPromocion(PasosPromocionSvc: PasosPromocionService, DetallesPasosPromocionSvc: DetallesPasosPromocionService, ColaboradoresDH: ColaboradoresDHService, ColaboradoresEDM: ColaboradoresEDMService) {
-  const [rows, setRows] = React.useState<PasosPromocion[]>([]);
+export function usePasosPromocion() {
+  
+  const {PasosPromocion, DetallesPasosPromocion, ColaboradoresDH, ColaboradoresDenim, ColaboradoresEDM, ColaboradoresMeta, ColaboradoresVisual} = useGraphServices()
+  const [rows, setRows] = React.useState<PasosProceso[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -20,7 +21,7 @@ export function usePasosPromocion(PasosPromocionSvc: PasosPromocionService, Deta
   const loadPasosPromocion = React.useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const items = await PasosPromocionSvc.getAll()
+      const items = await PasosPromocion.getAll()
       setRows(items);
     } catch (e: any) {
       setError(e?.message ?? "Error cargando pasos de la promoción");
@@ -28,17 +29,17 @@ export function usePasosPromocion(PasosPromocionSvc: PasosPromocionService, Deta
     } finally {
       setLoading(false);
     }
-    }, [PasosPromocionSvc,]);
+    }, [PasosPromocion,]);
 
   const byId = React.useMemo(() => {
-      const map: Record<string, PasosPromocion> = {};
+      const map: Record<string, PasosProceso> = {};
       for (const r of rows) {
         if (r.Id) map[r.Id] = r;
       }
       return map;
   }, [rows]);
 
-  const searchStep = React.useCallback((idPaso: string): PasosPromocion | null => {
+  const searchStep = React.useCallback((idPaso: string): PasosProceso | null => {
       return byId[idPaso] ?? null;
   },[byId]);
 
@@ -46,18 +47,18 @@ export function usePasosPromocion(PasosPromocionSvc: PasosPromocionService, Deta
       loadPasosPromocion();
   }, [loadPasosPromocion]);
 
-  const handleCompleteStep = async (detalle: DetallesPasosPromocion, path?: string) => {
+  const handleCompleteStep = async (detalle: DetallesPasos, path?: string) => {
     const idDetalle = detalle.Id;
     if (!idDetalle) return;
 
-    const paso: PasosPromocion | null = byId[detalle.NumeroPaso] ?? null;
+    const paso: PasosProceso | null = byId[detalle.NumeroPaso] ?? null;
     if (!paso) return;
 
     const estadoAnterior = detalle.EstadoPaso;
     if (estadoAnterior === "Completado") return; 
 
-    const requiereEvidencia = paso.Requiereevidencia;
-    const requiereNotas = paso.RequiereNotas;
+    const requiereEvidencia = paso.TipoPaso === "SubidaArchivos";
+    const requiereNotas = paso.TipoPaso !== "SubidaArchivos";
     const nombreEvidencia = paso.NombreEvidencia;
     const userName = account?.name ?? ""; 
 
@@ -78,7 +79,7 @@ export function usePasosPromocion(PasosPromocionSvc: PasosPromocionService, Deta
         return;
       }
 
-      await DetallesPasosPromocionSvc.update(idDetalle, {
+      await DetallesPasosPromocion.update(idDetalle, {
         EstadoPaso: "Completado",
         CompletadoPor: userName,
         FechaCompletacion: todayISO(),
@@ -105,7 +106,7 @@ export function usePasosPromocion(PasosPromocionSvc: PasosPromocionService, Deta
 
       const notas = decision === "Rechazado"  ? `${decision} con el motivo: ${motivo}` : decision || "";
 
-      await DetallesPasosPromocionSvc.update(idDetalle, {
+      await DetallesPasosPromocion.update(idDetalle, {
         EstadoPaso: "Completado",
         CompletadoPor: userName,
         FechaCompletacion: todayISO(),
@@ -117,7 +118,7 @@ export function usePasosPromocion(PasosPromocionSvc: PasosPromocionService, Deta
 
     // ========== 3) Caso: no requiere ni notas ni evidencia ==========
     if (!requiereNotas && !requiereEvidencia) {
-      await DetallesPasosPromocionSvc.update(idDetalle, {
+      await DetallesPasosPromocion.update(idDetalle, {
         EstadoPaso: "Completado",
         CompletadoPor: userName,
         FechaCompletacion: todayISO(),
@@ -128,28 +129,33 @@ export function usePasosPromocion(PasosPromocionSvc: PasosPromocionService, Deta
 
   const load = async (docNumber: string) => {
     // 1) Buscar carpeta en ambas bibliotecas en paralelo
-    const [edm, dh] = await Promise.all([
+    const [edm, dh, denim, meta, visual] = await Promise.all([
       ColaboradoresEDM.findFolderByDocNumber(docNumber),
       ColaboradoresDH.findFolderByDocNumber(docNumber),
+      ColaboradoresDenim.findFolderByDocNumber(docNumber),
+      ColaboradoresMeta.findFolderByDocNumber(docNumber),
+      ColaboradoresVisual.findFolderByDocNumber(docNumber)
     ]);
 
-    console.log(edm)
-
-    if (!edm && !dh) {
+    if (!edm && !dh && !denim && !meta && !visual) {
       alert("No se encontró carpeta para ese documento");
       return;
     }
 
     // 2) Traer archivos SOLO de las carpetas que existan
-    const [archivosEDM, archivosDH] = await Promise.all([
+    const [archivosEDM, archivosDH, archivosDenim, archivosMeta, archivosVisual] = await Promise.all([
       edm ? ColaboradoresEDM.getFilesByFolderId(edm.id) : Promise.resolve([]),
       dh ? ColaboradoresDH.getFilesByFolderId(dh.id) : Promise.resolve([]),
+      denim ? ColaboradoresDenim.getFilesByFolderId(denim.id) : Promise.resolve([]),
+      denim ? ColaboradoresDenim.getFilesByFolderId(denim.id) : Promise.resolve([]),
+      meta ? ColaboradoresDenim.getFilesByFolderId(meta.id) : Promise.resolve([]),
+      visual ? ColaboradoresVisual.getFilesByFolderId(visual.id) : Promise.resolve([]),
     ]);
 
     console.table(edm ?? dh); // o los dos si quieres
 
     // 3) Unir resultados de ambas bibliotecas
-    setColaboradores([...archivosEDM, ...archivosDH]);
+    setColaboradores([...archivosEDM, ...archivosDH, ...archivosDenim, ...archivosMeta, ...archivosVisual]);
   };
 
   return {
@@ -159,7 +165,7 @@ export function usePasosPromocion(PasosPromocionSvc: PasosPromocionService, Deta
 }
 
 export function useDetallesPasosPromocion(DetallesSvc: DetallesPasosPromocionService, selected?: string) {
-  const [rows, setRows] = React.useState<DetallesPasosPromocion[]>([]);
+  const [rows, setRows] = React.useState<DetallesPasos[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -180,7 +186,7 @@ export function useDetallesPasosPromocion(DetallesSvc: DetallesPasosPromocionSer
       loadDetallesPromocion();
   }, [loadDetallesPromocion]);
 
-  const handleCreateAllSteps = async (pasos: PasosPromocion[], promocionId: string) => {
+  const handleCreateAllSteps = async (pasos: PasosProceso[], promocionId: string) => {
     if(!pasos || pasos.length===0){
       alert("No hay un proceso definido")
       return
@@ -197,6 +203,7 @@ export function useDetallesPasosPromocion(DetallesSvc: DetallesPasosPromocionSer
             Notas: "",
             NumeroPaso: p.Id ?? "",
             Paso: Number(p.NombrePaso),
+            TipoPaso: p.TipoPaso
           })
         )
       );

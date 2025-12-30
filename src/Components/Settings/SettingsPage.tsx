@@ -11,7 +11,13 @@ import { UnidadNegocioManager } from "./UnidadNegocio/UnidadNegocio";
 import { TipoContratoManager } from "./TipoContrato/TipoContrato";
 import { TipoVacanteManager } from "./TipoVacante/TipoVacante";
 import { CentroCostosManager } from "./CentroCostos/CentroCostos";
-import { CesacionStepsManager } from "./CesacionManager/CesacionManager";
+import { ProcesosStepManager } from "./CesacionManager/CesacionManager";
+import { usePasosCesacion } from "../../Funcionalidades/PasosCesacion";
+import { useGraphServices } from "../../graph/graphContext";
+import { usePasosNoveades } from "../../Funcionalidades/PasosNovedades";
+import type { PasosProceso } from "../../models/Cesaciones";
+import { usePasosPromocion } from "../../Funcionalidades/PasosPromocion";
+
 
 export type ParamTab = {
   id: string;
@@ -81,10 +87,16 @@ const TABS = [
   { id: "tipovacante", label: "Tipo vacante" },
   { id: "centrocostos", label: "Centro de costos" },
   { id: "cesaciones", label: "Proceso cesación" },
+  { id: "novedades", label: "Proceso Novedades Administrativas" },
+  { id: "promociones", label: "Proceso Promociones" },
 ];
 
 export const ParametrosPage: React.FC = () => {
   const [active, setActive] = React.useState<string>("empresas");
+  const {PasosCesacion, PasosNovedades,PasosPromocion} = useGraphServices()
+  const {loadPasosCesacion, rows} = usePasosCesacion()
+  const {loadPasosNovedad, rows: rowsNovedades} = usePasosNoveades()
+  const {rows: rowsPromocion, loadPasosPromocion} = usePasosPromocion()
 
   return (
     <section>
@@ -102,7 +114,28 @@ export const ParametrosPage: React.FC = () => {
       {active === "tipocontrato" && <TipoContratoManager/>}
       {active === "tipovacante" && <TipoVacanteManager/>}
       {active === "centrocostos" && <CentroCostosManager/>}
-      {active === "cesaciones" && <CesacionStepsManager></CesacionStepsManager>}
+      {active === "cesaciones" && <ProcesosStepManager 
+                                    onReload={() => loadPasosCesacion()} 
+                                    pasos={rows} 
+                                    tipo={"Cesación"} 
+                                    onAdd={(payload: PasosProceso) => PasosCesacion.create(payload)} 
+                                    onEdit={(id: string, changed: Partial<Omit<PasosProceso, "ID">>) => PasosCesacion.update(id, changed)} 
+                                    onDelete={(id: string) => PasosCesacion.delete(id)}/>}
+      {active === "novedades" && <ProcesosStepManager 
+                                    onReload={() => loadPasosNovedad()} 
+                                    pasos={rowsNovedades} 
+                                    tipo={"Novedades Administrativas"} 
+                                    onAdd={(payload: PasosProceso) => PasosNovedades.create(payload)} 
+                                    onEdit={(id: string, changed: Partial<Omit<PasosProceso, "ID">>) => PasosNovedades.update(id, changed)} 
+                                    onDelete={(id: string) => PasosNovedades.delete(id)}/>}
+      {active === "promociones" && <ProcesosStepManager 
+                                    onReload={() => loadPasosPromocion()} 
+                                    pasos={rowsPromocion} 
+                                    tipo={"Promociones"} 
+                                    onAdd={(payload: PasosProceso) => PasosPromocion.create(payload)} 
+                                    onEdit={(id: string, changed: Partial<Omit<PasosProceso, "ID">>) => PasosPromocion.update(id, changed)} 
+                                    onDelete={(id: string) => PasosPromocion.delete(id)}/>}
+      
     </section>
   );
 };

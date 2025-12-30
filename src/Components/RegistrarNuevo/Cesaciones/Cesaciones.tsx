@@ -65,10 +65,6 @@ export default function CesacionesTabla() {
                   Nombre {renderSortIndicator('Nombre', sorts)}
                 </th>
 
-                <th role="button" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  Jefe de zona
-                </th>
-
                 <th role="button" tabIndex={0} onClick={(e) => toggleSort('Temporal', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Temporal', e.shiftKey); }} aria-label="Ordenar por Temporal" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   Temporal {renderSortIndicator('Temporal', sorts)}
                 </th>
@@ -78,7 +74,7 @@ export default function CesacionesTabla() {
                 </th>
 
                 <th role="button" tabIndex={0} onClick={(e) => toggleSort('ingreso', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('ingreso', e.shiftKey); }} aria-label="Ordenar por ingreso" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  Fecha limite documentos {renderSortIndicator('ingreso', sorts)}
+                  Fecha limite docs {renderSortIndicator('ingreso', sorts)}
                 </th>
               </tr>
             </thead>
@@ -87,9 +83,8 @@ export default function CesacionesTabla() {
                 <tr key={cesacion.Id} onClick={() => {setCesacionSeleccionada(cesacion); handleRowClick(cesacion); setVisible(true)}} tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setCesacionSeleccionada(cesacion)}>
                   <td>{cesacion.Title}</td>
                   <td><span title={cesacion.Nombre}>{cesacion.Nombre}</span></td>
-                  <td><span title={cesacion.Jefedezona}>{cesacion.Jefedezona}</span></td>
                   <td><span title={cesacion.Temporal}>{cesacion.Temporal}</span></td>
-                  <td><span title={cesacion.Tienda}>{cesacion.Tienda}</span></td>
+                  <td><span title={cesacion.DescripcionCO}>{cesacion.DescripcionCO}</span></td>
                   <td>{toISODateFlex(cesacion.FechaLimiteDocumentos) || "–"}</td>
                 </tr>
               ))}

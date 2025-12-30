@@ -32,7 +32,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormCesacion({onClose}: Props){
-  const { Maestro, Cesaciones, DeptosYMunicipios, salarios, DetallesPasosCesacion, PasosCesacion, ColaboradoresDH, ColaboradoresDenim, ColaboradoresEDM, ColaboradoresVisual } = useGraphServices();
+  const { Maestro, Cesaciones, DeptosYMunicipios, salarios, DetallesPasosCesacion } = useGraphServices();
   const { state, setField, handleSubmit, errors, } = useCesaciones(Cesaciones);
   const { loadSpecificSalary } = useSalarios(salarios);
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
@@ -40,7 +40,7 @@ export default function FormCesacion({onClose}: Props){
   const { options: tipoDocOptions, loading: loadingTipoDoc, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
   const { options: nivelCargoOptions, loading: loadinNivelCargo, reload: reloadNivelCargo} = useNivelCargo(Maestro);
-  const { loadPasosCesacion, rows} = usePasosCesacion(PasosCesacion, DetallesPasosCesacion,ColaboradoresDH, ColaboradoresEDM, ColaboradoresDenim, ColaboradoresVisual)
+  const { loadPasosCesacion, rows} = usePasosCesacion()
   const { handleCreateAllSteps} = useDetallesPasosCesacion(DetallesPasosCesacion)
   const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();  
   const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);

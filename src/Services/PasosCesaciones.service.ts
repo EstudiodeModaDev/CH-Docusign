@@ -1,5 +1,5 @@
 import type { GraphRest } from "../graph/graphRest";
-import type { PasoCesacion } from "../models/Cesaciones";
+import type { PasosProceso } from "../models/Cesaciones";
 import type { GetAllOpts } from "../models/Commons";
 import { esc } from "../utils/text";
 
@@ -25,7 +25,7 @@ export class PasosCesacionService {
   }
 
   // ---------- mapping ----------
-  private toModel(item: any): PasoCesacion {
+  private toModel(item: any): PasosProceso {
     const f = item?.fields ?? {};
     return {
         Id: String(item?.id ?? ''),
@@ -33,7 +33,6 @@ export class PasosCesacionService {
         NombreEvidencia: f.NombreEvidencia,
         NombrePaso: f.NombrePaso,
         Orden: f.Orden,
-        RequiereNotas: f.RequiereNotas, 
         TipoPaso: f.TipoPaso
     };
   }
@@ -80,7 +79,7 @@ export class PasosCesacionService {
 
 
   // ---------- CRUD ----------
-  async create(record: Omit<PasoCesacion, 'ID'>) {
+  async create(record: Omit<PasosProceso, 'ID'>) {
     await this.ensureIds()
     const res = await this.graph.post<any>(
       `/sites/${this.siteId}/lists/${this.listId}/items`,
@@ -89,7 +88,7 @@ export class PasosCesacionService {
     return this.toModel(res);
   }
 
-  async update(id: string, changed: Partial<Omit<PasoCesacion, 'ID'>>) {
+  async update(id: string, changed: Partial<Omit<PasosProceso, 'ID'>>) {
     await this.ensureIds()
     await this.graph.patch<any>(
       `/sites/${this.siteId}/lists/${this.listId}/items/${id}/fields`,

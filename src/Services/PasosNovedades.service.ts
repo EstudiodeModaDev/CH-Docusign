@@ -1,9 +1,9 @@
-import { GraphRest } from '../graph/graphRest';
-import type { DetallesPasos } from '../models/Cesaciones';
-import type { GetAllOpts } from '../models/Commons';
-import { esc } from '../utils/text';
+import type { GraphRest } from "../graph/graphRest";
+import type { PasosProceso } from "../models/Cesaciones";
+import type { GetAllOpts } from "../models/Commons";
+import { esc } from "../utils/text";
 
-export class DetallesPasosCesacionService {
+export class PasosNovedadesService {
   private graph!: GraphRest;
   private hostname!: string;
   private sitePath!: string;
@@ -16,7 +16,7 @@ export class DetallesPasosCesacionService {
     graph: GraphRest,
     hostname = 'estudiodemoda.sharepoint.com',
     sitePath = '/sites/TransformacionDigital/IN/CH',
-    listName = 'Cesaciones - Detalles Pasos'     
+    listName = 'Novedades - Pasos'     
   ) {
     this.graph = graph;
     this.hostname = hostname;
@@ -25,43 +25,18 @@ export class DetallesPasosCesacionService {
   }
 
   // ---------- mapping ----------
-  private toModel(item: any): DetallesPasos {
+  private toModel(item: any): PasosProceso {
     const f = item?.fields ?? {};
     return {
         Id: String(item?.id ?? ''),
         Title: f.Title,
-        CompletadoPor: f.CompletadoPor,
-        EstadoPaso: f.EstadoPaso,
-        FechaCompletacion: f.FechaCompletacion,
-        Notas: f.Notas,
-        NumeroPaso: f.NumeroPaso,
-        Paso: f.Paso,
+        NombreEvidencia: f.NombreEvidencia,
+        NombrePaso: f.NombrePaso,
+        Orden: f.Orden,
         TipoPaso: f.TipoPaso
     };
   }
-
-  // ---------- CRUD ----------
-  async create(record: Omit<DetallesPasos, 'ID'>) {
-    await this.ensureIds();
-    const res = await this.graph.post<any>(
-      `/sites/${this.siteId}/lists/${this.listId}/items`,
-      { fields: record }
-    );
-    return this.toModel(res);
-  }
-
-  async update(id: string, changed: Partial<Omit<DetallesPasos, 'ID'>>) {
-    await this.ensureIds();
-    await this.graph.patch<any>(
-      `/sites/${this.siteId}/lists/${this.listId}/items/${id}/fields`,
-      changed
-    );
-    const res = await this.graph.get<any>(
-      `/sites/${this.siteId}/lists/${this.listId}/items/${id}?$expand=fields`
-    );
-    return this.toModel(res);
-  }
-
+  
   private loadCache() {
       try {
       const k = `sp:${this.hostname}${this.sitePath}:${this.listName}`;
@@ -73,14 +48,14 @@ export class DetallesPasosCesacionService {
       }
       } catch {}
   }
-  
+
   private saveCache() {
       try {
       const k = `sp:${this.hostname}${this.sitePath}:${this.listName}`;
       localStorage.setItem(k, JSON.stringify({ siteId: this.siteId, listId: this.listId }));
       } catch {}
   }
-  
+
   private async ensureIds() {
       if (!this.siteId || !this.listId) this.loadCache();
 
@@ -101,14 +76,37 @@ export class DetallesPasosCesacionService {
       this.saveCache();
       }
   }
-  
+
+
+  // ---------- CRUD ----------
+  async create(record: Omit<PasosProceso, 'ID'>) {
+    await this.ensureIds()
+    const res = await this.graph.post<any>(
+      `/sites/${this.siteId}/lists/${this.listId}/items`,
+      { fields: record }
+    );
+    return this.toModel(res);
+  }
+
+  async update(id: string, changed: Partial<Omit<PasosProceso, 'ID'>>) {
+    await this.ensureIds()
+    await this.graph.patch<any>(
+      `/sites/${this.siteId}/lists/${this.listId}/items/${id}/fields`,
+      changed
+    );
+    const res = await this.graph.get<any>(
+      `/sites/${this.siteId}/lists/${this.listId}/items/${id}?$expand=fields`
+    );
+    return this.toModel(res);
+  }
+
   async delete(id: string) {
-    await this.ensureIds();
+    await this.ensureIds()
     await this.graph.delete(`/sites/${this.siteId}/lists/${this.listId}/items/${id}`);
   }
 
   async get(id: string) {
-    await this.ensureIds();
+    await this.ensureIds()
     const res = await this.graph.get<any>(
       `/sites/${this.siteId}/lists/${this.listId}/items/${id}?$expand=fields`
     );
@@ -116,8 +114,7 @@ export class DetallesPasosCesacionService {
   }
 
   async getAll(opts?: GetAllOpts) {
-    await this.ensureIds();
-
+    await this.ensureIds()
     // ID -> id, Title -> fields/Title (cuando NO está prefijado con '/')
     const normalizeFieldTokens = (s: string) =>
       s

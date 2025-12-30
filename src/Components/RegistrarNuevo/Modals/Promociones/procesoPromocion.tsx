@@ -2,19 +2,19 @@ import * as React from "react";
 import "../PasosPromocion.css";
 import { useGraphServices } from "../../../../graph/graphContext";
 import { usePasosPromocion, useDetallesPasosPromocion,} from "../../../../Funcionalidades/PasosPromocion";
-import type { DetallesPasosPromocion, PasosPromocion,} from "../../../../models/Promociones";
 import type { Promocion } from "../../../../models/Promociones";
+import type { DetallesPasos, PasosProceso } from "../../../../models/Cesaciones";
 
 type Props = {
   titulo: string;
   selectedPromocion: Promocion;
-  onChangeActionValue?: (detalle: DetallesPasosPromocion, value: string) => void;
+  onChangeActionValue?: (detalle: DetallesPasos, value: string) => void;
   onClose: () => void
 };
 
 export const PromotionSteps: React.FC<Props> = ({titulo, selectedPromocion, onClose}) => {
-  const { PasosPromocion: PasosSvc, DetallesPasosPromocion: DetallesSvc, ColaboradoresDH, ColaboradoresEDM} = useGraphServices();
-  const { loading: loadingPasos, error: errorPasos, byId: pasosById, decisiones, motivos, setMotivos, setDecisiones, handleCompleteStep} = usePasosPromocion(PasosSvc, DetallesSvc, ColaboradoresDH, ColaboradoresEDM);
+  const { DetallesPasosPromocion: DetallesSvc, ColaboradoresDH, ColaboradoresEDM} = useGraphServices();
+  const { loading: loadingPasos, error: errorPasos, byId: pasosById, decisiones, motivos, setMotivos, setDecisiones, handleCompleteStep} = usePasosPromocion();
   const { rows: detallesRows, loading: loadingDetalles, error: errorDetalles, loadDetallesPromocion} = useDetallesPasosPromocion(DetallesSvc, selectedPromocion.Id ?? "");
   
   const handleSubmit = async (detalle: any) => {
@@ -22,7 +22,7 @@ export const PromotionSteps: React.FC<Props> = ({titulo, selectedPromocion, onCl
     await  loadDetallesPromocion()  
   };
   
-  const handleUploadClick = async (detalle: DetallesPasosPromocion) => {const idDetalle = detalle.Id ?? ""; const file = files[idDetalle];
+  const handleUploadClick = async (detalle: DetallesPasos) => {const idDetalle = detalle.Id ?? ""; const file = files[idDetalle];
 
     if (!file) {
       alert("Debes seleccionar un archivo antes de subirlo");
@@ -81,7 +81,7 @@ export const PromotionSteps: React.FC<Props> = ({titulo, selectedPromocion, onCl
       <div className="promo-steps__grid">
         {detallesRows.map((detalle, index) => {
           const idDetalle = detalle.Id ?? "";
-          const paso: PasosPromocion | null = pasosById[detalle.NumeroPaso] ?? null; // Paso = Id PasoPromocion
+          const paso: PasosProceso | null = pasosById[detalle.NumeroPaso] ?? null; // Paso = Id PasoPromocion
           const previous = detallesRows[index - 1];
           const isVisible = index === 0 || previous?.EstadoPaso === "Completado";
 
@@ -91,8 +91,8 @@ export const PromotionSteps: React.FC<Props> = ({titulo, selectedPromocion, onCl
           }
 
           const isCompleted = detalle.EstadoPaso === "Completado";
-          const requiereEvidencia = paso?.Requiereevidencia ?? false;
-          const requiereNotas = paso?.RequiereNotas ?? false;
+          const requiereEvidencia = paso?.TipoPaso === "SubidaArchivos";
+          const requiereNotas = paso?.TipoPaso !== "SubidaArchivos";
           const decision = decisiones[idDetalle] ?? "";
 
           return (

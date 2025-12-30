@@ -32,9 +32,9 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormPromociones({onClose}: Props){
-  const { Maestro, Promociones, DeptosYMunicipios, PasosPromocion, DetallesPasosPromocion, ColaboradoresDH, ColaboradoresEDM} = useGraphServices();
+  const { Maestro, Promociones, DeptosYMunicipios, DetallesPasosPromocion,} = useGraphServices();
   const { state, setField, handleSubmit, errors } = usePromocion(Promociones);
-  const { loadPasosPromocion, rows } = usePasosPromocion(PasosPromocion, DetallesPasosPromocion, ColaboradoresDH, ColaboradoresEDM)
+  const { loadPasosPromocion, rows } = usePasosPromocion()
   const { handleCreateAllSteps } = useDetallesPasosPromocion(DetallesPasosPromocion)
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
   const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);

@@ -3,7 +3,7 @@ import type { DetallesPasos } from '../models/Cesaciones';
 import type { GetAllOpts } from '../models/Commons';
 import { esc } from '../utils/text';
 
-export class DetallesPasosCesacionService {
+export class DetallesPasosNovedadesService {
   private graph!: GraphRest;
   private hostname!: string;
   private sitePath!: string;
@@ -16,7 +16,7 @@ export class DetallesPasosCesacionService {
     graph: GraphRest,
     hostname = 'estudiodemoda.sharepoint.com',
     sitePath = '/sites/TransformacionDigital/IN/CH',
-    listName = 'Cesaciones - Detalles Pasos'     
+    listName = 'Novedades - Detalles Pasos'     
   ) {
     this.graph = graph;
     this.hostname = hostname;

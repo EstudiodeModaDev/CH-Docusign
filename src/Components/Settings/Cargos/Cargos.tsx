@@ -190,7 +190,7 @@ export const CargosManager: React.FC = () => {
 
               <input id="empresaNombre" type="text" className="emp-input" placeholder="Cargos" value={state?.T_x00ed_tulo1} disabled={saving} onChange={(e) => {
                                                                                                                                                     const v = e.target.value;
-                                                                                                                                                    setState({ ...state, T_x00ed_tulo1: v });
+                                                                                                                                                    setState({ ...state, T_x00ed_tulo1: v.toUpperCase() });
                                                                                                                                                     setCargoQuery(v);
                                                                                                                                                 }}/>
 
@@ -218,7 +218,7 @@ export const CargosManager: React.FC = () => {
                 </button>
 
                 <button type="button" className="emp-btn emp-btn--ok" disabled={saving} onClick={async () => {
-                                                                                            const cargo = (state?.T_x00ed_tulo1 ?? "").trim();
+                                                                                            const cargo = (state?.T_x00ed_tulo1.toUpperCase() ?? "").trim();
                                                                                             if (!cargo) {
                                                                                             alert("Rellene todos los campos");
                                                                                             return;

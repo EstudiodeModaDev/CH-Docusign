@@ -22,7 +22,6 @@ export const EspecificidadManager: React.FC = () => {
             T_x00ed_tulo1: state.T_x00ed_tulo1.toUpperCase()
         }
         setState({ T_x00ed_tulo1: "", Abreviacion: "", Title: "", Codigo: ""})
-        alert("Se ha añadido con éxito")
         return payload
     };
 
@@ -75,7 +74,7 @@ export const EspecificidadManager: React.FC = () => {
                         <section className="emp-form">
                             <div className="emp-field">
                                 <label className="emp-label" htmlFor="empresaNombre">Especifidad</label>
-                                <input id="empresaNombre" type="text" className="emp-input" placeholder="Especificidad de cargo" value={state?.T_x00ed_tulo1} onChange={(e) => setState({...state, T_x00ed_tulo1: e.target.value})}/>
+                                <input id="empresaNombre" type="text" className="emp-input" placeholder="Especificidad de cargo" value={state?.T_x00ed_tulo1} onChange={(e) => setState({...state, T_x00ed_tulo1: e.target.value.toUpperCase()})}/>
                             </div>
                             { isEditing &&
                                 <div className="emp-actions">
@@ -83,7 +82,8 @@ export const EspecificidadManager: React.FC = () => {
                                     <button type="button" className="emp-btn emp-btn--ok" onClick={async () => {
                                                                                             console.table(state)
                                                                                             if(editItem){
-                                                                                                await editItem({Title: state?.T_x00ed_tulo1}, state!.Id ?? "", );
+                                                                                                await editItem({Title: "Especifidad de cargos", T_x00ed_tulo1: state?.T_x00ed_tulo1}, state!.Id ?? "", );
+                                                                                                alert("Se ha editado con exito la especificidad del cargo")
                                                                                                 reload()
                                                                                             }
                                                                                             setIsEditing(false);}}>✔</button>
@@ -92,7 +92,22 @@ export const EspecificidadManager: React.FC = () => {
                             { isAdding &&
                                 <div className="emp-actions">
                                     <button type="button" className="emp-btn emp-btn--cancel" onClick={() => {setIsEditing(false); setIsAdding(false)}}>✕</button>
-                                    <button type="button" className="emp-btn emp-btn--ok" onClick={() => add ? add(handleAddNew()) : null}>✔</button>
+                                    <button type="button" className="emp-btn emp-btn--ok" onClick={async () => {
+                                                                                                    try {
+                                                                                                    if (!add) return;
+
+                                                                                                    const payload = await handleAddNew(); // ✅ esperar
+                                                                                                    if (!payload?.T_x00ed_tulo1?.trim()) return;
+
+                                                                                                    await add(payload); // ✅ esperar
+                                                                                                    alert("Se ha agregado con éxito la especificidad del cargo");
+                                                                                                    setIsEditing(false)
+                                                                                                    setIsAdding(false)
+                                                                                                    } catch (e: any) {
+                                                                                                    console.error(e);
+                                                                                                    alert("Error agregando el cargo: " + (e?.message ?? e));
+                                                                                                    }
+                                                                                                }}>✔</button>
                                 </div>
                             }
                         </section>

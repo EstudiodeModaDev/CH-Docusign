@@ -6,6 +6,7 @@ import type { GraphSendMailPayload } from "../../../../graph/graphRest";
 import type { Promocion } from "../../../../models/Promociones";
 import { toUnifyVM, type Proceso } from "../../../../utils/unify";
 import type { Novedad } from "../../../../models/Novedades";
+import RichTextBase64 from "../../../RichText/RichText";
 
 export type TipoPaso = "Aprobacion" | "Notificacion" | "SubidaDocumento";
 
@@ -32,6 +33,17 @@ function safeString(v: any) {
   return (v ?? "").toString();
 }
 
+function parseEmails(raw: string): string[] {
+  return (raw ?? "")
+    .split(/[;,]/g)
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+function toRecipients(addresses: string[]) {
+  return addresses.map(address => ({ emailAddress: { address } }));
+}
+
 export const ProcessDetail: React.FC<Props> = ({detallesRows, loadingDetalles, errorDetalles, loadDetalles, titulo, selectedCesacion, onClose, loadingPasos, errorPasos, pasosById, decisiones, motivos, setMotivos, setDecisiones, handleCompleteStep, proceso }) => {
   const {ColaboradoresDH, ColaboradoresEDM, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta, mail}: any = useGraphServices();
 
@@ -45,6 +57,22 @@ export const ProcessDetail: React.FC<Props> = ({detallesRows, loadingDetalles, e
   const [cuerpo, setBody] = React.useState<string>("")
   const [sending, setSending] = React.useState<boolean>(false)
   const [uploading, setUploading] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+  setBody(prev => {
+    if (prev && prev.trim()) return prev; // respeta lo que el usuario ya escribió
+
+    return `<p><strong>MENSAJE DE EXÁMENES MÉDICOS</strong></p>
+      <p>Buen día,</p>
+      <p>Hola ${vm?.nombre ?? ""}, espero que te encuentres muy bien.</p>
+      <p>Por medio del presente correo te comparto la información correspondiente a la toma de los exámenes médicos dentro de tu proceso.</p>
+      <p><strong>Recuerda llevar tu documento de identidad original.</strong></p>
+      <p><strong>Fecha:</strong> <br>
+      <strong>Hora:</strong> <br>
+      <strong>Lugar:</strong></p>
+      <p>Quedamos atentos a cualquier inquietud.</p>`;
+        });
+    }, [vm?.nombre]);
 
   const detectTipoPaso = (paso: DetallesPasos): TipoPaso => {
     const t = (paso?.TipoPaso ?? "");
@@ -102,34 +130,25 @@ export const ProcessDetail: React.FC<Props> = ({detallesRows, loadingDetalles, e
   };
 
   /** ======= Notificación ======= */
-  const sendNotification = async (to: string, subject: string, htmlBody: string) => {
-    // Opción A: si tienes MailService con sendEmail(payload) (como me mostraste antes)
-    // Ajusta a tu implementación real.
-    if (mail.sendEmail) {
-      const payload: GraphSendMailPayload = {
-        message: {
-          subject,
-          body: { contentType: "HTML", content: htmlBody },
-          toRecipients: [{ emailAddress: { address: to } }],
-        },
-      };
-      await mail.sendEmail(payload);
-      return;
-    }
-
-    // Opción B: si NO tienes MailService aquí, lanza error para que lo conectes.
-    throw new Error("No hay MailService disponible. Conecta aquí tu envío (Graph o Power Automate).");
+  const sendNotification = async (toList: string[], subject: string, htmlBody: string) => {
+    const payload: GraphSendMailPayload = {
+      message: {
+        subject,
+        body: { contentType: "HTML", content: htmlBody },
+        toRecipients: toRecipients(toList),
+      },
+    };
+    await mail.sendEmail(payload);
   };
 
   const handleSendAndComplete = async (detalle: DetallesPasos,) => {
     const isDone = detalle.EstadoPaso === "Completado";
     if (isDone) return;
+    
+    const destinos = parseEmails(destinatario);
 
-    // Destino desde paso (configurado) o fallback
-    const destino = destinatario
-
-    if (!destino) {
-      alert("Este paso no tiene correo destino configurado.");
+    if (!destinos.length) {
+      alert("Ingresa al menos un correo válido (separa por coma o punto y coma).");
       return;
     }
 
@@ -142,9 +161,15 @@ export const ProcessDetail: React.FC<Props> = ({detallesRows, loadingDetalles, e
       return;
     }
 
+    if (!destinos.length) {
+      alert("Ingresa al menos un correo válido (separa por coma).");
+      return;
+    }
+
+
     setSending(true)
     try {
-      await sendNotification(destino, asunto, cuerpo);
+      await sendNotification(destinos, asunto, cuerpo);
 
 
       await handleSubmit(detalle,);
@@ -255,17 +280,42 @@ export const ProcessDetail: React.FC<Props> = ({detallesRows, loadingDetalles, e
                 {tipoPaso === "Notificacion" && (
                   <>
                     {!isCompleted ? (
-                      <>
-                        <input type="email" className="step-card__input" placeholder="Ingrese el correo de la persona a la que se le notificara" value={destinatario} onChange={(e) => setDestinatario(e.target.value)} disabled={busySend}/>
+                      <div className="mail">
+                        <div className="mail__topbar">
+                          <div className="mail__title">Nuevo mensaje</div>
 
-                        <input type="text" className="step-card__input" placeholder="Asunto" value={asunto} onChange={(e) => setAsunto(e.target.value)} disabled={busySend}/>
+                          <div className="mail__actions">
+                            <button type="button" className="mail__send btn btn-xs" disabled={busySend} onClick={() => handleSendAndComplete(detalle)} title="Enviar notificación y completar">
+                              {busySend ? "Enviando…" : "Enviar"}
+                            </button>
+                          </div>
+                        </div>
 
-                        <textarea className="step-card__textarea" placeholder="Mensaje (HTML permitido)" value={cuerpo} onChange={(e) => setBody(e.target.value)} disabled={busySend} rows={3}/>
+                        <div className="mail__main">
+                          <div className="mail__fields">
+                            <div className="mail__row">
+                              <div className="mail__label">Para</div>
+                              <input type="text" className="mail__input" placeholder="correo@dominio.com; correo2@gmail.com; correo3@hotmail.com" value={destinatario} onChange={(e) => setDestinatario(e.target.value)} disabled={busySend}/>
+                            </div>
 
-                        <button type="button" className="btn btn-xs" disabled={busySend} onClick={() => handleSendAndComplete(detalle,)} title="Enviar notificación y completar">
-                          {busySend ? "Enviando…" : "Enviar ✓"}
-                        </button>
-                      </>
+                            <div className="mail__row">
+                              <div className="mail__label">Asunto</div>
+                              <input type="text" className="mail__input" placeholder="Asunto" value={asunto} onChange={(e) => setAsunto(e.target.value)} disabled={busySend}/>
+                            </div>
+                          </div>
+
+                          <div className="mail__editor">
+                              <RichTextBase64
+                                value={cuerpo}
+                                onChange={(html) => setBody(html)}
+                                placeholder="Redacta tu mensaje… (HTML permitido)"
+                                readOnly={busySend}
+                                className="mail__rte-inner"
+                                imageSize={{ width: 240, fit: "contain" }}
+                              />
+                          </div>
+                        </div>
+                      </div>
                     ) : (
                       <div className="step-card__notes">
                         <p className="step-card__note">{detalle.Notas}</p>
@@ -274,21 +324,18 @@ export const ProcessDetail: React.FC<Props> = ({detallesRows, loadingDetalles, e
                   </>
                 )}
 
+
                 {/* ======== SUBIDA DE DOCUMENTO ======== */}
                 {tipoPaso === "SubidaDocumento" && (
                   <>
                     {!isCompleted ? (
                       <>
                         <div className="step-card__upload-wrapper">
-                          <input id={`file-${idDetalle}`} type="file"
-                            accept={safeString(paso?.AceptaTipos ?? ".pdf,.jpg,.jpeg,.png")}
-                            className="step-card__file-input"
-                            onChange={(e) => {
-                              const f = e.target.files?.[0] ?? null;
-                              setFiles((prev) => ({ ...prev, [idDetalle]: f }));
-                            }}
-                            disabled={busyUpload}
-                          />
+                          <input id={`file-${idDetalle}`} type="file" accept={safeString(paso?.AceptaTipos ?? ".pdf,.jpg,.jpeg,.png")} className="step-card__file-input" onChange={(e) => {
+                                                                                                                                                                            const f = e.target.files?.[0] ?? null;
+                                                                                                                                                                            setFiles((prev) => ({ ...prev, [idDetalle]: f }));
+                                                                                                                                                                          }}
+                            disabled={busyUpload}/>
 
                           <label htmlFor={`file-${idDetalle}`} className="step-card__upload-btn">
                             Seleccionar archivo
@@ -297,13 +344,7 @@ export const ProcessDetail: React.FC<Props> = ({detallesRows, loadingDetalles, e
                           {files[idDetalle] && <span className="step-card__file-name">{files[idDetalle]?.name}</span>}
                         </div>
 
-                        <button
-                          type="button"
-                          className="btn btn-xs"
-                          disabled={busyUpload || !files[idDetalle]}
-                          onClick={() => handleUploadAndComplete(detalle, paso)}
-                          title="Subir y completar"
-                        >
+                        <button type="button" className="btn btn-xs" disabled={busyUpload || !files[idDetalle]} onClick={() => handleUploadAndComplete(detalle, paso)} title="Subir y completar">
                           {busyUpload ? "Subiendo…" : "Subir ✓"}
                         </button>
                       </>

@@ -270,3 +270,214 @@
   }
 }
 
+/* =========================
+   NOTIFICACIÓN — UI tipo Outlook
+   ========================= */
+
+.mail{
+  width: 100%;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 14px;
+  background: var(--surface, #fff);
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(15,23,42,.06);
+}
+
+/* Barra superior */
+.mail__topbar{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+
+  background: color-mix(in oklab, var(--surface, #fff) 92%, black);
+}
+
+.mail__title{
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink, #0f172a);
+  letter-spacing: .01em;
+}
+
+.mail__actions{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Botón "Enviar" como primario (sin color fijo agresivo) */
+.mail__send{
+  border-radius: 10px;
+  padding-inline: 12px;
+  font-weight: 700;
+}
+
+/* Botones secundarios */
+.mail__action{
+  border-radius: 10px;
+  padding-inline: 10px;
+  opacity: .9;
+}
+
+/* Layout principal: campos arriba + editor abajo */
+.mail__main{
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+/* Bloque de campos */
+.mail__fields{
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  background: var(--surface, #fff);
+}
+
+.mail__row{
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  align-items: center;
+  gap: 10px;
+
+  padding: 6px 0;
+}
+
+.mail__label{
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted, #64748b);
+}
+
+/* Inputs estilo Outlook: sin cajas pesadas */
+.mail__input{
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+
+  background: color-mix(in oklab, var(--surface, #fff) 96%, black);
+  border: 1px solid var(--border, #e2e8f0);
+  color: var(--ink, #0f172a);
+
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+.mail__input::placeholder{
+  color: var(--muted, #64748b);
+  opacity: .9;
+}
+
+.mail__input:focus{
+  outline: none;
+  border-color: color-mix(in oklab, var(--brand-600, #2563eb) 35%, var(--border, #e2e8f0));
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand-600, #2563eb) 18%, transparent);
+}
+
+/* Editor grande */
+.mail__editor{
+  padding: 10px 12px 12px;
+  background: var(--surface, #fff);
+}
+
+.mail__textarea{
+  width: 100%;
+  min-width: 0;
+  min-height: 220px;
+  resize: vertical;
+
+  padding: 12px 12px;
+  border-radius: 12px;
+
+  background: var(--surface, #fff);
+  color: var(--ink, #0f172a);
+  border: 1px solid var(--border, #e2e8f0);
+
+  font: inherit;
+  line-height: 1.45;
+  letter-spacing: .01em;
+
+  caret-color: var(--brand-600, var(--accent, #2563eb));
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.mail__textarea::placeholder{
+  color: var(--muted, #64748b);
+  opacity: .9;
+}
+
+.mail__textarea:focus{
+  outline: none;
+  border-color: color-mix(in oklab, var(--brand-600, #2563eb) 35%, var(--border, #e2e8f0));
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand-600, #2563eb) 18%, transparent);
+}
+
+.mail__textarea:disabled,
+.mail__input:disabled{
+  opacity: .65;
+  cursor: not-allowed;
+  background: color-mix(in oklab, var(--surface, #fff) 85%, black);
+}
+
+/* Ajuste: tu .step-card__body hoy fuerza flex row.
+   Para Notificación, deja que el mail ocupe todo el ancho. */
+.step-card__body:has(.mail){
+  display: block;
+}
+
+/* Responsive */
+@media (max-width: 620px){
+  .mail__row{
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .mail__label{
+    font-size: 11px;
+  }
+  .mail__textarea{
+    min-height: 180px;
+  }
+}
+
+/* ===== FIX overflow (inputs más grandes que el contenedor) ===== */
+
+/* 1) Que todo calcule ancho incluyendo padding/border */
+.promo-steps .mail,
+.promo-steps .mail * ,
+.promo-steps .mail *::before,
+.promo-steps .mail *::after{
+  box-sizing: border-box;
+}
+
+/* 2) Nunca permitir que el mail se pase del step-card */
+.step-card__body .mail{
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* 3) Grid items: permite que se encojan (clave en CSS Grid) */
+.mail__main,
+.mail__fields,
+.mail__row{
+  min-width: 0;
+}
+
+.mail__row > *{
+  min-width: 0;
+}
+
+/* 4) Inputs/textarea 100% real dentro de su celda */
+.mail__input,
+.mail__textarea{
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* (Opcional) si sigues viendo 1-2px de desborde por subpíxel */
+.mail{
+  overflow: hidden;
+}

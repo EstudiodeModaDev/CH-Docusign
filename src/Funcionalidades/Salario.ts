@@ -90,7 +90,7 @@ export function useSalarios(salariosSvc: SalariosService) {
 
   return {
     rows, loading, error, state, errors,
-     applyRange, reloadAll, setField, handleSubmit, handleEdit, loadSpecificSalary, loadAll
+     applyRange, reloadAll, setField, handleSubmit, handleEdit, loadSpecificSalary, loadAll, setState
   };
 }
 

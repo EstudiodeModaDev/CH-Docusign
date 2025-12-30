@@ -254,11 +254,12 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
                     motivos={motivos}
                     setMotivos={setMotivos}
                     setDecisiones={setDecisiones}
-                    handleCompleteStep={(detalle: DetallesPasos, path?: string) => handleCompleteStep(detalle, path)} 
-                    detallesRows={rowsDetalles} 
-                    loadingDetalles={loadingDetalles} 
-                    errorDetalles={errorDetalles} 
-                    loadDetalles={() => loadDetallesCesacion()}/>: 
+                    handleCompleteStep={(detalle: DetallesPasos, path?: string) => handleCompleteStep(detalle, path)}
+                    detallesRows={rowsDetalles}
+                    loadingDetalles={loadingDetalles}
+                    errorDetalles={errorDetalles}
+                    loadDetalles={() => loadDetallesCesacion()} 
+                    proceso={"Cesacion"}/>: 
         <>
         <h2 id="ft_title" className="ft-title">Nueva Cesación</h2>
 

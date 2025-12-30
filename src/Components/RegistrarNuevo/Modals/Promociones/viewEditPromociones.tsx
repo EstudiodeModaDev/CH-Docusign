@@ -10,7 +10,9 @@ import type { Promocion } from "../../../../models/Promociones";
 import { usePromocion } from "../../../../Funcionalidades/Promocion";
 import { useDependencias } from "../../../../Funcionalidades/Dependencias";
 import { formatPesosEsCO, numeroATexto, toNumberFromEsCO } from "../../../../utils/Number";
-import { PromotionSteps } from "./procesoPromocion";
+import { ProcessDetail } from "../Cesaciones/procesoCesacion";
+import { useDetallesPasosPromocion, usePasosPromocion } from "../../../../Funcionalidades/PasosPromocion";
+import type { DetallesPasos } from "../../../../models/Cesaciones";
 
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -35,7 +37,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Props) {
-  const { Maestro, Promociones, DeptosYMunicipios} = useGraphServices();
+  const { Maestro, Promociones, DeptosYMunicipios, DetallesPasosPromocion} = useGraphServices();
   const { state, setField, errors, handleEdit } = usePromocion(Promociones);
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
   const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
@@ -49,6 +51,8 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
   const { options: tipoVacanteOptions, loading: loadingTipoVacante, reload: reloadTipoVacante} = useTipoVacante(Maestro);
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
   const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();
+  const { loading: loadinPasosPromocion, error: errorPasosPromocion, byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep} = usePasosPromocion()
+  const {rows: rowsDetalles, loading: loadingDetalles, error: errorDetalles, loadDetallesPromocion} = useDetallesPasosPromocion(DetallesPasosPromocion, selectedPromocion.Id)
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
   const selectedEmpresa = empresaOptions.find((o) => o.label === state.EmpresaSolicitante) ?? null;
@@ -91,13 +95,12 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
       reloadTipoVacante()
   }, [reloadEmpresas, reloadTipoDoc, reloadCargo, reloadModalidadTrabajo, reloadEspecidadCargo]);
 
-
-React.useEffect(() => {
-    if (state.Salario != null && state.Salario !== "") {
-      setDisplaySalario(formatPesosEsCO(String(state.Salario)));
-    } else {
-      setDisplaySalario("");
-    }
+  React.useEffect(() => {
+      if (state.Salario != null && state.Salario !== "") {
+        setDisplaySalario(formatPesosEsCO(String(state.Salario)));
+      } else {
+        setDisplaySalario("");
+      }
   }, [state.Salario]);
 
   React.useEffect(() => {
@@ -288,8 +291,24 @@ React.useEffect(() => {
   return (
     <div className="ft-modal-backdrop">
       <section className="ft-scope ft-card" role="region" aria-labelledby="ft_title">
-        {modal ?  
-          <PromotionSteps titulo={"Detalles Promoción"} selectedPromocion={selectedPromocion} onClose={() => setModal(false)}></PromotionSteps> :
+        {modal ?   
+          <ProcessDetail 
+            titulo={"Detalles promocion  de: " + selectedPromocion.NumeroDoc + " - " + selectedPromocion.NombreSeleccionado}
+            selectedCesacion={selectedPromocion}
+            onClose={() => setModal(false)}
+            loadingPasos={loadinPasosPromocion}
+            errorPasos={errorPasosPromocion}
+            pasosById={byId}
+            decisiones={decisiones}
+            motivos={motivos}
+            setMotivos={setMotivos}
+            setDecisiones={setDecisiones}
+            handleCompleteStep={(detalle: DetallesPasos, path?: string) => handleCompleteStep(detalle, path)}
+            detallesRows={rowsDetalles}
+            loadingDetalles={loadingDetalles}
+            errorDetalles={errorDetalles}
+            loadDetalles={() => loadDetallesPromocion()} 
+            proceso={"Promocion"}/>:
           <>
             <h2 id="ft_title" className="ft-title">Promoción {selectedPromocion.NombreSeleccionado}</h2>
 

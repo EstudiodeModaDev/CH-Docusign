@@ -3,12 +3,14 @@ import "../PasosPromocion.css";
 import { useGraphServices } from "../../../../graph/graphContext";
 import type { Cesacion, DetallesPasos, PasosProceso } from "../../../../models/Cesaciones";
 import type { GraphSendMailPayload } from "../../../../graph/graphRest";
+import type { Promocion } from "../../../../models/Promociones";
+import { toUnifyVM, type Proceso } from "../../../../utils/unify";
 
 export type TipoPaso = "Aprobacion" | "Notificacion" | "SubidaDocumento";
 
 type Props = {
   titulo: string;
-  selectedCesacion: Cesacion;
+  selectedCesacion: Cesacion | Promocion;
   loadingPasos: boolean
   errorPasos: string | null;
   pasosById: Record<string, PasosProceso>,
@@ -21,15 +23,20 @@ type Props = {
   detallesRows: DetallesPasos[],
   loadingDetalles: boolean,
   errorDetalles: string | null,
-  loadDetalles: () => void
+  loadDetalles: () => void,
+  proceso: Proceso;
 };
 
 function safeString(v: any) {
   return (v ?? "").toString();
 }
 
-export const ProcessDetail: React.FC<Props> = ({detallesRows, loadingDetalles, errorDetalles, loadDetalles, titulo, selectedCesacion, onClose, loadingPasos, errorPasos, pasosById, decisiones, motivos, setMotivos, setDecisiones, handleCompleteStep }) => {
+export const ProcessDetail: React.FC<Props> = ({detallesRows, loadingDetalles, errorDetalles, loadDetalles, titulo, selectedCesacion, onClose, loadingPasos, errorPasos, pasosById, decisiones, motivos, setMotivos, setDecisiones, handleCompleteStep, proceso }) => {
   const {ColaboradoresDH, ColaboradoresEDM, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta, mail}: any = useGraphServices();
+
+  const vm = React.useMemo(() => {
+    return toUnifyVM(proceso as Proceso, selectedCesacion as any);
+  }, [proceso, selectedCesacion]);
 
   const [files, setFiles] = React.useState<Record<string, File | null>>({});
   const [destinatario, setDestinatario] = React.useState<string>("")
@@ -59,7 +66,7 @@ export const ProcessDetail: React.FC<Props> = ({detallesRows, loadingDetalles, e
       return;
     }
 
-    const empresa = selectedCesacion.Empresaalaquepertenece?.toLocaleLowerCase().trim() ?? "";
+    const empresa = vm.empresa?.toLocaleLowerCase().trim() ?? "";
     const servicioColaboradores =
       empresa === "dh retail" ? ColaboradoresDH: 
       empresa === "movimiento" ? ColaboradoresVisual:
@@ -75,7 +82,7 @@ export const ProcessDetail: React.FC<Props> = ({detallesRows, loadingDetalles, e
 
     setUploading(true)
     try {
-      const carpeta = `Colaboradores Activos/${selectedCesacion.Title} - ${selectedCesacion.Nombre}`;
+      const carpeta = `Colaboradores Activos/${vm.numeroDoc} - ${vm.nombre}`;
 
       await servicioColaboradores.uploadFile(carpeta, renamedFile);
 
@@ -318,3 +325,5 @@ export const ProcessDetail: React.FC<Props> = ({detallesRows, loadingDetalles, e
     </section>
   );
 };
+
+

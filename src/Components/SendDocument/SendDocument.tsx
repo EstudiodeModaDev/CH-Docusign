@@ -15,7 +15,7 @@ import type { HabeasData } from "../../models/HabeasData";
 import type { Cesacion } from "../../models/Cesaciones";
 import { useCesaciones } from "../../Funcionalidades/Cesaciones";
 
-type Proceso = "Promocion" | "Habeas" | "Nuevo" | "Cesacion";
+export type Proceso = "Promocion" | "Habeas" | "Nuevo" | "Cesacion";
 
 type DocuSignVM = {
   nombre: string;
@@ -51,7 +51,7 @@ const emptyVM = (): DocuSignVM => ({
   tipoTel: "",
 });
 
-function mapPromocionToVM(p: Promocion): DocuSignVM {
+export function mapPromocionToVM(p: Promocion): DocuSignVM {
   return {
     ...emptyVM(),
     nombre: p.NombreSeleccionado ?? "",
@@ -71,7 +71,7 @@ function mapPromocionToVM(p: Promocion): DocuSignVM {
   };
 }
 
-function mapNovedadToVM(n: Novedad): DocuSignVM {
+export function mapNovedadToVM(n: Novedad): DocuSignVM {
   return {
     ...emptyVM(),
     nombre: n.NombreSeleccionado ?? "",
@@ -91,7 +91,7 @@ function mapNovedadToVM(n: Novedad): DocuSignVM {
   };
 }
 
-function mapHabeasToVM(h: HabeasData): DocuSignVM {
+export function mapHabeasToVM(h: HabeasData): DocuSignVM {
   return {
     ...emptyVM(),
     nombre: h.Title ?? "",
@@ -102,7 +102,7 @@ function mapHabeasToVM(h: HabeasData): DocuSignVM {
   };
 }
 
-function mapCesacionToVM(p: Cesacion): DocuSignVM {
+export function mapCesacionToVM(p: Cesacion): DocuSignVM {
   return {
     ...emptyVM(),
     nombre: p.Nombre ?? "",
@@ -118,7 +118,7 @@ function mapCesacionToVM(p: Cesacion): DocuSignVM {
   };
 }
 
-function toDocuSignVM(proceso: Proceso, data: Promocion | Novedad | HabeasData | Cesacion): DocuSignVM {
+export function toDocuSignVM(proceso: Proceso, data: Promocion | Novedad | HabeasData | Cesacion): DocuSignVM {
   switch (proceso) {
     case "Promocion":
       return mapPromocionToVM(data as Promocion);

@@ -74,11 +74,11 @@ export const UnidadNegocioManager: React.FC = () => {
                         <section className="emp-form">
                             <div className="emp-field">
                                 <label className="emp-label" htmlFor="empresaNombre">Unidad de negocio</label>
-                                <input id="empresaNombre" type="text" className="emp-input" placeholder="Unidad de negocio" value={state?.Title} onChange={(e) => setState({...state, Title: e.target.value})}/>
+                                <input id="empresaNombre" type="text" className="emp-input" placeholder="Unidad de negocio" value={state?.Title} onChange={(e) => setState({...state, Title: e.target.value.toUpperCase()})}/>
                             </div>
                             <div className="emp-field">
                                 <label className="emp-label" htmlFor="empresaNombre">Codigo</label>
-                                <input id="empresaNombre" type="text" className="emp-input" placeholder="Codigo" value={state?.Codigo} onChange={(e) => setState({...state, Codigo: e.target.value})}/>
+                                <input id="empresaNombre" type="text" className="emp-input" placeholder="Codigo" value={state?.Codigo} onChange={(e) => setState({...state, Codigo: e.target.value.toUpperCase()})}/>
                             </div>
                             { isEditing &&
                                 <div className="emp-actions">
@@ -86,7 +86,10 @@ export const UnidadNegocioManager: React.FC = () => {
                                     <button type="button" className="emp-btn emp-btn--ok" onClick={async () => {
                                                                                             console.table(state)
                                                                                             if(editItem){
-                                                                                                await editItem({Title: state?.Title}, state!.Id ?? "", );
+                                                                                                await editItem({Title: "Unidad de negocio", T_x00ed_tulo1: state?.Title}, state!.Id ?? "", );
+                                                                                                alert("Se ha editado la unidad de negocio con éxito")
+                                                                                                setIsAdding(false)
+                                                                                                setIsEditing(false)
                                                                                                 reload()
                                                                                             }
                                                                                             setIsEditing(false);}}>✔</button>
@@ -95,7 +98,22 @@ export const UnidadNegocioManager: React.FC = () => {
                             { isAdding &&
                                 <div className="emp-actions">
                                     <button type="button" className="emp-btn emp-btn--cancel" onClick={() => {setIsEditing(false); setIsAdding(false)}}>✕</button>
-                                    <button type="button" className="emp-btn emp-btn--ok" onClick={() => add ? add(handleAddNew()) : null}>✔</button>
+                                    <button type="button" className="emp-btn emp-btn--ok" onClick={async () => {
+                                                                                                    try {
+                                                                                                    if (!add) return;
+
+                                                                                                    const payload = await handleAddNew(); // ✅ esperar
+                                                                                                    if (!payload?.T_x00ed_tulo1?.trim()) return;
+
+                                                                                                    await add(payload); // ✅ esperar
+                                                                                                    alert("Se ha agregado con éxito la UN");
+                                                                                                    setIsEditing(false)
+                                                                                                    setIsAdding(false)
+                                                                                                    } catch (e: any) {
+                                                                                                    console.error(e);
+                                                                                                    alert("Error agregando el cargo: " + (e?.message ?? e));
+                                                                                                    }
+                                                                                                }}>✔</button>
                                 </div>
                             }
                         </section>

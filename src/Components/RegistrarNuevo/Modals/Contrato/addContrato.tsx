@@ -102,19 +102,19 @@ export default function FormContratacion({onClose}: Props){
     [municipiosFiltrados]
   );
 
-  const selectedEmpresa = empresaOptions.find((o) => o.label === state.Empresa_x0020_que_x0020_solicita) ?? null;
-  const selectedTipoDocumento = tipoDocOptions.find((o) => o.label === state.tipodoc) ?? null; 
-  const selectedCargo = cargoOptions.find((o) => o.label === state.CARGO) ?? null;
-  const selectedModalidad = modalidadOptions.find((o) => o.label === state.MODALIDAD_x0020_TELETRABAJO) ?? null;
-  const selectedEspecificidad = especificidadOptions.find((o) => o.label === state.ESPECIFICIDAD_x0020_DEL_x0020_CA) ?? null;
-  const selectedNivelCargo = nivelCargoOptions.find((o) => o.label === state.NIVEL_x0020_DE_x0020_CARGO) ?? null;
-  const selectedCentroCostos = CentroCostosOptions.find((o) => o.value === state.CODIGO_x0020_CENTRO_x0020_DE_x00) ?? null;
-  const selectedCentroOperativo = COOptions.find((o) => o.value === state.CENTRO_x0020_OPERATIVO_x0020_) ?? null;
-  const selectedUnidadNegocio = UNOptions.find((o) => o.value === state.ID_x0020_UNIDAD_x0020_DE_x0020_N) ?? null;
-  const selectedOrigenSeleccion = origenOptions.find((o) => o.label === state.ORIGEN_x0020_DE_x0020_LA_x0020_S) ?? null;
-  const selectedTipoContrato = tipoContratoOptions.find((o) => o.label === state.TIPO_x0020_DE_x0020_CONTRATO) ?? null;
-  const selectedTipoVacante = tipoVacanteOptions.find((o) => o.label === state.TIPO_x0020_DE_x0020_VACANTE_x002) ?? null;
-  const selectedDependencia = dependenciaOptions.find((o) => o.value === state.DEPENDENCIA_x0020_) ?? null;
+  const selectedEmpresa = empresaOptions.find((o) => o.label.toLocaleLowerCase() === state.Empresa_x0020_que_x0020_solicita.toLocaleLowerCase()) ?? null;
+  const selectedTipoDocumento = tipoDocOptions.find((o) => o.label.toLocaleLowerCase() === state.tipodoc.toLocaleLowerCase()) ?? null; 
+  const selectedCargo = cargoOptions.find((o) => o.label.toLocaleLowerCase() === state.CARGO.toLocaleLowerCase()) ?? null;
+  const selectedModalidad = modalidadOptions.find((o) => o.label === state.MODALIDAD_x0020_TELETRABAJO.toLocaleLowerCase()) ?? null;
+  const selectedEspecificidad = especificidadOptions.find((o) => o.label.toLocaleLowerCase() === state.ESPECIFICIDAD_x0020_DEL_x0020_CA.toLocaleLowerCase()) ?? null;
+  const selectedNivelCargo = nivelCargoOptions.find((o) => o.label.toLocaleLowerCase() === state.NIVEL_x0020_DE_x0020_CARGO.toLocaleLowerCase()) ?? null;
+  const selectedCentroCostos = CentroCostosOptions.find((o) => o.value.toLocaleLowerCase() === state.CODIGO_x0020_CENTRO_x0020_DE_x00.toLocaleLowerCase()) ?? null;
+  const selectedCentroOperativo = COOptions.find((o) => o.value.toLocaleLowerCase() === state.CENTRO_x0020_OPERATIVO_x0020_.toLocaleLowerCase()) ?? null;
+  const selectedUnidadNegocio = UNOptions.find((o) => o.value.toLocaleLowerCase() === state.ID_x0020_UNIDAD_x0020_DE_x0020_N.toLocaleLowerCase()) ?? null;
+  const selectedOrigenSeleccion = origenOptions.find((o) => o.label.toLocaleLowerCase() === state.ORIGEN_x0020_DE_x0020_LA_x0020_S.toLocaleLowerCase()) ?? null;
+  const selectedTipoContrato = tipoContratoOptions.find((o) => o.label.toLocaleLowerCase() === state.TIPO_x0020_DE_x0020_CONTRATO.toLocaleLowerCase()) ?? null;
+  const selectedTipoVacante = tipoVacanteOptions.find((o) => o.label.toLocaleLowerCase() === state.TIPO_x0020_DE_x0020_VACANTE_x002.toLocaleLowerCase()) ?? null;
+  const selectedDependencia = dependenciaOptions.find((o) => o.value.toLocaleLowerCase() === state.DEPENDENCIA_x0020_.toLocaleLowerCase()) ?? null;
 
   /* ================== Display local para campos monetarios ================== */
   const [displaySalario, setDisplaySalario] = React.useState("");
@@ -163,7 +163,7 @@ export default function FormContratacion({onClose}: Props){
       setConectividad(46150)
       setConectividadTexto("Cuarenta y seis mil ciento noventa pesos")
     }
-    setField("auxconectividadtexto", conectividadTexto)
+    setField("auxconectividadtexto", conectividadTexto.toUpperCase())
     setField("auxconectividadvalor", String(conectividad))
   }, [state.SALARIO, planFinanciado]);
 
@@ -175,7 +175,7 @@ export default function FormContratacion({onClose}: Props){
 
     setValorGarantizado(valor);
     setField("VALOR_x0020_GARANTIZADO", String(valor));
-    setField("Garantizado_x0020_en_x0020_letra", valor > 0 ? numeroATexto(valor) : "");
+    setField("Garantizado_x0020_en_x0020_letra", valor > 0 ? numeroATexto(valor).toUpperCase() : "");
   }, [state.SALARIO, porcentajeValor, setField]);
 
   React.useEffect(() => {
@@ -207,7 +207,7 @@ export default function FormContratacion({onClose}: Props){
 
       if (!cancelled && salario !== null) {
         setField("SALARIO", salario.Salariorecomendado);
-        setField("salariotexto", numeroATexto(Number(salario.Salariorecomendado)))
+        setField("salariotexto", numeroATexto(Number(salario.Salariorecomendado)).toUpperCase())
       }
     };
 
@@ -291,14 +291,14 @@ export default function FormContratacion({onClose}: Props){
           {/* Nombre seleccionado */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="nombreSeleccionado"> Nombre del seleccionado *</label>
-            <input id="nombreSeleccionado" name="NombreSeleccionado" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.NombreSeleccionado ?? ""} onChange={(e) => setField("NombreSeleccionado", e.target.value)} autoComplete="off" required aria-required="true" maxLength={300}/>
+            <input id="nombreSeleccionado" name="NombreSeleccionado" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.NombreSeleccionado ?? ""} onChange={(e) => setField("NombreSeleccionado", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.NombreSeleccionado}</small>
           </div>
 
           {/* Correo */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="correo">Correo electrónico *</label>
-            <input id="correo" name="CORREO_x0020_ELECTRONICO_x0020_" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.CORREO_x0020_ELECTRONICO_x0020_ ?? ""} onChange={(e) => setField("CORREO_x0020_ELECTRONICO_x0020_", e.target.value)}
+            <input id="correo" name="CORREO_x0020_ELECTRONICO_x0020_" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.CORREO_x0020_ELECTRONICO_x0020_ ?? ""} onChange={(e) => setField("CORREO_x0020_ELECTRONICO_x0020_", e.target.value.toLowerCase())}
               autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.CORREO_x0020_ELECTRONICO_x0020_}</small>
           </div>
@@ -343,7 +343,7 @@ export default function FormContratacion({onClose}: Props){
                 const value = opt?.value ?? "";
                 setSelectedDepto(value);
                 setSelectedMunicipio("");           
-                setField("Departamento", value);  
+                setField("Departamento", value.toUpperCase());  
               }}
               classNamePrefix="rs"
               isDisabled={loadingDepto}
@@ -367,7 +367,7 @@ export default function FormContratacion({onClose}: Props){
               onChange={(opt) => {
                 const value = opt?.value ?? "";
                 setSelectedMunicipio(value);
-                setField("CIUDAD", value);          
+                setField("CIUDAD", value.toUpperCase());          
               }}
               classNamePrefix="rs"
               isDisabled={!selectedDepto  || loadingCargo}
@@ -418,7 +418,7 @@ export default function FormContratacion({onClose}: Props){
 
                 setDisplaySalario(formatted);
                 setField("SALARIO", numeric as any);
-                setField("salariotexto", numeroATexto(numeric));
+                setField("salariotexto", numeroATexto(numeric).toUpperCase());
               }}
             />
             <small>{errors.SALARIO}</small>
@@ -521,7 +521,7 @@ export default function FormContratacion({onClose}: Props){
                                                                       const formatted = formatPesosEsCO(String(numeric));
                                                                       setDisplayAuxilio(formatted);
                                                                       setField("Auxilio_x0020_de_x0020_rodamient", numeric as any);
-                                                                      setField("Auxilio_x0020_de_x0020_rodamient0", numeroATexto(numeric));
+                                                                      setField("Auxilio_x0020_de_x0020_rodamient0", numeroATexto(numeric).toUpperCase());
                                                                       }}
                                                                   />
               <small>{errors.Auxilio_x0020_de_x0020_rodamient}</small>
@@ -576,7 +576,7 @@ export default function FormContratacion({onClose}: Props){
           {/* Dirección de domicilio */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="DIRECCION_x0020_DE_x0020_DOMICIL">Dirección de domicilio *</label>
-            <input id="DIRECCION_x0020_DE_x0020_DOMICIL" name="DIRECCION_x0020_DE_x0020_DOMICIL" type="text" placeholder="Ingrese la dirección" value={state.DIRECCION_x0020_DE_x0020_DOMICIL ?? ""} onChange={(e) => setField("DIRECCION_x0020_DE_x0020_DOMICIL", e.target.value)}
+            <input id="DIRECCION_x0020_DE_x0020_DOMICIL" name="DIRECCION_x0020_DE_x0020_DOMICIL" type="text" placeholder="Ingrese la dirección" value={state.DIRECCION_x0020_DE_x0020_DOMICIL ?? ""} onChange={(e) => setField("DIRECCION_x0020_DE_x0020_DOMICIL", e.target.value.toUpperCase())}
               autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.DIRECCION_x0020_DE_x0020_DOMICIL}</small>
           </div>

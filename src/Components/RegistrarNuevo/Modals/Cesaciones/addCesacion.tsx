@@ -61,14 +61,14 @@ export default function FormCesacion({onClose}: Props){
       reloadUN();
   }, []);
 
-  const selectedEmpresa = empresaOptions.find((o) => o.label === state.Empresaalaquepertenece) ?? null;
-  const selectedCargo = cargoOptions.find((o) => o.label === state.Cargo) ?? null;
-  const selectedTipoDocumento = tipoDocOptions.find((o) => o.label === state.TipoDoc) ?? null;
-  const selectedNivelCargo = nivelCargoOptions.find((o) => o.label === state.Niveldecargo) ?? null;   
-  const selectedDependencia = dependenciaOptions.find((o) => o.value === state.Dependencia) ?? null;  
-  const selectedCentroCostos = CentroCostosOptions.find((o) => o.value === state.CodigoCC) ?? null;
-  const selectedCentroOperativo = COOptions.find((o) => o.value === state.CodigoCO) ?? null;
-  const selectedUnidadNegocio = UNOptions.find((o) => o.value === state.CodigoUN) ?? null;
+  const selectedEmpresa = empresaOptions.find((o) => o.label.toLocaleLowerCase() === state.Empresaalaquepertenece.toLocaleLowerCase()) ?? null;
+  const selectedCargo = cargoOptions.find((o) => o.label.toLocaleLowerCase() === state.Cargo.toLocaleLowerCase()) ?? null;
+  const selectedTipoDocumento = tipoDocOptions.find((o) => o.label.toLocaleLowerCase() === state.TipoDoc.toLocaleLowerCase()) ?? null;
+  const selectedNivelCargo = nivelCargoOptions.find((o) => o.label.toLocaleLowerCase() === state.Niveldecargo.toLocaleLowerCase()) ?? null;   
+  const selectedDependencia = dependenciaOptions.find((o) => o.value.toLocaleLowerCase() === state.Dependencia.toLocaleLowerCase()) ?? null;  
+  const selectedCentroCostos = CentroCostosOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoCC.toLocaleLowerCase()) ?? null;
+  const selectedCentroOperativo = COOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoCO.toLocaleLowerCase()) ?? null;
+  const selectedUnidadNegocio = UNOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoUN.toLocaleLowerCase()) ?? null;
 
 
   /* ================== Display local para campos monetarios ================== */
@@ -118,7 +118,7 @@ export default function FormCesacion({onClose}: Props){
 
       if (!cancelled && salario !== null) {
         setField("Salario", salario.Salariorecomendado);
-        setField("SalarioTexto", numeroATexto(Number(salario.Salariorecomendado)))
+        setField("SalarioTexto", numeroATexto(Number(salario.Salariorecomendado)).toUpperCase())
       }
     };
 
@@ -158,7 +158,7 @@ export default function FormCesacion({onClose}: Props){
       setField("auxConectividadValor", String(nextValor));
     }
     if (String(state.auxConectividadTexto ?? "") !== nextTexto) {
-      setField("auxConectividadTexto", nextTexto);
+      setField("auxConectividadTexto", nextTexto.toUpperCase());
     }
 
     // si igual quieres el display local:
@@ -252,14 +252,14 @@ export default function FormCesacion({onClose}: Props){
           {/* Nombre seleccionado */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="Nombre"> Nombre del seleccionado *</label>
-            <input id="Nombre" name="Nombre" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Nombre ?? ""} onChange={(e) => setField("Nombre", e.target.value)} autoComplete="off" required aria-required="true" maxLength={300}/>
+            <input id="Nombre" name="Nombre" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Nombre ?? ""} onChange={(e) => setField("Nombre", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.Nombre}</small>
           </div>
 
           {/* Correo */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="correo">Correo electrónico *</label>
-            <input id="correo" name="Correoelectronico" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.Correoelectronico ?? ""} onChange={(e) => setField("Correoelectronico", e.target.value)}
+            <input id="correo" name="Correoelectronico" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.Correoelectronico ?? ""} onChange={(e) => setField("Correoelectronico", e.target.value.toLowerCase())}
               autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.Correoelectronico}</small>
           </div>
@@ -374,7 +374,7 @@ export default function FormCesacion({onClose}: Props){
           {/* Salario */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="abreviacionDoc"> Salario en letras *</label>
-            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={numeroATexto(Number(state.Salario))} readOnly/>
+            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={numeroATexto(Number(state.Salario)).toUpperCase()} readOnly/>
           </div>
 
           {/* Auxilio de conectividad */}
@@ -421,7 +421,7 @@ export default function FormCesacion({onClose}: Props){
                 const value = opt?.value ?? "";
                 setSelectedDepto(value);
                 setSelectedMunicipio("");           
-                setField("Departamento", value);  
+                setField("Departamento", value.toUpperCase());  
               }}
               classNamePrefix="rs"
               isDisabled={loadingDepto}
@@ -445,7 +445,7 @@ export default function FormCesacion({onClose}: Props){
               onChange={(opt) => {
                 const value = opt?.value ?? "";
                 setSelectedMunicipio(value);
-                setField("Ciudad", value);          
+                setField("Ciudad", value.toUpperCase());          
               }}
               classNamePrefix="rs"
               isDisabled={!selectedDepto  || loadingCargo}
@@ -461,7 +461,7 @@ export default function FormCesacion({onClose}: Props){
           {/* Temporal */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="numeroIdent">Temporal *</label>
-            <input id="Title" name="Title" type="text" placeholder="Ingrese la temporal" value={state.Temporal ?? ""} onChange={(e) => setField("Temporal", e.target.value)}
+            <input id="Title" name="Title" type="text" placeholder="Ingrese la temporal" value={state.Temporal ?? ""} onChange={(e) => setField("Temporal", e.target.value.toUpperCase())}
               autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.Temporal}</small>
           </div>

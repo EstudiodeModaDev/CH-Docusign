@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import "../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
@@ -118,7 +119,7 @@ export default function FormHabeas({onClose}: Props){
 
           <div className="ft-field">
             <label className="ft-label" htmlFor="nombreSeleccionado"> Nombre del seleccionado *</label>
-            <input id="nombreSeleccionado" name="NombreSeleccionado" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value)} autoComplete="off" required aria-required="true" maxLength={300}/>
+            <input id="nombreSeleccionado" name="NombreSeleccionado" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.Title}</small>
           </div>
 
@@ -162,7 +163,7 @@ export default function FormHabeas({onClose}: Props){
           {/* Correo */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="correo">Correo electrónico *</label>
-            <input id="correo" name="CORREO_x0020_ELECTRONICO_x0020_" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.Correo ?? ""} onChange={(e) => setField("Correo", e.target.value)}
+            <input id="correo" name="CORREO_x0020_ELECTRONICO_x0020_" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.Correo ?? ""} onChange={(e) => setField("Correo", e.target.value.toLocaleLowerCase())}
               autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.Correo}</small>
           </div>
@@ -177,7 +178,7 @@ export default function FormHabeas({onClose}: Props){
               value={selectedDepto ? { value: selectedDepto, label: selectedDepto } : null}
               onChange={(opt) => {
                 const value = opt?.value ?? "";
-                setSelectedDepto(value);
+                setSelectedDepto(value.toUpperCase());
                 setSelectedMunicipio("");           
               }}
               classNamePrefix="rs"
@@ -205,7 +206,7 @@ export default function FormHabeas({onClose}: Props){
               onChange={(opt) => {
                 const value = opt?.value ?? "";
                 setSelectedMunicipio(value);
-                setField("Ciudad", value);          
+                setField("Ciudad", value.toUpperCase());          
               }}
               classNamePrefix="rs"
               isDisabled={!selectedDepto  || loadingCargo}

@@ -254,7 +254,7 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
                     motivos={motivos}
                     setMotivos={setMotivos}
                     setDecisiones={setDecisiones}
-                    handleCompleteStep={(detalle: DetallesPasos, path?: string) => handleCompleteStep(detalle, path)}
+                    handleCompleteStep={(detalle: DetallesPasos) => handleCompleteStep(detalle)}
                     detallesRows={rowsDetalles}
                     loadingDetalles={loadingDetalles}
                     errorDetalles={errorDetalles}

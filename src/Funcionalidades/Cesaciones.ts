@@ -423,6 +423,17 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
     }
   }, [CesacionesSvc]);
 
+  const searchRegister = async (query: string): Promise<Cesacion | null> => {
+    const resp = await CesacionesSvc.getAll({filter: `fields/Title eq '${query}'`, top: 1, orderby: "fields/Created desc"});
+
+    if(resp.items.length > 0) {
+      const retorno = resp.items[0]
+      return retorno
+    } else {
+      return null
+    }
+  }
+
   /*const handleCancelProcess = React.useCallback(async (documento: string, RazonCancelacion: string) => {
     if(!) return
 
@@ -464,7 +475,7 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
 
   return {
     rows, loading, error, pageSize, pageIndex, hasNext, range, search, errors, sorts, state, workers, workersOptions,
-    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, 
+    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, searchRegister, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, 
   };
 }
 

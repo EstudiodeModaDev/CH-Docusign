@@ -603,9 +603,20 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
     }
 }, [ContratosSvc]);
 
+  const searchRegister = async (query: string): Promise<Novedad | null> => {
+    const resp = await ContratosSvc.getAll({filter: `fields/Numero_x0020_identificaci_x00f3_ eq '${query}'`, top: 1, orderby: "fields/Created desc"});
+
+    if(resp.items.length > 0) {
+      const retorno = resp.items[0]
+      return retorno
+    } else {
+      return null
+    }
+  }
+
   return {
     rows, loading, error, pageSize, pageIndex, hasNext, range, search, errors, sorts, state, workers, workersOptions,
-    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, handleCancelProcess
+    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, handleCancelProcess, searchRegister
   };
 }
 

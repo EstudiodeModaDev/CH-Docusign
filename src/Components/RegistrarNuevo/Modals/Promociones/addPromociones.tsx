@@ -10,6 +10,10 @@ import { getTodayLocalISO } from "../../../../utils/Date";
 import { usePromocion } from "../../../../Funcionalidades/Promocion";
 import { useDetallesPasosPromocion, usePasosPromocion } from "../../../../Funcionalidades/PasosPromocion";
 import { useSalarios } from "../../../../Funcionalidades/Salario";
+import { lookOtherInfo } from "../../../../utils/lookFor";
+import { useHabeasData } from "../../../../Funcionalidades/HabeasData";
+import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
+import { useContratos } from "../../../../Funcionalidades/Contratos";
 
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -32,8 +36,11 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormPromociones({onClose}: Props){
-  const { Maestro, Promociones, DeptosYMunicipios, DetallesPasosPromocion, salarios} = useGraphServices();
-  const { state, setField, handleSubmit, errors } = usePromocion(Promociones);
+  const { Maestro, Promociones, DeptosYMunicipios, DetallesPasosPromocion, salarios, HabeasData, Contratos, Cesaciones} = useGraphServices();
+  const { state, setField, handleSubmit, errors, searchRegister: searchPromocion } = usePromocion(Promociones);
+  const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
+  const { searchRegister: searchNovedad } = useContratos(Contratos);
+  const { searchRegister: searchCesacion } = useCesaciones(Cesaciones);
   const { loadPasosPromocion, rows } = usePasosPromocion()
   const { handleCreateAllSteps } = useDetallesPasosPromocion(DetallesPasosPromocion)
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
@@ -221,6 +228,17 @@ export default function FormPromociones({onClose}: Props){
     }
   };
 
+  const searchPeople = React.useCallback(async (cedula: string) => {
+    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion, searchHabeas})
+    if(persona){
+      setField("NumeroDoc", persona.cedula)
+      setField("NombreSeleccionado", persona.nombre)
+      setField("TipoDoc", persona.tipoDoc)
+      setField("EmpresaSolicitante", persona.empresa)
+      setField("Correo", persona.correo)
+    }
+  }, []);
+
   return (
     <div className="ft-modal-backdrop">
       <section className="ft-scope ft-card" role="region" aria-labelledby="ft_title">
@@ -276,7 +294,7 @@ export default function FormPromociones({onClose}: Props){
           {/* Número documento */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="numeroIdent">Número de identificación *</label>
-            <input id="numeroIdent" name="Numero_x0020_identificaci_x00f3_" type="number" placeholder="Ingrese el número de documento" value={state.NumeroDoc ?? ""} onChange={(e) => setField("NumeroDoc", e.target.value)}
+            <input id="numeroIdent" name="Numero_x0020_identificaci_x00f3_" type="number" placeholder="Ingrese el número de documento" value={state.NumeroDoc ?? ""} onChange={(e) => setField("NumeroDoc", e.target.value)} onBlur={ (e) => searchPeople(e.target.value)}
               autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.NumeroDoc}</small>
           </div>

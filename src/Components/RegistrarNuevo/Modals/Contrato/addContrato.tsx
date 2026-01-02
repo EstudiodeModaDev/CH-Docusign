@@ -10,6 +10,10 @@ import { useAuth } from "../../../../auth/authProvider";
 import { getTodayLocalISO } from "../../../../utils/Date";
 import { useDetallesPasosNovedades, usePasosNoveades } from "../../../../Funcionalidades/PasosNovedades";
 import { useSalarios } from "../../../../Funcionalidades/Salario";
+import { lookOtherInfo, } from "../../../../utils/lookFor";
+import { useHabeasData } from "../../../../Funcionalidades/HabeasData";
+import { usePromocion } from "../../../../Funcionalidades/Promocion";
+import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -32,8 +36,11 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormContratacion({ onClose }: Props) {
-  const { Maestro, Contratos, DeptosYMunicipios, DetallesPasosNovedades, salarios } = useGraphServices();
-  const { state, setField, handleSubmit, errors } = useContratos(Contratos);
+  const { Maestro, Contratos, DeptosYMunicipios, DetallesPasosNovedades, salarios, HabeasData, Promociones, Cesaciones } = useGraphServices();
+  const { state, setField, handleSubmit, errors, searchRegister: searchNovedad } = useContratos(Contratos);
+  const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
+  const { searchRegister: searchPromocion } = usePromocion(Promociones);
+  const { searchRegister: searchCesacion } = useCesaciones(Cesaciones);
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas } = useEmpresasSelect(Maestro);
   const { options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc } = useTipoDocumentoSelect(Maestro);
   const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo } = useCargo(Maestro);
@@ -258,6 +265,17 @@ React.useEffect(() => {
     }
   };
 
+  const searchPeople = React.useCallback(async (cedula: string) => {
+    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion, searchHabeas})
+    if(persona){
+      setField("Numero_x0020_identificaci_x00f3_", persona.cedula)
+      setField("NombreSeleccionado", persona.nombre)
+      setField("Tipo_x0020_de_x0020_documento_x0", persona.tipoDoc)
+      setField("Empresa_x0020_que_x0020_solicita", persona.empresa)
+      setField("CORREO_x0020_ELECTRONICO_x0020_", persona.correo)
+    }
+  }, []);
+
   return (
     <div className="ft-modal-backdrop">
       <section className="ft-scope ft-card" role="region" aria-labelledby="ft_title">
@@ -316,7 +334,7 @@ React.useEffect(() => {
           {/* Número documento */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="numeroIdent">Número de identificación *</label>
-            <input id="numeroIdent" name="Numero_x0020_identificaci_x00f3_" type="number" placeholder="Ingrese el número de documento" value={state.Numero_x0020_identificaci_x00f3_ ?? ""} onChange={(e) => setField("Numero_x0020_identificaci_x00f3_", e.target.value)} autoComplete="off" required aria-required="true" maxLength={300}/>
+            <input id="numeroIdent" name="Numero_x0020_identificaci_x00f3_" type="number" placeholder="Ingrese el número de documento" value={state.Numero_x0020_identificaci_x00f3_ ?? ""} onChange={(e) => setField("Numero_x0020_identificaci_x00f3_", e.target.value)} autoComplete="off" required aria-required="true" maxLength={300}  onBlur={ (e) => searchPeople(e.target.value)}/>
             <small>{errors.Numero_x0020_identificaci_x00f3_}</small>
           </div>
 

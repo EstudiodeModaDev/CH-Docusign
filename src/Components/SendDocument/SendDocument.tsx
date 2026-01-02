@@ -308,7 +308,7 @@ const EnviarFormatoCard: React.FC = () => {
     }
     if (!state.Cedula || !state.Receptor || !state.CorreoReceptor) {
       alert("Por favor completa todos los campos.");
-      return;
+      return; 
     }
     if (!varColaborador) {
       alert("No se encontró información del colaborador.");

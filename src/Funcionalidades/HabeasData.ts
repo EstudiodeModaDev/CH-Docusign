@@ -267,10 +267,21 @@ export function useHabeasData(HabeasDataSvc: HabeasDataService) {
     })
   }, [HabeasDataSvc]);
 
+  const searchRegister = async (query: string): Promise<HabeasData | null> => {
+    const resp = await HabeasDataSvc.getAll({filter: `fields/NumeroDocumento eq '${query}'`, top: 1, orderby: "fields/Created desc"});
+
+    if(resp.items.length > 0) {
+      const retorno = resp.items[0]
+      return retorno
+    } else {
+      return null
+    }
+  }
+
 
   return {
     rows, loading, error, pageSize, pageIndex, hasNext, range, search, sorts, state, errors, workers, workersOptions,
-    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage
+    nextPage, applyRange, reloadAll, searchRegister, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage
   };
 }
 

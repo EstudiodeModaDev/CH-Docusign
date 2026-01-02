@@ -424,9 +424,20 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
     }
   }, [PromocionesSvc]);
 
+  const searchRegister = async (query: string): Promise<Promocion | null> => {
+    const resp = await PromocionesSvc.getAll({filter: `fields/NumeroDoc eq '${query}'`, top: 200, orderby: "fields/Created desc"});
+
+    if(resp.items.length > 0) {
+      const retorno = resp.items[0]
+      return retorno
+    } else {
+      return null
+    }
+  }
+
   return {
     rows, loading, error, pageSize, pageIndex, hasNext, range, search, sorts, state, errors, workers, workersOptions,
-    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage
+    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage, searchRegister
   };
 }
 

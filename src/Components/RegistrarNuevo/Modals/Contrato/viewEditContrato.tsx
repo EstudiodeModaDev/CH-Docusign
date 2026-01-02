@@ -193,6 +193,9 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
         })),
         [municipiosFiltrados]
     );
+
+    const lower = (v: any) => (v ?? "").toString().toLocaleLowerCase();
+
     const { state, setField, errors, handleEdit } = useContratos(Contratos);
     const selectedEmpresa = empresaOptions.find((o) => o.label.toLocaleLowerCase() === state.Empresa_x0020_que_x0020_solicita.toLocaleLowerCase()) ?? null;
     const selectedTipoDocumento = tipoDocOptions.find((o) => o.label === state.tipodoc.trim()) ?? null; 
@@ -207,7 +210,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     const selectedTipoContrato = tipoContratoOptions.find((o) => o.label === state.TIPO_x0020_DE_x0020_CONTRATO) ?? null;
     const selectedTipoVacante = tipoVacanteOptions.find((o) => o.label === state.TIPO_x0020_DE_x0020_VACANTE_x002) ?? null;
     const selectedDependencia = dependenciaOptions.find((o) => o.value === state.DEPENDENCIA_x0020_) ?? null;
-    const selectedEtapa = etapasOptions.find((o) => o.label.toLocaleLowerCase() === state.Etapa.toLocaleLowerCase()) ?? null;
+    const selectedEtapa = etapasOptions.find((o) => lower(o?.label) === lower(state?.Etapa)) ?? null;
     const opciones = [{ value: "Escritorio", label: "Escritorio" }, { value: "Silla", label: "Silla" }, { value: "Escritorio/Silla", label: "Escritorio/Silla" }];
     const isView = tipo === "view"
     /* ================== Display local para campos monetarios ================== */

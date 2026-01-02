@@ -43,6 +43,7 @@ type DocuSignVM = {
   fechaInicioProductiva: string;
   fechaFinalProductiva: string;
   etapa: string;
+  fechaFinal: string
 };
 
 const emptyVM = (): DocuSignVM => ({
@@ -69,7 +70,8 @@ const emptyVM = (): DocuSignVM => ({
   fechaInicioProductiva: "",
   fechaNac: "",
   nitUniversidad: "",
-  universidad: ""
+  universidad: "",
+  fechaFinal: ""
 });
 
 export function mapPromocionToVM(p: Promocion): DocuSignVM {
@@ -117,6 +119,7 @@ export function mapNovedadToVM(n: Novedad): DocuSignVM {
     fechaInicioLectiva: spDateToDDMMYYYY(n.FechaInicioLectiva),
     fechaInicioProductiva: spDateToDDMMYYYY(n.FechaInicioProductiva),
     fechaNac: spDateToDDMMYYYY(n.FechaNac),
+    fechaFinal: spDateToDDMMYYYY(n.FECHA_x0020_REQUERIDA_x0020_PARA0),
     nitUniversidad: n.NitUniversidad,
     universidad: n.Universidad
   };
@@ -250,6 +253,39 @@ const EnviarFormatoCard: React.FC = () => {
 
       case "tipodoccort":
         return vm.tipoDocCorto;
+
+      case "universidad":
+        return vm.universidad;
+
+      case "nituniversidad":
+        return vm.nitUniversidad;
+
+      case "coordinadorpracticas":
+        return vm.coordinador;
+
+      case "fechanac":
+        return vm.fechaNac;
+
+      case "fechafin":
+        return vm.fechaFinal;
+
+      case "fechainiciolectiva":
+        return vm.fechaInicioLectiva;
+
+      case "fechafinallectiva":
+        return vm.fechaFinalLectiva;
+
+      case "fechainicioproductiva":
+        return vm.fechaInicioProductiva;
+
+      case "fechafinalproductiva":
+        return vm.fechaFinalProductiva;
+
+      case "etapa":
+        return vm.etapa;
+
+      case "especialidad":
+        return vm.especialidad;
 
       case "tipotel":
         return vm.tipoTel;

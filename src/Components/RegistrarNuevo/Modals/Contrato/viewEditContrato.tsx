@@ -3,7 +3,7 @@ import "../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
 import { useGraphServices } from "../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../models/Desplegables";
-import {useCargo, useCentroCostos, useCentroOperativo, useDeptosMunicipios, useEmpresasSelect, useEspecificidadCargo, useModalidadTrabajo, useNivelCargo, useOrigenSeleccion, useTipoContrato, useTipoDocumentoSelect, useTipoVacante, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
+import {useCargo, useCentroCostos, useCentroOperativo, useDeptosMunicipios, useEmpresasSelect, useEspecificidadCargo, useEtapa, useModalidadTrabajo, useNivelCargo, useOrigenSeleccion, useTipoContrato, useTipoDocumentoSelect, useTipoVacante, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
 import { useContratos } from "../../../../Funcionalidades/Contratos";
 import {formatPesosEsCO, numeroATexto, toNumberFromEsCO,} from "../../../../utils/Number";
 import { useAuth } from "../../../../auth/authProvider";
@@ -37,25 +37,26 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormContratacion({onClose, selectedNovedad, tipo}: Props){
-    const { Maestro, DeptosYMunicipios, Contratos, DetallesPasosNovedades} = useGraphServices();
-    const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
-    const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
-    const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
-    const { loading: loadingPasos, error: errorPasos, byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep } = usePasosNoveades()
-    const { loading: loadingDetalles, error: errorDetalles, rows: rowsDetalles, loadDetallesNovedades} = useDetallesPasosNovedades(DetallesPasosNovedades, selectedNovedad.Id)
-    const { options: modalidadOptions, loading: loadingModalidad, reload: reloadModalidadTrabajo} = useModalidadTrabajo(Maestro);
-    const { options: especificidadOptions, loading: loadingEspecificdad, reload: reloadEspecidadCargo} = useEspecificidadCargo(Maestro);
-    const { options: nivelCargoOptions, loading: loadinNivelCargo, reload: reloadNivelCargo} = useNivelCargo(Maestro);
-    const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
-    const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
-    const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
-    const { options: origenOptions, loading: loadingOrigen, reload: reloadOrigenSeleccion} = useOrigenSeleccion(Maestro);
-    const { options: tipoContratoOptions, loading: loadingTipoContrato, reload: reloadTipoContrato} = useTipoContrato(Maestro);
-    const { options: tipoVacanteOptions, loading: loadingTipoVacante, reload: reloadTipoVacante} = useTipoVacante(Maestro);
-    const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
-    const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();
-    const [selectedDepto, setSelectedDepto] = React.useState<string>("");
-    const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
+  const { Maestro, DeptosYMunicipios, Contratos, DetallesPasosNovedades} = useGraphServices();
+  const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
+  const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
+  const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
+  const { options: etapasOptions, loading: loadingEtapas, reload: reloadEtapas } = useEtapa(Maestro);
+  const { loading: loadingPasos, error: errorPasos, byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep } = usePasosNoveades()
+  const { loading: loadingDetalles, error: errorDetalles, rows: rowsDetalles, loadDetallesNovedades} = useDetallesPasosNovedades(DetallesPasosNovedades, selectedNovedad.Id)
+  const { options: modalidadOptions, loading: loadingModalidad, reload: reloadModalidadTrabajo} = useModalidadTrabajo(Maestro);
+  const { options: especificidadOptions, loading: loadingEspecificdad, reload: reloadEspecidadCargo} = useEspecificidadCargo(Maestro);
+  const { options: nivelCargoOptions, loading: loadinNivelCargo, reload: reloadNivelCargo} = useNivelCargo(Maestro);
+  const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
+  const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
+  const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
+  const { options: origenOptions, loading: loadingOrigen, reload: reloadOrigenSeleccion} = useOrigenSeleccion(Maestro);
+  const { options: tipoContratoOptions, loading: loadingTipoContrato, reload: reloadTipoContrato} = useTipoContrato(Maestro);
+  const { options: tipoVacanteOptions, loading: loadingTipoVacante, reload: reloadTipoVacante} = useTipoVacante(Maestro);
+  const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
+  const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();
+  const [selectedDepto, setSelectedDepto] = React.useState<string>("");
+  const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
 
     React.useEffect(() => {
         reloadEmpresas();
@@ -71,7 +72,8 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
         reloadOrigenSeleccion(),
         reloadTipoContrato(),
         reloadTipoContrato(),
-        reloadTipoVacante()
+        reloadTipoVacante(),
+        reloadEtapas()
     }, [reloadEmpresas, reloadTipoDoc, reloadCargo, reloadModalidadTrabajo, reloadEspecidadCargo]);
 
     React.useEffect(() => {
@@ -134,6 +136,20 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
       setField("STATUS_x0020_DE_x0020_INGRESO_x0", selectedNovedad.STATUS_x0020_DE_x0020_INGRESO_x0)
       setField("FECHA_x0020_HASTA_x0020_PARA_x00", selectedNovedad.FECHA_x0020_HASTA_x0020_PARA_x00)
       setField("Garantizado_x0020_en_x0020_letra", selectedNovedad.Garantizado_x0020_en_x0020_letra)
+      setField("Universidad", selectedNovedad.Universidad)
+      setField("NitUniversidad", selectedNovedad.NitUniversidad)
+      setField("FechaNac", selectedNovedad.FechaNac)
+      setField("Universidad", selectedNovedad.Universidad)
+      setField("Universidad", selectedNovedad.Universidad)
+      setField("Coordinadordepracticas", selectedNovedad.Coordinadordepracticas)
+      setField("Especialidad", selectedNovedad.Especialidad)
+      setField("FechaInicioLectiva", selectedNovedad.FechaInicioLectiva)
+      setField("FechaFinalLectiva", selectedNovedad.FechaFinalLectiva)
+      setField("FechaInicioProductiva", selectedNovedad.FechaInicioProductiva)
+      setField("FechaFinalProductiva", selectedNovedad.FechaFinalProductiva)
+      setField("Etapa", selectedNovedad.Etapa)
+      setField("Practicante", selectedNovedad.Practicante)
+      setField("Aprendiz", selectedNovedad.Aprendiz)
     }, [selectedNovedad]);
 
     React.useEffect(() => {
@@ -191,6 +207,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     const selectedTipoContrato = tipoContratoOptions.find((o) => o.label === state.TIPO_x0020_DE_x0020_CONTRATO) ?? null;
     const selectedTipoVacante = tipoVacanteOptions.find((o) => o.label === state.TIPO_x0020_DE_x0020_VACANTE_x002) ?? null;
     const selectedDependencia = dependenciaOptions.find((o) => o.value === state.DEPENDENCIA_x0020_) ?? null;
+    const selectedEtapa = etapasOptions.find((o) => o.label.toLocaleLowerCase() === state.Etapa.toLocaleLowerCase()) ?? null;
     const opciones = [{ value: "Escritorio", label: "Escritorio" }, { value: "Silla", label: "Silla" }, { value: "Escritorio/Silla", label: "Escritorio/Silla" }];
     const isView = tipo === "view"
     /* ================== Display local para campos monetarios ================== */
@@ -259,7 +276,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     setValorGarantizado(valor);
     setField("VALOR_x0020_GARANTIZADO", String(valor));
     setField("Garantizado_x0020_en_x0020_letra", valor > 0 ? numeroATexto(valor) : "");
-  }, [touchedPct, porcentajeValor, state.SALARIO, setField]);
+  }, [touchedPct, porcentajeValor, state.SALARIO]);
 
   React.useEffect(() => {
     const salario = toNumberFromEsCO(String(state.SALARIO ?? "0"));
@@ -419,6 +436,105 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
               />
               <small>{errors.CARGO}</small>
             </div>
+
+          {/* ¿Es aprendiz? */}
+          <div className="ft-field">
+            <label className="ft-label">¿Es aprendiz? *</label>
+            <div className="ft-radio-group">
+              <label className="ft-radio-custom">
+                <input type="radio" name="aprendiz" value="Si" checked={!!state.Aprendiz} onChange={() => { 
+                                                                                              setField("Aprendiz", true as any);
+                                                                                              setFechaFinalizacion(true);
+                                                                                            }}
+                                                                                          />
+                <span className="circle"></span>
+                <span className="text">Si</span>
+              </label>
+
+              <label className="ft-radio-custom">
+                <input type="radio" name="aprendiz" value="No" checked={!state.Aprendiz} onChange={() => {setField("Aprendiz", false as any); setFechaFinalizacion(true)}}/>
+                <span className="circle"></span>
+                <span className="text">No</span>
+              </label>
+            </div>
+          </div>
+
+          {state.Aprendiz && (
+            <>
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="universidad">Nombre de la universidad *</label>
+                <input id="universidad" name="universidad" type="text" placeholder="Ingrese el nombre de la universidad" value={state.Universidad ?? ""} autoComplete="off" required aria-required="true" maxLength={300} onChange={(e) => setField("Universidad", e.target.value.toUpperCase())}/>
+                <small>{errors.Universidad}</small>
+              </div>
+
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="Nituniversidad">NIT de la universidad *</label>
+                <input id="Nituniversidad" name="Nituniversidad" type="text" placeholder="Ingrese el NIT de la universidad" value={state.NitUniversidad ?? ""} required aria-required="true" maxLength={300} onChange={(e) => setField("NitUniversidad", e.target.value.toUpperCase())}/>
+                <small>{errors.NitUniversidad}</small>
+              </div>
+
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="coordinador">Nombre del(a) coordinador(a) de practicas *</label>
+                <input id="coordinador" name="coordinador" type="text" placeholder="Ingrese el nombre del(a) coordinador(a) de practicas" value={state.Coordinadordepracticas ?? ""} aria-required="true" maxLength={300} onChange={(e) => setField("Coordinadordepracticas", e.target.value.toUpperCase())}/>
+                <small>{errors.Coordinadordepracticas}</small>
+              </div>
+
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="especialidad">Especialidad *</label>
+                <input id="especialidad" name="especialidad" type="text" placeholder="Ingrese la especialidad" value={state.Especialidad ?? ""}  required aria-required="true" maxLength={300} onChange={(e) => setField("Especialidad", e.target.value.trim().toUpperCase())} />
+                <small>{errors.Especialidad}</small>
+              </div>
+
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="Etapa">Etapa</label>
+                <Select<desplegablesOption, false>
+                  inputId="Etapa"
+                  options={etapasOptions}
+                  placeholder={loadingEtapas ? "Cargando opciones…" : "Buscar etapa..."}
+                  value={selectedEtapa}
+                  onChange={(opt) => setField("Etapa", opt?.label ?? "")}
+                  classNamePrefix="rs"
+                  isDisabled={loadingEtapas}
+                  isLoading={loadingEtapas}
+                  getOptionValue={(o) => String(o.value)}
+                  getOptionLabel={(o) => o.label}
+                  components={{ Option }}
+                  isClearable
+                />
+                <small>{errors.Etapa}</small>
+              </div>
+
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="FechaNac">Fecha de nacimiento *</label>
+                <input id="FechaNac" name="FechaNac" type="date" value={toISODateFlex(state.FechaNac) ?? ""} onChange={(e) => setField("FechaNac", e.target.value)} />
+                <small>{errors.FechaNac}</small>
+              </div>
+
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="FechaInicioLectiva">Fecha de inicio de etapa lectiva*</label>
+                <input id="FechaInicioLectiva" name="FechaInicioLectiva" type="date" value={toISODateFlex(state.FechaInicioLectiva) ?? ""} onChange={(e) => setField("FechaInicioLectiva", e.target.value)}/>
+                <small>{errors.FechaInicioLectiva}</small>
+              </div>
+
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="FechaFinalLectiva">Fecha final de etapa lectiva*</label>
+                <input id="FechaFinalLectiva" name="FechaFinalLectiva" type="date" value={toISODateFlex(state.FechaFinalLectiva) ?? ""} onChange={(e) => setField("FechaFinalLectiva", e.target.value)}/>
+                <small>{errors.FechaFinalLectiva}</small>
+              </div>
+
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="FechaInicioProductiva">Fecha de inicio de etapa productiva*</label>
+                <input id="FechaInicioProductiva" name="FechaInicioProductiva" type="date" value={toISODateFlex(state.FechaInicioProductiva) ?? ""} onChange={(e) => setField("FechaInicioProductiva", e.target.value)}/>
+                <small>{errors.FechaInicioProductiva}</small>
+              </div>
+
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="FechaFinalProductiva">Fecha final de etapa productiva*</label>
+                <input id="FechaFinalProductiva" name="FechaFinalProductiva" type="date" value={toISODateFlex(state.FechaFinalProductiva) ?? ""} onChange={(e) => setField("FechaFinalProductiva", e.target.value)} />
+                <small>{errors.FechaFinalProductiva}</small>
+              </div>
+            </>
+          )}
 
             {/* ================= Departamento ================= */}
             <div className="ft-field">

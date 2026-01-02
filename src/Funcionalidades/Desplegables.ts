@@ -384,6 +384,33 @@ export function useTipoVacante(tipoVacante: MaestrosService) {
   });
 }
 
+export function useDependencias(dependiciasSvc: MaestrosService) {
+  const load = React.useCallback(
+    (_search?: string) => dependiciasSvc.getAll({filter: "fields/Title eq 'Dependencias'"}),
+    [dependiciasSvc]
+  );
+
+  const addItem = React.useCallback(
+    (payload: maestro) => dependiciasSvc.create(payload),
+    [dependiciasSvc]
+  );
+
+  const editItem = React.useCallback(
+    (payload: maestro, id: string) => dependiciasSvc.update(id, payload),
+    [dependiciasSvc]
+  );
+
+  const deleteItem = React.useCallback(
+    (id: string | number) => dependiciasSvc.delete(String(id)),
+    [dependiciasSvc]
+  );
+
+  return useDesplegable<maestro>({
+    load, addItem, editItem, deleteItem,  getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+  });
+}
+
 /* ====== DOBLE CAMPO ====== */
 
 export function useTipoDocumentoSelect(tipoDocumentoSvc: MaestrosService) {
@@ -503,3 +530,85 @@ export function useDeptosMunicipios(DeptosSvc: DeptosYMunicipiosService) {
   return useDesplegable<dobleCampo>({
     load, getId: (e) => e.Abreviacion, getLabel: (e) => e.Title ?? "", includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",});
 } 
+
+import { useAuth } from "../auth/authProvider";
+import { fetchGroupMembers } from "./GroupMembers";
+
+const GRUPO_1 = "baaf7c8f-ad73-4891-a234-179222a82c9f";
+const GRUPO_2 = "cd18b815-7f35-40c8-8f68-56b11d5749ca";
+
+function norm(s: any) {
+  return String(s ?? "").trim().replace(/\s+/g, " ");
+}
+
+export function useDependenciasMixtas(dependenciasSvc: MaestrosService) {
+  const { getToken } = useAuth();
+
+  const [options, setOptions] = React.useState<desplegablesOption[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const reload = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // 1) Maestro (lista Maestros filtrada por 'Dependencias')
+      const maestroPromise = dependenciasSvc.getAll({
+        filter: "fields/Title eq 'Dependencias'",
+      });
+
+      // 2) Grupos
+      const gruposPromise = Promise.all([
+        fetchGroupMembers(GRUPO_1, getToken),
+        fetchGroupMembers(GRUPO_2, getToken),
+      ]);
+
+      const [maestroItems, [g1, g2]] = await Promise.all([maestroPromise, gruposPromise]);
+
+      // Nombres desde Maestro
+      const maestroNames = (maestroItems ?? [])
+        .map((m: maestro) => norm(m.T_x00ed_tulo1))
+        .filter(Boolean);
+
+      // Nombres desde grupos
+      const groupNames = [...(g1 ?? []), ...(g2 ?? [])]
+        .map((u) => norm(u.displayName))
+        .filter(Boolean);
+
+      // Merge
+      const combined = [...maestroNames, ...groupNames];
+
+      // Dedupe case-insensitive (conserva primer valor)
+      const map = new Map<string, string>();
+      for (const name of combined) {
+        const key = name.toLowerCase();
+        if (!map.has(key)) map.set(key, name);
+      }
+
+      // Ordenar para que quede bonito
+      const sorted = Array.from(map.values()).sort((a, b) =>
+        a.localeCompare(b, "es", { sensitivity: "base" })
+      );
+
+      const opts: desplegablesOption[] = sorted.map((n) => ({
+        value: n,
+        label: n,
+      }));
+
+      setOptions(opts);
+    } catch (e: any) {
+      setError(e?.message ?? "Error cargando dependencias mixtas");
+      setOptions([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [dependenciasSvc, getToken]);
+
+  React.useEffect(() => {
+    reload();
+  }, [reload]);
+
+  return { options, loading, error, reload };
+}
+

@@ -117,3 +117,17 @@ export function toGraphDateTime(
   const d = new Date(v as any);
   return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
 }
+
+
+export function spDateToDDMMYYYY(spDate: string | null | undefined): string {
+  if (!spDate) return "";
+
+  const d = new Date(spDate);
+  if (Number.isNaN(d.getTime())) return "";
+
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = String(d.getFullYear());
+
+  return `${dd}/${mm}/${yyyy}`;
+}

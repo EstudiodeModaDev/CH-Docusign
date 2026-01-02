@@ -3,10 +3,9 @@ import "../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
 import { useGraphServices } from "../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../models/Desplegables";
-import {useCargo, useCentroCostos, useCentroOperativo, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
+import {useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
 import { useAuth } from "../../../../auth/authProvider";
 import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
-import { useDependencias } from "../../../../Funcionalidades/Dependencias";
 import { formatPesosEsCO, numeroATexto,  } from "../../../../utils/Number";
 import { useSalarios } from "../../../../Funcionalidades/Salario";
 import { useDetallesPasosCesacion, usePasosCesacion } from "../../../../Funcionalidades/PasosCesacion";
@@ -42,7 +41,7 @@ export default function FormCesacion({onClose}: Props){
   const { options: nivelCargoOptions, loading: loadinNivelCargo, reload: reloadNivelCargo} = useNivelCargo(Maestro);
   const { loadPasosCesacion, rows} = usePasosCesacion()
   const { handleCreateAllSteps} = useDetallesPasosCesacion(DetallesPasosCesacion)
-  const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();  
+  const { options: dependenciaOptions, loading: loadingDependencias, } = useDependenciasMixtas(Maestro);
   const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
   const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
   const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);

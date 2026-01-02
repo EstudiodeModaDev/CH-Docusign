@@ -3,12 +3,11 @@ import "../AddContrato.css";
 import Select, { components, type OptionProps } from "react-select";
 import { useGraphServices } from "../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../models/Desplegables";
-import {useCargo, useCentroCostos, useCentroOperativo, useDeptosMunicipios, useEmpresasSelect, useEspecificidadCargo, useEtapa, useModalidadTrabajo, useNivelCargo, useOrigenSeleccion, useTipoContrato, useTipoDocumentoSelect, useTipoVacante, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
+import {useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useEspecificidadCargo, useEtapa, useModalidadTrabajo, useNivelCargo, useOrigenSeleccion, useTipoContrato, useTipoDocumentoSelect, useTipoVacante, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
 import { useContratos } from "../../../../Funcionalidades/Contratos";
 import { formatPesosEsCO, numeroATexto, toNumberFromEsCO } from "../../../../utils/Number";
 import { useAuth } from "../../../../auth/authProvider";
 import { getTodayLocalISO } from "../../../../utils/Date";
-import { useDependencias } from "../../../../Funcionalidades/Dependencias";
 import { useDetallesPasosNovedades, usePasosNoveades } from "../../../../Funcionalidades/PasosNovedades";
 import { useSalarios } from "../../../../Funcionalidades/Salario";
 
@@ -49,7 +48,7 @@ export default function FormContratacion({ onClose }: Props) {
   const { options: tipoContratoOptions, loading: loadingTipoContrato, reload: reloadTipoContrato } = useTipoContrato(Maestro);
   const { options: tipoVacanteOptions, loading: loadingTipoVacante, reload: reloadTipoVacante } = useTipoVacante(Maestro);
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos } = useDeptosMunicipios(DeptosYMunicipios);
-  const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();
+  const { options: dependenciaOptions, loading: loadingDependencias, } = useDependenciasMixtas(Maestro);
   const { loadSpecificSalary } = useSalarios(salarios);
   const { loadPasosNovedad, rows } = usePasosNoveades();
   const { handleCreateAllSteps } = useDetallesPasosNovedades(DetallesPasosNovedades);

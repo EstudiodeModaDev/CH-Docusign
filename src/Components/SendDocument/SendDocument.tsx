@@ -14,6 +14,7 @@ import type { Novedad } from "../../models/Novedades";
 import type { HabeasData } from "../../models/HabeasData";
 import type { Cesacion } from "../../models/Cesaciones";
 import { useCesaciones } from "../../Funcionalidades/Cesaciones";
+import { spDateToDDMMYYYY } from "../../utils/Date";
 
 export type Proceso = "Promocion" | "Habeas" | "Nuevo" | "Cesacion";
 
@@ -32,6 +33,16 @@ type DocuSignVM = {
   tipoDoc: string;
   tipoDocCorto: string;
   tipoTel: string;
+  universidad: string;
+  nitUniversidad: string;
+  fechaNac: string;
+  coordinador: string;
+  especialidad: string;
+  fechaInicioLectiva: string;
+  fechaFinalLectiva: string;
+  fechaInicioProductiva: string;
+  fechaFinalProductiva: string;
+  etapa: string;
 };
 
 const emptyVM = (): DocuSignVM => ({
@@ -49,6 +60,16 @@ const emptyVM = (): DocuSignVM => ({
   tipoDoc: "",
   tipoDocCorto: "",
   tipoTel: "",
+  coordinador: "",
+  especialidad: "",
+  etapa: "",
+  fechaFinalLectiva: "",
+  fechaFinalProductiva: "",
+  fechaInicioLectiva: "",
+  fechaInicioProductiva: "",
+  fechaNac: "",
+  nitUniversidad: "",
+  universidad: ""
 });
 
 export function mapPromocionToVM(p: Promocion): DocuSignVM {
@@ -88,6 +109,16 @@ export function mapNovedadToVM(n: Novedad): DocuSignVM {
     tipoDoc: n.tipodoc ?? "",
     tipoDocCorto: n.Tipo_x0020_de_x0020_documento_x0 ?? "",
     tipoTel: n.MODALIDAD_x0020_TELETRABAJO ?? "",
+    coordinador: n.Coordinadordepracticas,
+    especialidad: n.Coordinadordepracticas,
+    etapa: n.Etapa,
+    fechaFinalLectiva: spDateToDDMMYYYY(n.FechaFinalLectiva),
+    fechaFinalProductiva: spDateToDDMMYYYY(n.FechaFinalProductiva),
+    fechaInicioLectiva: spDateToDDMMYYYY(n.FechaInicioLectiva),
+    fechaInicioProductiva: spDateToDDMMYYYY(n.FechaInicioProductiva),
+    fechaNac: spDateToDDMMYYYY(n.FechaNac),
+    nitUniversidad: n.NitUniversidad,
+    universidad: n.Universidad
   };
 }
 

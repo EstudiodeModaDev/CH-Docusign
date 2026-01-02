@@ -211,6 +211,9 @@ export default function FormCesacion({onClose}: Props){
       setField("TipoDoc", persona.tipoDoc)
       setField("Empresaalaquepertenece", persona.empresa)
       setField("Correoelectronico", persona.correo)
+      setField("Departamento", persona.departamento)
+      setField("Ciudad", persona.ciudad)
+      setField("Celular", persona.celular)
     }
   }, []);
   
@@ -219,24 +222,13 @@ export default function FormCesacion({onClose}: Props){
       <section className="ft-scope ft-card" role="region" aria-labelledby="ft_title">
         <h2 id="ft_title" className="ft-title">Nueva Cesación</h2>
         <form className="ft-form" noValidate>
-          {/* ================= Empresa ================= */}
+
+          {/* Número documento */}
           <div className="ft-field">
-            <label className="ft-label" htmlFor="solicitante">Empresa a la que pertenece *</label>
-            <Select<desplegablesOption, false>
-              inputId="solicitante"
-              options={empresaOptions}
-              placeholder={loadingEmp ? "Cargando opciones…" : "Buscar empresa..."}
-              value={selectedEmpresa}
-              onChange={(opt) => setField("Empresaalaquepertenece", opt?.label ?? "")}
-              classNamePrefix="rs"
-              isDisabled={loadingEmp}
-              isLoading={loadingEmp}
-              getOptionValue={(o) => String(o.value)}
-              getOptionLabel={(o) => o.label}
-              components={{ Option }}
-              isClearable
-            />
-            <small>{errors.Empresaalaquepertenece}</small>
+            <label className="ft-label" htmlFor="numeroIdent">Número de identificación *</label>
+            <input id="Title" name="Title" type="number" placeholder="Ingrese el número de documento" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value)} onBlur={ (e) => searchPeople(e.target.value)}
+              autoComplete="off" required aria-required="true" maxLength={300}/>
+            <small>{errors.Title}</small>
           </div>
 
           <div className="ft-field">
@@ -258,19 +250,31 @@ export default function FormCesacion({onClose}: Props){
             <small>{errors.TipoDoc}</small>
           </div>
 
-          {/* Número documento */}
-          <div className="ft-field">
-            <label className="ft-label" htmlFor="numeroIdent">Número de identificación *</label>
-            <input id="Title" name="Title" type="number" placeholder="Ingrese el número de documento" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value)} onBlur={ (e) => searchPeople(e.target.value)}
-              autoComplete="off" required aria-required="true" maxLength={300}/>
-            <small>{errors.Title}</small>
-          </div>
-
           {/* Nombre seleccionado */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="Nombre"> Nombre del seleccionado *</label>
             <input id="Nombre" name="Nombre" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Nombre ?? ""} onChange={(e) => setField("Nombre", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.Nombre}</small>
+          </div>
+
+          {/* ================= Empresa ================= */}
+          <div className="ft-field">
+            <label className="ft-label" htmlFor="solicitante">Empresa a la que pertenece *</label>
+            <Select<desplegablesOption, false>
+              inputId="solicitante"
+              options={empresaOptions}
+              placeholder={loadingEmp ? "Cargando opciones…" : "Buscar empresa..."}
+              value={selectedEmpresa}
+              onChange={(opt) => setField("Empresaalaquepertenece", opt?.label ?? "")}
+              classNamePrefix="rs"
+              isDisabled={loadingEmp}
+              isLoading={loadingEmp}
+              getOptionValue={(o) => String(o.value)}
+              getOptionLabel={(o) => o.label}
+              components={{ Option }}
+              isClearable
+            />
+            <small>{errors.Empresaalaquepertenece}</small>
           </div>
 
           {/* Correo */}

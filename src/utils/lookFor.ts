@@ -14,6 +14,11 @@ export type datosBasicos = {
   empresa: string;
   tipoDoc: string;
   correo: string;
+  departamento: string;
+  ciudad: string;
+  celular: string;
+  direccion: string;
+  barrio: string;
 };
 
 type Candidate =
@@ -33,6 +38,11 @@ const emptyDB = (): datosBasicos => ({
   empresa: "",
   nombre: "",
   tipoDoc: "",
+  barrio: "",
+  celular: "",
+  ciudad: "",
+  departamento: "",
+  direccion: ""
 });
 
 function safeDate(v: unknown): Date {
@@ -72,6 +82,8 @@ export function mapPromocionToVM(p: Promocion): datosBasicos {
     empresa: p.EmpresaSolicitante ?? "",
     nombre: p.NombreSeleccionado ?? "",
     tipoDoc: p.TipoDoc ?? "",
+    ciudad: p.Ciudad,
+    departamento: p.Departamento,
   };
 }
 
@@ -83,6 +95,11 @@ export function mapNovedadToVM(n: Novedad): datosBasicos {
     correo: n.CORREO_x0020_ELECTRONICO_x0020_ ?? "",
     empresa: n.Empresa_x0020_que_x0020_solicita ?? "",
     tipoDoc: n.Tipo_x0020_de_x0020_documento_x0 ?? "",
+    barrio: n.BARRIO_x0020_,
+    celular: n.CELULAR_x0020_,
+    ciudad: n.CIUDAD,
+    departamento: n.Departamento,
+    direccion: n.DIRECCION_x0020_DE_x0020_DOMICIL
   };
 }
 
@@ -94,6 +111,7 @@ export function mapHabeasToVM(h: HabeasData): datosBasicos {
     correo: h.Correo ?? "",
     empresa: h.Empresa ?? "",
     tipoDoc: h.Tipodoc ?? "",
+    ciudad: h.Ciudad
   };
 }
 
@@ -105,6 +123,9 @@ export function mapCesacionToVM(c: Cesacion): datosBasicos {
     correo: c.Correoelectronico ?? "",
     empresa: c.Empresaalaquepertenece ?? "",
     tipoDoc: c.TipoDoc ?? "",
+    celular: c.Celular,
+    ciudad: c.Ciudad,
+    departamento: c.Departamento,
   };
 }
 

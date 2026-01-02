@@ -273,6 +273,11 @@ React.useEffect(() => {
       setField("Tipo_x0020_de_x0020_documento_x0", persona.tipoDoc)
       setField("Empresa_x0020_que_x0020_solicita", persona.empresa)
       setField("CORREO_x0020_ELECTRONICO_x0020_", persona.correo)
+      setField("Departamento", persona.departamento)
+      setField("CIUDAD", persona.ciudad)
+      setField("CELULAR_x0020_", persona.celular)
+      setField("DIRECCION_x0020_DE_x0020_DOMICIL", persona.direccion)
+      setField("BARRIO_x0020_", persona.barrio)
     }
   }, []);
 
@@ -282,24 +287,12 @@ React.useEffect(() => {
         <h2 id="ft_title" className="ft-title">Nueva Novedad</h2>
 
         <form className="ft-form" noValidate>
-          {/* ================= Empresa ================= */}
+
+          {/* Número documento */}
           <div className="ft-field">
-            <label className="ft-label" htmlFor="solicitante">Empresa que solicita *</label>
-            <Select<desplegablesOption, false>
-              inputId="solicitante"
-              options={empresaOptions}
-              placeholder={loadingEmp ? "Cargando opciones…" : "Buscar empresa..."}
-              value={selectedEmpresa}
-              onChange={(opt) => setField("Empresa_x0020_que_x0020_solicita", opt?.label ?? "")}
-              classNamePrefix="rs"
-              isDisabled={loadingEmp}
-              isLoading={loadingEmp}
-              getOptionValue={(o) => String(o.value)}
-              getOptionLabel={(o) => o.label}
-              components={{ Option }}
-              isClearable
-            />
-            <small>{errors.Empresa_x0020_que_x0020_solicita}</small>
+            <label className="ft-label" htmlFor="numeroIdent">Número de identificación *</label>
+            <input id="numeroIdent" name="Numero_x0020_identificaci_x00f3_" type="number" placeholder="Ingrese el número de documento" value={state.Numero_x0020_identificaci_x00f3_ ?? ""} onChange={(e) => setField("Numero_x0020_identificaci_x00f3_", e.target.value)} autoComplete="off" required aria-required="true" maxLength={300}  onBlur={ (e) => searchPeople(e.target.value)}/>
+            <small>{errors.Numero_x0020_identificaci_x00f3_}</small>
           </div>
 
           {/* ================= Tipo documento ================= */}
@@ -331,19 +324,33 @@ React.useEffect(() => {
             <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo de documento" value={state.tipodoc ?? ""} readOnly/>
           </div>
 
-          {/* Número documento */}
-          <div className="ft-field">
-            <label className="ft-label" htmlFor="numeroIdent">Número de identificación *</label>
-            <input id="numeroIdent" name="Numero_x0020_identificaci_x00f3_" type="number" placeholder="Ingrese el número de documento" value={state.Numero_x0020_identificaci_x00f3_ ?? ""} onChange={(e) => setField("Numero_x0020_identificaci_x00f3_", e.target.value)} autoComplete="off" required aria-required="true" maxLength={300}  onBlur={ (e) => searchPeople(e.target.value)}/>
-            <small>{errors.Numero_x0020_identificaci_x00f3_}</small>
-          </div>
-
           {/* Nombre seleccionado */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="nombreSeleccionado">Nombre del seleccionado *</label>
             <input id="nombreSeleccionado" name="NombreSeleccionado" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.NombreSeleccionado ?? ""} onChange={(e) => setField("NombreSeleccionado", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.NombreSeleccionado}</small>
           </div>
+
+          {/* ================= Empresa ================= */}
+          <div className="ft-field">
+            <label className="ft-label" htmlFor="solicitante">Empresa que solicita *</label>
+            <Select<desplegablesOption, false>
+              inputId="solicitante"
+              options={empresaOptions}
+              placeholder={loadingEmp ? "Cargando opciones…" : "Buscar empresa..."}
+              value={selectedEmpresa}
+              onChange={(opt) => setField("Empresa_x0020_que_x0020_solicita", opt?.label ?? "")}
+              classNamePrefix="rs"
+              isDisabled={loadingEmp}
+              isLoading={loadingEmp}
+              getOptionValue={(o) => String(o.value)}
+              getOptionLabel={(o) => o.label}
+              components={{ Option }}
+              isClearable
+            />
+            <small>{errors.Empresa_x0020_que_x0020_solicita}</small>
+          </div>
+
 
           {/* Correo */}
           <div className="ft-field">

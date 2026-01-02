@@ -152,8 +152,6 @@ export function usePasosPromocion() {
       visual ? ColaboradoresVisual.getFilesByFolderId(visual.id) : Promise.resolve([]),
     ]);
 
-    console.table(edm ?? dh); // o los dos si quieres
-
     // 3) Unir resultados de ambas bibliotecas
     setColaboradores([...archivosEDM, ...archivosDH, ...archivosDenim, ...archivosMeta, ...archivosVisual]);
   };

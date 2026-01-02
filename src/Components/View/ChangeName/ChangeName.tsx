@@ -13,7 +13,7 @@ type Props = {
 
 export const RenameModal: React.FC<Props> = ({open, selectedFile, onClose, biblioteca, recargar}) => {
   const [value, setValue] = React.useState("");
-  const {ColaboradoresDH, ColaboradoresEDM} = useGraphServices()
+  const {ColaboradoresDH, ColaboradoresEDM, ColaboradoresDenim, ColaboradoresMeta, ColaboradoresVisual} = useGraphServices()
   
 
     const rename = React.useCallback(async (newName: string) => {
@@ -21,9 +21,15 @@ export const RenameModal: React.FC<Props> = ({open, selectedFile, onClose, bibli
         try {
             if(biblioteca === "estudio"){
                 ColaboradoresEDM.renameArchivo(selectedFile, newName)
-            } else {
+            } else if(biblioteca === "dh"){
                 ColaboradoresDH.renameArchivo(selectedFile, newName)
-            }
+            } else if(biblioteca === "denim"){
+                ColaboradoresDenim.renameArchivo(selectedFile, newName)
+            } else if(biblioteca === "meta"){
+                ColaboradoresMeta.renameArchivo(selectedFile, newName)
+            } else if(biblioteca === "visual"){
+                ColaboradoresVisual.renameArchivo(selectedFile, newName)
+            } 
           await recargar()
         } catch (e: any) {
         console.error(e?.message ?? "Error actualizando elemento de la carpeta.");

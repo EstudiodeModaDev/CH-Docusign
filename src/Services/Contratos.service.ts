@@ -131,7 +131,19 @@ export class ContratosService {
         VALOR_x0020_GARANTIZADO: f.VALOR_x0020_GARANTIZADO,
         Auxilioderodamientosiono: f.Auxilioderodamientosiono,
         Ajustesalario: f.Ajustesalario,
-        FechaReporte: f.FechaReporte
+        FechaReporte: f.FechaReporte,
+        Coordinadordepracticas: f.Coordinadordepracticas,
+        Especialidad: f.Especialidad,
+        Etapa: f.Etapa,
+        FechaFinalLectiva: f.FechaInicioLectiva,
+        FechaFinalProductiva: f.FechaFinalProductiva,
+        FechaInicioLectiva: f.FechaInicioLectiva,
+        FechaInicioProductiva: f.FechaInicioProductiva,
+        FechaNac: f.FechaNac,
+        NitUniversidad: f.NitUniversidad,
+        Practicante: f.Practicante,
+        Universidad: f.Universidad,
+        Aprendiz: f.Aprendiz
     };
   }
 

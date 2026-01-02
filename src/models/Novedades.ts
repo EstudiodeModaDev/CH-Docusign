@@ -60,6 +60,18 @@ export type Novedad = {
     Auxilio_x0020_de_x0020_rodamient0: string;//Auxilio de rodamiento en letras
     Ajustesalario: boolean;
     Auxilioderodamientosiono: boolean
+    Universidad: string;
+    NitUniversidad: string;
+    FechaNac: string | null;
+    Coordinadordepracticas: string;
+    Especialidad: string;
+    FechaInicioLectiva: string | null;
+    FechaFinalLectiva: string | null;
+    FechaInicioProductiva: string | null;
+    FechaFinalProductiva: string | null;
+    Etapa: string
+    Practicante: boolean;
+    Aprendiz: boolean
 }
 
 export type NovedadCancelada = {

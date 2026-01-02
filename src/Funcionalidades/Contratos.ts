@@ -79,10 +79,24 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
     UNIDAD_x0020_DE_x0020_NEGOCIO_x0: "",
     VALOR_x0020_GARANTIZADO: "",
     Ajustesalario: false,
-    Auxilioderodamientosiono: false   
+    Auxilioderodamientosiono: false,
+    Coordinadordepracticas: "",
+    Especialidad: "",
+    Etapa: "",  
+    FechaFinalLectiva: "",
+    FechaFinalProductiva:"",
+    FechaInicioLectiva: "",
+    FechaInicioProductiva: "",
+    FechaNac: "",
+    NitUniversidad: "",
+    Practicante: false,
+    Universidad: "",
+    Aprendiz: false
   });
   const [errors, setErrors] = React.useState<NovedadErrors>({});
-  const setField = <K extends keyof Novedad>(k: K, v: Novedad[K]) => setState((s) => ({ ...s, [k]: v }));
+  const setField = React.useCallback(<K extends keyof Novedad>(k: K, v: Novedad[K]) => { setState((s) => ({ ...s, [k]: v }));},
+    []
+  );
   
   // construir filtro OData
   const buildFilter = React.useCallback((): GetAllOpts => {
@@ -217,6 +231,20 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
     if(!!state.Pertenecealmodelo && !state.PRESUPUESTO_x0020_VENTAS_x002f_M) e.PRESUPUESTO_x0020_VENTAS_x002f_M = "Escoja un valor para el presupesto ventas/magnitud económica"
     if(!!state.Pertenecealmodelo && !state.IMPACTO_x0020_CLIENTE_x0020_EXTE) e.IMPACTO_x0020_CLIENTE_x0020_EXTE = "Escoja un valor para el impacto cliente externo"
     if(!!state.Pertenecealmodelo && !state.CONTRIBUCION_x0020_A_x0020_LA_x0) e.CONTRIBUCION_x0020_A_x0020_LA_x0 = "Escoja un valor para la contribución a la estrategia"
+    if(!!state.Aprendiz && !state.Coordinadordepracticas) e.Coordinadordepracticas = "Ingrese el nombre del coordinador de practicas"
+    if(!!state.Aprendiz && !state.Especialidad) e.Especialidad = "Ingrese una especialidad"
+    if(!!state.Aprendiz && !state.Etapa) e.Etapa = "Seleccione la etapa"
+    if(!!state.Aprendiz && !state.FECHA_x0020_REQUERIDA_x0020_PARA) e.FECHA_x0020_REQUERIDA_x0020_PARA = "Seleccione la fecha de finalizacion del contrato"
+    if(!!state.Aprendiz && !state.FechaFinalLectiva) e.FechaFinalLectiva = "Selecciona la fecha de finalización de la etapa lectiva"
+    if(!!state.Aprendiz && !state.FechaFinalProductiva) e.FechaFinalProductiva = "Seleccione la fecha de finalización de la etapa productiva"
+    if(!!state.Aprendiz && !state.FechaInicioLectiva) e.FechaInicioLectiva = "Seleccione la fecha de inicio de la etapa lectiva"
+    if(!!state.Aprendiz && !state.FechaInicioProductiva) e.FechaInicioProductiva = "Seleccione la fecha de inicio de la etapa productiva"
+    if(!!state.Aprendiz && !state.FechaNac) e.FechaNac = "Seleccione la fecha de nacimiento del aprendiz"
+    if(!!state.Aprendiz && !state.NitUniversidad) e.NitUniversidad = "Ingrese el NIT de la universidad"
+    if(!!state.Universidad && !state.Universidad) e.Universidad = "Ingrese el nombre de la universidad"
+    if(new Date(state.FechaFinalLectiva ?? "") < new Date(state.FechaInicioProductiva ?? "")) e.FechaInicioProductiva = "El estudiante no puede iniciar etapa productiva sin finalizar la etapa lectiva"
+    if(new Date(state.FechaFinalProductiva ?? "") < new Date(state.FechaInicioProductiva ?? "")) e.FechaFinalProductiva = "El estudiante no puede finalizar la etapa productiva sin haberla iniciado"
+    if(new Date(state.FechaFinalLectiva ?? "") < new Date(state.FechaInicioLectiva ?? "")) e.FechaFinalLectiva = "El estudiante no puede finalizar la etapa lectiva sin haberla iniciado"
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -282,13 +310,26 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
       UNIDAD_x0020_DE_x0020_NEGOCIO_x0: "",
       VALOR_x0020_GARANTIZADO: "",
       Ajustesalario: false,
-      Auxilioderodamientosiono: false 
+      Auxilioderodamientosiono: false,
+      Coordinadordepracticas: "",
+      Especialidad: "",
+      Etapa: "",
+      FechaFinalLectiva: "",
+      FechaFinalProductiva:"",
+      FechaInicioLectiva: "",
+      FechaInicioProductiva: "",
+      FechaNac: "",
+      NitUniversidad: "",
+      Practicante: false,
+      Universidad: "",
+      Aprendiz: false
     })
   };
 
   const handleSubmit = async (): Promise<{created: string | null, ok: boolean}> => {
     if (!validate()) { 
       alert("Hay campos sin rellenar")
+      console.log(errors)
       return {
         created: null,
         ok: false        
@@ -357,7 +398,19 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
         UNIDAD_x0020_DE_x0020_NEGOCIO_x0: state.UNIDAD_x0020_DE_x0020_NEGOCIO_x0,
         VALOR_x0020_GARANTIZADO: state.VALOR_x0020_GARANTIZADO,
         Cargo_x0020_de_x0020_la_x0020_pe: state.Cargo_x0020_de_x0020_la_x0020_pe,
-        FechaReporte: state.FechaReporte
+        FechaReporte: state.FechaReporte,
+        Coordinadordepracticas: state.Coordinadordepracticas,
+        Especialidad: state.Especialidad,
+        Etapa: state.Etapa,
+        FechaFinalLectiva: toGraphDateTime(state.FechaFinalLectiva) ?? null,
+        FechaFinalProductiva: toGraphDateTime(state.FechaFinalProductiva) ?? null,
+        FechaInicioLectiva: toGraphDateTime(state.FechaInicioLectiva) ?? null,
+        FechaInicioProductiva:  toGraphDateTime(state.FechaInicioProductiva) ?? null,
+        FechaNac: toGraphDateTime(state.FechaNac) ?? null,
+        NitUniversidad: state.NitUniversidad,
+        Practicante: state.Practicante,
+        Universidad: state.Universidad,
+        Aprendiz: state.Aprendiz
       }; 
       const created = await ContratosSvc.create(payload);
       alert("Se ha creado el registro con éxito")
@@ -549,8 +602,6 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
       throw new Error("Ha ocurrido un error cancelando el proceso");
     }
 }, [ContratosSvc]);
-
-
 
   return {
     rows, loading, error, pageSize, pageIndex, hasNext, range, search, errors, sorts, state, workers, workersOptions,

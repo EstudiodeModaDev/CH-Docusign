@@ -249,6 +249,33 @@ export function useEspecificidadCargo(espeficidadSvc: MaestrosService) {
   });
 }
 
+export function useEtapa(etapasSvc: MaestrosService) {
+  const load = React.useCallback(
+    () => etapasSvc.getAll({filter: "fields/Title eq 'Etapas'"}),
+    [etapasSvc]
+  );
+
+  const addItem = React.useCallback(
+    (payload: maestro) => etapasSvc.create(payload),
+    [etapasSvc]
+  );
+
+  const editItem = React.useCallback(
+    (payload: maestro, id: string) => etapasSvc.update(id, payload),
+    [etapasSvc]
+  );
+
+  const deleteItem = React.useCallback(
+    (id: string | number) => etapasSvc.delete(String(id)),
+    [etapasSvc]
+  );
+
+  return useDesplegable<maestro>({
+    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+  });
+}
+
 export function useNivelCargo(nivelSvc: MaestrosService) {
   const load = React.useCallback(
     () => nivelSvc.getAll({filter: "fields/Title eq 'Nivel de cargos'"}),

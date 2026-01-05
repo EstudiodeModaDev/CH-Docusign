@@ -39,7 +39,6 @@ export const UnidadNegocioManager: React.FC = () => {
         reload();
     }, [reload]);
 
-
     return (
         <div className="emp-page">
             {/* Botón superior */}

@@ -1,3 +1,4 @@
+import type { ParamTab } from "../Components/Settings/SettingsPage";
 import type { Proceso } from "../utils/unify";
 import type { Cesacion, DetallesPasos, PasosProceso } from "./Cesaciones";
 import type { Novedad } from "./Novedades";
@@ -20,4 +21,10 @@ export type PropsProceso = {
   errorDetalles: string | null;
   loadDetalles: () => void;
   proceso: Proceso;
+};
+
+export type TablaParametrosProps = {
+  tabs: ParamTab[];
+  value: string;                     // id activo
+  onChange: (id: string) => void;
 };

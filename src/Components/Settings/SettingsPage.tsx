@@ -17,20 +17,14 @@ import { useGraphServices } from "../../graph/graphContext";
 import { usePasosNoveades } from "../../Funcionalidades/PasosNovedades";
 import type { PasosProceso } from "../../models/Cesaciones";
 import { usePasosPromocion } from "../../Funcionalidades/PasosPromocion";
-
+import type { TablaParametrosProps } from "../../models/Props";
 
 export type ParamTab = {
   id: string;
   label: string;
 };
 
-type Props = {
-  tabs: ParamTab[];
-  value: string;                     // id activo
-  onChange: (id: string) => void;
-};
-
-export const ParamTabs: React.FC<Props> = ({ tabs, value, onChange}) => {
+export const ParamTabs: React.FC<TablaParametrosProps> = ({ tabs, value, onChange}) => {
     const containerRef = React.useRef<HTMLDivElement | null>(null);
     const [indicatorStyle, setIndicatorStyle] = React.useState<React.CSSProperties>({});
 

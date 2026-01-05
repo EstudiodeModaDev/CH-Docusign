@@ -1,8 +1,7 @@
 import * as React from "react";
 import "./Contratos.css";
-import type { SortDir, SortField } from "../../../models/Commons";
+import type { DateRange, SortDir, SortField } from "../../../models/Commons";
 import type { Novedad } from "../../../models/Novedades";
-import { useContratos } from "../../../Funcionalidades/Contratos";
 import { useGraphServices } from "../../../graph/graphContext";
 import { toISODateFlex } from "../../../utils/Date";
 import { formatPesosEsCO } from "../../../utils/Number";
@@ -16,11 +15,28 @@ function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; d
   return <span style={{ marginLeft: 6, opacity: 0.85 }}>{dir}{sorts.length > 1 ? ` ${idx+1}` : ''}</span>;
 }
 
+export type Props = {
+  rows: Novedad[];
+  loading: boolean;
+  error: string | null;
+  pageSize: number;
+  pageIndex: number;
+  hasNext: boolean;
+  sorts: Array<{ field: SortField; dir: SortDir }>;
+  setRange: React.Dispatch<React.SetStateAction<DateRange>>;
+  setPageSize: (size: number) => void;
+  nextPage: () => void;
+  reloadAll: () => void;
+  toggleSort: (field: SortField, multi?: boolean) => void;
+  range: DateRange;
+  setSearch: React.Dispatch<React.SetStateAction<string>>;
+  search: string;
+  loadFirstPage: () => void;
+};
 
-export default function TablaContratos() {
+export default function TablaContratos({rows, loading, error, pageSize, pageIndex, hasNext, sorts, setRange, setPageSize, nextPage, reloadAll, toggleSort, range, setSearch, search, loadFirstPage}: Props) {
   const [visible, setVisible] = React.useState<boolean>(false)
-  const { Contratos, Envios, NovedadCancelada } = useGraphServices();
-  const {rows, loading, error, pageSize, pageIndex, hasNext, sorts, setRange, setPageSize, nextPage, reloadAll,  toggleSort, range, setSearch, search, loadFirstPage} = useContratos(Contratos, NovedadCancelada);
+  const { Envios, } = useGraphServices();
   const {canEdit} = useEnvios(Envios);
   const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Novedad | null>(null);
   const [tipoFormulario, setTipoFormulario] = React.useState<string>("");

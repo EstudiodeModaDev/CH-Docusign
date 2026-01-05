@@ -4,7 +4,6 @@ import Select, { components, type OptionProps } from "react-select";
 import { useGraphServices } from "../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../models/Desplegables";
 import {useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useEspecificidadCargo, useEtapa, useModalidadTrabajo, useNivelCargo, useOrigenSeleccion, useTipoContrato, useTipoDocumentoSelect, useTipoVacante, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
-import { useContratos } from "../../../../Funcionalidades/Contratos";
 import { formatPesosEsCO, numeroATexto, toNumberFromEsCO } from "../../../../utils/Number";
 import { useAuth } from "../../../../auth/authProvider";
 import { getTodayLocalISO } from "../../../../utils/Date";
@@ -14,6 +13,7 @@ import { lookOtherInfo, } from "../../../../utils/lookFor";
 import { useHabeasData } from "../../../../Funcionalidades/HabeasData";
 import { usePromocion } from "../../../../Funcionalidades/Promocion";
 import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
+import type { Novedad, NovedadErrors } from "../../../../models/Novedades";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -30,14 +30,20 @@ export const Option = (props: OptionProps<desplegablesOption, false>) => {
   );
 };
 
+export type SetField<T> = <K extends keyof T>(key: K, value: T[K]) => void;
+
 type Props = {
   onClose: () => void;
+  state: Novedad
+  setField: SetField<Novedad>;
+  handleSubmit: () => Promise<{ok: boolean; created: string | null;}>;
+  errors: NovedadErrors
+  searchRegister: (cedula: string) => Promise<Novedad | null>
 };
 
 /* ================== Formulario ================== */
-export default function FormContratacion({ onClose }: Props) {
-  const { Maestro, Contratos, DeptosYMunicipios, DetallesPasosNovedades, salarios, HabeasData, Promociones, Cesaciones } = useGraphServices();
-  const { state, setField, handleSubmit, errors, searchRegister: searchNovedad } = useContratos(Contratos);
+export default function FormContratacion({ onClose, state, setField, handleSubmit, errors, searchRegister: searchNovedad }: Props) {
+  const { Maestro, DeptosYMunicipios, DetallesPasosNovedades, salarios, HabeasData, Promociones, Cesaciones } = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
   const { searchRegister: searchPromocion } = usePromocion(Promociones);
   const { searchRegister: searchCesacion } = useCesaciones(Cesaciones);

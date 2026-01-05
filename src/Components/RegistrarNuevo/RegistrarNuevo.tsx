@@ -8,7 +8,13 @@ import FormHabeas from "./Modals/HabeasData/addHabeasData";
 import FormPromociones from "./Modals/Promociones/addPromociones";
 import CesacionesTabla from "./Cesaciones/Cesaciones";
 import FormCesacion from "./Modals/Cesaciones/addCesacion";
+import { useContratos } from "../../Funcionalidades/Contratos";
+import { useGraphServices } from "../../graph/graphContext";
+
 export default function RegistrarNuevoPage() {
+    const { Contratos, NovedadCancelada } = useGraphServices();
+    const {rows, loading, error, state, pageSize, handleSubmit, pageIndex, hasNext, sorts, setField, setRange, setPageSize, nextPage, reloadAll,  toggleSort, range, setSearch, search, loadFirstPage, errors, searchRegister} = useContratos(Contratos, NovedadCancelada);
+
   const [orden, setOrden] = React.useState("contrataciones");
   const [modal, setModal] = React.useState<boolean>(false)
 
@@ -28,7 +34,7 @@ export default function RegistrarNuevoPage() {
       </div>
 
       {
-        orden === "contrataciones" ? ( <TablaContratos />) : 
+        orden === "contrataciones" ? ( <TablaContratos rows={rows} loading={loading} error={error} pageIndex={pageIndex} pageSize={pageSize} hasNext={hasNext} sorts={sorts} setRange={setRange} setPageSize={setPageSize} nextPage={nextPage} reloadAll={reloadAll} toggleSort={toggleSort} range={range}  search={search} setSearch={setSearch} loadFirstPage={loadFirstPage} /> ) :  
         orden === "habeas" ? (<TablaHabeas />) : 
         orden === "promociones" ? (<TablaPromociones />) : 
         orden === "cesaciones" ? (<CesacionesTabla />) : null
@@ -36,7 +42,7 @@ export default function RegistrarNuevoPage() {
       
 
       {/* MODALES AGREGAR */}
-      {orden === "contrataciones" && modal ? <FormContratacion onClose={() => setModal(false)}/> : null}
+      {orden === "contrataciones" && modal ? <FormContratacion state={state} setField={setField} onClose={() => setModal(false)} handleSubmit={() => handleSubmit()} errors={errors} searchRegister={(cedula: string) => searchRegister(cedula)}/> : null}
       {orden === "habeas" && modal ? <FormHabeas onClose={() => setModal(false)}/> : null}
       {orden === "promociones" && modal ? <FormPromociones onClose={() => setModal(false)}/> : null}
       {orden === "cesaciones" && modal ? <FormCesacion onClose={() => setModal(false)}/> : null}

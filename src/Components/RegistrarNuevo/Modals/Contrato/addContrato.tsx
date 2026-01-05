@@ -456,8 +456,8 @@ React.useEffect(() => {
               </div>
 
               <div className="ft-field">
-                <label className="ft-label" htmlFor="especialidad">Especialidad *</label>
-                <input id="especialidad" name="especialidad" type="text" placeholder="Ingrese la especialidad" value={state.Especialidad ?? ""}  required aria-required="true" maxLength={300} onChange={(e) => setField("Especialidad", e.target.value.trim().toUpperCase())} />
+                <label className="ft-label" htmlFor="especialidad">{state.Aprendiz ? "Especialidad *" : "Programa *"}</label>
+                <input id="especialidad" name="especialidad" type="text" placeholder={state.Aprendiz ? "Ingrese la especialidad *" : "Ingrese el programa *"} value={state.Especialidad ?? ""}  required aria-required="true" maxLength={300} onChange={(e) => setField("Especialidad", e.target.value.trim().toUpperCase())} />
                 <small>{errors.Especialidad}</small>
               </div>
 

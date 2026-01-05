@@ -463,7 +463,7 @@ React.useEffect(() => {
             </div>
           </div>
 
-          {state.Aprendiz || state.Practicante && (
+          {(state.Aprendiz || state.Practicante) && (
             <>
               <div className="ft-field">
                 <label className="ft-label" htmlFor="universidad">Nombre de la universidad *</label>

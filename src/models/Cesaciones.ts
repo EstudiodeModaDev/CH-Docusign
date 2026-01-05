@@ -49,6 +49,7 @@ export type PasosProceso = {
     Orden: number;
     NombreEvidencia: string;
     TipoPaso: string;
+    PlantillaCorreo: string
 }
 
 export type DetallesPasos = {

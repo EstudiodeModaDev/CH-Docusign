@@ -145,7 +145,6 @@ export class DeptosYMunicipiosService {
     try {
       const res = await this.graph.get<any>(url);
       const mappedRes = (res.value ?? []).map((x: any) => this.toModel(x));
-      console.table(mappedRes)
       return mappedRes
     } catch (e: any) {
       // Si la ruta es válida pero el $filter rompe, reintenta sin $filter para diagnóstico

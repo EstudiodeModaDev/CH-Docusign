@@ -17,7 +17,7 @@ export function usePasosNoveades() {
     const [colaboradores, setColaboradores] = React.useState<Archivo[]>([]);
     const [decisiones, setDecisiones] = React.useState<Record<string, "" | "Aceptado" | "Rechazado">>({});
     const [motivos, setMotivos] = React.useState<Record<string, string>>({});
-    const [state, setState] = React.useState<PasosProceso>({NombreEvidencia: "", NombrePaso: "", Orden: 0, TipoPaso: "", Title: "",});
+    const [state, setState] = React.useState<PasosProceso>({NombreEvidencia: "", NombrePaso: "", Orden: 0, TipoPaso: "", Title: "", PlantillaCorreo:""});
     const setField = <K extends keyof PasosProceso>(k: K, v: PasosProceso[K]) => setState((s) => ({ ...s, [k]: v }));
 
     const loadPasosNovedad = React.useCallback(async () => {

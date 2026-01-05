@@ -27,14 +27,16 @@ export class PasosCesacionService {
   // ---------- mapping ----------
   private toModel(item: any): PasosProceso {
     const f = item?.fields ?? {};
-    return {
+    const mapped = {
         Id: String(item?.id ?? ''),
         Title: f.Title,
         NombreEvidencia: f.NombreEvidencia,
         NombrePaso: f.NombrePaso,
         Orden: f.Orden,
-        TipoPaso: f.TipoPaso
+        TipoPaso: f.TipoPaso,
+        PlantillaCorreo: f.PlantillaCorreo
     };
+    return mapped
   }
   
   private loadCache() {

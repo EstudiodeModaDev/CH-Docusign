@@ -33,7 +33,8 @@ export class PasosNovedadesService {
         NombreEvidencia: f.NombreEvidencia,
         NombrePaso: f.NombrePaso,
         Orden: f.Orden,
-        TipoPaso: f.TipoPaso
+        TipoPaso: f.TipoPaso,
+        PlantillaCorreo: f.PlantillaCorreo
     };
   }
   

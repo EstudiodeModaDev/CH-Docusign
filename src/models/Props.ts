@@ -1,0 +1,23 @@
+import type { Proceso } from "../utils/unify";
+import type { Cesacion, DetallesPasos, PasosProceso } from "./Cesaciones";
+import type { Novedad } from "./Novedades";
+import type { Promocion } from "./Promociones";
+
+export type PropsProceso = {
+  titulo: string;
+  selectedCesacion: Cesacion | Promocion | Novedad;
+  loadingPasos: boolean;
+  errorPasos: string | null;
+  pasosById: Record<string, PasosProceso>;
+  decisiones: Record<string, "" | "Aceptado" | "Rechazado">;
+  motivos: Record<string, string>;
+  setMotivos: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  setDecisiones: React.Dispatch<React.SetStateAction<Record<string, "" | "Aceptado" | "Rechazado">>>;
+  onClose: () => void;
+  handleCompleteStep: (detalle: DetallesPasos, path?: string) => void;
+  detallesRows: DetallesPasos[];
+  loadingDetalles: boolean;
+  errorDetalles: string | null;
+  loadDetalles: () => void;
+  proceso: Proceso;
+};

@@ -414,7 +414,28 @@ React.useEffect(() => {
             </div>
           </div>
 
-          {state.Aprendiz && (
+          <div className="ft-field">
+            <label className="ft-label">¿Es practicante? *</label>
+            <div className="ft-radio-group">
+              <label className="ft-radio-custom">
+                <input type="radio" name="aprendiz" value="Si" checked={!!state.Aprendiz} onChange={() => { 
+                                                                                              setField("Practicante", true as any);
+                                                                                              setFechaFinalizacion(true);
+                                                                                            }}
+                                                                                          />
+                <span className="circle"></span>
+                <span className="text">Si</span>
+              </label>
+
+              <label className="ft-radio-custom">
+                <input type="radio" name="aprendiz" value="No" checked={!state.Aprendiz} onChange={() => {setField("Practicante", false as any); setFechaFinalizacion(true)}}/>
+                <span className="circle"></span>
+                <span className="text">No</span>
+              </label>
+            </div>
+          </div>
+
+          {state.Aprendiz || state.Practicante && (
             <>
               <div className="ft-field">
                 <label className="ft-label" htmlFor="universidad">Nombre de la universidad *</label>

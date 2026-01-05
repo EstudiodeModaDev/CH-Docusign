@@ -71,7 +71,7 @@ const emptyVM = (): DocuSignVM => ({
   fechaNac: "",
   nitUniversidad: "",
   universidad: "",
-  fechaFinal: ""
+  fechaFinal: "",
 });
 
 export function mapPromocionToVM(p: Promocion): DocuSignVM {
@@ -122,6 +122,7 @@ export function mapNovedadToVM(n: Novedad): DocuSignVM {
     fechaFinal: spDateToDDMMYYYY(n.FECHA_x0020_REQUERIDA_x0020_PARA0),
     nitUniversidad: n.NitUniversidad,
     universidad: n.Universidad
+
   };
 }
 
@@ -285,6 +286,7 @@ const EnviarFormatoCard: React.FC = () => {
         return vm.etapa;
 
       case "especialidad":
+      case "programa":
         return vm.especialidad;
 
       case "tipotel":

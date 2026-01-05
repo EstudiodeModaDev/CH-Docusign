@@ -14,6 +14,7 @@ import { lookOtherInfo } from "../../../../utils/lookFor";
 import { useHabeasData } from "../../../../Funcionalidades/HabeasData";
 import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
 import { useContratos } from "../../../../Funcionalidades/Contratos";
+import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
 
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -36,7 +37,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormPromociones({onClose}: Props){
-  const { Maestro, Promociones, DeptosYMunicipios, DetallesPasosPromocion, salarios, HabeasData, Contratos, Cesaciones} = useGraphServices();
+  const { Maestro, Promociones, DeptosYMunicipios, DetallesPasosPromocion, salarios, HabeasData, Contratos, Cesaciones, categorias} = useGraphServices();
   const { state, setField, handleSubmit, errors, searchRegister: searchPromocion } = usePromocion(Promociones);
   const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
   const { searchRegister: searchNovedad } = useContratos(Contratos);
@@ -56,6 +57,7 @@ export default function FormPromociones({onClose}: Props){
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
   const { options: dependenciaOptions, loading: loadingDependencias, } = useDependenciasMixtas(Maestro);
   const { loadSpecificSalary } = useSalarios(salarios);
+  const { loadSpecificLevel } = useAutomaticCargo(categorias);
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
 
@@ -198,6 +200,32 @@ export default function FormPromociones({onClose}: Props){
     setField("GrupoCVE", grupoCVE)
 
   }, [state.Autonomia, state.PresupuestoVentasMagnitudEconomi, state.ImpactoClienteExterno, state.ContribucionaLaEstrategia, promedio, grupoCVE]);
+
+  /* ================== Nivel por cargo ================== */
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      const salario = await loadSpecificLevel(state.Cargo);
+
+      if (cancelled) return;
+      if (!salario) return;
+
+      const recomendado = String(salario.Categoria ?? "");
+      const actual = String(state.NivelCargo ?? "");
+
+      // Si ya está igual, no vuelvas a setear (evita loops por "mismo valor")
+      if (recomendado && recomendado !== actual) {
+        setField("NivelCargo", recomendado as any);
+      }
+    };
+
+    if (state.Cargo) run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.Cargo,]);
 
   React.useEffect(() => {
     let cancelled = false;

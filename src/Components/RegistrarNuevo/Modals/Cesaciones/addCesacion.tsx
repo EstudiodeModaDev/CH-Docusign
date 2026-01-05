@@ -13,6 +13,7 @@ import { lookOtherInfo } from "../../../../utils/lookFor";
 import { usePromocion } from "../../../../Funcionalidades/Promocion";
 import { useHabeasData } from "../../../../Funcionalidades/HabeasData";
 import { useContratos } from "../../../../Funcionalidades/Contratos";
+import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -35,7 +36,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormCesacion({onClose}: Props){
-  const { Maestro, Cesaciones, DeptosYMunicipios, salarios, DetallesPasosCesacion, HabeasData, Contratos, Promociones } = useGraphServices();
+  const { Maestro, Cesaciones, DeptosYMunicipios, salarios, DetallesPasosCesacion, HabeasData, Contratos, Promociones, categorias } = useGraphServices();
   const { state, setField, handleSubmit, errors,  searchRegister: searchCesacion} = useCesaciones(Cesaciones);
   const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
   const { searchRegister: searchNovedad } = useContratos(Contratos);
@@ -52,6 +53,7 @@ export default function FormCesacion({onClose}: Props){
   const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
   const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
   const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
+  const { loadSpecificLevel } = useAutomaticCargo(categorias);
 
   const showCargos = React.useMemo(() => new Set<string>(["31", "42", "9", "33"]), []);
   const filteredCargoOptions = React.useMemo(() => cargoOptions.filter(o => showCargos.has(String(o.value))), [cargoOptions, showCargos]);
@@ -192,6 +194,33 @@ export default function FormCesacion({onClose}: Props){
       setField("GrupoCVE", nextGrupo);
     }
   }, [state.Autonomia, state.ImpactoCliente, state.contribucionEstrategia, state.PresupuestaVentas, state.Promedio, state.GrupoCVE, setField]);
+
+  /* ================== Nivel por cargo ================== */
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      const salario = await loadSpecificLevel(state.Cargo);
+
+      if (cancelled) return;
+      if (!salario) return;
+
+      const recomendado = String(salario.Categoria ?? "");
+      const actual = String(state.Niveldecargo ?? "");
+
+      // Si ya está igual, no vuelvas a setear (evita loops por "mismo valor")
+      if (recomendado && recomendado !== actual) {
+        setField("Niveldecargo", recomendado as any);
+      }
+    };
+
+    if (state.Cargo) run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.Cargo,]);
+
 
   const handleCreateCesacion = async () => {
     const created = await handleSubmit();

@@ -13,6 +13,7 @@ import type { Cesacion, DetallesPasos } from "../../../../models/Cesaciones";
 import { toISODateFlex } from "../../../../utils/Date";
 import { ProcessDetail } from "./procesoCesacion";
 import { useDetallesPasosCesacion, usePasosCesacion } from "../../../../Funcionalidades/PasosCesacion";
+import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -37,11 +38,12 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
-    const { Maestro, Cesaciones, DeptosYMunicipios, salarios, DetallesPasosCesacion } = useGraphServices();
+    const { Maestro, Cesaciones, DeptosYMunicipios, salarios, DetallesPasosCesacion, categorias } = useGraphServices();
     const { state, setField, handleEdit, errors, } = useCesaciones(Cesaciones);
     const { byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep, error: errorPasos, loading: loadingPasos} = usePasosCesacion()
     const { loading: loadingDetalles, rows: rowsDetalles, error: errorDetalles, loadDetallesCesacion} = useDetallesPasosCesacion(DetallesPasosCesacion, selectedCesacion.Id ?? "")
     const { loadSpecificSalary } = useSalarios(salarios);
+    const { loadSpecificLevel } = useAutomaticCargo(categorias);
     const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
     const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
     const { options: tipoDocOptions, loading: loadingTipoDoc, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
@@ -239,6 +241,31 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
       setField("GrupoCVE", nextGrupo);
     }
   }, [state.Autonomia, state.ImpactoCliente, state.contribucionEstrategia, state.PresupuestaVentas, state.Promedio, state.GrupoCVE, setField]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      const salario = await loadSpecificLevel(state.Cargo);
+
+      if (cancelled) return;
+      if (!salario) return;
+
+      const recomendado = String(salario.Categoria ?? "");
+      const actual = String(state.Niveldecargo ?? "");
+
+      // Si ya está igual, no vuelvas a setear (evita loops por "mismo valor")
+      if (recomendado && recomendado !== actual) {
+        setField("Niveldecargo", recomendado as any);
+      }
+    };
+
+    if (state.Cargo) run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.Cargo,]);
   
   return (
     <div className="ft-modal-backdrop">

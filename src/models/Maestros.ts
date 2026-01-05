@@ -9,3 +9,9 @@ export type withCode = {
     Title: string;
     Codigo: string;
 }
+
+export type CargoCategoria = {
+    Id?: string;
+    Title: string;
+    Categoria: string;
+}

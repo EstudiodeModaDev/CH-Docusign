@@ -25,6 +25,7 @@ import { DetallesPasosCesacionService } from "../Services/DetallesPasosCesacion.
 import { MailService } from "../Services/Mail.service";
 import { PasosNovedadesService } from "../Services/PasosNovedades.service";
 import { DetallesPasosNovedadesService } from "../Services/DetallesPasosNovedades.service";
+import { CategoriaCargosService } from "../Services/CategoriaCargos.service";
 
 /* ================== Tipos de config ================== */
 export type SiteConfig = {
@@ -59,6 +60,7 @@ export type UnifiedConfig = {
     DeptosYMunicipios: string;
     Maestros: string;
     salarios: string;
+    categorias: string
 
     //Seguridad
     Usuarios: string;
@@ -111,6 +113,7 @@ export type GraphServices = {
   Maestro: MaestrosService
   DeptosYMunicipios: DeptosYMunicipiosService;
   salarios: SalariosService
+  categorias: CategoriaCargosService
 
   // Seguridad
   Usuarios: UsuariosSPService;
@@ -175,6 +178,7 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     Maestros: "Maestros",
     DeptosYMunicipios: "DeptosyMunicipios",
     salarios: "Cargos - Salarios Recomendados",
+    categorias: "Cargos - CategoriaCargos",
 
     //Seguridad
     Usuarios: "Permisos Docu",
@@ -258,6 +262,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     const Maestro                 = new MaestrosService(graph, ch.hostname, ch.sitePath, lists.Maestros)
     const DeptosYMunicipios       = new DeptosYMunicipiosService(graph, ch.hostname, ch.sitePath, lists.DeptosYMunicipios)
     const salarios                = new SalariosService(graph, ch.hostname, ch.sitePath, lists.salarios)
+    const categorias              = new CategoriaCargosService(graph, ch.hostname, ch.sitePath, lists.categorias)
 
     //Seguridad
     const Usuarios                = new UsuariosSPService(graph, ch.hostname, ch.sitePath, lists.Usuarios);
@@ -293,7 +298,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       //Cesaciones
       Cesaciones, PasosCesacion, DetallesPasosCesacion,
       //Desplegables
-      Maestro, DeptosYMunicipios, salarios,
+      Maestro, DeptosYMunicipios, salarios, categorias,
       //Seguridad
       Usuarios, Perfiles,
       //Envios

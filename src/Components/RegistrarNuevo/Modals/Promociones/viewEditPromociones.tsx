@@ -13,6 +13,7 @@ import { formatPesosEsCO, numeroATexto, toNumberFromEsCO } from "../../../../uti
 import { ProcessDetail } from "../Cesaciones/procesoCesacion";
 import { useDetallesPasosPromocion, usePasosPromocion } from "../../../../Funcionalidades/PasosPromocion";
 import type { DetallesPasos } from "../../../../models/Cesaciones";
+import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
 
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -37,7 +38,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Props) {
-  const { Maestro, Promociones, DeptosYMunicipios, DetallesPasosPromocion} = useGraphServices();
+  const { Maestro, Promociones, DeptosYMunicipios, DetallesPasosPromocion, categorias} = useGraphServices();
   const { state, setField, errors, handleEdit } = usePromocion(Promociones);
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
   const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
@@ -53,6 +54,7 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
   const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();
   const { loading: loadinPasosPromocion, error: errorPasosPromocion, byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep} = usePasosPromocion()
   const {rows: rowsDetalles, loading: loadingDetalles, error: errorDetalles, loadDetallesPromocion} = useDetallesPasosPromocion(DetallesPasosPromocion, selectedPromocion.Id)
+  const { loadSpecificLevel } = useAutomaticCargo(categorias);
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
   const selectedEmpresa = empresaOptions.find((o) => o.label === state.EmpresaSolicitante) ?? null;
@@ -257,6 +259,32 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
       .filter(Boolean);
       setSelecciones(arr);
   }, [selectedPromocion]);
+
+  /* ================== Nivel por cargo ================== */
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      const salario = await loadSpecificLevel(state.Cargo);
+
+      if (cancelled) return;
+      if (!salario) return;
+
+      const recomendado = String(salario.Categoria ?? "");
+      const actual = String(state.NivelCargo ?? "");
+
+      // Si ya está igual, no vuelvas a setear (evita loops por "mismo valor")
+      if (recomendado && recomendado !== actual) {
+        setField("NivelCargo", recomendado as any);
+      }
+    };
+
+    if (state.Cargo) run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.Cargo,]);
 
   const municipiosFiltrados = React.useMemo(
     () => deptoOptions.filter((i) => i.label === selectedDepto),

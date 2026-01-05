@@ -13,6 +13,7 @@ import type { Novedad } from "../../../../models/Novedades";
 import { ProcessDetail } from "../Cesaciones/procesoCesacion";
 import { useDetallesPasosNovedades, usePasosNoveades } from "../../../../Funcionalidades/PasosNovedades";
 import type { DetallesPasos } from "../../../../models/Cesaciones";
+import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
 
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -37,7 +38,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormContratacion({onClose, selectedNovedad, tipo}: Props){
-  const { Maestro, DeptosYMunicipios, Contratos, DetallesPasosNovedades} = useGraphServices();
+  const { Maestro, DeptosYMunicipios, Contratos, DetallesPasosNovedades, categorias} = useGraphServices();
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
   const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
   const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
@@ -49,6 +50,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
   const { options: nivelCargoOptions, loading: loadinNivelCargo, reload: reloadNivelCargo} = useNivelCargo(Maestro);
   const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
   const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
+  const { loadSpecificLevel } = useAutomaticCargo(categorias);
   const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
   const { options: origenOptions, loading: loadingOrigen, reload: reloadOrigenSeleccion} = useOrigenSeleccion(Maestro);
   const { options: tipoContratoOptions, loading: loadingTipoContrato, reload: reloadTipoContrato} = useTipoContrato(Maestro);
@@ -318,6 +320,32 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     setField("GRUPO_x0020_CVE_x0020_", grupoCVE)
 
   }, [state]);
+
+  /* ================== Nivel por cargo ================== */
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      const salario = await loadSpecificLevel(state.CARGO);
+
+      if (cancelled) return;
+      if (!salario) return;
+
+      const recomendado = String(salario.Categoria ?? "");
+      const actual = String(state.NIVEL_x0020_DE_x0020_CARGO ?? "");
+
+      // Si ya está igual, no vuelvas a setear (evita loops por "mismo valor")
+      if (recomendado && recomendado !== actual) {
+        setField("NIVEL_x0020_DE_x0020_CARGO", recomendado as any);
+      }
+    };
+
+    if (state.CARGO) run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.CARGO,]);
 
   return (
     <div className="ft-modal-backdrop">

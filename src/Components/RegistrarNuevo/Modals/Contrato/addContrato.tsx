@@ -14,6 +14,7 @@ import { useHabeasData } from "../../../../Funcionalidades/HabeasData";
 import { usePromocion } from "../../../../Funcionalidades/Promocion";
 import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
 import type { Novedad, NovedadErrors } from "../../../../models/Novedades";
+import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -43,7 +44,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormContratacion({ onClose, state, setField, handleSubmit, errors, searchRegister: searchNovedad }: Props) {
-  const { Maestro, DeptosYMunicipios, DetallesPasosNovedades, salarios, HabeasData, Promociones, Cesaciones } = useGraphServices();
+  const { Maestro, DeptosYMunicipios, DetallesPasosNovedades, salarios, HabeasData, Promociones, Cesaciones, categorias } = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
   const { searchRegister: searchPromocion } = usePromocion(Promociones);
   const { searchRegister: searchCesacion } = useCesaciones(Cesaciones);
@@ -62,6 +63,7 @@ export default function FormContratacion({ onClose, state, setField, handleSubmi
   const { options: tipoVacanteOptions, loading: loadingTipoVacante, reload: reloadTipoVacante } = useTipoVacante(Maestro);
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos } = useDeptosMunicipios(DeptosYMunicipios);
   const { options: dependenciaOptions, loading: loadingDependencias, } = useDependenciasMixtas(Maestro);
+  const { loadSpecificLevel } = useAutomaticCargo(categorias);
   const { loadSpecificSalary } = useSalarios(salarios);
   const { loadPasosNovedad, rows } = usePasosNoveades();
   const { handleCreateAllSteps } = useDetallesPasosNovedades(DetallesPasosNovedades);
@@ -260,6 +262,32 @@ React.useEffect(() => {
       cancelled = true;
     };
   }, [state.CARGO, state.SALARIO]);
+
+  /* ================== Nivel por cargo ================== */
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      const salario = await loadSpecificLevel(state.CARGO);
+
+      if (cancelled) return;
+      if (!salario) return;
+
+      const recomendado = String(salario.Categoria ?? "");
+      const actual = String(state.NIVEL_x0020_DE_x0020_CARGO ?? "");
+
+      // Si ya está igual, no vuelvas a setear (evita loops por "mismo valor")
+      if (recomendado && recomendado !== actual) {
+        setField("NIVEL_x0020_DE_x0020_CARGO", recomendado as any);
+      }
+    };
+
+    if (state.CARGO) run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.CARGO,]);
 
   const handleCreateNovedad = async () => {
     const created = await handleSubmit();

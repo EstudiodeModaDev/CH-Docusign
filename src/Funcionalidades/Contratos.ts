@@ -91,7 +91,8 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
     NitUniversidad: "",
     Practicante: false,
     Universidad: "",
-    Aprendiz: false
+    Aprendiz: false,
+    Programa: "",
   });
   const [errors, setErrors] = React.useState<NovedadErrors>({});
   const setField = React.useCallback(<K extends keyof Novedad>(k: K, v: Novedad[K]) => { setState((s) => ({ ...s, [k]: v }));},
@@ -322,7 +323,8 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
       NitUniversidad: "",
       Practicante: false,
       Universidad: "",
-      Aprendiz: false
+      Aprendiz: false,
+      Programa: "",
     })
   };
 
@@ -410,7 +412,8 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
         NitUniversidad: state.NitUniversidad,
         Practicante: state.Practicante,
         Universidad: state.Universidad,
-        Aprendiz: state.Aprendiz
+        Aprendiz: state.Aprendiz,
+        Programa: state.Programa
       }; 
       const created = await ContratosSvc.create(payload);
       alert("Se ha creado el registro con éxito")

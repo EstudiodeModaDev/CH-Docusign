@@ -143,7 +143,8 @@ export class ContratosService {
         NitUniversidad: f.NitUniversidad,
         Practicante: f.Practicante,
         Universidad: f.Universidad,
-        Aprendiz: f.Aprendiz
+        Aprendiz: f.Aprendiz,
+        Programa: f.Programa
     };
   }
 

@@ -418,7 +418,7 @@ React.useEffect(() => {
             <label className="ft-label">¿Es practicante? *</label>
             <div className="ft-radio-group">
               <label className="ft-radio-custom">
-                <input type="radio" name="practicante" value="Si" checked={!!state.Aprendiz} onChange={() => { 
+                <input type="radio" name="practicante" value="Si" checked={!!state.Practicante} onChange={() => { 
                                                                                               setField("Practicante", true as any);
                                                                                               setFechaFinalizacion(true);
                                                                                             }}
@@ -428,7 +428,7 @@ React.useEffect(() => {
               </label>
 
               <label className="ft-radio-custom">
-                <input type="radio" name="practicante" value="No" checked={!state.Aprendiz} onChange={() => {setField("Practicante", false as any); setFechaFinalizacion(true)}}/>
+                <input type="radio" name="practicante" value="No" checked={!state.Practicante} onChange={() => {setField("Practicante", false as any); setFechaFinalizacion(true)}}/>
                 <span className="circle"></span>
                 <span className="text">No</span>
               </label>

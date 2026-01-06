@@ -82,6 +82,7 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
   const [promedio, setPromedio] = React.useState<number>(0);
   const [grupoCVE, setGrupoCVE] = React.useState<string>("");
   const [modal, setModal] = React.useState<boolean>(false)
+  const [porcentajeCompletacion, setPorcetanjeCompletacion] = React.useState<number>(0);
 
   React.useEffect(() => {
       reloadEmpresas();
@@ -286,6 +287,15 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
     };
   }, [state.Cargo,]);
 
+  React.useEffect(() => {
+    (async () => {
+      const pct = await calcPorcentaje();
+      setPorcetanjeCompletacion(pct);
+    })();
+
+  }, [selectedPromocion]);
+  
+
   const municipiosFiltrados = React.useMemo(
     () => deptoOptions.filter((i) => i.label === selectedDepto),
     [deptoOptions, selectedDepto]
@@ -353,7 +363,7 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
             loadDetalles={() => loadDetallesPromocion()} 
             proceso={"Promocion"}/>:
           <>
-            <h2 id="ft_title" className="ft-title">Promoción {selectedPromocion.NombreSeleccionado}</h2>
+            <h2 id="ft_title" className="ft-title">Promoción {selectedPromocion.NombreSeleccionado} - {porcentajeCompletacion}%</h2>
 
             <form className="ft-form" noValidate>
               {/* ================= Empresa ================= */}

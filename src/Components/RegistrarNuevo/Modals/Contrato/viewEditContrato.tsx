@@ -203,7 +203,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     const selectedEmpresa = empresaOptions.find((o) => o.label.toLocaleLowerCase() === state.Empresa_x0020_que_x0020_solicita.toLocaleLowerCase()) ?? null;
     const selectedTipoDocumento = tipoDocOptions.find((o) => o.label === state.tipodoc.trim()) ?? null; 
     const selectedCargo = cargoOptions.find((o) => o.label.toLocaleLowerCase() === state.CARGO.toLocaleLowerCase()) ?? null;
-    const selectedModalidad = modalidadOptions.find((o) => o.label.toLowerCase() === state.MODALIDAD_x0020_TELETRABAJO) ?? null;
+    const selectedModalidad = modalidadOptions.find((o) => o.label.toLowerCase() === state.MODALIDAD_x0020_TELETRABAJO.toLowerCase()) ?? null;
     const selectedEspecificidad = especificidadOptions.find((o) => o.label.toLowerCase() === state.ESPECIFICIDAD_x0020_DEL_x0020_CA) ?? null;
     const selectedNivelCargo = nivelCargoOptions.find((o) => o.label.toLowerCase() === state.NIVEL_x0020_DE_x0020_CARGO.toLowerCase()) ?? null;
     const selectedCentroCostos = CentroCostosOptions.find((o) => o.value.toLowerCase() === state.CODIGO_x0020_CENTRO_x0020_DE_x00.toLowerCase()) ?? null;
@@ -212,7 +212,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     const selectedOrigenSeleccion = origenOptions.find((o) => o.label.toLowerCase() === state.ORIGEN_x0020_DE_x0020_LA_x0020_S.toLowerCase()) ?? null;
     const selectedTipoContrato = tipoContratoOptions.find((o) => o.label.toLowerCase() === state.TIPO_x0020_DE_x0020_CONTRATO.toLowerCase()) ?? null;
     const selectedTipoVacante = tipoVacanteOptions.find((o) => o.label.toLowerCase() === state.TIPO_x0020_DE_x0020_VACANTE_x002.toLowerCase()) ?? null;
-    const selectedDependencia = dependenciaOptions.find((o) => o.value === state.DEPENDENCIA_x0020_) ?? null;
+    const selectedDependencia = dependenciaOptions.find((o) => o.value.toLowerCase() === state.DEPENDENCIA_x0020_.toLowerCase()) ?? null;
     const selectedEtapa = etapasOptions.find((o) => lower(o?.label) === lower(state?.Etapa)) ?? null;
     const opciones = [{ value: "Escritorio", label: "Escritorio" }, { value: "Silla", label: "Silla" }, { value: "Escritorio/Silla", label: "Escritorio/Silla" }];
     const isView = tipo === "view"

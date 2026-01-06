@@ -74,9 +74,10 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
     AuxilioRodamientoSioNo: false,
     Cargo: "",
     Correo: "",
-    PerteneceModelo: false
+    PerteneceModelo: false,
+    Estado: "En proceso"
   });
-  const [estado, setEstado] = React.useState<string>("pendiente");
+  const [estado, setEstado] = React.useState<string>("proceso");
   const [errors, setErrors] = React.useState<PromocionErrors>({});
   const setField = <K extends keyof Promocion>(k: K, v: Promocion[K]) => setState((s) => ({ ...s, [k]: v }));
   
@@ -86,6 +87,21 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
 
     if(search){
         filters.push(`(startswith(fields/NombreSeleccionado, '${search}') or startswith(fields/NumeroDoc, '${search}'))`)
+    }
+
+    if(estado){
+      switch(estado){
+        case "proceso":
+          filters.push(`fields/Estado eq 'En proceso'`)
+          break;
+        
+        case "finalizado":
+          filters.push(`fields/Estado eq 'Completado'`)
+          break;
+
+        default:
+          break;
+      }
     }
 
     if (range.from && range.to && (range.from < range.to)) {
@@ -109,7 +125,7 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
       orderby: orderParts.join(","),
       top: pageSize,
     };
-  }, [range.from, range.to, pageSize, sorts, search,]); 
+  }, [range.from, range.to, pageSize, sorts, search, estado]); 
 
   const loadFirstPage = React.useCallback(async () => {
     setLoading(true); setError(null);
@@ -276,7 +292,8 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
         Title: state.Title,
         UnidadNegocio: state.UnidadNegocio ?? "",
         ValorGarantizado: state.ValorGarantizado,
-        PerteneceModelo: state.PerteneceModelo
+        PerteneceModelo: state.PerteneceModelo,
+        Estado: "En proceso"
       };
       const created = await PromocionesSvc.create(payload);
       alert("Se ha creado el registro con éxito")

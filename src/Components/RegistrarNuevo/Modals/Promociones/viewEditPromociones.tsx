@@ -53,7 +53,7 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
   const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();
   const { loading: loadinPasosPromocion, error: errorPasosPromocion, byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep} = usePasosPromocion()
-  const {rows: rowsDetalles, loading: loadingDetalles, error: errorDetalles, loadDetallesPromocion} = useDetallesPasosPromocion(DetallesPasosPromocion, selectedPromocion.Id)
+  const {rows: rowsDetalles, loading: loadingDetalles, error: errorDetalles, loadDetallesPromocion, calcPorcentaje} = useDetallesPasosPromocion(DetallesPasosPromocion, selectedPromocion.Id)
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
@@ -316,6 +316,21 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
   const { account } = useAuth();
   const today = getTodayLocalISO();
 
+  const completeStep = React.useCallback( async (detalle: DetallesPasos, ) => {
+      await handleCompleteStep(detalle);
+
+      const porcentaje = await calcPorcentaje();
+
+      if (Number(porcentaje) === 100) {
+        const id = selectedPromocion?.Id;
+        if (!id) return;
+
+        await Promociones.update(id, { Estado: "Completado" });
+      }
+    },
+    [handleCompleteStep, calcPorcentaje, selectedPromocion?.Id, Promociones]
+  );
+
   return (
     <div className="ft-modal-backdrop">
       <section className="ft-scope ft-card" role="region" aria-labelledby="ft_title">
@@ -331,7 +346,7 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
             motivos={motivos}
             setMotivos={setMotivos}
             setDecisiones={setDecisiones}
-            handleCompleteStep={(detalle: DetallesPasos) => handleCompleteStep(detalle)}
+            handleCompleteStep={(detalle: DetallesPasos) => completeStep(detalle)}
             detallesRows={rowsDetalles}
             loadingDetalles={loadingDetalles}
             errorDetalles={errorDetalles}

@@ -55,7 +55,8 @@ export type Promocion = {
     Correo: string;
     AjusteSioNo: boolean,
     AuxilioRodamientoSioNo: boolean,
-    PerteneceModelo: boolean
+    PerteneceModelo: boolean,
+    Estado: string
 }
 
 export type PromocionErrors = Partial<Record<keyof Promocion, string>>;

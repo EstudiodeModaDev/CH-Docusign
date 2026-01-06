@@ -4,7 +4,7 @@ const DS_ENV: "prod" | "demo" = "prod";
 
 const DS_CLIENT_ID = "39f5105e-3669-43c9-b345-e4cb2725f755";
 
-const REDIRECT_URI = "https://lively-coast-08111f510.3.azurestaticapps.net/";
+const REDIRECT_URI = "https://gestordocumentalch.estudiodemoda.com.co/";
 
 /**
  * AUTH server según ambiente

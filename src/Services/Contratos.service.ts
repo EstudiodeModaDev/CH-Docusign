@@ -144,7 +144,8 @@ export class ContratosService {
         Practicante: f.Practicante,
         Universidad: f.Universidad,
         Aprendiz: f.Aprendiz,
-        Programa: f.Programa
+        Programa: f.Programa,
+        Estado: f.Estado
     };
   }
 

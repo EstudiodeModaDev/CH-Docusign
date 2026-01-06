@@ -5,7 +5,6 @@ import { useGraphServices } from "../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../models/Desplegables";
 import {useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useTemporales, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
 import { useAuth } from "../../../../auth/authProvider";
-import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
 import { formatPesosEsCO, numeroATexto,  } from "../../../../utils/Number";
 import { useSalarios } from "../../../../Funcionalidades/Salario";
 import { useDetallesPasosCesacion, usePasosCesacion } from "../../../../Funcionalidades/PasosCesacion";
@@ -14,6 +13,8 @@ import { usePromocion } from "../../../../Funcionalidades/Promocion";
 import { useHabeasData } from "../../../../Funcionalidades/HabeasData";
 import { useContratos } from "../../../../Funcionalidades/Contratos";
 import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
+import type { Cesacion, CesacionErrors } from "../../../../models/Cesaciones";
+import type { SetField } from "../Contrato/addContrato";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -32,12 +33,17 @@ export const Option = (props: OptionProps<desplegablesOption, false>) => {
 
 type Props = {
   onClose: () => void;
+  state: Cesacion
+  setField: SetField<Cesacion>;
+  handleSubmit: () => Promise<{ok: boolean; created: string | null;}>;
+  errors: CesacionErrors
+  searchCesacion: (cedula: string) => Promise<Cesacion | null>
+  loadFirstPage: () => Promise<void>
 };
 
 /* ================== Formulario ================== */
-export default function FormCesacion({onClose}: Props){
-  const { Maestro, Cesaciones, DeptosYMunicipios, salarios, DetallesPasosCesacion, HabeasData, Contratos, Promociones, categorias } = useGraphServices();
-  const { state, setField, handleSubmit, errors,  searchRegister: searchCesacion} = useCesaciones(Cesaciones);
+export default function FormCesacion({onClose, state, setField, handleSubmit, errors, searchCesacion}: Props){
+  const { Maestro, DeptosYMunicipios, salarios, DetallesPasosCesacion, HabeasData, Contratos, Promociones, categorias } = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
   const { searchRegister: searchNovedad } = useContratos(Contratos);
   const { searchRegister: searchPromocion } = usePromocion(Promociones);

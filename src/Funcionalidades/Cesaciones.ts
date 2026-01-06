@@ -58,6 +58,7 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
     contribucionEstrategia: "",
     Promedio: ""
   });
+  const [estado, setEstado] = React.useState<string>("proceso");
   const [errors, setErrors] = React.useState<CesacionErrors>({});
   const setField = <K extends keyof Cesacion>(k: K, v: Cesacion[K]) => setState((s) => ({ ...s, [k]: v }));
   
@@ -67,6 +68,21 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
 
     if(search){
         filters.push(`(startswith(fields/Nombre, '${search}') or startswith(fields/Title, '${search}') or startswith(fields/Cargo, '${search}'))`)
+    }
+
+    if(estado){
+      switch(estado){
+        case "proceso":
+          filters.push(`fields/Estado eq 'En proceso'`)
+          break;
+        
+        case "finalizado":
+          filters.push(`fields/Estado eq 'Completado'`)
+          break;
+
+        default:
+          break;
+      }
     }
 
     if (range.from && range.to && (range.from < range.to)) {
@@ -90,7 +106,7 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
       orderby: orderParts.join(","),
       top: pageSize,
     };
-  }, [range.from, range.to, pageSize, sorts, search,]); 
+  }, [range.from, range.to, pageSize, sorts, search, estado]); 
 
   const loadFirstPage = React.useCallback(async () => {
     setLoading(true); setError(null);
@@ -468,8 +484,8 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
 
 
   return {
-    rows, loading, error, pageSize, pageIndex, hasNext, range, search, errors, sorts, state, workers, workersOptions,
-    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, searchRegister, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, 
+    rows, loading, error, pageSize, pageIndex, hasNext, range, search, errors, sorts, state, workers, workersOptions, estado,
+    setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, searchRegister, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, 
   };
 }
 

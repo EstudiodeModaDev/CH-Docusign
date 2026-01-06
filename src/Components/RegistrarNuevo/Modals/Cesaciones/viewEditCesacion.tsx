@@ -116,7 +116,7 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
     }, [selectedCesacion]);
 
   const selectedEmpresa = empresaOptions.find((o) => o.label === state.Empresaalaquepertenece) ?? null;
-  const selectedCargo = cargoOptions.find((o) => o.label === state.Cargo) ?? null;
+  const selectedCargo = cargoOptions.find((o) => o.label.toLocaleLowerCase() === state.Cargo.toLocaleLowerCase()) ?? null;
   const selectedTipoDocumento = tipoDocOptions.find((o) => o.label === state.TipoDoc) ?? null;
   const selectedNivelCargo = nivelCargoOptions.find((o) => o.label === state.Niveldecargo) ?? null;   
   const selectedDependencia = dependenciaOptions.find((o) => o.value === state.Dependencia) ?? null;  

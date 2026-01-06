@@ -202,7 +202,7 @@ export default function ViewHabeas({ onClose, selectedHabeas, tipo }: Props) {
             <Select<desplegablesOption, false>
               inputId="ciudad"
               options={municipioSelectOptions}
-              placeholder={!selectedDepto ? "Selecciona primero un departamento..." : loadingDepto ? "Cargando municipios…" : "Selecciona un municipio..."}
+              placeholder={!selectedDepto ? "Selecciona un departamento..." : loadingDepto ? "Cargando municipios…" : "Selecciona un municipio..."}
               value={selectedMunicipio ? { value: selectedMunicipio, label: selectedMunicipio } : state.Ciudad ? { value: state.Ciudad, label: state.Ciudad } : null}
               onChange={(opt) => {const value = opt?.value ?? ""; setSelectedMunicipio(value); setField("Ciudad", value);}}
               classNamePrefix="rs"

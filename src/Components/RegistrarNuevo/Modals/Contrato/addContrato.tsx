@@ -579,7 +579,7 @@ React.useEffect(() => {
             <Select<desplegablesOption, false>
               inputId="ciudad"
               options={municipioSelectOptions}
-              placeholder={!selectedDepto ? "Selecciona primero un departamento..." : loadingDepto ? "Cargando municipios…" : "Selecciona un municipio..."}
+              placeholder={!selectedDepto ? "Selecciona un departamento..." : loadingDepto ? "Cargando municipios…" : "Selecciona un municipio..."}
               value={
                 selectedMunicipio
                   ? { value: selectedMunicipio, label: selectedMunicipio }

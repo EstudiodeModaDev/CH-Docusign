@@ -357,6 +357,23 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     };
   }, [state.CARGO,]);
 
+  const completeStep = React.useCallback( async (detalle: DetallesPasos, ) => {
+      await handleCompleteStep(detalle);
+
+      const porcentaje = await calcPorcentaje();
+
+      if (Number(porcentaje) === 100) {
+        const id = selectedNovedad?.Id;
+        if (!id) return;
+
+        await Contratos.update(id, { Estado: "Completado" });
+      }
+    },
+    [handleCompleteStep, calcPorcentaje, selectedNovedad?.Id, Contratos]
+  );
+
+
+
   return (
     <div className="ft-modal-backdrop">
       <section className="ft-scope ft-card" role="region" aria-labelledby="ft_title">
@@ -372,7 +389,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
             motivos={motivos}
             setMotivos={setMotivos}
             setDecisiones={setDecisiones}
-            handleCompleteStep={(detalle: DetallesPasos, path?: string) => handleCompleteStep(detalle, path)}
+            handleCompleteStep={(detalle: DetallesPasos,) => completeStep(detalle)}
             detallesRows={rowsDetalles}
             loadingDetalles={loadingDetalles}
             errorDetalles={errorDetalles}

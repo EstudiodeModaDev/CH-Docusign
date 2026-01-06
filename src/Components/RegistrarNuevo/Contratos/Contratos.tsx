@@ -32,9 +32,11 @@ export type Props = {
   setSearch: React.Dispatch<React.SetStateAction<string>>;
   search: string;
   loadFirstPage: () => void;
+  setEstado: React.Dispatch<React.SetStateAction<string>>;
+  estado: string
 };
 
-export default function TablaContratos({rows, loading, error, pageSize, pageIndex, hasNext, sorts, setRange, setPageSize, nextPage, reloadAll, toggleSort, range, setSearch, search, loadFirstPage}: Props) {
+export default function TablaContratos({rows, loading, error, pageSize, pageIndex, hasNext, sorts, estado, setRange, setEstado, setPageSize, nextPage, reloadAll, toggleSort, range, setSearch, search, loadFirstPage}: Props) {
   const [visible, setVisible] = React.useState<boolean>(false)
   const { Envios, } = useGraphServices();
   const {canEdit} = useEnvios(Envios);
@@ -56,8 +58,15 @@ export default function TablaContratos({rows, loading, error, pageSize, pageInde
   return (
     <div className="tabla-novedades">
       <div className="rn-toolbar tabla-filters">
+
         <div className="rn-toolbar__left">
             <input className="rn-input" onChange={(e) => {setSearch(e.target.value)}} value={search} placeholder="Buscador..."/>
+
+            <select name="estado" id="estado" onChange={(e) => {setEstado(e.target.value)}} value={estado} className="rn-input">
+              <option value="proceso">En proceso</option>
+              <option value="finalizado">Finalizados</option>
+              <option value="todos">Todos</option>
+            </select>
             <input type= "date" className="rn-input rn-date" onChange={(e) => {setRange({ ...range, from: e.target.value })}} value={range.from}/>
             <input type= "date" className="rn-input rn-date" onChange={(e) => {setRange({ ...range, to: e.target.value })}} value={range.to}/>
         </div>

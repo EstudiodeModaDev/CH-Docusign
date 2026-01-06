@@ -18,6 +18,7 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
   const [nextLink, setNextLink] = React.useState<string | null>(null);
   const [sorts, setSorts] = React.useState<Array<{field: SortField; dir: SortDir}>>([{ field: 'id', dir: 'desc' }]);
   const [search, setSearch] = React.useState<string>("");
+  const [estado, setEstado] = React.useState<string>("proceso");
   const {account} = useAuth()
   const [state, setState] = React.useState<Novedad>({
     ADICIONALES_x0020_: "",
@@ -93,6 +94,7 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
     Universidad: "",
     Aprendiz: false,
     Programa: "",
+    Estado: "En proceso"
   });
   const [errors, setErrors] = React.useState<NovedadErrors>({});
   const setField = React.useCallback(<K extends keyof Novedad>(k: K, v: Novedad[K]) => { setState((s) => ({ ...s, [k]: v }));},
@@ -105,6 +107,21 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
 
     if(search){
         filters.push(`(startswith(fields/NombreSeleccionado, '${search}') or startswith(fields/Numero_x0020_identificaci_x00f3_, '${search}') or startswith(fields/CARGO, '${search}'))`)
+    }
+
+    if(estado){
+      switch(estado){
+        case "proceso":
+          filters.push(`fields/Estado eq 'En proceso'`)
+          break;
+        
+        case "finalizado":
+          filters.push(`fields/Estado eq 'Completado'`)
+          break;
+
+        default:
+          break;
+      }
     }
 
     if (range.from && range.to && (range.from < range.to)) {
@@ -128,8 +145,8 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
       orderby: orderParts.join(","),
       top: pageSize,
     };
-  }, [range.from, range.to, pageSize, sorts, search,]); 
-
+  }, [range.from, range.to, pageSize, sorts, search, estado] ); 
+ 
   const loadFirstPage = React.useCallback(async () => {
     setLoading(true); setError(null);
     try {
@@ -325,6 +342,7 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
       Universidad: "",
       Aprendiz: false,
       Programa: "",
+      Estado: "En proceso"
     })
   };
 
@@ -413,7 +431,8 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
         Practicante: state.Practicante,
         Universidad: state.Universidad,
         Aprendiz: state.Aprendiz,
-        Programa: state.Programa
+        Programa: state.Programa,
+        Estado: state.Estado
       }; 
       const created = await ContratosSvc.create(payload);
       alert("Se ha creado el registro con éxito")
@@ -618,8 +637,8 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
   }
 
   return {
-    rows, loading, error, pageSize, pageIndex, hasNext, range, search, errors, sorts, state, workers, workersOptions,
-    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, handleCancelProcess, searchRegister
+    rows, loading, error, pageSize, pageIndex, hasNext, range, search, errors, sorts, state, workers, workersOptions, estado,
+    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, handleCancelProcess, searchRegister, setEstado
   };
 }
 

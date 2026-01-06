@@ -1,20 +1,18 @@
 import React from "react";
 import { useAuth } from "../auth/authProvider";
-import type { Archivo } from "../models/archivos";
 import type { TipoPaso } from "../Components/RegistrarNuevo/Modals/Cesaciones/procesoCesacion";
 import type { DetallesPasos, PasosProceso } from "../models/Cesaciones";
 import { useGraphServices } from "../graph/graphContext";
 import type { DetallesPasosNovedadesService } from "../Services/DetallesPasosNovedades.service";
 
 export function usePasosNoveades() {
-    const {PasosNovedades, ColaboradoresDH, ColaboradoresEDM, ColaboradoresVisual, ColaboradoresDenim, ColaboradoresMeta, DetallesPasosNovedades } = useGraphServices()
+    const {PasosNovedades, DetallesPasosNovedades } = useGraphServices()
   
     const [rows, setRows] = React.useState<PasosProceso[]>([]);
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
     const todayISO = () => new Date().toISOString().slice(0, 10);
     const {account} = useAuth()
-    const [colaboradores, setColaboradores] = React.useState<Archivo[]>([]);
     const [decisiones, setDecisiones] = React.useState<Record<string, "" | "Aceptado" | "Rechazado">>({});
     const [motivos, setMotivos] = React.useState<Record<string, string>>({});
     const [state, setState] = React.useState<PasosProceso>({NombreEvidencia: "", NombrePaso: "", Orden: 0, TipoPaso: "", Title: "", PlantillaCorreo:""});
@@ -50,7 +48,7 @@ export function usePasosNoveades() {
     }, [loadPasosNovedad]);
 
   
-  const handleCompleteStep = async (detalle: DetallesPasos, path?: string) => {
+  const handleCompleteStep = async (detalle: DetallesPasos,) => {
     const idDetalle = detalle.Id;
     if (!idDetalle) return;
 
@@ -66,20 +64,6 @@ export function usePasosNoveades() {
 
   // ========= 1) SUBIDA DOCUMENTO =========
   if (tipoPaso === "SubidaDocumento") {
-    const nombreEvidencia = paso.NombreEvidencia;
-    const archivo = nombreEvidencia;
-
-    if (path) {
-      await load(path);
-    }
-
-    const tieneArchivo = colaboradores.some((c) => c.name.includes(archivo));
-
-    if (!tieneArchivo) {
-      alert(`Debe subir la evidencia ${archivo} a la carpeta del colaborador`);
-      return;
-    }
-
     await DetallesPasosNovedades.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(), Notas: "Archivo subido"});
 
     alert("Se ha completado con éxito");
@@ -123,34 +107,6 @@ export function usePasosNoveades() {
   // ========= 4) fallback =========
     await DetallesPasosNovedades.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(),});
     alert("Se ha completado con éxito");
-  };
-
-  const load = async (docNumber: string) => {
-    // 1) Buscar carpeta en ambas bibliotecas en paralelo
-    const [edm, dh, visual, denim, meta] = await Promise.all([
-      ColaboradoresEDM.findFolderByDocNumber(docNumber),
-      ColaboradoresDH.findFolderByDocNumber(docNumber),
-      ColaboradoresVisual.findFolderByDocNumber(docNumber),
-      ColaboradoresDenim.findFolderByDocNumber(docNumber),
-      ColaboradoresMeta.findFolderByDocNumber(docNumber),
-    ]);
-
-    if (!edm && !dh && !visual && !denim && !meta) {
-      alert("No se encontró carpeta para este colaborador");
-      return;
-    }
-
-    // 2) Traer archivos SOLO de las carpetas que existan
-    const [archivosEDM, archivosDH, archivosVisual, archivosDenim, archivosMeta] = await Promise.all([
-      edm ? ColaboradoresEDM.getFilesByFolderId(edm.id) : Promise.resolve([]),
-      dh ? ColaboradoresDH.getFilesByFolderId(dh.id) : Promise.resolve([]),
-      visual ? ColaboradoresVisual.getFilesByFolderId(visual.id) : Promise.resolve([]),
-      denim ? ColaboradoresDenim.getFilesByFolderId(denim.id) : Promise.resolve([]),
-      meta ? ColaboradoresMeta.getFilesByFolderId(meta.id) : Promise.resolve([])
-    ]);
-
-    // 3) Unir resultados de ambas bibliotecas
-    setColaboradores([...archivosEDM, ...archivosDH, ...archivosVisual, ...archivosDenim, ...archivosMeta]);
   };
 
   return {

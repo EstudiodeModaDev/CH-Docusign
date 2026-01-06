@@ -40,10 +40,11 @@ type Props = {
   handleSubmit: () => Promise<{ok: boolean; created: string | null;}>;
   errors: NovedadErrors
   searchRegister: (cedula: string) => Promise<Novedad | null>
+  loadFirstPage: () => Promise<void>
 };
 
 /* ================== Formulario ================== */
-export default function FormContratacion({ onClose, state, setField, handleSubmit, errors, searchRegister: searchNovedad }: Props) {
+export default function FormContratacion({ onClose, state, setField, handleSubmit, errors, searchRegister: searchNovedad, loadFirstPage }: Props) {
   const { Maestro, DeptosYMunicipios, DetallesPasosNovedades, salarios, HabeasData, Promociones, Cesaciones, categorias } = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
   const { searchRegister: searchPromocion } = usePromocion(Promociones);
@@ -295,6 +296,7 @@ React.useEffect(() => {
     if (created.ok) {
       await loadPasosNovedad();
       await handleCreateAllSteps(rows, created.created ?? "");
+      await loadFirstPage()
       await onClose();
     }
   };

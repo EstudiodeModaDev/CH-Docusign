@@ -221,3 +221,62 @@
 .ft-card, .ft-form, .ft-modal-backdrop{
   overflow: visible;
 }
+
+/* =========================
+   TOOLBAR FILTROS (RN)
+   ========================= */
+
+/* contenedor que ya tienes */
+.tabla-novedades .rn-toolbar__left{
+  display: flex;
+  flex-wrap: wrap;                 /* en pantallas pequeñas se baja */
+  align-items: center;
+  gap: 10px;
+  padding: var(--pad);
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* buscador: que crezca y empuje lo demás */
+.tabla-novedades .rn-toolbar__left > .rn-input:not(.rn-date){
+  min-width: 180px;
+}
+
+.tabla-novedades .rn-toolbar__left > input.rn-input:not(.rn-date){
+  flex: 1 1 280px;               
+}
+
+/* select estado: fijo y estable */
+.tabla-novedades .rn-toolbar__left > select.rn-input{
+  flex: 0 0 190px;
+}
+
+/* fechas: que queden juntas y alineadas */
+.tabla-novedades .rn-toolbar__left > .rn-date{
+  flex: 0 0 160px;
+}
+
+/* si tus rn-input no son full width, esto ayuda */
+.tabla-novedades .rn-toolbar__left .rn-input{
+  width: 100%;
+  height: 40px;
+  box-sizing: border-box;
+}
+
+/* Responsive: en móvil apila bonito */
+@media (max-width: 720px){
+  .tabla-novedades .rn-toolbar__left{
+    gap: 8px;
+  }
+
+  /* todo a una columna */
+  .tabla-novedades .rn-toolbar__left > *{
+    flex: 1 1 100%;
+  }
+
+  /* fechas en 2 columnas en móvil (opcional) */
+  .tabla-novedades .rn-toolbar__left > .rn-date{
+    flex: 1 1 calc(50% - 4px);
+  }
+}

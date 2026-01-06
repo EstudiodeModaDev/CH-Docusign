@@ -72,7 +72,8 @@ export type Novedad = {
     Etapa: string
     Practicante: boolean;
     Aprendiz: boolean
-    Programa: string
+    Programa: string;
+    Estado: string
 }
 
 export type NovedadCancelada = {

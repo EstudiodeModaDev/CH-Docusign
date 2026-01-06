@@ -7,7 +7,6 @@ import type { Cesacion } from "../../../models/Cesaciones";
 import { toISODateFlex } from "../../../utils/Date";
 import EditCesacion from "../Modals/Cesaciones/viewEditCesacion";
 
-
 function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; dir: SortDir}>) {
   const idx = sorts.findIndex(s => s.field === field);
   if (idx < 0) return null;
@@ -39,7 +38,8 @@ export type Props = {
 
 export default function CesacionesTabla({rows, loading, error, pageSize, pageIndex, hasNext, sorts, setRange, setPageSize, nextPage, reloadAll, toggleSort, range, setSearch, search, loadFirstPage, estado, setEstado}: Props) {
   const [visible, setVisible] = React.useState<boolean>(false)
-  const { Envios } = useGraphServices();
+  const [pctById, setPctById] = React.useState<Record<string, number>>({});
+  const { Envios, DetallesPasosCesacion } = useGraphServices();
   const {canEdit} = useEnvios(Envios);
   const [cesacionSeleccionada, setCesacionSeleccionada] = React.useState<Cesacion | null>(null);
   const [tipoFormulario, setTipoFormulario] = React.useState<string>("");
@@ -56,6 +56,43 @@ export default function CesacionesTabla({rows, loading, error, pageSize, pageInd
     await loadFirstPage()
     setVisible(false);
   };
+
+  const fetchPctForCesacion = React.useCallback(
+    async (cesacionId: string) => {
+      if (!cesacionId) return;
+
+      const safeId = cesacionId.replace(/'/g, "''"); // escapar comillas para OData
+
+      const items = await DetallesPasosCesacion.getAll({
+        filter: `fields/Title eq '${safeId}'`,
+        orderby: "fields/NumeroPaso asc",
+      });
+
+      const pct =
+        items.length > 0
+          ? (items.filter((i) => i.EstadoPaso === "Completado").length / items.length) * 100
+          : 0;
+
+      setPctById((prev) => ({
+        ...prev,
+        [cesacionId]: Math.round(pct * 100) / 100, // 2 decimales como number
+      }));
+    },
+    [DetallesPasosCesacion]
+  );
+
+  React.useEffect(() => {
+    rows.forEach((c) => {
+      const id = String(c.Id ?? "");
+      if (!id) return;
+
+      // si ya lo tengo en cache, no vuelvo a pedirlo
+      if (pctById[id] !== undefined) return;
+
+      fetchPctForCesacion(id);
+    });
+  }, [rows, pctById, fetchPctForCesacion]);
+
 
   return (
     <div className="tabla-novedades">
@@ -102,6 +139,8 @@ export default function CesacionesTabla({rows, loading, error, pageSize, pageInd
                 <th role="button" tabIndex={0} onClick={(e) => toggleSort('ingreso', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('ingreso', e.shiftKey); }} aria-label="Ordenar por ingreso" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   Fecha limite docs {renderSortIndicator('ingreso', sorts)}
                 </th>
+
+                <th style={{ textAlign: "center" }}>%</th>
               </tr>
             </thead>
             <tbody>
@@ -112,6 +151,13 @@ export default function CesacionesTabla({rows, loading, error, pageSize, pageInd
                   <td><span title={cesacion.Temporal}>{cesacion.Temporal}</span></td>
                   <td><span title={cesacion.DescripcionCO}>{cesacion.DescripcionCO}</span></td>
                   <td>{toISODateFlex(cesacion.FechaLimiteDocumentos) || "–"}</td>
+                  <td style={{ textAlign: "center" }}>
+                    {(() => {
+                      const id = String(cesacion.Id ?? "");
+                      const pct = pctById[id];
+                      return pct === undefined ? "…" : `${pct.toFixed(2)}%`;
+                    })()}
+                  </td>
                 </tr>
               ))}
             </tbody>

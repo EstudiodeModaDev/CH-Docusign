@@ -9,7 +9,6 @@ export type Cesacion = {
     Correoelectronico: string;
     FechaIngreso: string |null;
     FechaSalidaCesacion: string | null;
-    FechaIngresoCesacion: string | null;
     FechaLimiteDocumentos: string | null;
     Jefedezona: string;
     Reportadopor: string;

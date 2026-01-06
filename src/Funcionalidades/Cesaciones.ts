@@ -24,7 +24,6 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
     Celular: "",
     Correoelectronico: "",
     FechaIngreso: null,
-    FechaIngresoCesacion: null,
     FechaLimiteDocumentos: null,
     FechaSalidaCesacion: null,
     Jefedezona: "",
@@ -171,8 +170,6 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
     if(!state.Empresaalaquepertenece) e.Empresaalaquepertenece = "Seleccione una empresa"
     if(!state.TipoDoc) e.TipoDoc = "Seleccione un tipo de documento"
     if(!state.FechaIngreso) e.FechaIngreso = "Seleccione una fecha de ingreso"
-    if(!state.FechaSalidaCesacion) e.FechaSalidaCesacion = "Seleccione una fecha salida cesacion"
-    if(!state.FechaIngresoCesacion) e.FechaIngresoCesacion = "Seleccione una fecha ingreso cesacion"
     if(!state.FechaLimiteDocumentos) e.FechaLimiteDocumentos = "Seleccione una fecha limite documentos"
     if(!state.Niveldecargo) e.Niveldecargo = "Seleccione un nivel de cargo"
     if(!state.Dependencia) e.Dependencia = "Seleccione una dependencia"
@@ -200,7 +197,6 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
       Celular: "",
       Correoelectronico: "",
       FechaIngreso: null,
-      FechaIngresoCesacion: null,
       FechaLimiteDocumentos: null,
       FechaSalidaCesacion: null,
       Jefedezona: "",
@@ -254,7 +250,6 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
         Celular: state.Celular,
         Correoelectronico: state.Correoelectronico,
         FechaIngreso: toISODateFlex(state.FechaIngreso) ?? null,
-        FechaIngresoCesacion: toISODateFlex(state.FechaIngresoCesacion) ?? null,
         FechaLimiteDocumentos: toISODateFlex(state.FechaLimiteDocumentos) ?? null,
         FechaSalidaCesacion: toISODateFlex(state.FechaSalidaCesacion) ?? null,
         Jefedezona: state.Jefedezona,
@@ -315,7 +310,6 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
         Celular: CesacionSeleccionada.Celular !== state.Celular ? state.Celular : CesacionSeleccionada.Celular,
         Correoelectronico: CesacionSeleccionada.Correoelectronico !== state.Correoelectronico ? state.Correoelectronico : CesacionSeleccionada.Correoelectronico,
         FechaIngreso: toISODateFlex(CesacionSeleccionada.FechaIngreso) !== toISODateFlex(state.FechaIngreso) ? toISODateFlex(state.FechaIngreso) ?? null : toISODateFlex(CesacionSeleccionada.FechaIngreso) ?? null,
-        FechaIngresoCesacion: toISODateFlex(CesacionSeleccionada.FechaIngresoCesacion) !== toISODateFlex(state.FechaIngresoCesacion) ? toISODateFlex(state.FechaIngresoCesacion) ?? null : toISODateFlex(CesacionSeleccionada.FechaIngresoCesacion) ?? null,
         FechaLimiteDocumentos: toISODateFlex(CesacionSeleccionada.FechaLimiteDocumentos) !== toISODateFlex(state.FechaLimiteDocumentos) ? toISODateFlex(state.FechaLimiteDocumentos) ?? null : toISODateFlex(CesacionSeleccionada.FechaLimiteDocumentos) ?? null,
         FechaSalidaCesacion: toISODateFlex(CesacionSeleccionada.FechaSalidaCesacion) !== toISODateFlex(state.FechaSalidaCesacion) ? toISODateFlex(state.FechaSalidaCesacion) ?? null : toISODateFlex(CesacionSeleccionada.FechaSalidaCesacion) ?? null,
         Jefedezona: CesacionSeleccionada.Jefedezona !== state.Jefedezona ? state.Jefedezona : CesacionSeleccionada.Jefedezona,
@@ -371,7 +365,7 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
     const next: rsOption[] = workers
       .map(item => ({
         value: item.Id!, // solo el Id
-        label: `Nombre: ${item.Nombre} - Cesacion - Cargo: ${item.Cargo} - Fecha ingreso cesacion: ${toISODateTimeFlex(item.FechaIngresoCesacion)}.`,
+        label: `Nombre: ${item.Nombre} - Cesacion - Cargo: ${item.Cargo} - Fecha ingreso: ${toISODateTimeFlex(item.FechaIngreso)}.`,
       }))
       .filter(opt => {
         if (!opt.value) return false;

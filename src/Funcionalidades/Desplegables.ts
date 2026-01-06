@@ -167,7 +167,33 @@ export function useEmpresasSelect(EmpresaSvc: MaestrosService) {
   });
 }
 
-// El resto ignora el search (pero el tipo lo acepta)
+export function useTemporales(TiemposSvc: MaestrosService) {
+  const load = React.useCallback(
+    (_search?: string) => TiemposSvc.getAll({filter: "fields/Title eq 'Temporales'"}),
+    [TiemposSvc]
+  );
+
+  const addItem = React.useCallback(
+    (payload: maestro) => TiemposSvc.create(payload),
+    [TiemposSvc]
+  );
+
+  const editItem = React.useCallback(
+    (payload: maestro, id: string) => TiemposSvc.update(id, payload),
+    [TiemposSvc]
+  );
+
+  const deleteItem = React.useCallback(
+    (id: string | number) => TiemposSvc.delete(String(id)),
+    [TiemposSvc]
+  );
+
+  return useDesplegable<maestro>({
+    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+  });
+}
+
 export function useCargo(CargoSvc: MaestrosService) {
   const load = React.useCallback(
     (_search?: string) => CargoSvc.getAll({filter: "fields/Title eq 'Cargos'"}),

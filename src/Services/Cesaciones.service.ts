@@ -76,7 +76,6 @@ export class CesacionesService {
       Celular: f.Celular,
       Correoelectronico: f.Correoelectronico,
       FechaIngreso: f.FechaIngreso,
-      FechaIngresoCesacion: f.FechaIngresoCesacion,
       FechaLimiteDocumentos: f.FechaLimiteDocumentos,
       FechaSalidaCesacion: f.FechaSalidaCesacion,
       Jefedezona: f.Jefedezona,

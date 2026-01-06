@@ -3,7 +3,7 @@ import "../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
 import { useGraphServices } from "../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../models/Desplegables";
-import {useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
+import {useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useTemporales, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
 import { useAuth } from "../../../../auth/authProvider";
 import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
 import { formatPesosEsCO, numeroATexto,  } from "../../../../utils/Number";
@@ -53,6 +53,7 @@ export default function FormCesacion({onClose}: Props){
   const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
   const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
   const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
+  const { options: tiemposOptions, loading: loadingTiempos, reload: reloadTiempos} = useTemporales(Maestro);
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
 
   const showCargos = React.useMemo(() => new Set<string>(["31", "42", "9", "33"]), []);
@@ -67,6 +68,7 @@ export default function FormCesacion({onClose}: Props){
       reloadCC();
       reloadCO();
       reloadUN();
+      reloadTiempos()
   }, []);
 
   const selectedEmpresa = empresaOptions.find((o) => o.label.toLocaleLowerCase() === state.Empresaalaquepertenece.toLocaleLowerCase()) ?? null;
@@ -77,6 +79,7 @@ export default function FormCesacion({onClose}: Props){
   const selectedCentroCostos = CentroCostosOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoCC.toLocaleLowerCase()) ?? null;
   const selectedCentroOperativo = COOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoCO.toLocaleLowerCase()) ?? null;
   const selectedUnidadNegocio = UNOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoUN.toLocaleLowerCase()) ?? null;
+  const selectedTemporal = tiemposOptions.find((o) => o.label.toLocaleLowerCase() === state.Temporal.toLocaleLowerCase()) ?? null;
 
 
   /* ================== Display local para campos monetarios ================== */
@@ -327,7 +330,7 @@ export default function FormCesacion({onClose}: Props){
             <label className="ft-label" htmlFor="fechaIngreso">Fecha de ingreso *</label>
             <input id="FechaIngreso" name="FechaIngreso" type="date" value={state.FechaIngreso ?? ""} onChange={(e) => setField("FechaIngreso", e.target.value)}
               autoComplete="off" required aria-required="true"/>
-            <small>{errors.FechaIngresoCesacion}</small>
+            <small>{errors.FechaIngreso}</small>
           </div>
 
           {/* Fecha salida cesacion */}
@@ -336,14 +339,6 @@ export default function FormCesacion({onClose}: Props){
             <input id="FechaSalidaCesacion" name="FechaSalidaCesacion" type="date" value={state.FechaSalidaCesacion ?? ""} onChange={(e) => setField("FechaSalidaCesacion", e.target.value)}
               autoComplete="off" required aria-required="true"/>
             <small>{errors.FechaSalidaCesacion}</small>
-          </div>
-
-          {/* Fecha ingreso cesacion */}
-          <div className="ft-field">
-            <label className="ft-label" htmlFor="FechaIngresoCesacion">Fecha de ingreso cesacion*</label>
-            <input id="FechaIngresoCesacion" name="FechaIngresoCesacion" type="date" value={state.FechaIngresoCesacion ?? ""} onChange={(e) => setField("FechaIngresoCesacion", e.target.value)}
-              autoComplete="off" required aria-required="true"/>
-            <small>{errors.FechaIngreso}</small>
           </div>
 
           {/* Fecha limite documentos */}
@@ -511,8 +506,20 @@ export default function FormCesacion({onClose}: Props){
           {/* Temporal */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="numeroIdent">Temporal *</label>
-            <input id="Title" name="Title" type="text" placeholder="Ingrese la temporal" value={state.Temporal ?? ""} onChange={(e) => setField("Temporal", e.target.value.toUpperCase())}
-              autoComplete="off" required aria-required="true" maxLength={300}/>
+            <Select<desplegablesOption, false>
+              inputId="temporal"
+              options={tiemposOptions}
+              placeholder={loadingTiempos ? "Cargando opciones…" : "Buscar temporal..."}
+              value={selectedTemporal}
+              onChange={(opt) => {setField("Temporal", opt?.label ?? "");}}
+              classNamePrefix="rs"
+              isDisabled={loadingTiempos}
+              isLoading={loadingTiempos}
+              getOptionValue={(o) => String(o.value)}
+              getOptionLabel={(o) => o.label}
+              components={{ Option }}
+              isClearable
+            />
             <small>{errors.Temporal}</small>
           </div>
 

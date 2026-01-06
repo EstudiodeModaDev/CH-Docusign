@@ -3,7 +3,7 @@ import "../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
 import { useGraphServices } from "../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../models/Desplegables";
-import {useCargo, useCentroCostos, useCentroOperativo, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
+import {useCargo, useCentroCostos, useCentroOperativo, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useTemporales, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
 import { useAuth } from "../../../../auth/authProvider";
 import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
 import { useDependencias } from "../../../../Funcionalidades/Dependencias";
@@ -53,6 +53,7 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
     const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
     const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
     const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
+    const { options: tiemposOptions, loading: loadingTiempos, reload: reloadTiempos} = useTemporales(Maestro);
 
     const showCargos = React.useMemo(() => new Set<string>(["31", "42", "9", "33"]), []);
         const filteredCargoOptions = React.useMemo(
@@ -69,6 +70,7 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
         reloadCC();
         reloadCO();
         reloadUN();
+        reloadTiempos()
     }, []);
 
     React.useEffect(() => {
@@ -90,7 +92,6 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
         setField("DescripcionUN", selectedCesacion.DescripcionUN ?? false);
         setField("Empresaalaquepertenece", selectedCesacion.Empresaalaquepertenece ?? "" as any);
         setField("FechaIngreso", toISODateFlex(selectedCesacion.FechaIngreso) ?? null);
-        setField("FechaIngresoCesacion", toISODateFlex(selectedCesacion.FechaIngresoCesacion) ?? null);
         setField("FechaLimiteDocumentos", toISODateFlex(selectedCesacion.FechaLimiteDocumentos) ?? null);
         setField("FechaSalidaCesacion", toISODateFlex(selectedCesacion.FechaSalidaCesacion) ?? null as any);
         setField("Fechaenlaquesereporta", toISODateFlex(selectedCesacion.Fechaenlaquesereporta) ?? "");
@@ -122,6 +123,7 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
   const selectedCentroCostos = CentroCostosOptions.find((o) => o.value === state.CodigoCC) ?? null;
   const selectedCentroOperativo = COOptions.find((o) => o.value === state.CodigoCO) ?? null;
   const selectedUnidadNegocio = UNOptions.find((o) => o.value === state.CodigoUN) ?? null;
+  const selectedTemporal = tiemposOptions.find((o) => o.label.toLocaleLowerCase() === state.Temporal.toLocaleLowerCase()) ?? null;
 
 
   /* ================== Display local para campos monetarios ================== */
@@ -377,14 +379,6 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
             <small>{errors.FechaIngreso}</small>
           </div>
 
-          {/* Fecha ingreso cesacion */}
-          <div className="ft-field">
-            <label className="ft-label" htmlFor="FechaIngresoCesacion">Fecha de ingreso cesacion*</label>
-            <input id="FechaIngresoCesacion" name="FechaIngresoCesacion" type="date" value={state.FechaIngresoCesacion ?? ""} onChange={(e) => setField("FechaIngresoCesacion", e.target.value)}
-              autoComplete="off" required aria-required="true" disabled={isView}/>
-            <small>{errors.FechaIngreso}</small>
-          </div>
-
           {/* Fecha limite documentos */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="FechaLimiteDocumentos">Fecha limite documentos *</label>
@@ -547,9 +541,21 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
           {/* Temporal */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="numeroIdent">Temporal *</label>
-            <input id="Title" name="Title" type="text" placeholder="Ingrese la temporal" value={state.Temporal ?? ""} onChange={(e) => setField("Temporal", e.target.value)}
-              autoComplete="off" required aria-required="true" maxLength={300} disabled={isView}/>
-            <small>{errors.Title}</small>
+            <Select<desplegablesOption, false>
+              inputId="temporal"
+              options={tiemposOptions}
+              placeholder={loadingTiempos ? "Cargando opciones…" : "Buscar temporal..."}
+              value={selectedTemporal}
+              onChange={(opt) => {setField("Temporal", opt?.label ?? "");}}
+              classNamePrefix="rs"
+              isDisabled={loadingTiempos}
+              isLoading={loadingTiempos}
+              getOptionValue={(o) => String(o.value)}
+              getOptionLabel={(o) => o.label}
+              components={{ Option }}
+              isClearable
+            />
+            <small>{errors.Temporal}</small>
           </div>
 
           {/* ================= Centro de costos ================= */ }

@@ -64,24 +64,29 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
       numeroDoc: vm?.numeroDoc ?? "",
       empresa: vm?.empresa ?? "",
       cargo: vm?.cargo ?? "",
-      fecha_ingreso: spDateToDDMMYYYY(vm?.fechaIngreso ?? "")
+      fecha_ingreso: spDateToDDMMYYYY(vm?.fechaIngreso ?? ""),
+      tipo_trabajo: vm.tipoTel ?? ""
     }),
     [vm?.nombre, vm?.numeroDoc, vm?.empresa,  vm?.cargo]
   );
 
   React.useEffect(() => {
-    const tpl = (currentPaso?.PlantillaCorreo ?? "").toString();
+    // BODY
+    const tplBody = String(currentPaso?.PlantillaCorreo ?? "");
+    if (tplBody.trim() && !isCustomBody) {
+      setBody((prev) => (prev?.trim() ? prev : renderTemplate(tplBody, data)));
+    }
 
-    if (!tpl.trim()) return;
+    // ASUNTO
+    const tplSubject = String(currentPaso?.PlantillaAsunto ?? "");
+    if (tplSubject.trim()) {
+      setAsunto((prev) => (prev?.trim() ? prev : renderTemplate(tplSubject, data)));
+    }
 
-    if (isCustomBody) return;
+    setDestinatario((prev) => (prev?.trim() ? prev : vm.correoElectronico ?? ""));
 
-    setBody((prev) => {
-      if (prev && prev.trim()) return prev;
+  }, [currentPaso?.PlantillaCorreo, currentPaso?.PlantillaAsunto, data, isCustomBody,]);
 
-      return renderTemplate(tpl, data);
-    });
-  }, [currentPaso?.PlantillaCorreo, data, isCustomBody]);
 
   const handleSubmit = async (detalle: DetallesPasos) => {
     await handleCompleteStep(detalle);
@@ -166,6 +171,8 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
       await sendNotification(destinos, asunto, cuerpo);
 
       await handleSubmit(detalle);
+      setAsunto("");
+      setBody("");
       alert("Notificación enviada.");
     } catch (e: any) {
       console.error(e);
@@ -242,39 +249,23 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
                   <>
                     {!isCompleted ? (
                       <>
-                        <select 
-                          className="step-card__select"
-                          value={(decisiones[idDetalle] ?? "") as any}
-                          onChange={(e) => {
-                            const value = e.target.value as "" | "Aceptado" | "Rechazado";
-                            setDecisiones((prev: any) => ({ ...prev, [idDetalle]: value }));
-                          }}
-                        >
+                        <select  className="step-card__select" value={(decisiones[idDetalle] ?? "") as any} onChange={(e) => { 
+                                                                                                              const value = e.target.value as "" | "Aceptado" | "Rechazado";
+                                                                                                              setDecisiones((prev: any) => ({ ...prev, [idDetalle]: value }));
+                                                                                                            }}>
                           <option value="">Seleccione…</option>
                           <option value="Aceptado">Aceptado</option>
                           <option value="Rechazado">Rechazado</option>
                         </select>
 
                         {(decisiones[idDetalle] ?? "") === "Rechazado" && (
-                          <input
-                            type="text"
-                            className="step-card__input"
-                            placeholder="Motivo del rechazo"
-                            value={motivos[idDetalle] ?? ""}
-                            onChange={(e) => {
-                              const motivo = e.target.value;
-                              setMotivos((prev: any) => ({ ...prev, [idDetalle]: motivo }));
-                            }}
-                          />
+                          <input type="text" className="step-card__input" placeholder="Motivo del rechazo" value={motivos[idDetalle] ?? ""} onChange={(e) => {
+                                                                                                                                              const motivo = e.target.value;
+                                                                                                                                              setMotivos((prev: any) => ({ ...prev, [idDetalle]: motivo }));
+                                                                                                                                            }}/>
                         )}
 
-                        <button
-                          type="button"
-                          className={`step-card__check ${isCompleted ? "step-card__check--active" : ""}`}
-                          disabled={isCompleted}
-                          onClick={() => handleApproveAndComplete(detalle)}
-                          title="Completar paso"
-                        >
+                        <button type="button" className={`step-card__check ${isCompleted ? "step-card__check--active" : ""}`} disabled={isCompleted} onClick={() => handleApproveAndComplete(detalle)} title="Completar paso">
                           ✓
                         </button>
                       </>
@@ -295,13 +286,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
                           <div className="mail__title">Nuevo mensaje</div>
 
                           <div className="mail__actions">
-                            <button
-                              type="button"
-                              className="mail__send btn btn-xs"
-                              disabled={busySend}
-                              onClick={() => handleSendAndComplete(detalle)}
-                              title="Enviar notificación y completar"
-                            >
+                            <button type="button" className="mail__send btn btn-xs" disabled={busySend} onClick={() => handleSendAndComplete(detalle)} title="Enviar notificación y completar">
                               {busySend ? "Enviando…" : "Enviar"}
                             </button>
                           </div>
@@ -311,41 +296,20 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
                           <div className="mail__fields">
                             <div className="mail__row">
                               <div className="mail__label">Para</div>
-                              <input
-                                type="text"
-                                className="mail__input"
-                                placeholder="correo@dominio.com; correo2@gmail.com; correo3@hotmail.com"
-                                value={destinatario}
-                                onChange={(e) => setDestinatario(e.target.value)}
-                                disabled={busySend}
-                              />
+                              <input type="text" className="mail__input" placeholder="correo@dominio.com; correo2@gmail.com; correo3@hotmail.com" value={destinatario} onChange={(e) => setDestinatario(e.target.value)} disabled={busySend}/>
                             </div>
 
                             <div className="mail__row">
                               <div className="mail__label">Asunto</div>
-                              <input
-                                type="text"
-                                className="mail__input"
-                                placeholder="Asunto"
-                                value={asunto}
-                                onChange={(e) => setAsunto(e.target.value)}
-                                disabled={busySend}
-                              />
+                              <input type="text" className="mail__input" placeholder="Asunto" value={asunto} onChange={(e) => setAsunto(e.target.value)} disabled={busySend}/>
                             </div>
                           </div>
 
                           <div className="mail__editor">
-                            <RichTextBase64
-                              value={cuerpo}
-                              onChange={(html) => {
-                                setIsCustomBody(true);
-                                setBody(html);
-                              }}
-                              placeholder="Redacta tu mensaje… (HTML permitido)"
-                              readOnly={busySend}
-                              className="mail__rte-inner"
-                              imageSize={{ width: 240, fit: "contain" }}
-                            />
+                            <RichTextBase64 value={cuerpo} placeholder="Redacta tu mensaje… (HTML permitido)" readOnly={busySend} className="mail__rte-inner" imageSize={{ width: 240, fit: "contain" }} onChange={(html) => {
+                                                                                                                                                                                                          setIsCustomBody(true);
+                                                                                                                                                                                                          setBody(html);
+                                                                                                                                                                                                        }}/>
                           </div>
                         </div>
                       </div>
@@ -363,17 +327,10 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
                     {!isCompleted ? (
                       <>
                         <div className="step-card__upload-wrapper">
-                          <input
-                            id={`file-${idDetalle}`}
-                            type="file"
-                            accept={safeString(paso?.AceptaTipos ?? ".pdf,.jpg,.jpeg,.png")}
-                            className="step-card__file-input"
-                            onChange={(e) => {
-                              const f = e.target.files?.[0] ?? null;
-                              setFiles((prev) => ({ ...prev, [idDetalle]: f }));
-                            }}
-                            disabled={busyUpload}
-                          />
+                          <input id={`file-${idDetalle}`} type="file" disabled={busyUpload} accept={safeString(paso?.AceptaTipos ?? ".pdf,.jpg,.jpeg,.png")} className="step-card__file-input" onChange={(e) => { 
+                                                                                                                                                                                                  const f = e.target.files?.[0] ?? null;
+                                                                                                                                                                                                  setFiles((prev) => ({ ...prev, [idDetalle]: f }));
+                                                                                                                                                                                                }}/>
 
                           <label htmlFor={`file-${idDetalle}`} className="step-card__upload-btn">
                             Seleccionar archivo
@@ -382,13 +339,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
                           {files[idDetalle] && <span className="step-card__file-name">{files[idDetalle]?.name}</span>}
                         </div>
 
-                        <button
-                          type="button"
-                          className="btn btn-xs"
-                          disabled={busyUpload || !files[idDetalle]}
-                          onClick={() => handleUploadAndComplete(detalle, paso)}
-                          title="Subir y completar"
-                        >
+                        <button type="button" className="btn btn-xs" disabled={busyUpload || !files[idDetalle]} onClick={() => handleUploadAndComplete(detalle, paso)} title="Subir y completar">
                           {busyUpload ? "Subiendo…" : "Subir ✓"}
                         </button>
                       </>

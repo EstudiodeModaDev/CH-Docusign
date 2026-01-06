@@ -50,6 +50,7 @@ export type PasosProceso = {
     NombreEvidencia: string;
     TipoPaso: string;
     PlantillaCorreo: string
+    PlantillaAsunto: string;
 }
 
 export type DetallesPasos = {

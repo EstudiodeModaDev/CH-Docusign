@@ -34,7 +34,8 @@ export class PasosPromocionService {
         NombrePaso: f.NombrePaso,
         Orden: f.Orden,
         TipoPaso: f.TipoPaso,
-        PlantillaCorreo: f.PlantillaCorreo
+        PlantillaCorreo: f.PlantillaCorreo,
+        PlantillaAsunto: f.PlantillaAsunto,
     };
     return mapped;
   }

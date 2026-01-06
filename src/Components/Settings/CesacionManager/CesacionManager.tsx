@@ -23,7 +23,7 @@ function toInt(v: any, fallback = 0) {
 }
 
 export const ProcesosStepManager: React.FC<Props> = ({ onChanged, pasos, onReload, tipo, onAdd, onEdit, onDelete}) => {
-  const [state, setState] = React.useState<PasosProceso>({NombreEvidencia: "", NombrePaso: "", Orden: 0, TipoPaso: "", Title: "", PlantillaCorreo:""});
+  const [state, setState] = React.useState<PasosProceso>({NombreEvidencia: "", NombrePaso: "", Orden: 0, TipoPaso: "", Title: "", PlantillaCorreo:"", PlantillaAsunto:""});
   const setField = <K extends keyof PasosProceso>(k: K, v: PasosProceso[K]) => setState((s) => ({ ...s, [k]: v }));
 
   const [saving, setSaving] = React.useState(false);
@@ -71,7 +71,8 @@ export const ProcesosStepManager: React.FC<Props> = ({ onChanged, pasos, onReloa
       Orden: toInt(s.Orden, 1),
       NombreEvidencia: s.NombreEvidencia ?? "",
       TipoPaso: s.TipoPaso ?? "Aprobacion",
-      PlantillaCorreo: s.PlantillaCorreo ?? ""
+      PlantillaCorreo: s.PlantillaCorreo ?? "",
+      PlantillaAsunto: s.PlantillaAsunto ?? "",
     });
 
     setEditingId(s.Id!);

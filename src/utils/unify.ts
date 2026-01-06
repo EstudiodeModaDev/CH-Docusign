@@ -23,6 +23,7 @@ export type UnifyVM = {
   tipoTel: string;
   empresa: string;
   numeroDoc: string
+  correoElectronico: string
 };
 
 export const emptyVM = (): UnifyVM => ({
@@ -41,7 +42,8 @@ export const emptyVM = (): UnifyVM => ({
   tipoDocCorto: "",
   tipoTel: "",
   empresa: "",
-  numeroDoc: ""
+  numeroDoc: "",
+  correoElectronico: ""
 });
 
 /* ============================================================================
@@ -154,7 +156,8 @@ export const UNIFY_MAPPINGS: {
     tipoDocCorto: "AbreviacionTipoDoc",
     tipoTel: "ModalidadTeletrabajo",
     empresa: { path: "EmpresaSolicitante", transform: normalizeEmpresa },
-    numeroDoc: "NumeroDoc"
+    numeroDoc: "NumeroDoc",
+    correoElectronico: "Email"
   },
 
   Nuevo: {
@@ -173,7 +176,8 @@ export const UNIFY_MAPPINGS: {
     tipoDocCorto: "Tipo_x0020_de_x0020_documento_x0",
     tipoTel: "MODALIDAD_x0020_TELETRABAJO",
     empresa: { path: "Empresa_x0020_que_x0020_solicita", transform: normalizeEmpresa },
-    numeroDoc: "Numero_x0020_identificaci_x00f3_"
+    numeroDoc: "Numero_x0020_identificaci_x00f3_",
+    correoElectronico: "CORREO_x0020_ELECTRONICO_x0020_"
   },
 
   Habeas: {
@@ -197,7 +201,8 @@ export const UNIFY_MAPPINGS: {
     salarioValor: "Salario",
     tipoDoc: "TipoDoc",
     empresa: { path: "Empresaalaquepertenece", transform: normalizeEmpresa },
-    numeroDoc: "Title"
+    numeroDoc: "Title",
+    correoElectronico: "Correoelectronico"
   },
 };
 

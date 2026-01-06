@@ -7,7 +7,6 @@ import {useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, us
 import {formatPesosEsCO, numeroATexto, toNumberFromEsCO,} from "../../../../utils/Number";
 import { useAuth } from "../../../../auth/authProvider";
 import { getTodayLocalISO } from "../../../../utils/Date";
-import { usePromocion } from "../../../../Funcionalidades/Promocion";
 import { useDetallesPasosPromocion, usePasosPromocion } from "../../../../Funcionalidades/PasosPromocion";
 import { useSalarios } from "../../../../Funcionalidades/Salario";
 import { lookOtherInfo } from "../../../../utils/lookFor";
@@ -15,6 +14,8 @@ import { useHabeasData } from "../../../../Funcionalidades/HabeasData";
 import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
 import { useContratos } from "../../../../Funcionalidades/Contratos";
 import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
+import type { Promocion, PromocionErrors } from "../../../../models/Promociones";
+import type { SetField } from "../Contrato/addContrato";
 
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -33,12 +34,16 @@ const Option = (props: OptionProps<desplegablesOption, false>) => {
 
 type Props = {
   onClose: () => void;
+  state: Promocion
+  setField: SetField<Promocion>;
+  handleSubmit: () => Promise<{ok: boolean; created: string | null;}>;
+  errors: PromocionErrors
+  searchPromocion: (cedula: string) => Promise<Promocion | null>
+  loadFirstPage: () => Promise<void>
 };
-
 /* ================== Formulario ================== */
-export default function FormPromociones({onClose}: Props){
-  const { Maestro, Promociones, DeptosYMunicipios, DetallesPasosPromocion, salarios, HabeasData, Contratos, Cesaciones, categorias} = useGraphServices();
-  const { state, setField, handleSubmit, errors, searchRegister: searchPromocion } = usePromocion(Promociones);
+export default function FormPromociones({onClose, state, setField, handleSubmit, errors, searchPromocion, loadFirstPage}: Props){
+  const { Maestro, DeptosYMunicipios, DetallesPasosPromocion, salarios, HabeasData, Contratos, Cesaciones, categorias} = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
   const { searchRegister: searchNovedad } = useContratos(Contratos);
   const { searchRegister: searchCesacion } = useCesaciones(Cesaciones);
@@ -253,6 +258,7 @@ export default function FormPromociones({onClose}: Props){
       await loadPasosPromocion()
       await handleCreateAllSteps(rows, created.created ?? "")
       await onClose()
+      await loadFirstPage()
     }
   };
 

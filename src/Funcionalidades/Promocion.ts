@@ -76,6 +76,7 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
     Correo: "",
     PerteneceModelo: false
   });
+  const [estado, setEstado] = React.useState<string>("pendiente");
   const [errors, setErrors] = React.useState<PromocionErrors>({});
   const setField = <K extends keyof Promocion>(k: K, v: Promocion[K]) => setState((s) => ({ ...s, [k]: v }));
   
@@ -436,8 +437,8 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
   }
 
   return {
-    rows, loading, error, pageSize, pageIndex, hasNext, range, search, sorts, state, errors, workers, workersOptions,
-    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage, searchRegister
+    rows, loading, error, pageSize, pageIndex, hasNext, range, search, sorts, state, errors, workers, workersOptions, estado,
+    setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage, searchRegister
   };
 }
 

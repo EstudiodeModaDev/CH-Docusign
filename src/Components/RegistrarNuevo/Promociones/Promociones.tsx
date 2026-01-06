@@ -1,9 +1,8 @@
 import * as React from "react";
 import "../Contratos/Contratos.css";
-import type { SortDir, SortField } from "../../../models/Commons";
+import type { DateRange, SortDir, SortField } from "../../../models/Commons";
 import { useGraphServices } from "../../../graph/graphContext";
 import { toISODateFlex } from "../../../utils/Date";
-import { usePromocion } from "../../../Funcionalidades/Promocion";
 import type { Promocion } from "../../../models/Promociones";
 import { formatPesosEsCO } from "../../../utils/Number";
 import ViewPromociones from "../Modals/Promociones/viewEditPromociones";
@@ -16,9 +15,29 @@ function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; d
   return <span style={{ marginLeft: 6, opacity: 0.85 }}>{dir}{sorts.length > 1 ? ` ${idx+1}` : ''}</span>;
 }
 
-export default function TablaPromociones() {
-  const { Promociones, Envios } = useGraphServices();
-  const {rows, loading, error, pageSize, pageIndex, hasNext, sorts, setRange, setPageSize, nextPage, loadFirstPage,  toggleSort, range, reloadAll, setSearch, search} = usePromocion(Promociones);
+type Props = {
+  rows: Promocion[];
+  loading: boolean;
+  error: string | null;
+  pageSize: number;
+  pageIndex: number;
+  hasNext: boolean;
+  sorts: Array<{field: SortField; dir: SortDir}>;
+  setRange: React.Dispatch<React.SetStateAction<DateRange>>;
+  setPageSize: (size: number) => void;
+  nextPage: () => void;
+  reloadAll: () => void;
+  toggleSort: (field: SortField, multi?: boolean) => void;
+  range: DateRange;
+  setSearch: React.Dispatch<React.SetStateAction<string>>;
+  search: string;
+  loadFirstPage: () => void;
+  estado: string,
+  setEstado: React.Dispatch<React.SetStateAction<string>>;
+}
+
+export default function TablaPromociones({rows, loading, error, pageSize, pageIndex, hasNext, sorts, setRange, setPageSize, nextPage, loadFirstPage, toggleSort, range, reloadAll, setSearch, search, estado, setEstado}: Props) {
+  const { Envios } = useGraphServices();
   const [promocionSeleccionada, setPromocionSeleccionada] = React.useState<Promocion | null>(null);
   const [visible, setVisible] = React.useState<boolean>(false);
   const [tipoFormulario, setTipoFormulario] = React.useState<string>("");
@@ -39,8 +58,15 @@ export default function TablaPromociones() {
   return (
     <div className="tabla-novedades">
       <div className="rn-toolbar tabla-filters">
+
         <div className="rn-toolbar__left">
             <input className="rn-input" onChange={(e) => {setSearch(e.target.value)}} value={search} placeholder="Buscador..."/>
+
+            <select name="estado" id="estado" onChange={(e) => {setEstado(e.target.value)}} value={estado} className="rn-input">
+              <option value="proceso">En proceso</option>
+              <option value="finalizado">Finalizados</option>
+              <option value="todos">Todos</option>
+            </select>
             <input type= "date" className="rn-input rn-date" onChange={(e) => {setRange({ ...range, from: e.target.value })}} value={range.from}/>
             <input type= "date" className="rn-input rn-date" onChange={(e) => {setRange({ ...range, to: e.target.value })}} value={range.to}/>
         </div>

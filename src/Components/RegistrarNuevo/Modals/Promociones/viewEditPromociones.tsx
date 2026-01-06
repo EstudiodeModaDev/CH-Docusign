@@ -57,16 +57,16 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
-  const selectedEmpresa = empresaOptions.find((o) => o.label === state.EmpresaSolicitante) ?? null;
-  const selectedCargo = cargoOptions.find((o) => o.label === state.Cargo) ?? null;
-  const selectedModalidad = modalidadOptions.find((o) => o.label === state.ModalidadTeletrabajo) ?? null;
+  const selectedEmpresa = empresaOptions.find((o) => o.label.toLowerCase() === state.EmpresaSolicitante.toLowerCase()) ?? null;
+  const selectedCargo = cargoOptions.find((o) => o.label.toLowerCase() === state.Cargo.toLowerCase()) ?? null;
+  const selectedModalidad = modalidadOptions.find((o) => o.label.toLowerCase() === state.ModalidadTeletrabajo.toLowerCase()) ?? null;
   const selectedEspecificidad = especificidadOptions.find((o) => o.label === state.EspecificidadCargo.trim()) ?? null;
-  const selectedNivelCargo = nivelCargoOptions.find((o) => o.label === state.NivelCargo) ?? null;
-  const selectedCentroCostos = CentroCostosOptions.find((o) => o.value === state.CodigoCentroCostos) ?? null;
-  const selectedCentroOperativo = COOptions.find((o) => o.value === state.CentroOperativo) ?? null;
-  const selectedUnidadNegocio = UNOptions.find((o) => o.value === state.IDUnidadNegocio) ?? null;
-  const selectedTipoVacante = tipoVacanteOptions.find((o) => o.label === state.TipoVacante) ?? null;
-  const selectedDependencia = dependenciaOptions.find((o) => o.value === state.Dependencia) ?? null;
+  const selectedNivelCargo = nivelCargoOptions.find((o) => o.label.toLowerCase() === state.NivelCargo.toLowerCase()) ?? null;
+  const selectedCentroCostos = CentroCostosOptions.find((o) => o.value.toLowerCase() === state.CodigoCentroCostos.toLowerCase()) ?? null;
+  const selectedCentroOperativo = COOptions.find((o) => o.value.toLowerCase() === state.CentroOperativo.toLowerCase()) ?? null;
+  const selectedUnidadNegocio = UNOptions.find((o) => o.value.toLowerCase() === state.IDUnidadNegocio.toLowerCase()) ?? null;
+  const selectedTipoVacante = tipoVacanteOptions.find((o) => o.label.toLowerCase() === state.TipoVacante.toLowerCase()) ?? null;
+  const selectedDependencia = dependenciaOptions.find((o) => o.value.toLowerCase() === state.Dependencia.toLowerCase()) ?? null;
   const opciones = [{ value: "Escritorio", label: "Escritorio" }, { value: "Silla", label: "Silla" }, { value: "Escritorio/Silla", label: "Escritorio/Silla" }];
   const opcionesTipoNomina = [{ value: "Retail", label: "Retail" }, { value: "Administrativa", label: "Administrativa" },];
  /* ================== Display local para campos monetarios ================== */
@@ -423,7 +423,7 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
               {/* Nombre seleccionado */}
               <div className="ft-field">
                 <label className="ft-label" htmlFor="nombreSeleccionado"> Nombre del seleccionado *</label>
-                <input id="nombreSeleccionado" name="NombreSeleccionado" type="text" disabled={isView} placeholder="Ingrese el nombre del seleccionado" value={state.NombreSeleccionado ?? ""} onChange={(e) => setField("NombreSeleccionado", e.target.value)} autoComplete="off" required aria-required="true" maxLength={300}/>
+                <input id="nombreSeleccionado" name="NombreSeleccionado" type="text" disabled={isView} placeholder="Ingrese el nombre del seleccionado" value={state.NombreSeleccionado ?? ""} onChange={(e) => setField("NombreSeleccionado", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
                 <small>{errors.NombreSeleccionado}</small>
               </div>
 

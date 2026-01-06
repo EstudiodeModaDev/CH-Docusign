@@ -203,15 +203,15 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     const selectedEmpresa = empresaOptions.find((o) => o.label.toLocaleLowerCase() === state.Empresa_x0020_que_x0020_solicita.toLocaleLowerCase()) ?? null;
     const selectedTipoDocumento = tipoDocOptions.find((o) => o.label === state.tipodoc.trim()) ?? null; 
     const selectedCargo = cargoOptions.find((o) => o.label.toLocaleLowerCase() === state.CARGO.toLocaleLowerCase()) ?? null;
-    const selectedModalidad = modalidadOptions.find((o) => o.label === state.MODALIDAD_x0020_TELETRABAJO) ?? null;
-    const selectedEspecificidad = especificidadOptions.find((o) => o.label === state.ESPECIFICIDAD_x0020_DEL_x0020_CA) ?? null;
-    const selectedNivelCargo = nivelCargoOptions.find((o) => o.label === state.NIVEL_x0020_DE_x0020_CARGO) ?? null;
-    const selectedCentroCostos = CentroCostosOptions.find((o) => o.value === state.CODIGO_x0020_CENTRO_x0020_DE_x00) ?? null;
-    const selectedCentroOperativo = COOptions.find((o) => o.value === state.CENTRO_x0020_OPERATIVO_x0020_) ?? null;
-    const selectedUnidadNegocio = UNOptions.find((o) => o.value === state.ID_x0020_UNIDAD_x0020_DE_x0020_N) ?? null;
-    const selectedOrigenSeleccion = origenOptions.find((o) => o.label === state.ORIGEN_x0020_DE_x0020_LA_x0020_S) ?? null;
-    const selectedTipoContrato = tipoContratoOptions.find((o) => o.label === state.TIPO_x0020_DE_x0020_CONTRATO) ?? null;
-    const selectedTipoVacante = tipoVacanteOptions.find((o) => o.label === state.TIPO_x0020_DE_x0020_VACANTE_x002) ?? null;
+    const selectedModalidad = modalidadOptions.find((o) => o.label.toLowerCase() === state.MODALIDAD_x0020_TELETRABAJO) ?? null;
+    const selectedEspecificidad = especificidadOptions.find((o) => o.label.toLowerCase() === state.ESPECIFICIDAD_x0020_DEL_x0020_CA) ?? null;
+    const selectedNivelCargo = nivelCargoOptions.find((o) => o.label.toLowerCase() === state.NIVEL_x0020_DE_x0020_CARGO.toLowerCase()) ?? null;
+    const selectedCentroCostos = CentroCostosOptions.find((o) => o.value.toLowerCase() === state.CODIGO_x0020_CENTRO_x0020_DE_x00.toLowerCase()) ?? null;
+    const selectedCentroOperativo = COOptions.find((o) => o.value.toLowerCase() === state.CENTRO_x0020_OPERATIVO_x0020_.toLowerCase()) ?? null;
+    const selectedUnidadNegocio = UNOptions.find((o) => o.value.toLowerCase() === state.ID_x0020_UNIDAD_x0020_DE_x0020_N.toLowerCase()) ?? null;
+    const selectedOrigenSeleccion = origenOptions.find((o) => o.label.toLowerCase() === state.ORIGEN_x0020_DE_x0020_LA_x0020_S.toLowerCase()) ?? null;
+    const selectedTipoContrato = tipoContratoOptions.find((o) => o.label.toLowerCase() === state.TIPO_x0020_DE_x0020_CONTRATO.toLowerCase()) ?? null;
+    const selectedTipoVacante = tipoVacanteOptions.find((o) => o.label.toLowerCase() === state.TIPO_x0020_DE_x0020_VACANTE_x002.toLowerCase()) ?? null;
     const selectedDependencia = dependenciaOptions.find((o) => o.value === state.DEPENDENCIA_x0020_) ?? null;
     const selectedEtapa = etapasOptions.find((o) => lower(o?.label) === lower(state?.Etapa)) ?? null;
     const opciones = [{ value: "Escritorio", label: "Escritorio" }, { value: "Silla", label: "Silla" }, { value: "Escritorio/Silla", label: "Escritorio/Silla" }];
@@ -455,7 +455,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
             {/* Nombre seleccionado */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="nombreSeleccionado"> Nombre del seleccionado *</label>
-              <input id="nombreSeleccionado" name="NombreSeleccionado" type="text" disabled={isView} placeholder="Ingrese el nombre del seleccionado" value={state.NombreSeleccionado ?? ""} onChange={(e) => setField("NombreSeleccionado", e.target.value)} autoComplete="off" required aria-required="true" maxLength={300}/>
+              <input id="nombreSeleccionado" name="NombreSeleccionado" type="text" disabled={isView} placeholder="Ingrese el nombre del seleccionado" value={state.NombreSeleccionado ?? ""} onChange={(e) => setField("NombreSeleccionado", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.NombreSeleccionado}</small>
             </div>
 

@@ -164,17 +164,19 @@ export function useDetallesPasosNovedades(DetallesSvc: DetallesPasosNovedadesSer
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  const loadDetallesNovedades = React.useCallback(async () => {
-      setLoading(true); setError(null);
-      try {
+  const loadDetallesNovedades = React.useCallback(async (): Promise<DetallesPasos[]> => {
+    setLoading(true); setError(null);
+    try {
       const items = await DetallesSvc.getAll({filter: `fields/Title eq ${selected}`, orderby: "fields/NumeroPaso asc"})
       setRows(items);
-      } catch (e: any) {
+      return items;
+    } catch (e: any) {
       setError(e?.message ?? "Error cargando pasos de la promoción");
       setRows([]);
-      } finally {
+      return [];
+    } finally {
       setLoading(false);
-      }
+    }
   }, [selected,]);
 
   React.useEffect(() => {
@@ -212,8 +214,18 @@ export function useDetallesPasosNovedades(DetallesSvc: DetallesPasosNovedadesSer
     }
   }
 
+  const calcPorcentaje = async (): Promise<number> => {
+    const items = await loadDetallesNovedades();
+    if(items.length > 0){
+      const completados = items.filter(i => i.EstadoPaso === "Completado").length;
+      return (completados / items.length) * 100;
+    } else {
+      return 0
+    }
+  }
+
   return {
-    rows, loading, error, loadDetallesNovedades, handleCreateAllSteps, 
+    rows, loading, error, loadDetallesNovedades, handleCreateAllSteps, calcPorcentaje
   };
 }
 

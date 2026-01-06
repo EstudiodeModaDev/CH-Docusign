@@ -44,7 +44,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
   const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
   const { options: etapasOptions, loading: loadingEtapas, reload: reloadEtapas } = useEtapa(Maestro);
   const { loading: loadingPasos, error: errorPasos, byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep } = usePasosNoveades()
-  const { loading: loadingDetalles, error: errorDetalles, rows: rowsDetalles, loadDetallesNovedades} = useDetallesPasosNovedades(DetallesPasosNovedades, selectedNovedad.Id)
+  const { loading: loadingDetalles, error: errorDetalles, rows: rowsDetalles, loadDetallesNovedades, calcPorcentaje} = useDetallesPasosNovedades(DetallesPasosNovedades, selectedNovedad.Id)
   const { options: modalidadOptions, loading: loadingModalidad, reload: reloadModalidadTrabajo} = useModalidadTrabajo(Maestro);
   const { options: especificidadOptions, loading: loadingEspecificdad, reload: reloadEspecidadCargo} = useEspecificidadCargo(Maestro);
   const { options: nivelCargoOptions, loading: loadinNivelCargo, reload: reloadNivelCargo} = useNivelCargo(Maestro);
@@ -199,6 +199,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     const lower = (v: any) => (v ?? "").toString().toLocaleLowerCase();
 
     const { state, setField, errors, handleEdit } = useContratos(Contratos);
+
     const selectedEmpresa = empresaOptions.find((o) => o.label.toLocaleLowerCase() === state.Empresa_x0020_que_x0020_solicita.toLocaleLowerCase()) ?? null;
     const selectedTipoDocumento = tipoDocOptions.find((o) => o.label === state.tipodoc.trim()) ?? null; 
     const selectedCargo = cargoOptions.find((o) => o.label === state.CARGO) ?? null;
@@ -226,6 +227,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     const [garantizadoValor, setValorGarantizado] = React.useState<number>(0)
     const [porcentajeValor, setPorcentajeValor] = React.useState<number>(0)
     const [promedio, setPromedio] = React.useState<number>(0);
+    const [porcentajeCompletacion, setPorcetanjeCompletacion] = React.useState<number>(0);
     const [grupoCVE, setGrupoCVE] = React.useState<string>("");
     const [touchedPct, setTouchedPct] = React.useState(false);
     const [modal, setModal] = React.useState(false)
@@ -321,6 +323,14 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
 
   }, [state]);
 
+  React.useEffect(() => {
+    (async () => {
+      const pct = await calcPorcentaje();
+      setPorcetanjeCompletacion(pct);
+    })();
+
+  }, [selectedNovedad]);
+
   /* ================== Nivel por cargo ================== */
   React.useEffect(() => {
     let cancelled = false;
@@ -369,7 +379,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
             loadDetalles={() => loadDetallesNovedades()} 
             proceso={"Nuevo"}/> :
           <>
-          <h2 id="ft_title" className="ft-title">Contratación {selectedNovedad.NombreSeleccionado}</h2>
+          <h2 id="ft_title" className="ft-title">Contratación {selectedNovedad.NombreSeleccionado} - {porcentajeCompletacion}%</h2>
           <form className="ft-form" noValidate>
             {/* ================= Empresa ================= */}
             <div className="ft-field">

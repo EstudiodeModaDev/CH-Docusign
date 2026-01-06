@@ -7,7 +7,8 @@ import type { desplegablesOption } from "../../../../models/Desplegables";
 import {useCargo, useDeptosMunicipios, useEmpresasSelect, useTipoDocumentoSelect,} from "../../../../Funcionalidades/Desplegables";
 import { useAuth } from "../../../../auth/authProvider";
 import { getTodayLocalISO } from "../../../../utils/Date";
-import { useHabeasData } from "../../../../Funcionalidades/HabeasData";
+import type { HabeasData, HabeasErrors } from "../../../../models/HabeasData";
+import type { SetField } from "../Contrato/addContrato";
 
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -26,16 +27,21 @@ const Option = (props: OptionProps<desplegablesOption, false>) => {
 
 type Props = {
   onClose: () => void;
+  state: HabeasData
+  setField: SetField<HabeasData>;
+  handleSubmit: (e: React.FormEvent) => void;
+  errors: HabeasErrors;
+  loadFirstPage: () => void; 
+  cleanState: () => void;
 };
 
 /* ================== Formulario ================== */
-export default function FormHabeas({onClose}: Props){
-  const { Maestro, HabeasData, DeptosYMunicipios} = useGraphServices();
+export default function FormHabeas({onClose, state, setField, handleSubmit, errors, loadFirstPage, cleanState}: Props){
+  const { Maestro, DeptosYMunicipios} = useGraphServices();
   const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
   const { loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
   const { options: empresaOptions, loading: loadingEmpresas, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
-  const { state, setField, handleSubmit, errors, loadFirstPage, cleanState } = useHabeasData(HabeasData);
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
 
@@ -53,7 +59,7 @@ export default function FormHabeas({onClose}: Props){
   }, [deptoOptions]);
 
   const municipiosFiltrados = React.useMemo(
-    () => deptoOptions.filter((i) => i.label === selectedDepto),
+    () => deptoOptions.filter((i) => i.label.toLocaleLowerCase() === selectedDepto.toLocaleLowerCase()),
     [deptoOptions, selectedDepto]
   );
 
@@ -84,7 +90,7 @@ export default function FormHabeas({onClose}: Props){
   };
   
   const selectedTipoDocumento = tipoDocOptions.find((o) => o.value === state.AbreviacionTipoDoc) ?? null; 
-  const selectedEmpresa = empresaOptions.find((o) => o.value === state.Empresa) ?? null; 
+  const selectedEmpresa = empresaOptions.find((o) => o.label.toLocaleLowerCase() === state.Empresa.toLocaleLowerCase()) ?? null;
 
   /* ================== Display local para campos monetarios ================== */
   const {account} = useAuth()
@@ -101,11 +107,11 @@ export default function FormHabeas({onClose}: Props){
           <div className="ft-field">
             <label className="ft-label" htmlFor="ciudad">Empresa solicitante *</label>
             <Select<desplegablesOption, false>
-              inputId="ciudad"
+              inputId="solicitante"
               options={empresaOptions}
-              placeholder={loadingEmpresas ? "Cargando Empresas..." : "Selecciona una empresa..."}
-              value={ selectedEmpresa }
-              onChange={(e) => { setField("Empresa", e?.label ?? ""); }}
+              placeholder={loadingEmpresas ? "Cargando opciones…" : "Buscar empresa..."}
+              value={selectedEmpresa}
+              onChange={(opt) => setField("Empresa", opt?.label ?? "")}
               classNamePrefix="rs"
               isDisabled={loadingEmpresas}
               isLoading={loadingEmpresas}
@@ -114,7 +120,7 @@ export default function FormHabeas({onClose}: Props){
               components={{ Option }}
               isClearable
             />
-            <small>{errors.Ciudad}</small>
+            <small>{errors.Empresa}</small>
           </div>
 
           <div className="ft-field">

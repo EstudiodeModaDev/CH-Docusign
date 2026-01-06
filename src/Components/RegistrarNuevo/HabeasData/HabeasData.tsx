@@ -1,8 +1,7 @@
 import * as React from "react";
 import "../Contratos/Contratos.css";
-import type { SortDir, SortField } from "../../../models/Commons";
+import type { DateRange, SortDir, SortField } from "../../../models/Commons";
 import { useGraphServices } from "../../../graph/graphContext";
-import { useHabeasData } from "../../../Funcionalidades/HabeasData";
 import type { HabeasData } from "../../../models/HabeasData";
 import { toISODateFlex } from "../../../utils/Date";
 import ViewHabeas from "../Modals/HabeasData/viewEditHabeas";
@@ -15,9 +14,27 @@ function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; d
   return <span style={{ marginLeft: 6, opacity: 0.85 }}>{dir}{sorts.length > 1 ? ` ${idx+1}` : ''}</span>;
 }
 
-export default function TablaHabeas() {
-  const { HabeasData, Envios } = useGraphServices();
-  const {rows, loading, error, pageSize, pageIndex, hasNext, sorts, setRange, setPageSize, nextPage, reloadAll,  toggleSort, range, setSearch, search, loadFirstPage} = useHabeasData(HabeasData);
+type Props = {
+  rows: HabeasData[];
+  loading: boolean;
+  error: string | null;
+  pageSize: number;
+  pageIndex: number;
+  hasNext: boolean;
+  sorts: Array<{field: SortField; dir: SortDir}>;
+  setRange: React.Dispatch<React.SetStateAction<DateRange>>;
+  setPageSize: (size: number) => void;
+  nextPage: () => void;
+  reloadAll: () => void;
+  toggleSort: (field: SortField, multi?: boolean) => void;
+  range: DateRange;
+  setSearch: React.Dispatch<React.SetStateAction<string>>;
+  search: string;
+  loadFirstPage: () => void;
+}
+
+export default function TablaHabeas({rows, loading, error, pageSize, pageIndex, hasNext, sorts, setRange, setPageSize, nextPage, reloadAll, toggleSort, range, setSearch, search, loadFirstPage}: Props) {
+  const { Envios } = useGraphServices();
   const {canEdit} = useEnvios(Envios);
   const [habeasSeleccionado, setHabeasSeleccionado] = React.useState<HabeasData | null>(null);
   const [visible, setVisible] = React.useState<boolean>(false);

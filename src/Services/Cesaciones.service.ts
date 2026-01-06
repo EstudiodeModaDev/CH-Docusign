@@ -108,7 +108,8 @@ export class CesacionesService {
       Autonomia: f.Autonomia,
       ImpactoCliente: f.ImpactoCliente,
       contribucionEstrategia: f.contribucionEstrategia,
-      Promedio: f.Promedio
+      Promedio: f.Promedio,
+      Estado: f.Estado
     };
   }
 

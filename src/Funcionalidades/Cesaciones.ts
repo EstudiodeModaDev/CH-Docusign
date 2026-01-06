@@ -56,7 +56,8 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
     Autonomia: "",
     ImpactoCliente: "",
     contribucionEstrategia: "",
-    Promedio: ""
+    Promedio: "",
+    Estado: "En proceso"
   });
   const [estado, setEstado] = React.useState<string>("proceso");
   const [errors, setErrors] = React.useState<CesacionErrors>({});
@@ -245,7 +246,8 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
       Autonomia: "",
       ImpactoCliente: "",
       contribucionEstrategia: "",
-      Promedio: ""
+      Promedio: "",
+      Estado: "En proceso"
     })
   };
 
@@ -298,7 +300,8 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
         Autonomia: state.Autonomia,
         ImpactoCliente: state.ImpactoCliente,
         contribucionEstrategia: state.contribucionEstrategia,
-        Promedio: state.Promedio
+        Promedio: state.Promedio,
+        Estado: "En proceso"
       };
       const creado = await CesacionesSvc.create(payload);
       alert("Se ha creado el registro con éxito")
@@ -359,6 +362,7 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
         ImpactoCliente: CesacionSeleccionada.ImpactoCliente !== state.ImpactoCliente ? state.ImpactoCliente : CesacionSeleccionada.ImpactoCliente,
         contribucionEstrategia: CesacionSeleccionada.contribucionEstrategia !== state.contribucionEstrategia ? state.contribucionEstrategia : CesacionSeleccionada.contribucionEstrategia,
         Promedio: CesacionSeleccionada.Promedio !== state.Promedio ? state.Promedio : CesacionSeleccionada.Promedio,
+        Estado: CesacionSeleccionada.Estado !== state.Estado ? state.Estado : CesacionSeleccionada.Estado,
       };
       await CesacionesSvc.update(CesacionSeleccionada.Id!, payload);
       alert("Se ha actualizado el registro con éxito")

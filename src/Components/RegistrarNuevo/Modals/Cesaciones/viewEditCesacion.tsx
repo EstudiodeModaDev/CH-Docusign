@@ -41,7 +41,7 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
     const { Maestro, Cesaciones, DeptosYMunicipios, salarios, DetallesPasosCesacion, categorias } = useGraphServices();
     const { state, setField, handleEdit, errors, } = useCesaciones(Cesaciones);
     const { byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep, error: errorPasos, loading: loadingPasos} = usePasosCesacion()
-    const { loading: loadingDetalles, rows: rowsDetalles, error: errorDetalles, loadDetallesCesacion} = useDetallesPasosCesacion(DetallesPasosCesacion, selectedCesacion.Id ?? "")
+    const { loading: loadingDetalles, rows: rowsDetalles, error: errorDetalles, loadDetallesCesacion, calcPorcentaje} = useDetallesPasosCesacion(DetallesPasosCesacion, selectedCesacion.Id ?? "")
     const { loadSpecificSalary } = useSalarios(salarios);
     const { loadSpecificLevel } = useAutomaticCargo(categorias);
     const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
@@ -268,6 +268,21 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
       cancelled = true;
     };
   }, [state.Cargo,]);
+
+  const completeStep = React.useCallback( async (detalle: DetallesPasos, ) => {
+      await handleCompleteStep(detalle);
+
+      const porcentaje = await calcPorcentaje();
+
+      if (Number(porcentaje) === 100) {
+        const id = selectedCesacion?.Id;
+        if (!id) return;
+
+        await Cesaciones.update(id, { Estado: "Completado" });
+      }
+    },
+    [handleCompleteStep, calcPorcentaje, selectedCesacion?.Id, Cesaciones]
+  );
   
   return (
     <div className="ft-modal-backdrop">
@@ -283,7 +298,7 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
                     motivos={motivos}
                     setMotivos={setMotivos}
                     setDecisiones={setDecisiones}
-                    handleCompleteStep={(detalle: DetallesPasos) => handleCompleteStep(detalle)}
+                    handleCompleteStep={(detalle: DetallesPasos) => completeStep(detalle)}
                     detallesRows={rowsDetalles}
                     loadingDetalles={loadingDetalles}
                     errorDetalles={errorDetalles}

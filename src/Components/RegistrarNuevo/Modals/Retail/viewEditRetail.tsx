@@ -189,8 +189,9 @@ export default function EditRetail({onClose, selectedRetail, tipo}: Props){
     }
   }, [state.Salario]);
 
+
   React.useEffect(() => {
-    const dosSalarios = 2846000;
+    const dosSalarios = 1750905*2;
     const valor = Number(state.Salario || 0);
     const cargo = (state.Cargo || "").toLowerCase();
 
@@ -198,25 +199,30 @@ export default function EditRetail({onClose, selectedRetail, tipo}: Props){
     let nextTexto = "";
 
     if (valor <= dosSalarios) {
-      nextValor = 200000;
-      nextTexto = "DOSCIENTOS MIL PESOS";
+      nextValor = 249095;
+      nextTexto = "DOSCIENTOS CUARENTA Y NUEVE MIL NOVENTA Y CINCO";
     } else if (valor > dosSalarios || cargo.includes("aprendiz") || cargo.includes("practicante")) {
       nextValor = 46150;
-      nextTexto = "CUARENTA Y SEIS MIL CIEN NOVENTA PESOS";
+      nextTexto = "Cuarenta y seis mil ciento noventa pesos";
+    } else if(valor > dosSalarios || state.Cargo.toLocaleLowerCase().includes("aprendiz") || state.Cargo.toLocaleLowerCase().includes("practicante")){
+      setConectividad(46150)
+      setConectividadTexto("Cuarenta y seis mil ciento noventa pesos")
     }
-
+ 
     // Solo actualiza si cambia (evita loops)
     if (String(state.Auxiliodetransporte ?? "") !== String(nextValor)) {
       setField("Auxiliodetransporte", String(nextValor));
     }
     if (String(state.Auxiliotransporteletras ?? "") !== nextTexto) {
-      setField("Auxiliotransporteletras", nextTexto);
-    }
+      setField("Auxiliotransporteletras", nextTexto.toUpperCase());
+    } 
 
     // si igual quieres el display local:
     setConectividad(nextValor);
     setConectividadTexto(nextTexto);
-  }, [state.Salario, state.Cargo, state.Auxiliodetransporte, state.Auxiliotransporteletras, setField]);
+
+    console.log(conectividad, conectividadTexto)
+  }, [state.Salario, state.Cargo, state.Auxiliodetransporte, state.Auxiliotransporteletras, setField,]);
 
   React.useEffect(() => {
     const nextPromedio = (Number(state.Autonomia || 0) * 0.2) + (Number(state.Impacto || 0) * 0.2) + (Number(state.Contribucion || 0) * 0.3) + (Number(state.Presupuesto || 0) * 0.3);

@@ -159,22 +159,38 @@ export default function FormPromociones({onClose, state, setField, handleSubmit,
   }, [state.AuxilioRodamiento]);
 
   React.useEffect(() => {
-    const dosSalarios = 2846000
-    const valor = Number(state.Salario)
-    if(valor <= dosSalarios){
-      setConectividadTexto("Doscientos mil pesos");
-      setConectividad(200000)
-      
-    } else if (valor > dosSalarios && planFinanciado){
-      setConectividad(23095)
-      setConectividadTexto("veintitrés mil noventa y cinco pesos")
-    } else if(valor > dosSalarios || state.Salario.toLocaleLowerCase().includes("aprendiz") || state.Salario.toLocaleLowerCase().includes("practicante")){
+    const dosSalarios = 1750905*2;
+    const valor = Number(state.Salario || 0);
+    const cargo = (state.Cargo || "").toLowerCase();
+
+    let nextValor = 0;
+    let nextTexto = "";
+
+    if (valor <= dosSalarios) {
+      nextValor = 249095;
+      nextTexto = "DOSCIENTOS CUARENTA Y NUEVE MIL NOVENTA Y CINCO";
+    } else if (valor > dosSalarios || cargo.includes("aprendiz") || cargo.includes("practicante")) {
+      nextValor = 46150;
+      nextTexto = "Cuarenta y seis mil ciento noventa pesos";
+    } else if(valor > dosSalarios || state.Cargo.toLocaleLowerCase().includes("aprendiz") || state.Cargo.toLocaleLowerCase().includes("practicante")){
       setConectividad(46150)
       setConectividadTexto("Cuarenta y seis mil ciento noventa pesos")
     }
-    setField("AuxilioTexto", conectividadTexto)
-    setField("AuxilioValor", String(conectividad))
-  }, [state.Salario, planFinanciado]);
+ 
+    // Solo actualiza si cambia (evita loops)
+    if (String(state.AuxilioValor ?? "") !== String(nextValor)) {
+      setField("AuxilioValor", String(nextValor));
+    }
+    if (String(state.AuxilioValor ?? "") !== nextTexto) {
+      setField("AuxilioValor", nextTexto.toUpperCase());
+    } 
+
+    // si igual quieres el display local:
+    setConectividad(nextValor);
+    setConectividadTexto(nextTexto);
+
+    console.log(conectividad, conectividadTexto)
+  }, [state.Salario, state.Cargo, state.AuxilioValor, state.AuxilioValor, setField,]);
 
   React.useEffect(() => {
     const salario = Number(state.Salario || 0);

@@ -193,23 +193,39 @@ export default function FormContratacion({ onClose, state, setField, handleSubmi
   }, [state.Auxilio_x0020_de_x0020_rodamient]);
 
   /* ================== Conectividad ================== */
-React.useEffect(() => {
-    const dosSalarios = 2846000
-    const valor = Number(state.SALARIO)
-    if(valor <= dosSalarios){
-      setConectividadTexto("Doscientos mil pesos");
-      setConectividad(200000)
-      
-    } else if (valor > dosSalarios && planFinanciado){
-      setConectividad(23095)
-      setConectividadTexto("veintitrés mil noventa y cinco pesos")
+  React.useEffect(() => {
+    const dosSalarios = 1750905*2;
+    const valor = Number(state.SALARIO || 0);
+    const cargo = (state.CARGO || "").toLowerCase();
+
+    let nextValor = 0;
+    let nextTexto = "";
+
+    if (valor <= dosSalarios) {
+      nextValor = 249095;
+      nextTexto = "DOSCIENTOS CUARENTA Y NUEVE MIL NOVENTA Y CINCO";
+    } else if (valor > dosSalarios || cargo.includes("aprendiz") || cargo.includes("practicante")) {
+      nextValor = 46150;
+      nextTexto = "Cuarenta y seis mil ciento noventa pesos";
     } else if(valor > dosSalarios || state.CARGO.toLocaleLowerCase().includes("aprendiz") || state.CARGO.toLocaleLowerCase().includes("practicante")){
       setConectividad(46150)
       setConectividadTexto("Cuarenta y seis mil ciento noventa pesos")
     }
-    setField("auxconectividadtexto", conectividadTexto.toUpperCase())
-    setField("auxconectividadvalor", String(conectividad))
-  }, [state.SALARIO, planFinanciado]);
+ 
+    // Solo actualiza si cambia (evita loops)
+    if (String(state.auxconectividadvalor ?? "") !== String(nextValor)) {
+      setField("auxconectividadvalor", String(nextValor));
+    }
+    if (String(state.auxconectividadtexto ?? "") !== nextTexto) {
+      setField("auxconectividadtexto", nextTexto.toUpperCase());
+    } 
+
+    // si igual quieres el display local:
+    setConectividad(nextValor);
+    setConectividadTexto(nextTexto);
+
+    console.log(conectividad, conectividadTexto)
+  }, [state.SALARIO, state.CARGO, state.auxconectividadvalor, state.auxconectividadtexto, setField,]);
 
   /* ================== Garantizado ================== */
   React.useEffect(() => {
@@ -317,7 +333,7 @@ React.useEffect(() => {
   };
 
   const searchPeople = React.useCallback(async (cedula: string) => {
-    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion, searchHabeas, searchRetail })
+    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion, searchHabeas, searchRetail})
     if(persona){
       setField("Numero_x0020_identificaci_x00f3_", persona.cedula)
       setField("NombreSeleccionado", persona.nombre)

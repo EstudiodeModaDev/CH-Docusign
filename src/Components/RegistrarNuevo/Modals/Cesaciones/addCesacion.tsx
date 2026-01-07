@@ -157,7 +157,7 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
   }, [state.Salario]);
 
   React.useEffect(() => {
-    const dosSalarios = 2846000;
+    const dosSalarios = 1750905*2;
     const valor = Number(state.Salario || 0);
     const cargo = (state.Cargo || "").toLowerCase();
 
@@ -165,8 +165,8 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
     let nextTexto = "";
 
     if (valor <= dosSalarios) {
-      nextValor = 200000;
-      nextTexto = "Doscientos mil pesos";
+      nextValor = 249095;
+      nextTexto = "DOSCIENTOS CUARENTA Y NUEVE MIL NOVENTA Y CINCO";
     } else if (valor > dosSalarios || cargo.includes("aprendiz") || cargo.includes("practicante")) {
       nextValor = 46150;
       nextTexto = "Cuarenta y seis mil ciento noventa pesos";

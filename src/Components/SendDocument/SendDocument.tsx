@@ -155,6 +155,7 @@ export function mapCesacionToVM(p: Cesacion): DocuSignVM {
     salarioLetras: p.SalarioTexto ?? "",
     salarioValor: p.Salario ?? "",
     tipoDoc: p.TipoDoc ?? "",
+        FechaLetras: spDateToSpanishLong(p.FechaIngreso),
   };
 }
 

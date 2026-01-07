@@ -141,6 +141,19 @@ export default function FormContratacion({ onClose, state, setField, handleSubmi
     [municipiosFiltrados]
   );
 
+  const ciudadesAllOptions = React.useMemo(() => {
+    const set = new Set<string>();
+
+    deptoOptions.forEach((i) => {
+      const city = String(i.value ?? "").trim();
+      if (city) set.add(city);
+    });
+
+    return Array.from(set)
+      .sort((a, b) => a.localeCompare(b, "es"))
+      .map((c) => ({ value: c, label: c }));
+  }, [deptoOptions]);
+
   /* ================== Selected values ================== */
   const selectedEmpresa = empresaOptions.find((o) => o.label.toLocaleLowerCase() === state.Empresa_x0020_que_x0020_solicita.toLocaleLowerCase()) ?? null;
   const selectedTipoDocumento = tipoDocOptions.find((o) => o.label.toLocaleLowerCase() === state.tipodoc.toLocaleLowerCase()) ?? null;
@@ -538,6 +551,21 @@ React.useEffect(() => {
                 <label className="ft-label" htmlFor="FechaFinalProductiva">Fecha final de etapa productiva*</label>
                 <input id="FechaFinalProductiva" name="FechaFinalProductiva" type="date" value={state.FechaFinalProductiva ?? ""}  maxLength={300} onChange={(e) => setField("FechaFinalProductiva", e.target.value)} />
                 <small>{errors.FechaFinalProductiva}</small>
+              </div>
+
+              {/* ================= Ciudad ================= */}
+              <div className="ft-field">
+                <label className="ft-label" htmlFor="ciudad">Ciudad de expedición del documento*</label>
+                <Select<desplegablesOption, false>
+                  inputId="ciudadExpedicion"
+                  options={ciudadesAllOptions}
+                  placeholder={loadingDepto ? "Cargando ciudades…" : "Buscar ciudad..."}
+                  value={state.LugarExpedicion ? { value: state.LugarExpedicion, label: state.LugarExpedicion } : null}
+                  onChange={(opt) => setField("LugarExpedicion", opt?.value ?? "")}
+                  classNamePrefix="rs"
+                  isDisabled={loadingDepto}
+                  isClearable/>
+                <small>{errors.LugarExpedicion}</small>
               </div>
             </>
           )}

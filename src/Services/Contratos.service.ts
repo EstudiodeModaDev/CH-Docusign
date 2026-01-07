@@ -145,7 +145,8 @@ export class ContratosService {
         Universidad: f.Universidad,
         Aprendiz: f.Aprendiz,
         Programa: f.Programa,
-        Estado: f.Estado
+        Estado: f.Estado,
+        LugarExpedicion: f.LugarExpedicion
     };
   }
 

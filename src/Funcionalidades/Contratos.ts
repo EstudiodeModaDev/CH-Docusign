@@ -20,7 +20,9 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
   const [search, setSearch] = React.useState<string>("");
   const [estado, setEstado] = React.useState<string>("proceso");
   const {account} = useAuth()
-  const [state, setState] = React.useState<Novedad>({
+  const [state, setState] = React.useState<Novedad>(
+    {
+    LugarExpedicion: "",
     ADICIONALES_x0020_: "",
     AUTONOM_x00cd_A_x0020_: "",
     auxconectividadtexto: "",
@@ -342,7 +344,8 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
       Universidad: "",
       Aprendiz: false,
       Programa: "",
-      Estado: "En proceso"
+      Estado: "En proceso",
+      LugarExpedicion: ""
     })
   };
 
@@ -432,7 +435,8 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
         Universidad: state.Universidad,
         Aprendiz: state.Aprendiz,
         Programa: state.Programa,
-        Estado: state.Estado
+        Estado: state.Estado,
+        LugarExpedicion: state.LugarExpedicion
       }; 
       const created = await ContratosSvc.create(payload);
       alert("Se ha creado el registro con éxito")

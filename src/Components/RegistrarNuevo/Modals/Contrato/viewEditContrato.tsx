@@ -172,6 +172,19 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
         return Array.from(set).sort(); // array de deptos únicos
     }, [deptoOptions]);
 
+    const ciudadesAllOptions = React.useMemo(() => {
+      const set = new Set<string>();
+
+      deptoOptions.forEach((i) => {
+        const city = String(i.value ?? "").trim();
+        if (city) set.add(city);
+      });
+
+      return Array.from(set)
+        .sort((a, b) => a.localeCompare(b, "es"))
+        .map((c) => ({ value: c, label: c }));
+    }, [deptoOptions]);
+
     const municipiosFiltrados = React.useMemo(
         () => deptoOptions.filter((i) => i.label === selectedDepto),
         [deptoOptions, selectedDepto]
@@ -591,6 +604,21 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
                 <input id="FechaFinalProductiva" name="FechaFinalProductiva" type="date" value={toISODateFlex(state.FechaFinalProductiva) ?? ""} onChange={(e) => setField("FechaFinalProductiva", e.target.value)} />
                 <small>{errors.FechaFinalProductiva}</small>
               </div>
+
+            {/* ================= Ciudad ================= */}
+            <div className="ft-field">
+              <label className="ft-label" htmlFor="ciudad">Ciudad de expedición del documento*</label>
+              <Select<desplegablesOption, false>
+                inputId="ciudadExpedicion"
+                options={ciudadesAllOptions}
+                placeholder={loadingDepto ? "Cargando ciudades…" : "Buscar ciudad..."}
+                value={state.CIUDAD ? { value: state.CIUDAD, label: state.CIUDAD } : null}
+                onChange={(opt) => setField("CIUDAD", opt?.value ?? "")}
+                classNamePrefix="rs"
+                isDisabled={loadingDepto || isView}
+                isClearable/>
+              <small>{errors.CIUDAD}</small>
+            </div>
             </>
           )}
 

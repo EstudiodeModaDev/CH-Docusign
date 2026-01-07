@@ -43,7 +43,8 @@ type DocuSignVM = {
   fechaInicioProductiva: string;
   fechaFinalProductiva: string;
   etapa: string;
-  fechaFinal: string
+  fechaFinal: string;
+  ciudadExpedicion: string;
 };
 
 const emptyVM = (): DocuSignVM => ({
@@ -72,6 +73,7 @@ const emptyVM = (): DocuSignVM => ({
   nitUniversidad: "",
   universidad: "",
   fechaFinal: "",
+  ciudadExpedicion: "",
 });
 
 export function mapPromocionToVM(p: Promocion): DocuSignVM {
@@ -121,8 +123,8 @@ export function mapNovedadToVM(n: Novedad): DocuSignVM {
     fechaNac: spDateToDDMMYYYY(n.FechaNac),
     fechaFinal: spDateToDDMMYYYY(n.FECHA_x0020_REQUERIDA_x0020_PARA0),
     nitUniversidad: n.NitUniversidad,
-    universidad: n.Universidad
-
+    universidad: n.Universidad,
+    ciudadExpedicion: n.LugarExpedicion,
   };
 }
 
@@ -291,6 +293,9 @@ const EnviarFormatoCard: React.FC = () => {
 
       case "tipotel":
         return vm.tipoTel;
+
+      case "Ciudadexpe":
+        return vm.ciudadExpedicion;
 
       default:
         return "";

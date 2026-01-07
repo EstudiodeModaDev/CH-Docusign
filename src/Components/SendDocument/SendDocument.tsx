@@ -294,7 +294,7 @@ const EnviarFormatoCard: React.FC = () => {
       case "tipotel":
         return vm.tipoTel;
 
-      case "Ciudadexpe":
+      case "ciudadexpe":
         return vm.ciudadExpedicion;
 
       default:

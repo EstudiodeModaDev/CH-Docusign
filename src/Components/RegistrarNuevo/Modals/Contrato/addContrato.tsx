@@ -500,7 +500,7 @@ React.useEffect(() => {
 
               <div className="ft-field">
                 <label className="ft-label" htmlFor="especialidad">{state.Aprendiz ? "Especialidad *" : "Programa *"}</label>
-                <input id="especialidad" name="especialidad" type="text" placeholder={state.Aprendiz ? "Ingrese la especialidad *" : "Ingrese el programa *"} value={state.Especialidad ?? ""}  required aria-required="true" maxLength={300} onChange={(e) => setField("Especialidad", e.target.value.trim().toUpperCase())} />
+                <input id="especialidad" name="especialidad" type="text" placeholder={state.Aprendiz ? "Ingrese la especialidad *" : "Ingrese el programa *"} value={state.Especialidad ?? ""}  required aria-required="true" maxLength={300} onChange={(e) => setField("Especialidad", e.target.value.toUpperCase())} />
                 <small>{errors.Especialidad}</small>
               </div>
 
@@ -826,7 +826,7 @@ React.useEffect(() => {
           {/* Barrio */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="barrio">Barrio *</label>
-            <input id="barrio" name="BARRIO_x0020_" type="text" placeholder="Ingrese el barrio" value={state.BARRIO_x0020_ ?? ""} onChange={(e) => setField("BARRIO_x0020_", e.target.value)} maxLength={300}/>
+            <input id="barrio" name="BARRIO_x0020_" type="text" placeholder="Ingrese el barrio" value={state.BARRIO_x0020_ ?? ""} onChange={(e) => setField("BARRIO_x0020_", e.target.value.toUpperCase())} maxLength={300}/>
             <small>{errors.BARRIO_x0020_}</small>
           </div>
 

@@ -2,6 +2,7 @@ import type { Cesacion } from "../models/Cesaciones";
 import type { HabeasData } from "../models/HabeasData";
 import type { Novedad } from "../models/Novedades";
 import type { Promocion } from "../models/Promociones";
+import type { Retail } from "../models/Retail";
 import type { Proceso } from "./unify";
 
 /* =======================
@@ -150,7 +151,7 @@ export function toDocuSignVM(proceso: Proceso, data: Promocion | Novedad | Habea
  * Recibe las 4 funciones searchRegister ya armadas (para que esto NO sea hook)
  * y devuelve los datos básicos del registro más reciente (por Created).
  */
-export async function lookOtherInfo(cedula: string, deps: {searchPromocion: (cedula: string) => Promise<Promocion | null>; searchNovedad: (cedula: string) => Promise<Novedad | null>; searchCesacion: (cedula: string) => Promise<Cesacion | null>; searchHabeas: (cedula: string) => Promise<HabeasData | null>;}):  Promise<datosBasicos | null> {
+export async function lookOtherInfo(cedula: string, deps: {searchPromocion: (cedula: string) => Promise<Promocion | null>; searchNovedad: (cedula: string) => Promise<Novedad | null>; searchCesacion: (cedula: string) => Promise<Cesacion | null>; searchHabeas: (cedula: string) => Promise<HabeasData | null>; searchRetail: (cedula: string) => Promise<Retail | null>}):  Promise<datosBasicos | null> {
 
 
   if (!cedula) return null;
@@ -160,6 +161,7 @@ export async function lookOtherInfo(cedula: string, deps: {searchPromocion: (ced
     deps.searchNovedad(cedula),
     deps.searchCesacion(cedula),
     deps.searchHabeas(cedula),
+    deps.searchRetail(cedula),
   ]);
 
   const candidates: Candidate[] = [];

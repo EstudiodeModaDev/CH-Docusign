@@ -3,10 +3,11 @@ import type { Proceso } from "../utils/unify";
 import type { Cesacion, DetallesPasos, PasosProceso } from "./Cesaciones";
 import type { Novedad } from "./Novedades";
 import type { Promocion } from "./Promociones";
+import type { Retail } from "./Retail";
 
 export type PropsProceso = {
   titulo: string;
-  selectedCesacion: Cesacion | Promocion | Novedad;
+  selectedCesacion: Cesacion | Promocion | Novedad | Retail;
   loadingPasos: boolean;
   errorPasos: string | null;
   pasosById: Record<string, PasosProceso>;

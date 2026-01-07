@@ -15,6 +15,7 @@ import { usePromocion } from "../../../../Funcionalidades/Promocion";
 import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
 import type { Novedad, NovedadErrors } from "../../../../models/Novedades";
 import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
+import { useRetail } from "../../../../Funcionalidades/Retail";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -45,9 +46,10 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormContratacion({ onClose, state, setField, handleSubmit, errors, searchRegister: searchNovedad, loadFirstPage }: Props) {
-  const { Maestro, DeptosYMunicipios, DetallesPasosNovedades, salarios, HabeasData, Promociones, Cesaciones, categorias } = useGraphServices();
+  const { Maestro, DeptosYMunicipios, DetallesPasosNovedades, salarios, HabeasData, Promociones, Cesaciones, categorias, Retail } = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
   const { searchRegister: searchPromocion } = usePromocion(Promociones);
+  const { searchRegister: searchRetail } = useRetail(Retail);
   const { searchRegister: searchCesacion } = useCesaciones(Cesaciones);
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas } = useEmpresasSelect(Maestro);
   const { options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc } = useTipoDocumentoSelect(Maestro);
@@ -315,7 +317,7 @@ React.useEffect(() => {
   };
 
   const searchPeople = React.useCallback(async (cedula: string) => {
-    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion, searchHabeas})
+    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion, searchHabeas, searchRetail })
     if(persona){
       setField("Numero_x0020_identificaci_x00f3_", persona.cedula)
       setField("NombreSeleccionado", persona.nombre)

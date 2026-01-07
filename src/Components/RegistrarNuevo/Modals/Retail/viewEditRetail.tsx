@@ -3,19 +3,17 @@ import "../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
 import { useGraphServices } from "../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../models/Desplegables";
-import {useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useTemporales, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
-import { useAuth } from "../../../../auth/authProvider";
+import {useCargo, useCentroCostos, useCentroOperativo, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useTemporales, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
+import { useDependencias } from "../../../../Funcionalidades/Dependencias";
 import { formatPesosEsCO, numeroATexto,  } from "../../../../utils/Number";
 import { useSalarios } from "../../../../Funcionalidades/Salario";
-import { useDetallesPasosCesacion, usePasosCesacion } from "../../../../Funcionalidades/PasosCesacion";
-import { lookOtherInfo } from "../../../../utils/lookFor";
-import { usePromocion } from "../../../../Funcionalidades/Promocion";
-import { useHabeasData } from "../../../../Funcionalidades/HabeasData";
-import { useContratos } from "../../../../Funcionalidades/Contratos";
+import type { DetallesPasos } from "../../../../models/Cesaciones";
+import { toISODateFlex } from "../../../../utils/Date";
 import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
-import type { Cesacion, CesacionErrors } from "../../../../models/Cesaciones";
-import type { SetField } from "../Contrato/addContrato";
+import type { Retail } from "../../../../models/Retail";
 import { useRetail } from "../../../../Funcionalidades/Retail";
+import { ProcessDetail } from "../Cesaciones/procesoCesacion";
+import { useDetallesPasosRetail, usePasosRetail } from "../../../../Funcionalidades/PasosRetail";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -34,59 +32,93 @@ export const Option = (props: OptionProps<desplegablesOption, false>) => {
 
 type Props = {
   onClose: () => void;
-  state: Cesacion
-  setField: SetField<Cesacion>;
-  handleSubmit: () => Promise<{ok: boolean; created: string | null;}>;
-  errors: CesacionErrors
-  searchCesacion: (cedula: string) => Promise<Cesacion | null>
-  loadFirstPage: () => Promise<void>
+  selectedRetail:  Retail
+  tipo: string
 };
 
 /* ================== Formulario ================== */
-export default function FormCesacion({onClose, state, setField, handleSubmit, errors, searchCesacion}: Props){
-  const { Maestro, DeptosYMunicipios, salarios, DetallesPasosCesacion, HabeasData, Contratos, Promociones, categorias, Retail } = useGraphServices();
-  const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
-  const { searchRegister: searchNovedad } = useContratos(Contratos);
-  const { searchRegister: searchPromocion } = usePromocion(Promociones);
-  const { searchRegister: searchRetail } = useRetail(Retail);
-  const { loadSpecificSalary } = useSalarios(salarios);
-  const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
-  const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
-  const { options: tipoDocOptions, loading: loadingTipoDoc, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
-  const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
-  const { options: nivelCargoOptions, loading: loadinNivelCargo, reload: reloadNivelCargo} = useNivelCargo(Maestro);
-  const { loadPasosCesacion, rows} = usePasosCesacion()
-  const { handleCreateAllSteps} = useDetallesPasosCesacion(DetallesPasosCesacion)
-  const { options: dependenciaOptions, loading: loadingDependencias, } = useDependenciasMixtas(Maestro);
-  const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
-  const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
-  const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
-  const { options: tiemposOptions, loading: loadingTiempos, reload: reloadTiempos} = useTemporales(Maestro);
-  const { loadSpecificLevel } = useAutomaticCargo(categorias);
+export default function EditRetail({onClose, selectedRetail, tipo}: Props){
+    const { Maestro, Retail, DeptosYMunicipios, salarios, detallesPasosRetail, categorias } = useGraphServices();
+    const { state, setField, handleEdit, errors, } = useRetail(Retail);
+    const { byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep, error: errorPasos, loading: loadingPasos} = usePasosRetail()
+    const { loading: loadingDetalles, rows: rowsDetalles, error: errorDetalles, loadDetallesPromocion, calcPorcentaje} = useDetallesPasosRetail(detallesPasosRetail, selectedRetail.Id ?? "")
+    const { loadSpecificSalary } = useSalarios(salarios);
+    const { loadSpecificLevel } = useAutomaticCargo(categorias);
+    const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
+    const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
+    const { options: tipoDocOptions, loading: loadingTipoDoc, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
+    const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
+    const { options: nivelCargoOptions, loading: loadinNivelCargo, reload: reloadNivelCargo} = useNivelCargo(Maestro);
+    const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();  
+    const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
+    const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
+    const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
+    const { options: tiemposOptions, loading: loadingTiempos, reload: reloadTiempos} = useTemporales(Maestro);
 
-  const showCargos = React.useMemo(() => new Set<string>(["31", "42", "9", "33"]), []);
-  const filteredCargoOptions = React.useMemo(() => cargoOptions.filter(o => showCargos.has(String(o.value))), [cargoOptions, showCargos]);
+    const showCargos = React.useMemo(() => new Set<string>(["31", "42", "9", "33"]), []);
+        const filteredCargoOptions = React.useMemo(
+        () => cargoOptions.filter(o => showCargos.has(String(o.value))),
+        [cargoOptions, showCargos]
+    );
 
-  React.useEffect(() => {
-      reloadEmpresas();
-      reloadCargo();
-      reloadTipoDoc();
-      reloadDeptos()
-      reloadNivelCargo();
-      reloadCC();
-      reloadCO();
-      reloadUN();
-      reloadTiempos()
-  }, []);
+    React.useEffect(() => {
+        reloadEmpresas();
+        reloadCargo();
+        reloadTipoDoc();
+        reloadDeptos()
+        reloadNivelCargo();
+        reloadCC();
+        reloadCO();
+        reloadUN();
+        reloadTiempos()
+    }, []);
 
-  const selectedEmpresa = empresaOptions.find((o) => o.label.toLocaleLowerCase() === state.Empresaalaquepertenece.toLocaleLowerCase()) ?? null;
+    React.useEffect(() => {
+        if (!selectedRetail) return;
+        setField("Id", selectedRetail?.Id ?? "");
+        setField("Autonomia", selectedRetail?.Autonomia ?? "");
+        setField("Cargo", selectedRetail.Cargo ?? "");
+        setField("Auxiliodetransporte", selectedRetail.Auxiliodetransporte ?? "");
+        setField("Celular", selectedRetail.Celular ?? "");
+        setField("Ciudad", selectedRetail.Ciudad ?? "");
+        setField("CodigoCentroOperativo", selectedRetail.CodigoCentroOperativo ?? "");
+        setField("CodigoCentroCostos", selectedRetail.CodigoCentroCostos ?? "");
+        setField("CodigoUnidadNegocio", selectedRetail.CodigoUnidadNegocio ?? "");
+        setField("Departamento", selectedRetail.Departamento ?? "");
+        setField("CorreoElectronico", selectedRetail.CorreoElectronico ?? "");
+        setField("Depedencia", selectedRetail.Depedencia ?? "");
+        setField("CentroCostos", selectedRetail.CentroCostos ?? "" as any);
+        setField("CentroOperativo", selectedRetail.CentroOperativo ?? "");
+        setField("UnidadNegocio", selectedRetail.UnidadNegocio ?? false);
+        setField("Empresaalaquepertenece", selectedRetail.Empresaalaquepertenece ?? "" as any);
+        setField("FechaIngreso", toISODateFlex(selectedRetail.FechaIngreso) ?? null);
+        setField("FechaReporte", toISODateFlex(selectedRetail.FechaReporte) ?? "");
+        setField("GrupoCVE", selectedRetail.GrupoCVE ?? "");
+        setField("Impacto", selectedRetail.Impacto ?? "");
+        setField("NivelCargo", selectedRetail.NivelCargo ?? "");
+        setField("Nombre", selectedRetail.Nombre ?? "");
+        setField("PerteneceModelo", selectedRetail.PerteneceModelo ?? false);
+        setField("Presupuesto", selectedRetail.Presupuesto ?? "");
+        setField("Promedio", selectedRetail.Promedio ?? "");
+        setField("InformacionEnviadaPor", selectedRetail.InformacionEnviadaPor ?? "");
+        setField("Salario", selectedRetail.Salario ?? "");
+        setField("SalarioLetras", selectedRetail.SalarioLetras ?? "");
+        setField("Temporal", selectedRetail.Temporal ?? "");
+        setField("TipoDoc", selectedRetail.TipoDoc ?? "No");
+        setField("Title", selectedRetail.Title ?? "No");
+        setField("Auxiliodetransporte", selectedRetail.Auxiliodetransporte ?? "");
+        setField("Auxiliotransporteletras", selectedRetail.Auxiliotransporteletras ?? "");
+        setField("Contribucion", selectedRetail.Contribucion ?? "");
+    }, [selectedRetail]);
+
+  const selectedEmpresa = empresaOptions.find((o) => o.label === state.Empresaalaquepertenece) ?? null;
   const selectedCargo = cargoOptions.find((o) => o.label.toLocaleLowerCase() === state.Cargo.toLocaleLowerCase()) ?? null;
   const selectedTipoDocumento = tipoDocOptions.find((o) => o.label.toLocaleLowerCase() === state.TipoDoc.toLocaleLowerCase()) ?? null;
-  const selectedNivelCargo = nivelCargoOptions.find((o) => o.label.toLocaleLowerCase() === state.Niveldecargo.toLocaleLowerCase()) ?? null;   
-  const selectedDependencia = dependenciaOptions.find((o) => o.value.toLocaleLowerCase() === state.Dependencia.toLocaleLowerCase()) ?? null;  
-  const selectedCentroCostos = CentroCostosOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoCC.toLocaleLowerCase()) ?? null;
-  const selectedCentroOperativo = COOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoCO.toLocaleLowerCase()) ?? null;
-  const selectedUnidadNegocio = UNOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoUN.toLocaleLowerCase()) ?? null;
+  const selectedNivelCargo = nivelCargoOptions.find((o) => o.label.toLocaleLowerCase() === state.NivelCargo.toLocaleLowerCase()) ?? null;   
+  const selectedDependencia = dependenciaOptions.find((o) => o.value.toLocaleLowerCase() === state.Depedencia.toLocaleLowerCase()) ?? null;  
+  const selectedCentroCostos = CentroCostosOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoCentroCostos.toLocaleLowerCase()) ?? null;
+  const selectedCentroOperativo = COOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoCentroOperativo.toLocaleLowerCase()) ?? null;
+  const selectedUnidadNegocio = UNOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoUnidadNegocio.toLocaleLowerCase()) ?? null;
   const selectedTemporal = tiemposOptions.find((o) => o.label.toLocaleLowerCase() === state.Temporal.toLocaleLowerCase()) ?? null;
 
 
@@ -98,7 +130,8 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
   const [promedio, setPromedio] = React.useState<number>(0);
   const [grupoCVE, setGrupoCVE] = React.useState<string>("");
-  const {account} = useAuth()
+  const [modal, setModal] = React.useState<boolean>(false)
+  const isView = tipo === "view"
 
   const deptos = React.useMemo(() => {
     const set = new Set<string>();
@@ -137,7 +170,7 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
 
       if (!cancelled && salario !== null) {
         setField("Salario", salario.Salariorecomendado);
-        setField("SalarioTexto", numeroATexto(Number(salario.Salariorecomendado)).toUpperCase())
+        setField("SalarioLetras", numeroATexto(Number(salario.Salariorecomendado.toUpperCase())))
       }
     };
 
@@ -166,27 +199,27 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
 
     if (valor <= dosSalarios) {
       nextValor = 200000;
-      nextTexto = "Doscientos mil pesos";
+      nextTexto = "DOSCIENTOS MIL PESOS";
     } else if (valor > dosSalarios || cargo.includes("aprendiz") || cargo.includes("practicante")) {
       nextValor = 46150;
-      nextTexto = "Cuarenta y seis mil ciento noventa pesos";
+      nextTexto = "CUARENTA Y SEIS MIL CIEN NOVENTA PESOS";
     }
 
     // Solo actualiza si cambia (evita loops)
-    if (String(state.auxConectividadValor ?? "") !== String(nextValor)) {
-      setField("auxConectividadValor", String(nextValor));
+    if (String(state.Auxiliodetransporte ?? "") !== String(nextValor)) {
+      setField("Auxiliodetransporte", String(nextValor));
     }
-    if (String(state.auxConectividadTexto ?? "") !== nextTexto) {
-      setField("auxConectividadTexto", nextTexto.toUpperCase());
+    if (String(state.Auxiliotransporteletras ?? "") !== nextTexto) {
+      setField("Auxiliotransporteletras", nextTexto);
     }
 
     // si igual quieres el display local:
     setConectividad(nextValor);
     setConectividadTexto(nextTexto);
-  }, [state.Salario, state.Cargo, state.auxConectividadValor, state.auxConectividadTexto, setField]);
+  }, [state.Salario, state.Cargo, state.Auxiliodetransporte, state.Auxiliotransporteletras, setField]);
 
   React.useEffect(() => {
-    const nextPromedio = (Number(state.Autonomia || 0) * 0.2) + (Number(state.ImpactoCliente || 0) * 0.2) + (Number(state.contribucionEstrategia || 0) * 0.3) + (Number(state.PresupuestaVentas || 0) * 0.3);
+    const nextPromedio = (Number(state.Autonomia || 0) * 0.2) + (Number(state.Impacto || 0) * 0.2) + (Number(state.Contribucion || 0) * 0.3) + (Number(state.Presupuesto || 0) * 0.3);
     const red = Math.floor(nextPromedio);
 
     let nextGrupo = "";
@@ -204,9 +237,8 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
     if (String(state.GrupoCVE ?? "") !== nextGrupo) {
       setField("GrupoCVE", nextGrupo);
     }
-  }, [state.Autonomia, state.ImpactoCliente, state.contribucionEstrategia, state.PresupuestaVentas, state.Promedio, state.GrupoCVE, setField]);
+  }, [state.Autonomia, state.Impacto, state.Contribucion, state.Presupuesto, state.Promedio, state.GrupoCVE, setField]);
 
-  /* ================== Nivel por cargo ================== */
   React.useEffect(() => {
     let cancelled = false;
 
@@ -217,11 +249,11 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
       if (!salario) return;
 
       const recomendado = String(salario.Categoria ?? "");
-      const actual = String(state.Niveldecargo ?? "");
+      const actual = String(state.NivelCargo ?? "");
 
       // Si ya está igual, no vuelvas a setear (evita loops por "mismo valor")
       if (recomendado && recomendado !== actual) {
-        setField("Niveldecargo", recomendado as any);
+        setField("NivelCargo", recomendado as any);
       }
     };
 
@@ -232,43 +264,63 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
     };
   }, [state.Cargo,]);
 
+  const completeStep = React.useCallback( async (detalle: DetallesPasos, ) => {
+      await handleCompleteStep(detalle);
 
-  const handleCreateCesacion = async () => {
-    const created = await handleSubmit();
+      const porcentaje = await calcPorcentaje();
 
-    if(created.ok){
-      await loadPasosCesacion()
-      await handleCreateAllSteps(rows, created.created ?? "")
-      await onClose()
-    }
-  };
+      if (Number(porcentaje) === 100) {
+        const id = selectedRetail?.Id;
+        if (!id) return;
 
-  const searchPeople = React.useCallback(async (cedula: string) => {
-    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion, searchHabeas, searchRetail})
-    if(persona){
-      setField("Title", persona.cedula)
-      setField("Nombre", persona.nombre)
-      setField("TipoDoc", persona.tipoDoc)
-      setField("Empresaalaquepertenece", persona.empresa)
-      setField("Correoelectronico", persona.correo)
-      setField("Departamento", persona.departamento)
-      setField("Ciudad", persona.ciudad)
-      setField("Celular", persona.celular)
-    }
-  }, []);
+        await Retail.update(id, { Estado: "Completado" });
+      }
+    },
+    [handleCompleteStep, calcPorcentaje, selectedRetail?.Id, Retail]
+  );
   
   return (
     <div className="ft-modal-backdrop">
       <section className="ft-scope ft-card" role="region" aria-labelledby="ft_title">
+        { modal ? <ProcessDetail 
+                    titulo={"Detalles contratación de: " + selectedRetail.Title + " - " + selectedRetail.Nombre}
+                    selectedCesacion={selectedRetail}
+                    onClose={() => setModal(false)}
+                    loadingPasos={loadingPasos}
+                    errorPasos={errorPasos}
+                    pasosById={byId}
+                    decisiones={decisiones}
+                    motivos={motivos}
+                    setMotivos={setMotivos}
+                    setDecisiones={setDecisiones}
+                    handleCompleteStep={(detalle: DetallesPasos) => completeStep(detalle)}
+                    detallesRows={rowsDetalles}
+                    loadingDetalles={loadingDetalles}
+                    errorDetalles={errorDetalles}
+                    loadDetalles={() => loadDetallesPromocion()} 
+                    proceso={"Cesacion"}/>: 
+        <>
         <h2 id="ft_title" className="ft-title">Nueva Cesación</h2>
-        <form className="ft-form" noValidate>
 
-          {/* Número documento */}
+        <form className="ft-form" noValidate>
+          {/* ================= Empresa ================= */}
           <div className="ft-field">
-            <label className="ft-label" htmlFor="numeroIdent">Número de identificación *</label>
-            <input id="Title" name="Title" type="number" placeholder="Ingrese el número de documento" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value)} onBlur={ (e) => searchPeople(e.target.value)}
-              autoComplete="off" required aria-required="true" maxLength={300}/>
-            <small>{errors.Title}</small>
+            <label className="ft-label" htmlFor="solicitante">Empresa a la que pertenece *</label>
+            <Select<desplegablesOption, false>
+              inputId="solicitante"
+              options={empresaOptions}
+              placeholder={loadingEmp ? "Cargando opciones…" : "Buscar empresa..."}
+              value={selectedEmpresa}
+              onChange={(opt) => setField("Empresaalaquepertenece", opt?.label ?? "")}
+              classNamePrefix="rs"
+              isDisabled={loadingEmp || isView}
+              isLoading={loadingEmp}
+              getOptionValue={(o) => String(o.value)}
+              getOptionLabel={(o) => o.label}
+              components={{ Option }}
+              isClearable
+            />
+            <small>{errors.Empresaalaquepertenece}</small>
           </div>
 
           <div className="ft-field">
@@ -280,7 +332,7 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
               value={selectedTipoDocumento}
               onChange={(opt) => {setField("TipoDoc", opt?.label ?? "");}}
               classNamePrefix="rs"
-              isDisabled={loadingTipoDoc}
+              isDisabled={loadingTipoDoc || isView}
               isLoading={loadingTipoDoc}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -290,46 +342,34 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
             <small>{errors.TipoDoc}</small>
           </div>
 
+          {/* Número documento */}
+          <div className="ft-field">
+            <label className="ft-label" htmlFor="numeroIdent">Número de identificación *</label>
+            <input id="Title" name="Title" type="number" placeholder="Ingrese el número de documento" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value)}
+              autoComplete="off" required aria-required="true" maxLength={300} disabled={isView}/>
+            <small>{errors.Title}</small>
+          </div>
+
           {/* Nombre seleccionado */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="Nombre"> Nombre del seleccionado *</label>
-            <input id="Nombre" name="Nombre" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Nombre ?? ""} onChange={(e) => setField("Nombre", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
+            <input id="Nombre" name="Nombre" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Nombre ?? ""} onChange={(e) => setField("Nombre", e.target.value)} autoComplete="off" required aria-required="true" maxLength={300} disabled={isView}/>
             <small>{errors.Nombre}</small>
-          </div>
-
-          {/* ================= Empresa ================= */}
-          <div className="ft-field">
-            <label className="ft-label" htmlFor="solicitante">Empresa a la que pertenece *</label>
-            <Select<desplegablesOption, false>
-              inputId="solicitante"
-              options={empresaOptions}
-              placeholder={loadingEmp ? "Cargando opciones…" : "Buscar empresa..."}
-              value={selectedEmpresa}
-              onChange={(opt) => setField("Empresaalaquepertenece", opt?.label ?? "")}
-              classNamePrefix="rs"
-              isDisabled={loadingEmp}
-              isLoading={loadingEmp}
-              getOptionValue={(o) => String(o.value)}
-              getOptionLabel={(o) => o.label}
-              components={{ Option }}
-              isClearable
-            />
-            <small>{errors.Empresaalaquepertenece}</small>
           </div>
 
           {/* Correo */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="correo">Correo electrónico *</label>
-            <input id="correo" name="Correoelectronico" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.Correoelectronico ?? ""} onChange={(e) => setField("Correoelectronico", e.target.value.toLowerCase())}
-              autoComplete="off" required aria-required="true" maxLength={300}/>
-            <small>{errors.Correoelectronico}</small>
+            <input id="correo" name="CorreoElectronico" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.CorreoElectronico ?? ""} onChange={(e) => setField("CorreoElectronico", e.target.value)}
+              autoComplete="off" required aria-required="true" maxLength={300} disabled={isView}/>
+            <small>{errors.CorreoElectronico}</small>
           </div>
 
           {/* Celular */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="numeroIdent">Celular</label>
             <input id="Title" name="Title" type="number" placeholder="Ingrese el numero de celular" value={state.Celular ?? ""} onChange={(e) => setField("Celular", e.target.value)}
-              autoComplete="off" required aria-required="true" maxLength={300}/>
+              autoComplete="off" required aria-required="true" maxLength={300} disabled={isView}/>
             <small>{errors.Title}</small>
           </div>
 
@@ -337,24 +377,8 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
           <div className="ft-field">
             <label className="ft-label" htmlFor="fechaIngreso">Fecha de ingreso *</label>
             <input id="FechaIngreso" name="FechaIngreso" type="date" value={state.FechaIngreso ?? ""} onChange={(e) => setField("FechaIngreso", e.target.value)}
-              autoComplete="off" required aria-required="true"/>
+              autoComplete="off" required aria-required="true" disabled={isView}/>
             <small>{errors.FechaIngreso}</small>
-          </div>
-
-          {/* Fecha salida cesacion */}
-          <div className="ft-field">
-            <label className="ft-label" htmlFor="FechaSalidaCesacion">Fecha salida cesación *</label>
-            <input id="FechaSalidaCesacion" name="FechaSalidaCesacion" type="date" value={state.FechaSalidaCesacion ?? ""} onChange={(e) => setField("FechaSalidaCesacion", e.target.value)}
-              autoComplete="off" required aria-required="true"/>
-            <small>{errors.FechaSalidaCesacion}</small>
-          </div>
-
-          {/* Fecha limite documentos */}
-          <div className="ft-field">
-            <label className="ft-label" htmlFor="FechaLimiteDocumentos">Fecha limite documentos *</label>
-            <input id="FechaLimiteDocumentos" name="FechaLimiteDocumentos" type="date" value={state.FechaLimiteDocumentos ?? ""} onChange={(e) => setField("FechaLimiteDocumentos", e.target.value)}
-              autoComplete="off" required aria-required="true"/>
-            <small>{errors.FechaLimiteDocumentos}</small>
           </div>
 
           {/* ================= Cargo ================= */}
@@ -367,7 +391,7 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
               value={selectedCargo}
               onChange={(opt) => {setField("Cargo", opt?.label ?? "");}}
               classNamePrefix="rs"
-              isDisabled={loadingCargo}
+              isDisabled={loadingCargo || isView}
               isLoading={loadingCargo}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -385,49 +409,28 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
               options={nivelCargoOptions}
               placeholder={loadinNivelCargo ? "Cargando opciones…" : "Buscar nivel de cargo..."}
               value={selectedNivelCargo}
-              onChange={(opt) => {setField("Niveldecargo", opt?.label ?? "");}}
+              onChange={(opt) => {setField("NivelCargo", opt?.label ?? "");}}
               classNamePrefix="rs"
-              isDisabled={loadinNivelCargo}
+              isDisabled={loadinNivelCargo || isView}
               isLoading={loadinNivelCargo}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
               components={{ Option }}
               isClearable
             />
-            <small>{errors.Niveldecargo}</small>
-          </div>
-
-          {/* ¿Cargo critico? */}
-          <div className="ft-field">
-            <label className="ft-label"> ¿Cargo critico? *</label>
-            <div className="ft-radio-group">
-              <label className="ft-radio-custom">
-                <input type="radio" name="critico" value="Si" checked={state.CargoCritico === "Si"} onChange={() => setField("CargoCritico", "Si")}/>
-                <span className="circle"></span>
-                <span className="text">Si</span>
-              </label>
-
-              <label className="ft-radio-custom">
-                <input type="radio" name="critico" value="No" checked={state.CargoCritico === "No"} onChange={() => setField("CargoCritico", "No")}/>
-                <span className="circle"></span>
-                <span className="text">No</span>
-              </label>
-            </div>
-
-            <small>{errors.CargoCritico}</small>
+            <small>{errors.NivelCargo}</small>
           </div>
 
           {/* Salario */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="abreviacionDoc"> Salario *</label>
-            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={displaySalario} onChange={(e) => setField("Salario", e.target.value)}/>
-            <small>{errors.Salario}</small>
+            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" disabled={isView} value={displaySalario} onChange={(e) => setField("Salario", e.target.value)}/>
           </div>
 
           {/* Salario */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="abreviacionDoc"> Salario en letras *</label>
-            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={numeroATexto(Number(state.Salario)).toUpperCase()} readOnly/>
+            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={numeroATexto(Number(state.Salario))} readOnly/>
           </div>
 
           {/* Auxilio de conectividad */}
@@ -450,16 +453,16 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
               options={dependenciaOptions}
               placeholder={loadingDependencias ? "Cargando opciones…" : "Buscar depedencia..."}
               value={selectedDependencia}
-              onChange={(opt) => {setField("Dependencia", opt?.value ?? "");}}
+              onChange={(opt) => {setField("Depedencia", opt?.value ?? "");}}
               classNamePrefix="rs"
-              isDisabled={loadingDependencias}
+              isDisabled={loadingDependencias || isView}
               isLoading={loadingDependencias}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
               components={{ Option }}
               isClearable
             />
-            <small>{errors.Dependencia}</small>
+            <small>{errors.Depedencia}</small>
           </div>
 
             {/*Departamento */}
@@ -474,10 +477,10 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
                 const value = opt?.value ?? "";
                 setSelectedDepto(value);
                 setSelectedMunicipio("");           
-                setField("Departamento", value.toUpperCase());  
+                setField("Departamento", value);  
               }}
               classNamePrefix="rs"
-              isDisabled={loadingDepto}
+              isDisabled={loadingDepto || isView}
               isLoading={loadingDepto}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -498,10 +501,10 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
               onChange={(opt) => {
                 const value = opt?.value ?? "";
                 setSelectedMunicipio(value);
-                setField("Ciudad", value.toUpperCase());          
+                setField("Ciudad", value);          
               }}
               classNamePrefix="rs"
-              isDisabled={!selectedDepto  || loadingCargo}
+              isDisabled={!selectedDepto  || loadingCargo || isView}
               isLoading={loadingCargo}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -539,22 +542,22 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
               options={CentroCostosOptions}
               placeholder={loadingCC ? "Cargando opciones…" : "Buscar centro de costos..."}
               value={selectedCentroCostos}
-              onChange={(opt) => {setField("DescripcionCC", opt?.label ?? ""); setField("CodigoCC", opt?.value ?? "")}}
+              onChange={(opt) => {setField("CentroCostos", opt?.label ?? ""); setField("CodigoCentroCostos", opt?.value ?? "")}}
               classNamePrefix="rs"
-              isDisabled={loadingCC}
+              isDisabled={loadingCC || isView}
               isLoading={loadingCC}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
               components={{ Option }}
               isClearable
             />
-            <small>{errors.CodigoCC}</small>
+            <small>{errors.CentroCostos}</small>
           </div>
 
           {/* Codigo CC */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="abreviacionDoc"> Codigo centro de costos *</label>
-            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo de documento" value={state.CodigoCC} readOnly/>
+            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo de documento" value={state.CodigoCentroCostos} readOnly/>
           </div>
 
           {/* ================= Centro Operativo ================= */ }
@@ -565,22 +568,22 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
               options={COOptions}
               placeholder={loadingCO ? "Cargando opciones…" : "Buscar centro operativo..."}
               value={selectedCentroOperativo}
-              onChange={(opt) => {setField("DescripcionCO", opt?.label ?? ""); setField("CodigoCO", opt?.value ?? "")}}
+              onChange={(opt) => {setField("CentroOperativo", opt?.label ?? ""); setField("CodigoCentroOperativo", opt?.value ?? "")}}
               classNamePrefix="rs"
-              isDisabled={loadingCO}
+              isDisabled={loadingCO || isView}
               isLoading={loadingCO}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
               components={{ Option }}
               isClearable
             />
-            <small>{errors.CodigoCO}</small>
+            <small>{errors.CentroOperativo}</small>
           </div>
           
           {/* Codigo CO */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="abreviacionDoc"> Codigo centro de operativo *</label>
-            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoCO} readOnly/>
+            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoCentroOperativo} readOnly/>
           </div>
 
           {/* ================= Unidad de negocio ================= */ }
@@ -591,22 +594,22 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
               options={UNOptions}
               placeholder={loadingUN ? "Cargando opciones…" : "Buscar centro de costos..."}
               value={selectedUnidadNegocio}
-              onChange={(opt) => {setField("DescripcionUN", opt?.label ?? ""); setField("CodigoUN", opt?.value ?? "")}}
+              onChange={(opt) => {setField("UnidadNegocio", opt?.label ?? ""); setField("CodigoUnidadNegocio", opt?.value ?? "")}}
               classNamePrefix="rs"
-              isDisabled={loadingUN}
+              isDisabled={loadingUN || isView}
               isLoading={loadingUN}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
               components={{ Option }}
               isClearable
             />
-            <small>{errors.CodigoUN}</small>
+            <small>{errors.UnidadNegocio}</small>
           </div>
           
           {/* Codigo UN */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="abreviacionDoc"> Codigo unidad de negocio *</label>
-            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoUN} readOnly/>
+            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoUnidadNegocio} readOnly/>
           </div>
 
           {/* ¿Pertenece al modelo? */}
@@ -614,24 +617,24 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
             <label className="ft-label"> ¿Pertenece al modelo? *</label>
             <div className="ft-radio-group">
               <label className="ft-radio-custom">
-                <input type="radio" name="modelo" value="Si" checked={!!state.Pertenecealmodelo} onChange={() => setField("Pertenecealmodelo", true)}/>
+                <input type="radio" name="modelo" value="Si" checked={!!state.PerteneceModelo} onChange={() => setField("PerteneceModelo", true)} disabled={isView}/>
                 <span className="circle"></span>
                 <span className="text">Si</span>
               </label>
 
               <label className="ft-radio-custom">
-                <input type="radio" name="modelo" value="No" checked={!state.Pertenecealmodelo} onChange={() => setField("Pertenecealmodelo", false)}/>
+                <input type="radio" name="modelo" value="No" checked={!state.PerteneceModelo} onChange={() => setField("PerteneceModelo", false)} disabled={isView}/>
                 <span className="circle"></span>
                 <span className="text">No</span>
               </label>
             </div>
           </div>
 
-          {state.Pertenecealmodelo && (
+          {state.PerteneceModelo && (
             <>
               <div className="ft-field">
                 <label className="ft-label" htmlFor="Autonomia">Autonomía *</label>
-                <select name="Autonomia" onChange={(e) => setField("Autonomia", e.target.value)}>
+                <select name="Autonomia" onChange={(e) => setField("Autonomia", e.target.value)} disabled={isView}>
                   <option value="0" selected>0</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
@@ -644,38 +647,38 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
 
               <div className="ft-field">
                 <label className="ft-label" htmlFor="presupuesto">Presupuesto ventas/magnitud económica *</label>
-                <select name="presupuesto" onChange={(e) => setField("PresupuestaVentas", e.target.value)}>
+                <select name="presupuesto" onChange={(e) => setField("Presupuesto", e.target.value)} disabled={isView}>
                   <option value="0" selected>0</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
                   <option value="3">3</option>
                   <option value="4">4</option>
                 </select>
-                <small>{errors.PresupuestaVentas}</small>
+                <small>{errors.Presupuesto}</small>
               </div>
 
               <div className="ft-field">
                 <label className="ft-label" htmlFor="impacto">Impacto cliente externo *</label>
-                <select name="impacto" onChange={(e) => setField("ImpactoCliente", e.target.value)}>
+                <select name="impacto" onChange={(e) => setField("Impacto", e.target.value)} disabled={isView}>
                   <option value="0" selected>0</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
                   <option value="3">3</option>
                   <option value="4">4</option>
                 </select>
-                <small>{errors.ImpactoCliente}</small>
+                <small>{errors.Impacto}</small>
               </div>
 
               <div className="ft-field">
                 <label className="ft-label" htmlFor="contribucion">Contribución a la estrategia *</label>
-                <select name="contribucion" onChange={(e) => setField("contribucionEstrategia", e.target.value)}>
+                <select name="contribucion" onChange={(e) => setField("Contribucion", e.target.value)} disabled={isView}>
                   <option value="0" selected>0</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
                   <option value="3">3</option>
                   <option value="4">4</option>
                 </select>
-                <small>{errors.contribucionEstrategia}</small>
+                <small>{errors.Contribucion}</small>
               </div>
 
               {/* Promedio */}
@@ -697,21 +700,23 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
           {/* Informacion enviada por */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="enviadaPor"> Información enviada por *</label>
-            <input id="enviadaPor" name="enviadaPor" type="text" value={account?.name} readOnly/>
+            <input id="enviadaPor" name="enviadaPor" type="text" value={state.InformacionEnviadaPor} readOnly/>
           </div>
 
           {/* Fecha salida cesacion */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="Fechaenlaquesereporta">Fecha en la que se reporta *</label>
-            <input id="Fechaenlaquesereporta" name="Fechaenlaquesereporta" type="date" value={state.Fechaenlaquesereporta ?? ""} autoComplete="off" required aria-required="true" readOnly/>
+            <input id="Fechaenlaquesereporta" name="Fechaenlaquesereporta" type="date" value={state.FechaReporte ?? ""} autoComplete="off" required aria-required="true" readOnly/>
           </div>
         </form>
         {/* Acciones */}
         <div className="ft-actions">
-          <button type="submit" className="btn btn-primary btn-xs" onClick={() => {handleCreateCesacion();}}>Guardar Registro</button>
+          {!isView ? <button type="submit" className="btn btn-primary btn-xs" onClick={(e) => {handleEdit(e, selectedRetail);}}>Guardar Registro</button> : <small>Este registro ya ha sido usado, no puede ser editado</small>}
+          <button type="button" className="btn btn-xs" onClick={() => {setModal(true)}}>Detalles</button>
           <button type="button" className="btn btn-xs" onClick={() => onClose()}>Cancelar</button>
         </div>
+        </>
+        }
       </section>
-    </div>
-  );
+    </div>)
 };

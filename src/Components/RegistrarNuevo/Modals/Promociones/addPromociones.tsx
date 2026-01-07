@@ -16,6 +16,7 @@ import { useContratos } from "../../../../Funcionalidades/Contratos";
 import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
 import type { Promocion, PromocionErrors } from "../../../../models/Promociones";
 import type { SetField } from "../Contrato/addContrato";
+import { useRetail } from "../../../../Funcionalidades/Retail";
 
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -43,10 +44,11 @@ type Props = {
 };
 /* ================== Formulario ================== */
 export default function FormPromociones({onClose, state, setField, handleSubmit, errors, searchPromocion, loadFirstPage}: Props){
-  const { Maestro, DeptosYMunicipios, DetallesPasosPromocion, salarios, HabeasData, Contratos, Cesaciones, categorias} = useGraphServices();
+  const { Maestro, DeptosYMunicipios, DetallesPasosPromocion, salarios, HabeasData, Contratos, Cesaciones, categorias, Retail} = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
   const { searchRegister: searchNovedad } = useContratos(Contratos);
   const { searchRegister: searchCesacion } = useCesaciones(Cesaciones);
+  const { searchRegister: searchRetail } = useRetail(Retail);
   const { loadPasosPromocion, rows } = usePasosPromocion()
   const { handleCreateAllSteps } = useDetallesPasosPromocion(DetallesPasosPromocion)
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
@@ -263,7 +265,7 @@ export default function FormPromociones({onClose, state, setField, handleSubmit,
   };
 
   const searchPeople = React.useCallback(async (cedula: string) => {
-    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion, searchHabeas})
+    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion, searchHabeas, searchRetail})
     if(persona){
       setField("NumeroDoc", persona.cedula)
       setField("NombreSeleccionado", persona.nombre)

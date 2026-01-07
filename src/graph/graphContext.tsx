@@ -26,6 +26,9 @@ import { MailService } from "../Services/Mail.service";
 import { PasosNovedadesService } from "../Services/PasosNovedades.service";
 import { DetallesPasosNovedadesService } from "../Services/DetallesPasosNovedades.service";
 import { CategoriaCargosService } from "../Services/CategoriaCargos.service";
+import { RetailService } from "../Services/Retail.service";
+import { PasosRetailService } from "../Services/PasosRetail.service";
+import { DetallesPasosRetail } from "../Services/DetallesPasosRetail.service";
 
 /* ================== Tipos de config ================== */
 export type SiteConfig = {
@@ -55,6 +58,11 @@ export type UnifiedConfig = {
     Cesaciones: string
     PasosCesacion: string
     DetallesPasosCesacion: string;
+
+    //Retail
+    Retail: string;
+    pasosRetail: string;
+    detallesPasosRetail: string;
 
     //Desplegables
     DeptosYMunicipios: string;
@@ -108,6 +116,11 @@ export type GraphServices = {
   Cesaciones: CesacionesService
   PasosCesacion: PasosCesacionService
   DetallesPasosCesacion: DetallesPasosCesacionService
+
+  //Retail
+  Retail: RetailService;
+  pasosRetail: PasosRetailService;
+  detallesPasosRetail: DetallesPasosRetail
 
   //Desplegables
   Maestro: MaestrosService
@@ -173,6 +186,10 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     Cesaciones: "Cesasion - Cesaciones",
     PasosCesacion: "Cesacion - Pasos",
     DetallesPasosCesacion: "Cesacion - Detalles Pasos",
+
+    Retail: "Retail - Novedades Retail",
+    pasosRetail: "Retail - Pasos",
+    detallesPasosRetail: "Retail - DetallesPasos",
 
     //Desplegables
     Maestros: "Maestros",
@@ -258,6 +275,11 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     const PasosCesacion           = new PasosCesacionService(graph, ch.hostname, ch.sitePath, lists.PasosCesacion)
     const DetallesPasosCesacion   = new DetallesPasosCesacionService(graph, ch.hostname, ch.sitePath, lists.DetallesPasosCesacion)
 
+    //Retail
+    const Retail                  = new RetailService(graph, ch.hostname, ch.sitePath, lists.Retail)  
+    const pasosRetail             = new PasosRetailService(graph, ch.hostname, ch.sitePath, lists.pasosRetail)
+    const detallesPasosRetail     = new DetallesPasosRetail(graph, ch.hostname, ch.sitePath, lists.detallesPasosRetail)
+
     //Desplegables
     const Maestro                 = new MaestrosService(graph, ch.hostname, ch.sitePath, lists.Maestros)
     const DeptosYMunicipios       = new DeptosYMunicipiosService(graph, ch.hostname, ch.sitePath, lists.DeptosYMunicipios)
@@ -297,6 +319,8 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       Promociones, PasosPromocion, DetallesPasosPromocion,
       //Cesaciones
       Cesaciones, PasosCesacion, DetallesPasosCesacion,
+      //Retail
+      Retail, pasosRetail, detallesPasosRetail,
       //Desplegables
       Maestro, DeptosYMunicipios, salarios, categorias,
       //Seguridad

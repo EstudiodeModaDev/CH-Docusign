@@ -131,3 +131,40 @@ export function spDateToDDMMYYYY(spDate: string | null | undefined): string {
 
   return `${dd}/${mm}/${yyyy}`;
 }
+
+export function spDateToSpanishLong(
+  input: string | Date | null | undefined,
+  opts?: { withYearWord?: boolean; monthStyle?: "long" | "short" }
+): string {
+  if (!input) return "";
+
+  const withYearWord = opts?.withYearWord ?? true;
+  const monthStyle = opts?.monthStyle ?? "long";
+
+  const raw = input instanceof Date ? input.toISOString() : String(input).trim();
+
+  // 1) Normalizar el año si viene mal (ej: +020256-01-10... -> 2026-01-10...)
+  // Captura "020256" y lo reduce a 4 dígitos tomando los últimos 4 (=> "2026")
+  const normalized = raw.replace(
+    /^(\+?)(\d{5,6})(-\d{2}-\d{2}T)/,
+    (_m, _plus, y, rest) => `${y.slice(-4)}${rest}`
+  );
+
+  // 2) Parse seguro
+  const d = input instanceof Date ? input : new Date(normalized);
+  if (Number.isNaN(d.getTime())) return "";
+
+  // OJO: SharePoint suele venir en UTC (Z). Para solo fecha, conviene usar UTC:
+  const day = d.getUTCDate();
+  const year = d.getUTCFullYear();
+
+  const monthName = new Intl.DateTimeFormat("es-CO", {
+    month: monthStyle,
+    timeZone: "UTC",
+  }).format(d);
+
+  // "10 de enero del año 2026" o "10 de enero de 2026"
+  return withYearWord
+    ? `${day} de ${monthName} del año ${year}`
+    : `${day} de ${monthName} de ${year}`;
+}

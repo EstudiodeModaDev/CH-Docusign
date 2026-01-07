@@ -14,7 +14,7 @@ import type { Novedad } from "../../models/Novedades";
 import type { HabeasData } from "../../models/HabeasData";
 import type { Cesacion } from "../../models/Cesaciones";
 import { useCesaciones } from "../../Funcionalidades/Cesaciones";
-import { spDateToDDMMYYYY } from "../../utils/Date";
+import { spDateToDDMMYYYY, spDateToSpanishLong } from "../../utils/Date";
 
 export type Proceso = "Promocion" | "Habeas" | "Nuevo" | "Cesacion";
 
@@ -45,6 +45,7 @@ type DocuSignVM = {
   etapa: string;
   fechaFinal: string;
   ciudadExpedicion: string;
+  FechaLetras: string
 };
 
 const emptyVM = (): DocuSignVM => ({
@@ -74,6 +75,7 @@ const emptyVM = (): DocuSignVM => ({
   universidad: "",
   fechaFinal: "",
   ciudadExpedicion: "",
+  FechaLetras: ""
 });
 
 export function mapPromocionToVM(p: Promocion): DocuSignVM {
@@ -122,6 +124,7 @@ export function mapNovedadToVM(n: Novedad): DocuSignVM {
     fechaInicioProductiva: spDateToDDMMYYYY(n.FechaInicioProductiva),
     fechaNac: spDateToDDMMYYYY(n.FechaNac),
     fechaFinal: spDateToDDMMYYYY(n.FECHA_x0020_REQUERIDA_x0020_PARA0),
+    FechaLetras: spDateToSpanishLong(n.FECHA_x0020_REQUERIDA_x0020_PARA0),
     nitUniversidad: n.NitUniversidad,
     universidad: n.Universidad,
     ciudadExpedicion: n.LugarExpedicion,
@@ -296,6 +299,9 @@ const EnviarFormatoCard: React.FC = () => {
 
       case "ciudadexpe":
         return vm.ciudadExpedicion;
+
+      case "fechaletras":
+        return vm.FechaLetras;
 
       default:
         return "";

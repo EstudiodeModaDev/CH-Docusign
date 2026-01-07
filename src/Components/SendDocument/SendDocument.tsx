@@ -114,7 +114,7 @@ export function mapNovedadToVM(n: Novedad): DocuSignVM {
     tipoDocCorto: n.Tipo_x0020_de_x0020_documento_x0 ?? "",
     tipoTel: n.MODALIDAD_x0020_TELETRABAJO ?? "",
     coordinador: n.Coordinadordepracticas,
-    especialidad: n.Coordinadordepracticas,
+    especialidad: n.Especialidad,
     etapa: n.Etapa,
     fechaFinalLectiva: spDateToDDMMYYYY(n.FechaFinalLectiva),
     fechaFinalProductiva: spDateToDDMMYYYY(n.FechaFinalProductiva),

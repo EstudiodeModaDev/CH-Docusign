@@ -318,7 +318,7 @@ export default function FormPromociones({onClose, state, setField, handleSubmit,
           {/* Nombre seleccionado */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="nombreSeleccionado"> Nombre del seleccionado *</label>
-            <input id="nombreSeleccionado" name="NombreSeleccionado" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.NombreSeleccionado ?? ""} onChange={(e) => setField("NombreSeleccionado", e.target.value)} autoComplete="off" required aria-required="true" maxLength={300}/>
+            <input id="nombreSeleccionado" name="NombreSeleccionado" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.NombreSeleccionado ?? ""} onChange={(e) => setField("NombreSeleccionado", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.NombreSeleccionado}</small>
           </div>
 

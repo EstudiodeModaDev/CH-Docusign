@@ -23,9 +23,7 @@ export const FirmaPicker: React.FC<Props> = ({ src, onChangeFile, disabled }) =>
     // pero OJO: solo si NO hay un archivo seleccionado pendiente
     if (!selectedFile) {
       setPreview(src);
-      alert(`[DEBUG] src cambió -> preview actualizado: ${src ?? "undefined"}`);
     } else {
-      alert("[DEBUG] src cambió pero hay archivo pendiente, no piso preview");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
@@ -42,23 +40,16 @@ export const FirmaPicker: React.FC<Props> = ({ src, onChangeFile, disabled }) =>
 
   const handleClick = () => {
     if (disabled || isSaving) {
-      alert("[DEBUG] Click bloqueado (disabled o isSaving)");
       return;
     }
-    alert("[DEBUG] Abriendo selector de archivos");
     inputRef.current?.click();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
-      alert("[DEBUG] No se seleccionó archivo");
       return;
     }
-
-    alert(
-      `[DEBUG] Archivo seleccionado: name=${file.name} type=${file.type || "?"} size=${file.size}`
-    );
 
     // limpiar url anterior si existía
     if (lastObjectUrlRef.current) {
@@ -72,14 +63,11 @@ export const FirmaPicker: React.FC<Props> = ({ src, onChangeFile, disabled }) =>
     setSelectedFile(file);
     setPreview(url);
 
-    alert("[DEBUG] Preview listo. Esperando confirmación (Aceptar).");
-
     // Importante: permitir seleccionar el mismo archivo de nuevo
     e.target.value = "";
   };
 
   const handleCancel = () => {
-    alert("[DEBUG] Cancelar cambios: descartando archivo pendiente");
 
     setSelectedFile(null);
 
@@ -89,42 +77,30 @@ export const FirmaPicker: React.FC<Props> = ({ src, onChangeFile, disabled }) =>
       lastObjectUrlRef.current = null;
     }
     setPreview(src);
-
-    alert(`[DEBUG] Preview revertido a src: ${src ?? "undefined"}`);
   };
 
   const handleAccept = async () => {
     if (disabled || isSaving) {
-      alert("[DEBUG] Aceptar bloqueado (disabled o isSaving)");
       return;
     }
     if (!selectedFile) {
-      alert("[DEBUG] No hay archivo seleccionado para aceptar");
       return;
     }
     if (!onChangeFile) {
-      alert("[DEBUG] No hay onChangeFile definido");
       return;
     }
 
     try {
       setIsSaving(true);
-      alert(
-        `[DEBUG] Subiendo... name=${selectedFile.name} size=${selectedFile.size} type=${selectedFile.type || "?"}`
-      );
 
       await onChangeFile(selectedFile);
 
-      alert("[DEBUG] Subida OK (onChangeFile resolvió)");
-
-      // como ya se “guardó”, limpiamos el pending
+      alert("Se guardo su firma con éxito, por favor recargue la página")
       setSelectedFile(null);
     } catch (err: any) {
-      alert(`[DEBUG] Error en subida: ${err?.message ?? String(err)}`);
       console.error(err);
     } finally {
       setIsSaving(false);
-      alert("[DEBUG] Fin handleAccept()");
     }
   };
 
@@ -141,43 +117,20 @@ export const FirmaPicker: React.FC<Props> = ({ src, onChangeFile, disabled }) =>
       </div>
 
       <div className="firma-actions" style={{ display: "flex", gap: 8 }}>
-        <button
-          type="button"
-          className="firma-btn"
-          onClick={handleClick}
-          disabled={disabled || isSaving}
-        >
+        <button type="button" className="firma-btn" onClick={handleClick} disabled={disabled || isSaving}>
           Cambiar
         </button>
 
-        <button
-          type="button"
-          className="firma-btn firma-btn--ok"
-          onClick={handleAccept}
-          disabled={disabled || isSaving || !hasPending}
-          title={!hasPending ? "Selecciona un archivo primero" : "Guardar firma"}
-        >
+        <button type="button" className="firma-btn firma-btn--ok" onClick={handleAccept} disabled={disabled || isSaving || !hasPending} title={!hasPending ? "Selecciona un archivo primero" : "Guardar firma"}>
           {isSaving ? "Guardando..." : "Aceptar"}
         </button>
 
-        <button
-          type="button"
-          className="firma-btn firma-btn--cancel"
-          onClick={handleCancel}
-          disabled={disabled || isSaving || !hasPending}
-          title={!hasPending ? "No hay cambios" : "Descartar cambios"}
-        >
+        <button type="button" className="firma-btn firma-btn--cancel"  onClick={handleCancel} disabled={disabled || isSaving || !hasPending} title={!hasPending ? "No hay cambios" : "Descartar cambios"}>
           Cancelar
         </button>
       </div>
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        style={{ display: "none" }}
-        onChange={handleFileChange}
-      />
+      <input ref={inputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange}/>
     </div>
   );
 };

@@ -185,52 +185,107 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
     })
   };
 
-  const handleSubmit = async (e: React.FormEvent, firma: FirmaInline) => {
+  const handleSubmit = async (e: React.FormEvent, firma: FirmaInline | null) => {
     e.preventDefault();
+
     if (!validate()) {
-      alert("Hay campos sin llenar")
-      return};
+      alert("Hay campos sin llenar");
+      return;
+    }
+
+    const stripDataUrl = (b64: string) => {
+      const i = b64.indexOf("base64,");
+      return i >= 0 ? b64.slice(i + "base64,".length) : b64;
+    };
+
+    const guessMimeFromName = (name?: string) => {
+      const n = (name ?? "").toLowerCase();
+      if (n.endsWith(".jpg") || n.endsWith(".jpeg")) return "image/jpeg";
+      if (n.endsWith(".png")) return "image/png";
+      if (n.endsWith(".webp")) return "image/webp";
+      if (n.endsWith(".gif")) return "image/gif";
+      // fallback razonable
+      return "image/png";
+    };
+
     setLoading(true);
+
     try {
-      console.warn(firma)
-      const cantidad = await pazSalvoSvc.getAll({top:20000});
-      const consecutivo = (cantidad.items.length + 1).toString().padStart(5, '0');
-      setState((s) => ({...s, Consecutivo: consecutivo}));
-          
-      // Objeto de creación
+      console.warn("[DEBUG] firma recibida:", firma);
+
+      // 1) Consecutivo (ojo: tu setState no se refleja inmediato en state.Consecutivo)
+      const cantidad = await pazSalvoSvc.getAll({ top: 20000 });
+      const consecutivo = (cantidad.items.length + 1).toString().padStart(5, "0");
+
+      // (opcional) guarda en estado, pero usa "consecutivo" local para el payload
+      setState((s) => ({ ...s, Consecutivo: consecutivo }));
+
+      // 2) Crear registro
       const payload: PazSalvo = {
         Cargo: state.Cargo,
         CO: state.CO,
-        Consecutivo: state.Consecutivo,
+        Consecutivo: consecutivo, // ✅ usa el local
         CorreoJefe: state.CorreoJefe,
         Empresa: state.Empresa,
         Estado: "Pendiente",
-        FechaIngreso:toGraphDateTime(state.FechaIngreso) ?? null,
+        FechaIngreso: toGraphDateTime(state.FechaIngreso) ?? null,
         FechaSalida: toGraphDateTime(state.FechaSalida) ?? null,
         Jefe: state.Jefe,
         Nombre: state.Nombre,
         Solicitados: state.Solicitados,
         Title: state.Title,
-        Solicitante: account?.username ?? ""
+        Solicitante: account?.username ?? "",
       };
+
       const created = await pazSalvoSvc.create(payload);
-      
+      console.warn("[DEBUG] creado:", created);
+
+      // 3) Recipients
       const toRecipients = [
-        ...state.Solicitados.map(s => ({
+        ...state.Solicitados.map((s) => ({
           emailAddress: { address: s.correo },
         })),
         { emailAddress: { address: state.CorreoJefe } },
       ];
 
+      // 4) Preparar firma inline (CID)
+      const hasFirma = !!firma?.contentBytes;
+
+      const contentId = "firma-usuario";
+
+      let firmaBase64: string | null = null;
+      let firmaFileName: string | null = null;
+      let firmaMime: string | null = null;
+
+      if (hasFirma) {
+        firmaFileName = firma?.fileName || "firma.png";
+        firmaMime = guessMimeFromName(firmaFileName);
+
+        // base64 PURO (sin data:image/...;base64,)
+        firmaBase64 = stripDataUrl(firma!.contentBytes).replace(/\s+/g, "");
+
+        // Debug rápido
+        console.warn("[DEBUG] firmaFileName:", firmaFileName);
+        console.warn("[DEBUG] firmaMime:", firmaMime);
+        console.warn("[DEBUG] firmaBase64 length:", firmaBase64.length);
+
+        if (firmaBase64.length < 50) {
+          alert("[DEBUG] Firma base64 muy corta. Probable error al obtener la firma.");
+        }
+      } else {
+        console.warn("[DEBUG] No hay firma para enviar.");
+      }
+
+      // 5) HTML del correo
       const htmlBody = `
-        <p> Buen dia,</p>
-        <p>Se solicitan los paz y salvo de la siguiente persona.
-        <strong>Paz y salvo con ID: ${created.Id}</strong>
+        <p>Buen día,</p>
+        <p>Se solicitan los paz y salvo de la siguiente persona.</p>
+        <p><strong>Paz y salvo con ID: ${created.Id}</strong></p>
 
         <table border="1" style="border-collapse: collapse; width: 100%;">
           <tr style="background-color: #f2f2f2;">
-            <th style="padding: 8px;">Cedula: </th>
-            <th style="padding: 8px;">Nombre:</th>
+            <th style="padding: 8px;">Cédula</th>
+            <th style="padding: 8px;">Nombre</th>
             <th style="padding: 8px;">Fecha de ingreso</th>
             <th style="padding: 8px;">Fecha de retiro</th>
             <th style="padding: 8px;">Cargo</th>
@@ -250,42 +305,67 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
           </tr>
         </table>
 
-        <p>Por favor emitir esta información en los siguientes cinco <strong>(5) dias hábiles</strong> a partir de la fecha de este correo</p> 
-        <br>
-        <p>No responder a este correo ya que fue enviado automaticamente</p>
-        <br>
-        <p>Para responder el paz y salvo debe ingresar a la siguiente ruta (Recuerde que si esta fuera de 35 palms debe usar la VPN): https://gestordocumentalch.estudiodemoda.com.co/</p>
-        <br>
+        <p>Por favor emitir esta información en los siguientes cinco <strong>(5) días hábiles</strong> a partir de la fecha de este correo.</p>
+        <br/>
+        <p>No responder a este correo ya que fue enviado automáticamente.</p>
+        <br/>
+        <p>
+          Para responder el paz y salvo debe ingresar a la siguiente ruta
+          (Recuerde que si está fuera de 35 palms debe usar la VPN):
+          https://gestordocumentalch.estudiodemoda.com.co/
+        </p>
 
-          ${firma ? `
-          <br/>
-          <p>Firma del solicitante:</p>
-          <img src="cid:firma-usuario"
-              alt="Firma del solicitante"
-              style="max-width: 200px; max-height: 80px; object-fit: contain;" />
-        `
-        : ""
-      }
+        ${
+          hasFirma
+            ? `
+              <br/>
+              <p><strong>Firma del solicitante:</strong></p>
+              <img
+                src="cid:${contentId}"
+                alt="Firma del solicitante"
+                style="max-width: 200px; max-height: 80px; object-fit: contain;"
+              />
+            `
+            : ""
+        }
       `;
 
-      await mail.sendEmail({
+      // 6) Enviar correo con attachment inline
+      const mailPayload: any = {
         message: {
           subject: `Nueva solicitud Paz y Salvo - ${state.Nombre}`,
-          body: {
-            contentType: "HTML",
-            content: htmlBody,
-          },
+          body: { contentType: "HTML", content: htmlBody },
           toRecipients,
         },
         saveToSentItems: true,
-      });
+      };
+
+      if (hasFirma && firmaBase64 && firmaFileName && firmaMime) {
+        mailPayload.message.attachments = [
+          {
+            "@odata.type": "#microsoft.graph.fileAttachment",
+            name: firmaFileName,
+            contentType: firmaMime,
+            contentBytes: firmaBase64, // ✅ base64 puro
+            isInline: true,
+            contentId, // ✅ debe coincidir con cid:
+          },
+        ];
+        console.warn("[DEBUG] Adjuntando firma inline con CID:", contentId);
+      }
+
+      await mail.sendEmail(mailPayload);
 
       alert("Se ha creado el registro con éxito y se enviaron las notificaciones.");
       cleanState();
+    } catch (err: any) {
+      console.error(err);
+      alert(`[DEBUG] Error al enviar/crear: ${err?.message ?? String(err)}`);
     } finally {
-        setLoading(false);
-      }
+      setLoading(false);
+    }
   };
+
 
   const updatePazSalvo = async (e: React.FormEvent, IdPazSalvo: string) => {
     e.preventDefault();

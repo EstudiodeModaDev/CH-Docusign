@@ -55,11 +55,11 @@ export function usePasosRetail() {
     if (estadoAnterior === "Completado") return; 
 
     const requiereEvidencia = paso.TipoPaso === "SubidaDocumento";
-    const requiereNotas = paso.TipoPaso !== "SubidaDocumento";
+    const requiereNotas = paso.TipoPaso === "Aprobacion";
     const userName = account?.name ?? ""; 
 
     // ========== 1) Caso: requiere evidencia ==========
-    if (paso.TipoPaso !== "SubidaDocumento") {
+    if (requiereEvidencia) {
 
       await detallesPasosRetail.update(idDetalle, {
         EstadoPaso: "Completado",

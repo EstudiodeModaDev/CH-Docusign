@@ -14,6 +14,7 @@ import { ProcessDetail } from "../Cesaciones/procesoCesacion";
 import { useDetallesPasosPromocion, usePasosPromocion } from "../../../../Funcionalidades/PasosPromocion";
 import type { DetallesPasos } from "../../../../models/Cesaciones";
 import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
+import { CancelProcessModal } from "../../../View/CancelProcess/CancelProcess";
 
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -38,8 +39,8 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Props) {
-  const { Maestro, Promociones, DeptosYMunicipios, DetallesPasosPromocion, categorias} = useGraphServices();
-  const { state, setField, errors, handleEdit } = usePromocion(Promociones);
+  const { Maestro, Promociones, DeptosYMunicipios, DetallesPasosPromocion, categorias, PromocionesCanceladas} = useGraphServices();
+  const { state, setField, errors, handleEdit, handleCancelProcessbyId } = usePromocion(Promociones, PromocionesCanceladas);
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
   const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
   const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
@@ -83,6 +84,7 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
   const [grupoCVE, setGrupoCVE] = React.useState<string>("");
   const [modal, setModal] = React.useState<boolean>(false)
   const [porcentajeCompletacion, setPorcetanjeCompletacion] = React.useState<number>(0);
+  const [cancelProcess, setCancelProcess] = React.useState(false)
 
   React.useEffect(() => {
       reloadEmpresas();
@@ -356,6 +358,11 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
     },
     [handleCompleteStep, calcPorcentaje, selectedPromocion?.Id, Promociones]
   );
+
+  const handleCancel = async (razon: string) => {
+    await handleCancelProcessbyId(selectedPromocion.Id ?? "", razon)
+    setCancelProcess(false)
+  };
 
   return (
     <div className="ft-modal-backdrop">
@@ -1045,14 +1052,17 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
               </div>
             </form>
 
+            <CancelProcessModal open={cancelProcess} onClose={() => setCancelProcess(false) } onEliminar={handleCancel}/>
+
             {/* Acciones */}
             <div className="ft-actions">
               {!isView ? 
                 <button type="submit" className="btn btn-primary btn-xs" onClick={(e) => {handleEdit(e, selectedPromocion);}}>Guardar Registro</button> : 
                 <small>Este registro ya ha sido usado, no puede ser editado</small>
               }
-              <button type="submit" className="btn btn-xs" onClick={() => onClose()}>Cancelar</button>
+              <button type="submit" className="btn btn-xs btn-danger" onClick={() => setCancelProcess(true)}>Cancelar Proceso</button>
               <button type="button" className="btn btn-xs" onClick={() => {setModal(true)}}>Detalles</button>
+              <button type="submit" className="btn btn-xs" onClick={() => onClose()}>Cerrar</button>
             </div>
           </>
         }

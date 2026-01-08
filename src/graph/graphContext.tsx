@@ -32,6 +32,8 @@ import { DetallesPasosRetail } from "../Services/DetallesPasosRetail.service";
 import { TicketsService } from "../Services/Tickets.service";
 import { LogService } from "../Services/Log.service";
 import { CesacionCanceladaService } from "../Services/CesacionCancelada.service";
+import { PromocionesCanceladasService } from "../Services/PromocionesCanceladas.service";
+import { RetailCanceladosService } from "../Services/RetailCancelado.service";
 
 
 /* ================== Tipos de config ================== */
@@ -57,7 +59,8 @@ export type UnifiedConfig = {
     //Promociones
     Promociones: string;
     PasosPromocion: string;
-    DetallesPasosPromocion: string
+    DetallesPasosPromocion: string;
+    PromocionesCanceladas: string
 
     //Cesaciones
     Cesaciones: string
@@ -69,6 +72,7 @@ export type UnifiedConfig = {
     Retail: string;
     pasosRetail: string;
     detallesPasosRetail: string;
+    retailCancelados: string;
 
     //Desplegables
     DeptosYMunicipios: string;
@@ -120,7 +124,8 @@ export type GraphServices = {
   //Promociones
   Promociones: PromocionesService
   PasosPromocion: PasosPromocionService;
-  DetallesPasosPromocion: DetallesPasosPromocionService
+  DetallesPasosPromocion: DetallesPasosPromocionService,
+  PromocionesCanceladas: PromocionesCanceladasService
 
   //Cesaciones
   Cesaciones: CesacionesService
@@ -132,6 +137,7 @@ export type GraphServices = {
   Retail: RetailService;
   pasosRetail: PasosRetailService;
   detallesPasosRetail: DetallesPasosRetail
+  retailCancelados: RetailCanceladosService
 
   //Desplegables
   Maestro: MaestrosService
@@ -199,6 +205,7 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     Promociones: "Promocion - Promociones",
     PasosPromocion: "Promocion - Pasos",
     DetallesPasosPromocion: "Promocion - Detalles Pasos",
+    PromocionesCanceladas: "Promocion - Promociones Canceladas",
 
     //Cesaciones
     Cesaciones: "Cesasion - Cesaciones",
@@ -206,9 +213,11 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     DetallesPasosCesacion: "Cesacion - Detalles Pasos",
     CesacionCancelada: "Cesacion - Cesaciones Canceladas",
 
+    //Retail
     Retail: "Retail - Novedades Retail",
     pasosRetail: "Retail - Pasos",
     detallesPasosRetail: "Retail - DetallesPasos",
+    retailCancelados: "Retail - Retail Cancelados",
 
     //Desplegables
     Maestros: "Maestros",
@@ -297,6 +306,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     const Promociones             = new PromocionesService(graph, ch.hostname, ch.sitePath, lists.Promociones);
     const PasosPromocion          = new PasosPromocionService(graph, ch.hostname, ch.sitePath, lists.PasosPromocion);
     const DetallesPasosPromocion  = new DetallesPasosPromocionService(graph, ch.hostname, ch.sitePath, lists.DetallesPasosPromocion);
+    const PromocionesCanceladas   = new PromocionesCanceladasService(graph, ch.hostname, ch.sitePath, lists.PromocionesCanceladas);
 
     //Cesaciones
     const Cesaciones              = new CesacionesService(graph, ch.hostname, ch.sitePath, lists.Cesaciones)
@@ -308,6 +318,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     const Retail                  = new RetailService(graph, ch.hostname, ch.sitePath, lists.Retail)  
     const pasosRetail             = new PasosRetailService(graph, ch.hostname, ch.sitePath, lists.pasosRetail)
     const detallesPasosRetail     = new DetallesPasosRetail(graph, ch.hostname, ch.sitePath, lists.detallesPasosRetail)
+    const retailCancelados        = new RetailCanceladosService(graph, ch.hostname, ch.sitePath, lists.retailCancelados)
 
     //Desplegables
     const Maestro                 = new MaestrosService(graph, ch.hostname, ch.sitePath, lists.Maestros)
@@ -349,13 +360,13 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       //Novedades
       Contratos, NovedadCancelada, PasosNovedades, DetallesPasosNovedades,
       //Promociones
-      Promociones, PasosPromocion, DetallesPasosPromocion,
+      Promociones, PasosPromocion, DetallesPasosPromocion, PromocionesCanceladas,
       //Cesaciones
       Cesaciones, PasosCesacion, DetallesPasosCesacion, CesacionCancelada,
       //Retail
       Retail, pasosRetail, detallesPasosRetail,
       //Desplegables
-      Maestro, DeptosYMunicipios, salarios, categorias,
+      Maestro, DeptosYMunicipios, salarios, categorias, retailCancelados,
       //Seguridad
       Usuarios, Perfiles,
       //Envios

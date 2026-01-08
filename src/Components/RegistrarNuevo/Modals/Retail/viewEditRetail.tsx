@@ -14,6 +14,7 @@ import type { Retail } from "../../../../models/Retail";
 import { useRetail } from "../../../../Funcionalidades/Retail";
 import { ProcessDetail } from "../Cesaciones/procesoCesacion";
 import { useDetallesPasosRetail, usePasosRetail } from "../../../../Funcionalidades/PasosRetail";
+import { CancelProcessModal } from "../../../View/CancelProcess/CancelProcess";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -38,8 +39,8 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function EditRetail({onClose, selectedRetail, tipo}: Props){
-    const { Maestro, Retail, DeptosYMunicipios, salarios, detallesPasosRetail, categorias } = useGraphServices();
-    const { state, setField, handleEdit, errors, } = useRetail(Retail);
+    const { Maestro, Retail, DeptosYMunicipios, salarios, detallesPasosRetail, categorias, retailCancelados } = useGraphServices();
+    const { state, setField, handleEdit, errors, handleCancelProcessbyId} = useRetail(Retail, retailCancelados);
     const { byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep, error: errorPasos, loading: loadingPasos} = usePasosRetail()
     const { loading: loadingDetalles, rows: rowsDetalles, error: errorDetalles, loadDetallesPromocion, calcPorcentaje} = useDetallesPasosRetail(detallesPasosRetail, selectedRetail.Id ?? "")
     const { loadSpecificSalary } = useSalarios(salarios);
@@ -131,6 +132,7 @@ export default function EditRetail({onClose, selectedRetail, tipo}: Props){
   const [promedio, setPromedio] = React.useState<number>(0);
   const [grupoCVE, setGrupoCVE] = React.useState<string>("");
   const [modal, setModal] = React.useState<boolean>(false)
+  const [cancelProcess, setCancelProcess] = React.useState(false)
   const isView = tipo === "view"
 
   const deptos = React.useMemo(() => {
@@ -284,6 +286,11 @@ export default function EditRetail({onClose, selectedRetail, tipo}: Props){
     },
     [handleCompleteStep, calcPorcentaje, selectedRetail?.Id, Retail]
   );
+
+  const handleCancel = async (razon: string) => {
+    await handleCancelProcessbyId(selectedRetail.Id ?? "", razon)
+    setCancelProcess(false)
+  };
   
   return (
     <div className="ft-modal-backdrop">
@@ -715,11 +722,14 @@ export default function EditRetail({onClose, selectedRetail, tipo}: Props){
             <input id="Fechaenlaquesereporta" name="Fechaenlaquesereporta" type="date" value={state.FechaReporte ?? ""} autoComplete="off" required aria-required="true" readOnly/>
           </div>
         </form>
+
+        <CancelProcessModal open={cancelProcess} onClose={() => setCancelProcess(false) } onEliminar={handleCancel}/>
         {/* Acciones */}
         <div className="ft-actions">
           {!isView ? <button type="submit" className="btn btn-primary btn-xs" onClick={(e) => {handleEdit(e, selectedRetail);}}>Guardar Registro</button> : <small>Este registro ya ha sido usado, no puede ser editado</small>}
           <button type="button" className="btn btn-xs" onClick={() => {setModal(true)}}>Detalles</button>
-          <button type="button" className="btn btn-xs" onClick={() => onClose()}>Cancelar</button>
+          <button type="submit" className="btn btn-xs btn-danger" onClick={() => setCancelProcess(true)}>Cancelar Proceso</button>
+          <button type="button" className="btn btn-xs" onClick={() => onClose()}>Cerrar</button>
         </div>
         </>
         }

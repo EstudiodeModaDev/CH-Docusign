@@ -7,6 +7,7 @@ import type { Promocion } from "../../../models/Promociones";
 import { formatPesosEsCO } from "../../../utils/Number";
 import ViewPromociones from "../Modals/Promociones/viewEditPromociones";
 import { useEnvios } from "../../../Funcionalidades/Envios";
+import { usePromocionesCanceladas } from "../../../Funcionalidades/Promocion";
 
 function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; dir: SortDir}>) {
   const idx = sorts.findIndex(s => s.field === field);
@@ -36,32 +37,46 @@ type Props = {
   setEstado: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export default function TablaPromociones({rows, loading, error, pageSize, pageIndex, hasNext, sorts, setRange, setPageSize, nextPage, loadFirstPage, toggleSort, range, reloadAll, setSearch, search, estado, setEstado}: Props) {
-  const { Envios, DetallesPasosPromocion } = useGraphServices();
-  const [promocionSeleccionada, setPromocionSeleccionada] = React.useState<Promocion | null>(null);
-  const [visible, setVisible] = React.useState<boolean>(false);
-  const [pctById, setPctById] = React.useState<Record<string, number>>({});
+export type PropsPagination = {
+  reloadAll: () => void;
+  nextPage: () => void;
+  pageIndex: number;
+  hasNext: boolean;
+  loading: boolean;
+  pageSize: number;
+  totalRows: number;
+};
+
+export default function TablaPromociones({rows, loading: loadingPromociones, error, pageSize: pageSizePromociones, pageIndex: pageIndexPromociones, hasNext: hasNextPromociones, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPagePromociones, reloadAll: reloadAllPromociones, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
+  const { Envios, DetallesPasosPromocion, PromocionesCanceladas } = useGraphServices();
+  const { canEdit } = useEnvios(Envios);
+
+  const {rows: rowsCanceladas, reloadAll: reloadAllCancelados, loading: loadingCancelados,  pageSize: pageSizeCancelados, pageIndex: pageIndexCancelados, hasNext: hasNextCancelados, nextPage: nextPageCancelados, } = usePromocionesCanceladas(PromocionesCanceladas);   
+  const [visible, setVisible] = React.useState(false);
+  const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Promocion | null>(null);
   const [tipoFormulario, setTipoFormulario] = React.useState<string>("");
-  const {canEdit} = useEnvios(Envios);
+  const [pctById, setPctById] = React.useState<Record<string, number>>({});
 
-  const handleRowClick = async (promocion: Promocion) => {
-    setPromocionSeleccionada(promocion);
-    const modo = await canEdit(String(promocion.Id), "Promocion"); // asegúrate de que tenga Id
-    setTipoFormulario(modo);
-    setVisible(true);
-  };
+  const openRow = React.useCallback(
+    async (novedad: Promocion) => {
+      setNovedadSeleccionada(novedad);
+      const modo = await canEdit(String(novedad.Id ?? ""), "Novedades");
+      setTipoFormulario(modo);
+      setVisible(true);
+    },
+    [canEdit]
+  );
 
-  const onClose = async () => {
-    await loadFirstPage()
+  const onClose = React.useCallback(async () => {
+    await loadFirstPage();
     setVisible(false);
-  };
+  }, [loadFirstPage]);
 
-  const fetchPctForPromociones = React.useCallback(
-    async (cesacionId: string) => {
-      if (!cesacionId) return;
+  const fetchPctForPromociones= React.useCallback(
+    async (novedadId: string) => {
+      if (!novedadId) return;
 
-      const safeId = cesacionId.replace(/'/g, "''"); // escapar comillas para OData
-
+      const safeId = novedadId.replace(/'/g, "''");
       const items = await DetallesPasosPromocion.getAll({
         filter: `fields/Title eq '${safeId}'`,
         orderby: "fields/NumeroPaso asc",
@@ -69,122 +84,193 @@ export default function TablaPromociones({rows, loading, error, pageSize, pageIn
 
       const pct =
         items.length > 0
-          ? (items.filter((i) => i.EstadoPaso === "Completado").length / items.length) * 100
+          ? (items.filter((i) => i.EstadoPaso === "Completado").length / items.length) *
+            100
           : 0;
 
-      setPctById((prev) => ({
-        ...prev,
-        [cesacionId]: Math.round(pct * 100) / 100, // 2 decimales como number
-      }));
+      setPctById((prev) => {
+        const rounded = Math.round(pct * 100) / 100;
+        if (prev[novedadId] === rounded) return prev;
+        return { ...prev, [novedadId]: rounded };
+      });
     },
     [DetallesPasosPromocion]
   );
-    
+
+  const isCanceladas = estado === "cancelado";
+  const activeRows: any[] = isCanceladas ? (rowsCanceladas ?? []) : (rows ?? []);
+  const activeLoading = isCanceladas ? loadingCancelados : loadingPromociones;
+
+  React.useEffect(() => {
+    for (const c of activeRows) {
+      const id = String(c?.Id ?? "");
+      if (!id) continue;
+      if (pctById[id] !== undefined) continue;
+      fetchPctForPromociones(id);
+    }
+  }, [activeRows, pctById, fetchPctForPromociones]);
+
   
   React.useEffect(() => {
-    rows.forEach((c) => {
-      const id = String(c.Id ?? "");
-      if (!id) return;
+    if(estado === "cancelado"){
+      reloadAllCancelados()
+    }
+  }, [estado]);
 
-      // si ya lo tengo en cache, no vuelvo a pedirlo
-      if (pctById[id] !== undefined) return;
+  const onRowKeyDown = (e: React.KeyboardEvent<HTMLTableRowElement>, n: Promocion) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openRow(n);
+    }
+  };
 
-      fetchPctForPromociones(id);
-    });
-  }, [rows, pctById, fetchPctForPromociones]);
+  const Paginacion = ({reloadAll, loading, pageIndex, pageSize, hasNext,  nextPage, totalRows,}: PropsPagination) =>
+    totalRows > 0 ? (
+      <div className="paginacion">
+        <button onClick={reloadAll} disabled={loading || pageIndex <= 1}>
+          Anterior
+        </button>
+
+        <span>Página {pageIndex}</span>
+
+        <button onClick={nextPage} disabled={loading || !hasNext}>
+          Siguiente
+        </button>
+
+        <label htmlFor="page-size" style={{ marginLeft: 12, marginRight: 8 }}>
+          Registros por página:
+        </label>
+
+        <select id="page-size" value={pageSize} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPageSize(parseInt(e.target.value, 10))} disabled={loading}>
+          {[10, 15, 20, 50, 100].map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+      </div>
+    ) : null;
+
+  const TablaNormal = () => (
+    <>
+      <table>
+        <thead>
+          <tr>
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort('Cedula', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Cedula', e.shiftKey); }} aria-label="Ordenar por Cedula" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              Cedula {renderSortIndicator('Cedula', sorts)}
+            </th>
+
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort('Nombre', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Nombre', e.shiftKey); }} aria-label="Ordenar por Nombre" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              Nombre {renderSortIndicator('Nombre', sorts)}
+            </th>
+
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort('Salario', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Salario', e.shiftKey); }} aria-label="Ordenar por Salario" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              Salario {renderSortIndicator('Salario', sorts)}
+            </th>
+
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort('promocion', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('reporta', e.shiftKey); }} aria-label="Ordenar por fecha de promocion" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              Fecha de la promoción {renderSortIndicator('promocion', sorts)}
+            </th>
+
+            <th>Reportado por</th>
+
+            <th style={{ textAlign: "center" }}>%</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {rows.map((n) => (
+            <tr key={n.Id} tabIndex={0} onClick={() => openRow(n)} onKeyDown={(e) => onRowKeyDown(e, n)}>
+              <td>{n.NumeroDoc}</td>
+              <td><span title={n.NombreSeleccionado}>{n.NombreSeleccionado}</span></td>
+              <td><span title={n.Salario}>{formatPesosEsCO(n.Salario)}</span></td>
+              <td>{toISODateFlex(n.FechaIngreso) || "–"}</td>
+              <td><span title={n.InformacionEnviadaPor}>{n.InformacionEnviadaPor}</span></td>
+              <td style={{ textAlign: "center" }}>
+                {(() => {
+                  const id = String(n.Id ?? "");
+                  const pct = pctById[id];
+                  return pct === undefined ? "…" : `${pct.toFixed(2)}%`;
+                })()}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <Paginacion reloadAll={reloadAllPromociones} nextPage={nextPagePromociones} pageIndex={pageIndexPromociones} hasNext={hasNextPromociones} loading={loadingPromociones} pageSize={pageSizePromociones} totalRows={rows.length}/>
+    </>
+  );
+
+  const TablaCanceladas = () => (
+    <>
+      <table>
+        <thead>
+          <tr>
+            <th style={{ whiteSpace: "nowrap" }}>Cedula</th>
+            <th style={{ whiteSpace: "nowrap" }}>Nombre</th>
+            <th style={{ whiteSpace: "nowrap" }}>Fecha cancelación</th>
+            <th>Motivo cancelación</th>
+            <th>Cancelado por</th>
+            <th style={{ textAlign: "center" }}>%</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {(rowsCanceladas ?? []).map((n: any) => (
+            <tr key={n.Id} tabIndex={0}>
+              <td>{n.Numeroidentificacion}</td>
+              <td><span title={n.Nombre}>{n.Nombre}</span></td>
+              <td>{toISODateFlex(n.Created) || "–"}</td>
+              <td><span title={n.RazonCancelacion}>{n.RazonCancelacion || "–"}</span></td>
+              <td><span title={n.Procesocanceladopor}>{n.Procesocanceladopor || "–"}</span></td>
+              <td style={{ textAlign: "center" }}>
+                {(() => {
+                  const id = String(n.Id ?? "");
+                  const pct = pctById[id];
+                  return pct === undefined ? "…" : `${pct.toFixed(2)}%`;
+                })()}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <Paginacion reloadAll={reloadAllCancelados} nextPage={nextPageCancelados} pageIndex={pageIndexCancelados} hasNext={hasNextCancelados} loading={loadingCancelados} pageSize={pageSizeCancelados} totalRows={(rowsCanceladas ?? []).length}/>
+    </>
+  );
 
   return (
     <div className="tabla-novedades">
       <div className="rn-toolbar tabla-filters">
-
         <div className="rn-toolbar__left">
-            <input className="rn-input" onChange={(e) => {setSearch(e.target.value)}} value={search} placeholder="Buscador..."/>
+          <input className="rn-input" onChange={(e) => setSearch(e.target.value)} value={search} placeholder="Buscador..."/>
 
-            <select name="estado" id="estado" onChange={(e) => {setEstado(e.target.value)}} value={estado} className="rn-input">
-              <option value="proceso">En proceso</option>
-              <option value="finalizado">Finalizados</option>
-              <option value="todos">Todos</option>
-            </select>
-            <input type= "date" className="rn-input rn-date" onChange={(e) => {setRange({ ...range, from: e.target.value })}} value={range.from}/>
-            <input type= "date" className="rn-input rn-date" onChange={(e) => {setRange({ ...range, to: e.target.value })}} value={range.to}/>
+          <select name="estado" id="estado" onChange={(e) => setEstado(e.target.value)} value={estado} className="rn-input">
+            <option value="proceso">En proceso</option>
+            <option value="finalizado">Finalizados</option>
+            <option value="cancelado">Cancelado</option>
+            <option value="todos">Todos</option>
+          </select>
+
+          <input type="date" className="rn-input rn-date" onChange={(e) => setRange({ ...range, from: e.target.value })} value={range.from}/>
+          <input type="date" className="rn-input rn-date" onChange={(e) => setRange({ ...range, to: e.target.value })} value={range.to}/>
         </div>
       </div>
-      
-      {/* Estados */}
-      {loading && <p>Cargando registros</p>}
+
+      {activeLoading && <p>Cargando registros...</p>}
       {error && <p style={{ color: "#b91c1c" }}>{error}</p>}
-      {!loading && !error && rows.length === 0 && <p>No hay registros para los filtros seleccionados.</p>}
+      {!activeLoading && !error && activeRows.length === 0 && (
+        <p>No hay registros para los filtros seleccionados.</p>
+      )}
 
-        <div className="novedades-wrap habeas-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th role="button" tabIndex={0} onClick={(e) => toggleSort('Cedula', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Cedula', e.shiftKey); }} aria-label="Ordenar por Cedula" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  Cedula {renderSortIndicator('Cedula', sorts)}
-                </th>
+      <div className="novedades-wrap filas-novedades">
+        {isCanceladas ? <TablaCanceladas /> : <TablaNormal />}
+      </div>
 
-                <th role="button" tabIndex={0} onClick={(e) => toggleSort('Nombre', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Nombre', e.shiftKey); }} aria-label="Ordenar por Nombre" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  Nombre {renderSortIndicator('Nombre', sorts)}
-                </th>
-
-                <th role="button" tabIndex={0} onClick={(e) => toggleSort('Salario', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Salario', e.shiftKey); }} aria-label="Ordenar por Salario" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  Salario {renderSortIndicator('Salario', sorts)}
-                </th>
-
-                <th role="button" tabIndex={0} onClick={(e) => toggleSort('promocion', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('reporta', e.shiftKey); }} aria-label="Ordenar por fecha de promocion" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  Fecha de la promoción {renderSortIndicator('promocion', sorts)}
-                </th>
-
-                <th>Reportado por</th>
-
-                <th style={{ textAlign: "center" }}>%</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((promocion) => (
-                <tr key={promocion.Id} onClick={() => handleRowClick(promocion)} tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setPromocionSeleccionada(promocion)}>
-                  <td>{promocion.NumeroDoc}</td>
-                  <td><span title={promocion.NombreSeleccionado}>{promocion.NombreSeleccionado}</span></td>
-                  <td className="salario"><span title={promocion.Salario}>{formatPesosEsCO(promocion.Salario)}</span></td>
-                  <td><span title={promocion.FechaIngreso!}>{toISODateFlex(promocion.FechaIngreso)}</span></td>
-                  <td><span title={promocion.InformacionEnviadaPor}>{promocion.InformacionEnviadaPor}</span></td>
-                  <td style={{ textAlign: "center" }}>
-                    {(() => {
-                      const id = String(promocion.Id ?? "");
-                      const pct = pctById[id];
-                      return pct === undefined ? "…" : `${pct.toFixed(2)}%`;
-                    })()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Paginación servidor: Anterior = volver a primera página (loadFirstPage), Siguiente = nextLink */}
-          {rows.length > 0 && (
-            <div className="paginacion">
-              <button onClick={reloadAll} disabled={loading || pageIndex <= 1}>
-                Anterior
-              </button>
-              <span>Página {pageIndex}</span>
-              <button onClick={nextPage} disabled={loading || !hasNext}>
-                Siguiente
-              </button>
-            <label htmlFor="page-size" style={{ marginLeft: 12, marginRight: 8 }}>
-                    Tickets por página:
-                  </label>
-                  <select id="page-size" value={pageSize} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPageSize(parseInt(e.target.value, 10))} disabled={loading}>
-                    {[10, 15, 20, 50, 100].map((n) => (
-                      <option key={n} value={n}>
-                        {n}
-                      </option>
-                    ))}
-                  </select>
-            </div>
-          )}
-        </div>
-
-        {visible ? <ViewPromociones onClose={() => onClose()} selectedPromocion={promocionSeleccionada!} tipo={tipoFormulario}/> : null}
+      {visible && novedadSeleccionada ? (
+        <ViewPromociones selectedPromocion={novedadSeleccionada} tipo={tipoFormulario} onClose={onClose}/>
+      ) : null}
     </div>
   );
 }

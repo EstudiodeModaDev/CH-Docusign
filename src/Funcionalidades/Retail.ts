@@ -4,8 +4,10 @@ import { toGraphDateTime, toISODateFlex } from "../utils/Date";
 import { useAuth } from "../auth/authProvider";
 import type { RetailService } from "../Services/Retail.service";
 import type { Retail, RetailErrors } from "../models/Retail";
+import type { RetailCanceladosService } from "../Services/RetailCancelado.service";
+import type { CesacionCancelada } from "../models/Cesaciones";
 
-export function useRetail(RetailSvc: RetailService) {
+export function useRetail(RetailSvc: RetailService, retailCanceladosSvc?: RetailCanceladosService) {
   const [rows, setRows] = React.useState<Retail[]>([]);
   const [workers, setWorkers] = React.useState<Retail[]>([]);
   const [workersOptions, setWorkersOptions] = React.useState<rsOption[]>([]);
@@ -383,9 +385,161 @@ export function useRetail(RetailSvc: RetailService) {
     }
   }
 
+  
+  const handleCancelProcessbyId = React.useCallback(async (Id: string, RazonCancelacion: string) => {
+    if(!retailCanceladosSvc) return
+
+    try{
+      const proceso = await RetailSvc.get(Id)
+
+      if(proceso){
+        const paylod: CesacionCancelada = {
+          Ciudad: proceso.Ciudad,
+          Correo: proceso.CorreoElectronico,
+          Empresaquesolicito: proceso.Empresaalaquepertenece,
+          Informacionenviadapor: proceso.InformacionEnviadaPor,
+          Nombre: proceso.Nombre,
+          Numeroidentificacion: proceso.Title,
+          Procesocanceladopor: account?.name ?? "",
+          RazonCancelacion:  RazonCancelacion,
+          TipoDocumento: proceso.TipoDoc,
+          Title: proceso.Title
+        }
+        await retailCanceladosSvc.create(paylod)
+        await RetailSvc.delete(proceso.Id ?? "")
+        alert("Se ha cancelado este proceso con éxito")
+      }
+    } catch {
+      throw new Error("Ha ocurrido un error cancelando el proceso");
+    }
+  }, [RetailSvc]);
+
   return {
     rows, loading, error, pageSize, pageIndex, hasNext, range, search, sorts, state, errors, workers, workersOptions, estado,
-    setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage, searchRegister
+    handleCancelProcessbyId, setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage, searchRegister
   };
 }
 
+export function useRetailCancelados(retailCanceladosSvc: RetailCanceladosService) {
+  const [rows, setRows] = React.useState<CesacionCancelada[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [range, setRange] = React.useState<DateRange>({ from: "", to: "" });
+  const [pageSize, setPageSize] = React.useState<number>(10); 
+  const [pageIndex, setPageIndex] = React.useState<number>(1);
+  const [nextLink, setNextLink] = React.useState<string | null>(null);
+  const [sorts, setSorts] = React.useState<Array<{field: SortField; dir: SortDir}>>([{ field: 'id', dir: 'desc' }]);
+  const [search, setSearch] = React.useState<string>("");
+  const [estado, setEstado] = React.useState<string>("proceso");
+  
+  // construir filtro OData
+  const buildFilter = React.useCallback((): GetAllOpts => {
+    const filters: string[] = [];
+
+    if(search){
+        filters.push(`(startswith(fields/Nombre, '${search}') or startswith(fields/Title, '${search}'))`)
+    }
+
+    if (range.from && range.to && (range.from < range.to)) {
+      if (range.from) filters.push(`fields/Created ge '${range.from}T00:00:00Z'`);
+      if (range.to)   filters.push(`fields/Created le '${range.to}T23:59:59Z'`);
+    }
+
+    const orderParts: string[] = sorts
+      .map(s => {
+        const col = sortFieldToOData[s.field];
+        return col ? `${col} ${s.dir}` : '';
+      })
+      .filter(Boolean);
+
+    // Estabilidad de orden: si no incluiste 'id', agrega 'id desc' como desempate.
+    if (!sorts.some(s => s.field === 'id')) {
+      orderParts.push('ID desc');
+    }
+    return {
+      filter: filters.join(" and "),
+      orderby: orderParts.join(","),
+      top: pageSize,
+    };
+  }, [range.from, range.to, pageSize, sorts, search, estado] ); 
+ 
+  const loadFirstPage = React.useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const { items, nextLink } = await retailCanceladosSvc.getAll(buildFilter()); // debe devolver {items,nextLink}
+      setRows(items);
+      setNextLink(nextLink ?? null);
+      setPageIndex(1);
+    } catch (e: any) {
+      setError(e?.message ?? "Error cargando tickets");
+      setRows([]);
+      setNextLink(null);
+      setPageIndex(1);
+    } finally {
+      setLoading(false);
+    }
+  }, [retailCanceladosSvc, buildFilter, sorts]);
+
+  React.useEffect(() => {
+    loadFirstPage();
+  }, [loadFirstPage, range, search]);
+
+  // siguiente página: seguir el nextLink tal cual
+  const hasNext = !!nextLink;
+
+  const nextPage = React.useCallback(async () => {
+    if (!nextLink) return;
+    setLoading(true); setError(null);
+    try {
+      const { items, nextLink: n2 } = await retailCanceladosSvc.getByNextLink(nextLink);
+      setRows(items);              // 👈 reemplaza la página visible
+      setNextLink(n2 ?? null);     // null si no hay más
+      setPageIndex(i => i + 1);
+    } catch (e: any) {
+      setError(e?.message ?? "Error cargando más tickets");
+    } finally {
+      setLoading(false);
+    }
+  }, [nextLink, retailCanceladosSvc]);
+
+  // recargas por cambios externos
+  const applyRange = React.useCallback(() => { loadFirstPage(); }, [loadFirstPage]);
+  const reloadAll  = React.useCallback(() => { loadFirstPage(); }, [loadFirstPage, range, search]);
+
+  const sortFieldToOData: Record<SortField, string> = {
+    id: 'fields/Created',
+    Cedula: 'fields/Numero_x0020_identificaci_x00f3_',
+    Nombre: 'fields/NombreSeleccionado',
+    inicio: 'fields/FECHA_x0020_REQUERIDA_x0020_PARA0',
+  };
+
+  const toggleSort = React.useCallback((field: SortField, additive = false) => {
+    setSorts(prev => {
+      const idx = prev.findIndex(s => s.field === field);
+      if (!additive) {
+        // clic normal: solo esta columna; alterna asc/desc
+        if (idx >= 0) {
+          const dir: SortDir = prev[idx].dir === 'desc' ? 'asc' : 'desc';
+          return [{ field, dir }];
+        }
+        return [{ field, dir: 'asc' }];
+      }
+      // Shift+clic: multi-columna
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = { field, dir: copy[idx].dir === 'desc' ? 'asc' : 'desc' };
+        return copy;
+      }
+      return [...prev, { field, dir: 'asc' }];
+    });
+  }, []);
+
+
+
+
+
+  return {
+    rows, loading, error, pageSize, pageIndex, hasNext, range, search, sorts, estado,
+    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, loadFirstPage, setEstado
+  };
+}

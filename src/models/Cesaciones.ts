@@ -74,7 +74,7 @@ export type CesacionCancelada = {
     TipoDocumento: string
     Numeroidentificacion: string;
     Correo: string;
-    Celular: string;
+    Celular?: string;
     Ciudad: string;
     RazonCancelacion: string;
     Nombre: string

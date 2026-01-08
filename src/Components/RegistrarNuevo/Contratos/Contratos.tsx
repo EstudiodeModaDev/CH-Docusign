@@ -127,10 +127,6 @@ export default function TablaContratos({rows, loading, error, pageSize, pageInde
                   Nombre {renderSortIndicator('Nombre', sorts)}
                 </th>
 
-                <th role="button" tabIndex={0} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  Cargo 
-                </th>
-
                 <th role="button" tabIndex={0} onClick={(e) => toggleSort('Salario', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Salario', e.shiftKey); }} aria-label="Ordenar por Salario" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   Salario {renderSortIndicator('Salario', sorts)}
                 </th>
@@ -149,7 +145,6 @@ export default function TablaContratos({rows, loading, error, pageSize, pageInde
                 <tr key={novedad.Id} onClick={() => {setNovedadSeleccionada(novedad); handleRowClick(novedad); setVisible(true)}} tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setNovedadSeleccionada(novedad)}>
                   <td>{novedad.Numero_x0020_identificaci_x00f3_}</td>
                   <td><span title={novedad.NombreSeleccionado}>{novedad.NombreSeleccionado}</span></td>
-                  <td><span title={novedad.CARGO}>{novedad.CARGO}</span></td>
                   <td><span title={novedad.SALARIO}>{formatPesosEsCO(novedad.SALARIO)}</span></td>
                   <td>{toISODateFlex(novedad.FECHA_x0020_REQUERIDA_x0020_PARA0) || "–"}</td>
                   <td><span title={novedad.Informaci_x00f3_n_x0020_enviada_}>{novedad.Informaci_x00f3_n_x0020_enviada_}</span></td>

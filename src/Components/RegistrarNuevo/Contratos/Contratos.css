@@ -1,288 +1,306 @@
-/* =========================================================
-   TABLA DE TICKETS — limpia, responsive y basada en tokens
-   (sin colores fijos; todo sale de tus variables globales)
-   ========================================================= */
+/* Contratos.css */
 
-/* --------- Contenedor principal --------- */
+/* ====== Contenedor general ====== */
 .tabla-novedades{
-  /* alias a tokens de la app (con fallback suave) */
-  --card:      var(--surface, #fff);
-  --ink:       var(--ink, #0f172a);
-  --muted:     var(--muted, #64748b);
-  --bd:        var(--border, #e5e7eb);
-  --bd-strong: var(--bd-strong, color-mix(in oklab, var(--bd) 75%, black));
-  --shadow:    var(--shadow, 0 10px 30px rgba(0,0,0,.08));
-  --radius:    var(--radius, 14px);
-  --pad:       clamp(10px, 2vw, 16px);
-  --gap:       clamp(10px, 1.8vw, 14px);
-  --ring:      var(--ring, color-mix(in oklab, var(--primary, #3b82f6) 25%, transparent));
-  --radius: 15px;
-
-  color: var(--ink);
-}
-
-/* Si marcas data-force-light, reinterpreta tokens para modo claro */
-.tabla-novedades[data-force-light]{
-  --card: var(--surface, #fff);
-  --ink:  var(--ink, #0f172a);
-  --muted:var(--muted, #64748b);
-  --bd:   var(--border, #e5e7eb);
-}
-
-.tabla-filters{
-    margin-bottom: 10px;
-    margin-top: 10px;
-}
-
-/* --------- Wrapper tabla (scroll horizontal cómodo) --------- */
-.tabla-novedades .novedades-wrap{
-  background: var(--card);
-  border: 1px solid var(--bd);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: var(--pad);
-
-  overflow-x: auto;
-  overflow-y: auto;          /* ✅ clave */
-  max-height: 70vh;          /* ✅ define altura para que haya scroll vertical */
-  scrollbar-gutter: stable both-edges;
-
-  position: relative;        /* ✅ ayuda a z-index */
-}
-
-/* --------- Tabla --------- */
-.tabla-novedades table{
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  table-layout: fixed;         /* celdas estables */
-  min-width: 860px;            /* cabe todo sin romper; el wrap hace scroll */
-}
-
-/* Cabezera sticky para tablas largas */
-.tabla-novedades thead th{
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: var(--card);               /* ✅ fondo sólido */
-  border-bottom: 1px solid var(--bd);
-  color: var(--ink);
-  text-align: left;
-  font-weight: 700;
-  letter-spacing: .01em;
-  border-bottom: 1px solid var(--bd);
-  padding: 12px;
-  white-space: nowrap;
-}
-
-/* Indicador de “clickable” para columnas ordenables (role="button") */
-.tabla-novedades thead th[role="button"]{
-  cursor: pointer;
-}
-.tabla-novedades thead th[role="button"]:hover{
-  background: color-mix(in oklab, var(--card) 92%, transparent);
-}
-
-/* Filas */
-.tabla-novedades tbody td{
-  border-bottom: 1px solid var(--bd);
-  padding: 12px;
-  color: var(--ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Zebra + hover */
-.tabla-novedades tbody tr:nth-child(odd){
-  background: color-mix(in oklab, var(--card) 98%, transparent);
-}
-.tabla-novedades tbody tr:hover{
-  background: color-mix(in oklab, gray 15%, transparent);
-}
-
-/* Clickable rows (accesible) */
-.tabla-novedades tbody tr{
-  transition: background .15s ease;
-}
-.tabla-novedades tbody tr:focus-within{
-  outline: none;
-  background: color-mix(in oklab, var(--card) 88%, transparent);
-  box-shadow: 0 0 0 4px var(--ring) inset;
-}
-
-
-
-/* --------- Paginación --------- */
-.paginacion{
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: max-content;
-  align-items: center;
-  gap: 10px;
-  margin-top: var(--gap);
-  padding-top: var(--gap);
-  border-top: 1px solid var(--bd);
-  color: var(--muted);
-}
-.paginacion > span{
-  font-weight: 700; color: var(--ink);
-}
-.paginacion button{
-  background: color-mix(in oklab, var(--card) 94%, transparent);
-  color: var(--ink);
-  border: 1px solid var(--bd);
-  border-radius: calc(var(--radius) - 8px);
-  padding: 8px 12px;
-  font-weight: 600;
-}
-.paginacion button:hover:enabled{
-  background: color-mix(in oklab, var(--card) 88%, transparent);
-}
-.paginacion button:disabled{
-  opacity: .5; cursor: not-allowed;
-}
-.paginacion select{
-  background: color-mix(in oklab, var(--card) 96%, transparent);
-  color: var(--ink);
-  border: 1px solid var(--bd);
-  border-radius: calc(var(--radius) - 8px);
-  padding: 6px 10px;
-}
-
-/* --------- Estados de la vista (loading / error / vacío) --------- */
-.tabla-novedades p{
-  margin: 8px 0;
-  color: var(--muted);
-}
-.tabla-novedades p strong{ color: var(--ink); }
-
-/* =========================================================
-   RESPONSIVE / ADAPTATIVO
-   ========================================================= */
-
-/* 3) Tabla: reduce padding en celdas cuando el viewport es angosto
-   (el overflow-x del .table-wrap asegura el scroll horizontal) */
-@media (max-width: 720px){
- .tabla-novedades thead th,
- .tabla-novedades tbody td{ padding: 10px 8px; }
-}
-
-/* 4) Mejoras de accesibilidad / motion */
-@media (prefers-reduced-motion: reduce){
-  .tabla-novedades tbody tr{ transition: none; }
-}
-
-/* ===============================
-   REACT-SELECT (classNamePrefix="rs")
-   Solo para que el MENÚ se vea bien
-   =============================== */
-
-/* El menú */
-.rs__menu{
-  margin-top: 8px;
-  border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid var(--bd);
-  background: var(--surface);
-  box-shadow: 0 18px 40px rgba(0,0,0,.28);
-  z-index: 9999; /* encima del modal */
-}
-
-/* La lista interna (scroll) */
-.rs__menu-list{
-  padding: 6px;
-  max-height: 240px;
-}
-
-/* Cada opción */
-.rs__option{
-  border-radius: 12px;
-  padding: 10px 12px;
-  color: var(--ink);
-  background: transparent;
-  cursor: pointer;
-}
-
-/* Hover */
-.rs__option--is-focused{
-  background: color-mix(in oklab, var(--primary) 14%, transparent);
-}
-
-/* Seleccionada */
-.rs__option--is-selected{
-  background: color-mix(in oklab, var(--primary) 22%, transparent);
-  color: var(--ink);
-}
-
-/* Texto largo bonito */
-.rs__option,
-.rs__single-value{
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Si el modal/página tiene overflow que corta el menú */
-.ft-card, .ft-form, .ft-modal-backdrop{
-  overflow: visible;
-}
-
-/* =========================
-   TOOLBAR FILTROS (RN)
-   ========================= */
-
-/* contenedor que ya tienes */
-.tabla-novedades .rn-toolbar__left{
   display: flex;
-  flex-wrap: wrap;                 /* en pantallas pequeñas se baja */
-  align-items: center;
-  gap: 10px;
-  padding: var(--pad);
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-/* buscador: que crezca y empuje lo demás */
-.tabla-novedades .rn-toolbar__left > .rn-input:not(.rn-date){
-  min-width: 180px;
-}
-
-.tabla-novedades .rn-toolbar__left > input.rn-input:not(.rn-date){
-  flex: 1 1 280px;               
-}
-
-/* select estado: fijo y estable */
-.tabla-novedades .rn-toolbar__left > select.rn-input{
-  flex: 0 0 190px;
-}
-
-/* fechas: que queden juntas y alineadas */
-.tabla-novedades .rn-toolbar__left > .rn-date{
-  flex: 0 0 160px;
-}
-
-/* si tus rn-input no son full width, esto ayuda */
-.tabla-novedades .rn-toolbar__left .rn-input{
-  width: 100%;
-  height: 40px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 10px;
   box-sizing: border-box;
 }
 
-/* Responsive: en móvil apila bonito */
-@media (max-width: 720px){
-  .tabla-novedades .rn-toolbar__left{
+/* ====== Toolbar / filtros ====== */
+.rn-toolbar.tabla-filters{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+}
+
+.rn-toolbar__left{
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.rn-input{
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  background: #fff;
+  outline: none;
+  font-size: 14px;
+  color: #0f172a;
+  min-width: 180px;
+  box-sizing: border-box;
+}
+
+.rn-input:focus{
+  border-color: rgba(37, 99, 235, 0.55);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.rn-date{
+  min-width: 170px;
+}
+
+/* ====== Wrapper tabla (SCROLL AQUÍ) ====== */
+.novedades-wrap.filas-novedades{
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+
+  /* clave para sticky header */
+  overflow: auto;
+
+  /* ajusta esto a tu layout (si estás dentro de una página con header, etc.) */
+  max-height: calc(100vh - 260px);
+}
+
+/* scrollbar suave (opcional) */
+.novedades-wrap.filas-novedades::-webkit-scrollbar{
+  height: 10px;
+  width: 10px;
+}
+.novedades-wrap.filas-novedades::-webkit-scrollbar-thumb{
+  background: rgba(15, 23, 42, 0.22);
+  border-radius: 999px;
+}
+.novedades-wrap.filas-novedades::-webkit-scrollbar-track{
+  background: rgba(15, 23, 42, 0.06);
+  border-radius: 999px;
+}
+
+/* ====== Tabla ====== */
+.novedades-wrap table{
+  width: 100%;
+  border-collapse: separate; /* mejor para sticky y bordes */
+  border-spacing: 0;
+  min-width: 980px; /* evita que colapse demasiado si tienes muchas columnas */
+}
+
+.novedades-wrap thead th{
+  position: sticky;
+  top: 0;
+  z-index: 5; /* por encima de filas */
+
+  background: #f8fafc;
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.2px;
+
+  padding: 12px 12px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.14);
+  text-align: left;
+
+  /* ayuda visual cuando queda fijo */
+  box-shadow: 0 2px 0 rgba(15, 23, 42, 0.06);
+}
+
+/* primera y última esquina redondeada del thead */
+.novedades-wrap thead th:first-child{
+  border-top-left-radius: 14px;
+}
+.novedades-wrap thead th:last-child{
+  border-top-right-radius: 14px;
+}
+
+/* Hover/Focus en encabezados clicables */
+.novedades-wrap thead th[role="button"]:hover{
+  background: #eef2ff;
+}
+.novedades-wrap thead th[role="button"]:focus{
+  outline: none;
+  box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.5);
+}
+
+/* ====== Body ====== */
+.novedades-wrap tbody td{
+  padding: 12px 12px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  font-size: 14px;
+  color: #0f172a;
+  vertical-align: middle;
+  background: #fff;
+}
+
+/* Zebra + hover */
+.novedades-wrap tbody tr:nth-child(2n) td{
+  background: rgba(248, 250, 252, 0.65);
+}
+
+.novedades-wrap tbody tr{
+  cursor: pointer;
+}
+
+.novedades-wrap tbody tr:hover td{
+  background: rgba(226, 232, 240, 0.8);
+}
+
+.novedades-wrap tbody tr:focus{
+  outline: none;
+}
+.novedades-wrap tbody tr:focus td{
+  box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.45);
+}
+
+/* Truncado elegante dentro de celdas con <span title=...> */
+.novedades-wrap td span{
+  display: inline-block;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+/* Columna % centrada */
+.novedades-wrap thead th:last-child,
+.novedades-wrap tbody td:last-child{
+  text-align: center;
+}
+
+/* ====== Paginación ====== */
+.paginacion{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 12px;
+  border-top: 1px solid rgba(15, 23, 42, 0.12);
+  background: #fff;
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+}
+
+.paginacion span{
+  font-size: 14px;
+  color: rgba(15, 23, 42, 0.85);
+}
+
+.paginacion button{
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: #fff;
+  color: #0f172a;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.paginacion button:hover:not(:disabled){
+  background: #f1f5f9;
+}
+
+.paginacion button:disabled{
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.paginacion label{
+  font-size: 13px;
+  color: rgba(15, 23, 42, 0.75);
+}
+
+.paginacion select{
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  background: #fff;
+  outline: none;
+}
+
+.paginacion select:focus{
+  border-color: rgba(37, 99, 235, 0.55);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+/* ====== Mensajes de estado ====== */
+.tabla-novedades p{
+  margin: 0;
+  font-size: 14px;
+}
+
+/* ====== Responsive ====== */
+@media (max-width: 900px){
+  .rn-input{
+    min-width: 150px;
+  }
+  .novedades-wrap td span{
+    max-width: 220px;
+  }
+}
+
+@media (max-width: 640px){
+  .rn-toolbar.tabla-filters{
+    padding: 10px;
+  }
+  .rn-toolbar__left{
+    width: 100%;
+  }
+  .rn-input{
+    width: 100%;
+    min-width: 0;
+  }
+  .rn-date{
+    width: 100%;
+  }
+
+  /* deja que scrollee horizontalmente si no cabe */
+  .novedades-wrap.filas-novedades{
+    max-height: calc(100vh - 320px);
+  }
+
+  .paginacion{
+    flex-wrap: wrap;
     gap: 8px;
   }
+}
 
-  /* todo a una columna */
-  .tabla-novedades .rn-toolbar__left > *{
-    flex: 1 1 100%;
-  }
+/* ✅ Filtros en una sola línea */
+.rn-toolbar__left{
+  display: flex;
+  align-items: center;
+  gap: 10px;
 
-  /* fechas en 2 columnas en móvil (opcional) */
-  .tabla-novedades .rn-toolbar__left > .rn-date{
-    flex: 1 1 calc(50% - 4px);
-  }
+  flex-wrap: nowrap;       /* <- clave: no bajar a otra línea */
+  width: 100%;
+  overflow-x: auto;        /* si no cabe, scroll horizontal */
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+
+/* para que no se “aplasten” */
+.rn-toolbar__left > *{
+  flex: 0 0 auto;          /* <- clave: no encoger y no crecer */
+}
+
+/* tamaños sugeridos para que queden alineados */
+.rn-toolbar__left .rn-input{
+  min-width: 220px;
+}
+
+.rn-toolbar__left .rn-date{
+  min-width: 170px;
+}
+
+/* scrollbar discreto (opcional) */
+.rn-toolbar__left::-webkit-scrollbar{
+  height: 8px;
+}
+.rn-toolbar__left::-webkit-scrollbar-thumb{
+  background: rgba(15, 23, 42, 0.18);
+  border-radius: 999px;
 }

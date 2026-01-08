@@ -115,7 +115,7 @@ export class DetallesPasosPromocionService {
     return this.toModel(res);
   }
 
-  async getAll(opts?: GetAllOpts) {
+  async getAll(opts?: GetAllOpts): Promise<DetallesPasos[]> {
     await this.ensureIds();
 
     // ID -> id, Title -> fields/Title (cuando NO está prefijado con '/')

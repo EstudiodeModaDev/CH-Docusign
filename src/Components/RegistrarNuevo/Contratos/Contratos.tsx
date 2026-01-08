@@ -38,10 +38,11 @@ export type Props = {
 
 export default function TablaContratos({rows, loading, error, pageSize, pageIndex, hasNext, sorts, estado, setRange, setEstado, setPageSize, nextPage, reloadAll, toggleSort, range, setSearch, search, loadFirstPage}: Props) {
   const [visible, setVisible] = React.useState<boolean>(false)
-  const { Envios, } = useGraphServices();
+  const { Envios, DetallesPasosNovedades } = useGraphServices();
   const {canEdit} = useEnvios(Envios);
   const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Novedad | null>(null);
   const [tipoFormulario, setTipoFormulario] = React.useState<string>("");
+  const [pctById, setPctById] = React.useState<Record<string, number>>({});
 
   const handleRowClick = async (novedad: Novedad) => {
     setNovedadSeleccionada(novedad);
@@ -54,6 +55,43 @@ export default function TablaContratos({rows, loading, error, pageSize, pageInde
     await loadFirstPage()
     setVisible(false);
   };
+
+  const fetchPctForContrataciones = React.useCallback(
+    async (cesacionId: string) => {
+      if (!cesacionId) return;
+
+      const safeId = cesacionId.replace(/'/g, "''"); // escapar comillas para OData
+
+      const items = await DetallesPasosNovedades.getAll({
+        filter: `fields/Title eq '${safeId}'`,
+        orderby: "fields/NumeroPaso asc",
+      });
+
+      const pct =
+        items.length > 0
+          ? (items.filter((i) => i.EstadoPaso === "Completado").length / items.length) * 100
+          : 0;
+
+      setPctById((prev) => ({
+        ...prev,
+        [cesacionId]: Math.round(pct * 100) / 100, // 2 decimales como number
+      }));
+    },
+    [DetallesPasosNovedades]
+  );
+  
+
+  React.useEffect(() => {
+    rows.forEach((c) => {
+      const id = String(c.Id ?? "");
+      if (!id) return;
+
+      // si ya lo tengo en cache, no vuelvo a pedirlo
+      if (pctById[id] !== undefined) return;
+
+      fetchPctForContrataciones(id);
+    });
+  }, [rows, pctById, fetchPctForContrataciones]);
 
   return (
     <div className="tabla-novedades">
@@ -85,10 +123,6 @@ export default function TablaContratos({rows, loading, error, pageSize, pageInde
                   Cedula {renderSortIndicator('Cedula', sorts)}
                 </th>
 
-                <th role="button" tabIndex={0} onClick={(e) => toggleSort('Ciudad', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Ciudad', e.shiftKey); }} aria-label="Ordenar por Ciudad" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  Ciudad {renderSortIndicator('Ciudad', sorts)}
-                </th>
-
                 <th role="button" tabIndex={0} onClick={(e) => toggleSort('Nombre', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Nombre', e.shiftKey); }} aria-label="Ordenar por Nombre" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   Nombre {renderSortIndicator('Nombre', sorts)}
                 </th>
@@ -106,18 +140,26 @@ export default function TablaContratos({rows, loading, error, pageSize, pageInde
                 </th>
 
                 <th>Reportado por</th>
+
+                <th style={{ textAlign: "center" }}>%</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((novedad) => (
                 <tr key={novedad.Id} onClick={() => {setNovedadSeleccionada(novedad); handleRowClick(novedad); setVisible(true)}} tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setNovedadSeleccionada(novedad)}>
                   <td>{novedad.Numero_x0020_identificaci_x00f3_}</td>
-                  <td><span title={novedad.CIUDAD}>{novedad.CIUDAD}</span></td>
                   <td><span title={novedad.NombreSeleccionado}>{novedad.NombreSeleccionado}</span></td>
                   <td><span title={novedad.CARGO}>{novedad.CARGO}</span></td>
                   <td><span title={novedad.SALARIO}>{formatPesosEsCO(novedad.SALARIO)}</span></td>
                   <td>{toISODateFlex(novedad.FECHA_x0020_REQUERIDA_x0020_PARA0) || "–"}</td>
                   <td><span title={novedad.Informaci_x00f3_n_x0020_enviada_}>{novedad.Informaci_x00f3_n_x0020_enviada_}</span></td>
+                  <td style={{ textAlign: "center" }}>
+                    {(() => {
+                      const id = String(novedad.Id ?? "");
+                      const pct = pctById[id];
+                      return pct === undefined ? "…" : `${pct.toFixed(2)}%`;
+                    })()}
+                  </td>
                 </tr>
               ))}
             </tbody>

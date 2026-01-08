@@ -37,9 +37,10 @@ type Props = {
 }
 
 export default function TablaPromociones({rows, loading, error, pageSize, pageIndex, hasNext, sorts, setRange, setPageSize, nextPage, loadFirstPage, toggleSort, range, reloadAll, setSearch, search, estado, setEstado}: Props) {
-  const { Envios } = useGraphServices();
+  const { Envios, DetallesPasosPromocion } = useGraphServices();
   const [promocionSeleccionada, setPromocionSeleccionada] = React.useState<Promocion | null>(null);
   const [visible, setVisible] = React.useState<boolean>(false);
+  const [pctById, setPctById] = React.useState<Record<string, number>>({});
   const [tipoFormulario, setTipoFormulario] = React.useState<string>("");
   const {canEdit} = useEnvios(Envios);
 
@@ -54,6 +55,43 @@ export default function TablaPromociones({rows, loading, error, pageSize, pageIn
     await loadFirstPage()
     setVisible(false);
   };
+
+  const fetchPctForPromociones = React.useCallback(
+    async (cesacionId: string) => {
+      if (!cesacionId) return;
+
+      const safeId = cesacionId.replace(/'/g, "''"); // escapar comillas para OData
+
+      const items = await DetallesPasosPromocion.getAll({
+        filter: `fields/Title eq '${safeId}'`,
+        orderby: "fields/NumeroPaso asc",
+      });
+
+      const pct =
+        items.length > 0
+          ? (items.filter((i) => i.EstadoPaso === "Completado").length / items.length) * 100
+          : 0;
+
+      setPctById((prev) => ({
+        ...prev,
+        [cesacionId]: Math.round(pct * 100) / 100, // 2 decimales como number
+      }));
+    },
+    [DetallesPasosPromocion]
+  );
+    
+  
+  React.useEffect(() => {
+    rows.forEach((c) => {
+      const id = String(c.Id ?? "");
+      if (!id) return;
+
+      // si ya lo tengo en cache, no vuelvo a pedirlo
+      if (pctById[id] !== undefined) return;
+
+      fetchPctForPromociones(id);
+    });
+  }, [rows, pctById, fetchPctForPromociones]);
 
   return (
     <div className="tabla-novedades">
@@ -85,10 +123,6 @@ export default function TablaPromociones({rows, loading, error, pageSize, pageIn
                   Cedula {renderSortIndicator('Cedula', sorts)}
                 </th>
 
-                <th role="button" tabIndex={0} onClick={(e) => toggleSort('Ciudad', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Ciudad', e.shiftKey); }} aria-label="Ordenar por Ciudad" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  Ciudad {renderSortIndicator('Ciudad', sorts)}
-                </th>
-
                 <th role="button" tabIndex={0} onClick={(e) => toggleSort('Nombre', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Nombre', e.shiftKey); }} aria-label="Ordenar por Nombre" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   Nombre {renderSortIndicator('Nombre', sorts)}
                 </th>
@@ -102,17 +136,25 @@ export default function TablaPromociones({rows, loading, error, pageSize, pageIn
                 </th>
 
                 <th>Reportado por</th>
+
+                <th style={{ textAlign: "center" }}>%</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((promocion) => (
                 <tr key={promocion.Id} onClick={() => handleRowClick(promocion)} tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setPromocionSeleccionada(promocion)}>
                   <td>{promocion.NumeroDoc}</td>
-                  <td><span title={promocion.Ciudad}>{promocion.Ciudad}</span></td>
                   <td><span title={promocion.NombreSeleccionado}>{promocion.NombreSeleccionado}</span></td>
                   <td className="salario"><span title={promocion.Salario}>{formatPesosEsCO(promocion.Salario)}</span></td>
                   <td><span title={promocion.FechaIngreso!}>{toISODateFlex(promocion.FechaIngreso)}</span></td>
                   <td><span title={promocion.InformacionEnviadaPor}>{promocion.InformacionEnviadaPor}</span></td>
+                  <td style={{ textAlign: "center" }}>
+                    {(() => {
+                      const id = String(promocion.Id ?? "");
+                      const pct = pctById[id];
+                      return pct === undefined ? "…" : `${pct.toFixed(2)}%`;
+                    })()}
+                  </td>
                 </tr>
               ))}
             </tbody>

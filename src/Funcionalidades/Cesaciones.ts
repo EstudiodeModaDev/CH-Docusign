@@ -3,10 +3,11 @@ import type { DateRange, GetAllOpts, rsOption, SortDir, SortField, } from "../mo
 import { toISODateFlex, toISODateTimeFlex } from "../utils/Date";
 //import { useAuth } from "../auth/authProvider";
 import type { CesacionesService } from "../Services/Cesaciones.service";
-import type { Cesacion, CesacionErrors } from "../models/Cesaciones";
+import type { Cesacion, CesacionCancelada, CesacionErrors } from "../models/Cesaciones";
 import { useAuth } from "../auth/authProvider";
+import type { CesacionCanceladaService } from "../Services/CesacionCancelada.service";
 
-export function useCesaciones(CesacionesSvc: CesacionesService) {
+export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCanceladaSvc?: CesacionCanceladaService) {
   const [rows, setRows] = React.useState<Cesacion[]>([]);
   const [workers, setWorkers] = React.useState<Cesacion[]>([]);
   const [workersOptions, setWorkersOptions] = React.useState<rsOption[]>([]);
@@ -448,49 +449,163 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
     }
   }
 
-  /*const handleCancelProcess = React.useCallback(async (documento: string, RazonCancelacion: string) => {
-    if(!) return
+  const handleCancelProcessbyId = React.useCallback(async (Id: string, RazonCancelacion: string) => {
+    if(!CesacionCanceladaSvc) return
 
     try{
-      const procesosActivos = await ContratosSvc.getAll({filter: `fields/Numero_x0020_identificaci_x00f3_ eq '${documento}'`, orderby: "fields/Created desc", top: 1})
+      const proceso = await CesacionesSvc.get(Id)
 
-      if(procesosActivos.items.length > 0){
-        const p = procesosActivos.items[0]
-        const paylod: NovedadCancelada = {
-          Barrio: p.BARRIO_x0020_,
-          Cargoqueibaaocupar: p.CARGO,
-          Celular: p.CELULAR_x0020_,
-          Ciudad: p.CIUDAD,
-          Correo: p.CORREO_x0020_ELECTRONICO_x0020_,
-          Direcciondomicilio: p.DIRECCION_x0020_DE_x0020_DOMICIL,
-          Empresaquesolicito: p.Empresa_x0020_que_x0020_solicita,
-          Especificidaddelcargo: p.ESPECIFICIDAD_x0020_DEL_x0020_CA,
-          Informacionenviadapor: p.Informaci_x00f3_n_x0020_enviada_,
-          Nivelcargo: p.NIVEL_x0020_DE_x0020_CARGO,
-          Nombre: p.NombreSeleccionado,
-          Origendelaseleccion: p.ORIGEN_x0020_DE_x0020_LA_x0020_S,
-          Numeroidentificacion: p.Numero_x0020_identificaci_x00f3_,
+      if(proceso){
+        const paylod: CesacionCancelada = {
+          Celular: proceso.Celular,
+          Ciudad: proceso.Ciudad,
+          Correo: proceso.Correoelectronico,
+          Empresaquesolicito: proceso.Empresaalaquepertenece,
+          Informacionenviadapor: proceso.Reportadopor,
+          Nombre: proceso.Nombre,
+          Numeroidentificacion: proceso.Title,
           Procesocanceladopor: account?.name ?? "",
           RazonCancelacion:  RazonCancelacion,
-          TipoDocumento: p.tipodoc,
-          Tipodocumentoabreviacion: p.Tipo_x0020_de_x0020_documento_x0,
-          Title: p.Title
+          TipoDocumento: proceso.TipoDoc,
+          Title: proceso.Title
         }
-        await novedadCanceladaSvc.create(paylod)
-        await ContratosSvc.delete(p.Id ?? "")
+        await CesacionCanceladaSvc.create(paylod)
+        await CesacionesSvc.delete(proceso.Id ?? "")
         alert("Se ha cancelado este proceso con éxito")
       }
     } catch {
       throw new Error("Ha ocurrido un error cancelando el proceso");
     }
-}, [ContratosSvc]);*/
-
+  }, [CesacionesSvc]);
 
 
   return {
     rows, loading, error, pageSize, pageIndex, hasNext, range, search, errors, sorts, state, workers, workersOptions, estado,
-    setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, searchRegister, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, 
+    handleCancelProcessbyId, setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, searchRegister, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, 
   };
 }
 
+export function useCesacionesCanceladas(CesacionCanceladaSvc: CesacionCanceladaService) {
+  const [rows, setRows] = React.useState<CesacionCancelada[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [range, setRange] = React.useState<DateRange>({ from: "", to: "" });
+  const [pageSize, setPageSize] = React.useState<number>(10); 
+  const [pageIndex, setPageIndex] = React.useState<number>(1);
+  const [nextLink, setNextLink] = React.useState<string | null>(null);
+  const [sorts, setSorts] = React.useState<Array<{field: SortField; dir: SortDir}>>([{ field: 'id', dir: 'desc' }]);
+  const [search, setSearch] = React.useState<string>("");
+  const [estado, setEstado] = React.useState<string>("proceso");
+  
+  // construir filtro OData
+  const buildFilter = React.useCallback((): GetAllOpts => {
+    const filters: string[] = [];
+
+    if(search){
+        filters.push(`(startswith(fields/Nombre, '${search}') or startswith(fields/Title, '${search}') or startswith(fields/Cargo, '${search}'))`)
+    }
+
+    if (range.from && range.to && (range.from < range.to)) {
+      if (range.from) filters.push(`fields/Created ge '${range.from}T00:00:00Z'`);
+      if (range.to)   filters.push(`fields/Created le '${range.to}T23:59:59Z'`);
+    }
+
+    const orderParts: string[] = sorts
+      .map(s => {
+        const col = sortFieldToOData[s.field];
+        return col ? `${col} ${s.dir}` : '';
+      })
+      .filter(Boolean);
+
+    // Estabilidad de orden: si no incluiste 'id', agrega 'id desc' como desempate.
+    if (!sorts.some(s => s.field === 'id')) {
+      orderParts.push('ID desc');
+    }
+    return {
+      filter: filters.join(" and "),
+      orderby: orderParts.join(","),
+      top: pageSize,
+    };
+  }, [range.from, range.to, pageSize, sorts, search, estado] ); 
+ 
+  const loadFirstPage = React.useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const { items, nextLink } = await CesacionCanceladaSvc.getAll(buildFilter()); // debe devolver {items,nextLink}
+      setRows(items);
+      setNextLink(nextLink ?? null);
+      setPageIndex(1);
+    } catch (e: any) {
+      setError(e?.message ?? "Error cargando tickets");
+      setRows([]);
+      setNextLink(null);
+      setPageIndex(1);
+    } finally {
+      setLoading(false);
+    }
+  }, [CesacionCanceladaSvc, buildFilter, sorts]);
+
+  React.useEffect(() => {
+    loadFirstPage();
+  }, [loadFirstPage, range, search]);
+
+  // siguiente página: seguir el nextLink tal cual
+  const hasNext = !!nextLink;
+
+  const nextPage = React.useCallback(async () => {
+    if (!nextLink) return;
+    setLoading(true); setError(null);
+    try {
+      const { items, nextLink: n2 } = await CesacionCanceladaSvc.getByNextLink(nextLink);
+      setRows(items);              // 👈 reemplaza la página visible
+      setNextLink(n2 ?? null);     // null si no hay más
+      setPageIndex(i => i + 1);
+    } catch (e: any) {
+      setError(e?.message ?? "Error cargando más tickets");
+    } finally {
+      setLoading(false);
+    }
+  }, [nextLink, CesacionCanceladaSvc]);
+
+  // recargas por cambios externos
+  const applyRange = React.useCallback(() => { loadFirstPage(); }, [loadFirstPage]);
+  const reloadAll  = React.useCallback(() => { loadFirstPage(); }, [loadFirstPage, range, search]);
+
+  const sortFieldToOData: Record<SortField, string> = {
+    id: 'fields/Created',
+    Cedula: 'fields/Numero_x0020_identificaci_x00f3_',
+    Nombre: 'fields/NombreSeleccionado',
+    inicio: 'fields/FECHA_x0020_REQUERIDA_x0020_PARA0',
+  };
+
+  const toggleSort = React.useCallback((field: SortField, additive = false) => {
+    setSorts(prev => {
+      const idx = prev.findIndex(s => s.field === field);
+      if (!additive) {
+        // clic normal: solo esta columna; alterna asc/desc
+        if (idx >= 0) {
+          const dir: SortDir = prev[idx].dir === 'desc' ? 'asc' : 'desc';
+          return [{ field, dir }];
+        }
+        return [{ field, dir: 'asc' }];
+      }
+      // Shift+clic: multi-columna
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = { field, dir: copy[idx].dir === 'desc' ? 'asc' : 'desc' };
+        return copy;
+      }
+      return [...prev, { field, dir: 'asc' }];
+    });
+  }, []);
+
+
+
+
+
+  return {
+    rows, loading, error, pageSize, pageIndex, hasNext, range, search, sorts, estado,
+    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, loadFirstPage, setEstado
+  };
+}
  

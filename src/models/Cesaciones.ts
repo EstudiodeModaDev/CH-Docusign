@@ -64,3 +64,19 @@ export type DetallesPasos = {
     Notas: string;
     TipoPaso: string;
 }
+
+export type CesacionCancelada = {
+    Id?: string;
+    Title: string //Fecha en la que se inicio el proceso inicialmente
+    Informacionenviadapor: string
+    Procesocanceladopor: string
+    Empresaquesolicito: string
+    TipoDocumento: string
+    Numeroidentificacion: string;
+    Correo: string;
+    Celular: string;
+    Ciudad: string;
+    RazonCancelacion: string;
+    Nombre: string
+    Created?: string
+}

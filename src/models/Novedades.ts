@@ -97,6 +97,7 @@ export type NovedadCancelada = {
     Origendelaseleccion: string;
     RazonCancelacion: string;
     Nombre: string
+    Created?: string
 }
 
 export type NovedadErrors = Partial<Record<keyof Novedad, string>>;

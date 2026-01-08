@@ -14,6 +14,7 @@ import { ProcessDetail } from "../Cesaciones/procesoCesacion";
 import { useDetallesPasosNovedades, usePasosNoveades } from "../../../../Funcionalidades/PasosNovedades";
 import type { DetallesPasos } from "../../../../models/Cesaciones";
 import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
+import { CancelProcessModal } from "../../../View/CancelProcess/CancelProcess";
 
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -38,7 +39,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormContratacion({onClose, selectedNovedad, tipo}: Props){
-  const { Maestro, DeptosYMunicipios, Contratos, DetallesPasosNovedades, categorias} = useGraphServices();
+  const { Maestro, DeptosYMunicipios, Contratos, DetallesPasosNovedades, categorias, NovedadCancelada} = useGraphServices();
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
   const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
   const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
@@ -211,7 +212,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
 
     const lower = (v: any) => (v ?? "").toString().toLocaleLowerCase();
 
-    const { state, setField, errors, handleEdit } = useContratos(Contratos);
+    const { state, setField, errors, handleEdit, handleCancelProcessbyId } = useContratos(Contratos, NovedadCancelada);
 
     const selectedEmpresa = empresaOptions.find((o) => o.label.toLocaleLowerCase() === state.Empresa_x0020_que_x0020_solicita.toLocaleLowerCase()) ?? null;
     const selectedTipoDocumento = tipoDocOptions.find((o) => o.label === state.tipodoc.trim()) ?? null; 
@@ -244,6 +245,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     const [grupoCVE, setGrupoCVE] = React.useState<string>("");
     const [touchedPct, setTouchedPct] = React.useState(false);
     const [modal, setModal] = React.useState(false)
+    const [cancelProcess, setCancelProcess] = React.useState(false)
     const {account} = useAuth()
     const today = getTodayLocalISO()
 
@@ -401,7 +403,10 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     [handleCompleteStep, calcPorcentaje, selectedNovedad?.Id, Contratos]
   );
 
-
+  const handleCancel = async (razon: string) => {
+    await handleCancelProcessbyId(selectedNovedad.Id ?? "", razon)
+    setCancelProcess(false)
+  };
 
   return (
     <div className="ft-modal-backdrop">
@@ -1324,11 +1329,12 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
               <input id="enviadaPor" name="enviadaPor" type="text" value={account?.name} readOnly/>
             </div>
           </form>
-          {/* Acciones */}
+          <CancelProcessModal open={cancelProcess} onClose={() => setCancelProcess(false) } onEliminar={handleCancel}/>
           <div className="ft-actions">
             {!isView ? <button type="submit" className="btn btn-primary btn-xs" onClick={(e) => {handleEdit(e, selectedNovedad);}}>Guardar Registro</button> : <small>Este registro ya ha sido usado, no puede ser editado</small>}
             <button type="submit" className="btn btn-xs" onClick={() => setModal(true)}>Detalles</button>
-            <button type="submit" className="btn btn-xs" onClick={() => onClose()}>Cancelar</button>
+            <button type="submit" className="btn btn-xs btn-danger" onClick={() => setCancelProcess(true)}>Cancelar Proceso</button>
+            <button type="submit" className="btn btn-xs" onClick={() => onClose()}>Cerrar</button>
           </div>
           </>}
       </section>

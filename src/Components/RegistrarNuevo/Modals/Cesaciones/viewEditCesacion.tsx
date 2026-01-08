@@ -14,6 +14,7 @@ import { toISODateFlex } from "../../../../utils/Date";
 import { ProcessDetail } from "./procesoCesacion";
 import { useDetallesPasosCesacion, usePasosCesacion } from "../../../../Funcionalidades/PasosCesacion";
 import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
+import { CancelProcessModal } from "../../../View/CancelProcess/CancelProcess";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -38,9 +39,9 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
-    const { Maestro, Cesaciones, DeptosYMunicipios, salarios, DetallesPasosCesacion, categorias } = useGraphServices();
-    const { state, setField, handleEdit, errors, } = useCesaciones(Cesaciones);
-    const { byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep, error: errorPasos, loading: loadingPasos} = usePasosCesacion()
+    const { Maestro, Cesaciones, DeptosYMunicipios, salarios, DetallesPasosCesacion, categorias, CesacionCancelada } = useGraphServices();
+    const { state, setField, handleEdit, errors, handleCancelProcessbyId} = useCesaciones(Cesaciones, CesacionCancelada);
+    const { byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep, error: errorPasos, loading: loadingPasos, } = usePasosCesacion()
     const { loading: loadingDetalles, rows: rowsDetalles, error: errorDetalles, loadDetallesCesacion, calcPorcentaje} = useDetallesPasosCesacion(DetallesPasosCesacion, selectedCesacion.Id ?? "")
     const { loadSpecificSalary } = useSalarios(salarios);
     const { loadSpecificLevel } = useAutomaticCargo(categorias);
@@ -135,6 +136,7 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
   const [promedio, setPromedio] = React.useState<number>(0);
   const [grupoCVE, setGrupoCVE] = React.useState<string>("");
   const [modal, setModal] = React.useState<boolean>(false)
+  const [cancelProcess, setCancelProcess] = React.useState(false)
   const {account} = useAuth()
   const isView = tipo === "view"
 
@@ -283,6 +285,11 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
     },
     [handleCompleteStep, calcPorcentaje, selectedCesacion?.Id, Cesaciones]
   );
+
+  const handleCancel = async (razon: string) => {
+    await handleCancelProcessbyId(selectedCesacion.Id ?? "", razon)
+    setCancelProcess(false)
+  };
   
   return (
     <div className="ft-modal-backdrop">
@@ -734,8 +741,6 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
             </>
           )}
 
-
-
           {/* Informacion enviada por */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="enviadaPor"> Información enviada por *</label>
@@ -748,11 +753,14 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
             <input id="Fechaenlaquesereporta" name="Fechaenlaquesereporta" type="date" value={state.Fechaenlaquesereporta ?? ""} autoComplete="off" required aria-required="true" readOnly/>
           </div>
         </form>
+        <CancelProcessModal open={cancelProcess} onClose={() => setCancelProcess(false) } onEliminar={handleCancel}/>
         {/* Acciones */}
         <div className="ft-actions">
           {!isView ? <button type="submit" className="btn btn-primary btn-xs" onClick={(e) => {handleEdit(e, selectedCesacion);}}>Guardar Registro</button> : <small>Este registro ya ha sido usado, no puede ser editado</small>}
           <button type="button" className="btn btn-xs" onClick={() => {setModal(true)}}>Detalles</button>
+          <button type="submit" className="btn btn-xs btn-danger" onClick={() => setCancelProcess(true)}>Cancelar Proceso</button>
           <button type="button" className="btn btn-xs" onClick={() => onClose()}>Cancelar</button>
+          
         </div>
         </>
         }

@@ -1,10 +1,10 @@
 import { GraphRest } from '../graph/graphRest';
+import type { CesacionCancelada } from '../models/Cesaciones';
 import type { GetAllOpts, PageResult } from '../models/Commons';
-import type { NovedadCancelada } from '../models/Novedades';
 import { esc } from '../utils/text';
 
 
-export class NovedadCanceladaService {
+export class CesacionCanceladaService {
   private graph!: GraphRest;
   private hostname!: string;
   private sitePath!: string;
@@ -68,34 +68,27 @@ export class NovedadCanceladaService {
 
   // ---------- mapping ----------
   
-  private toModel(item: any): NovedadCancelada {
+  private toModel(item: any): CesacionCancelada {
     const f = item?.fields ?? {};
     return {
         Id: String(item?.id ?? ''),
-        Barrio: f.Barrio,
-        Cargoqueibaaocupar: f.Cargoqueibaaocupar,
         Celular: f.Celular,
         Ciudad: f.Ciudad,
         Correo: f.Correo,
-        Direcciondomicilio: f.Direcciondomicilio,
         Empresaquesolicito: f.Empresaquesolicito,
-        Especificidaddelcargo: f.Especificidaddelcargo,
         Informacionenviadapor: f.Informaci_x00f3_n_x0020_enviada_,
-        Nivelcargo: f.Nivelcargo, 
         Nombre: f.Nombre,
         Numeroidentificacion: f.Numeroidentificacion,
-        Origendelaseleccion: f.Origendelaseleccion,
         Procesocanceladopor: f.Procesocanceladopor,
         RazonCancelacion: f.RazonCancelacion,
         TipoDocumento: f.TipoDocumento,
-        Tipodocumentoabreviacion: f.Tipodocumentoabreviacion,
         Title: f.Title,
         Created: f.Created
     };
   }
 
   // ---------- CRUD ----------
-  async create(record: Omit<NovedadCancelada, 'ID'>) {
+  async create(record: Omit<CesacionCancelada, 'ID'>) {
     await this.ensureIds();
     const res = await this.graph.post<any>(
     `/sites/${this.siteId}/lists/${this.listId}/items`,
@@ -104,7 +97,7 @@ export class NovedadCanceladaService {
     return this.toModel(res);
 }
 
-  async update(id: string, changed: Partial<Omit<NovedadCancelada, 'ID'>>) {
+  async update(id: string, changed: Partial<Omit<CesacionCancelada, 'ID'>>) {
         await this.ensureIds();
         await this.graph.patch<any>(
         `/sites/${this.siteId}/lists/${this.listId}/items/${id}/fields`,
@@ -129,7 +122,7 @@ export class NovedadCanceladaService {
       return this.toModel(res);
   }
 
-  async getAll(opts?: GetAllOpts): Promise<PageResult<NovedadCancelada>> {
+  async getAll(opts?: GetAllOpts): Promise<PageResult<CesacionCancelada>> {
     await this.ensureIds();
     const qs = new URLSearchParams({ $expand: 'fields' });
     if (opts?.filter)  qs.set('$filter', opts.filter);
@@ -141,11 +134,11 @@ export class NovedadCanceladaService {
   }
 
   // Seguir el @odata.nextLink tal cual lo entrega Graph
-  async getByNextLink(nextLink: string): Promise<PageResult<NovedadCancelada>> {
+  async getByNextLink(nextLink: string): Promise<PageResult<CesacionCancelada>> {
     return this.fetchPage(nextLink, /*isAbsolute*/ true);
   }
 
-  private async fetchPage(url: string, isAbsolute = false): Promise<PageResult<NovedadCancelada>> {
+  private async fetchPage(url: string, isAbsolute = false): Promise<PageResult<CesacionCancelada>> {
     const res = isAbsolute
       ? await this.graph.getAbsolute<any>(url)  // 👈 URL absoluta (nextLink)
       : await this.graph.get<any>(url);         // 👈 path relativo

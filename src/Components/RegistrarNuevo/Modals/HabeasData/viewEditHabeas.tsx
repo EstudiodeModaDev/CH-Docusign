@@ -107,7 +107,7 @@ export default function ViewHabeas({ onClose, selectedHabeas, tipo }: Props) {
       })),
     [municipiosFiltrados]
   );
-  const selectedTipoDocumento = tipoDocOptions.find((o) => o.label === state.Tipodoc.trim()) ?? null;
+  const selectedTipoDocumento = tipoDocOptions.find((o) => o.label.toLocaleLowerCase() === state.Tipodoc.trim().toLocaleLowerCase()) ?? null;
 
   const isView = tipo === "view";
 

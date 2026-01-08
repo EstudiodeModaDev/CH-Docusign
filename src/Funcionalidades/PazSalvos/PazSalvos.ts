@@ -4,11 +4,10 @@ import type { PazSalvo, PazSalvoErrors } from "../../models/PazSalvo";
 import type { DateRange, GetAllOpts, SortDir, SortField } from "../../models/Commons";
 import { parseDateFlex, toGraphDateTime } from "../../utils/Date";
 import { useAuth } from "../../auth/authProvider";
-import { useGraphServices } from "../../graph/graphContext";
 import type { FirmaInline } from "../../models/Imagenes";
+import type { MailService } from "../../Services/Mail.service";
 
-export function usePazSalvo(pazSalvoSvc: PazSalvosService, isAdmin?: boolean) {
-  const { graph } = useGraphServices();
+export function usePazSalvo(pazSalvoSvc: PazSalvosService,  mail: MailService, isAdmin?: boolean,) {
   const [rows, setRows] = React.useState<PazSalvo[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -188,7 +187,9 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, isAdmin?: boolean) {
 
   const handleSubmit = async (e: React.FormEvent, firma: FirmaInline) => {
     e.preventDefault();
-    if (!validate()) {return};
+    if (!validate()) {
+      alert("Hay campos sin llenar")
+      return};
     setLoading(true);
     try {
       console.warn(firma)
@@ -253,6 +254,8 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, isAdmin?: boolean) {
         <br>
         <p>No responder a este correo ya que fue enviado automaticamente</p>
         <br>
+        <p>Para responder el paz y salvo debe ingresar a la siguiente ruta (Recuerde que si esta fuera de 35 palms debe usar la VPN): https://gestordocumentalch.estudiodemoda.com.co/</p>
+        <br>
 
           ${firma ? `
           <br/>
@@ -265,9 +268,7 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, isAdmin?: boolean) {
       }
       `;
 
-      const from = account?.username ?? ""; // ajusta esto
-
-      await graph.sendMail(from, {
+      await mail.sendEmail({
         message: {
           subject: `Nueva solicitud Paz y Salvo - ${state.Nombre}`,
           body: {

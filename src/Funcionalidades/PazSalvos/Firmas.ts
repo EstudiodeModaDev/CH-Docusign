@@ -37,9 +37,6 @@ export function useFirmaUsuario(service: FirmasService, username: string | undef
     return firmaInline
   }, [service, username]);
 
-  
-
-
   React.useEffect(() => {
     void load();
   }, [load]);

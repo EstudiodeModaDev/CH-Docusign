@@ -23,9 +23,7 @@ export const FirmaPicker: React.FC<Props> = ({ src, onChangeFile, disabled }) =>
     inputRef.current?.click();
   };
 
-  const handleFileChange = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 

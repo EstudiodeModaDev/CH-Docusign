@@ -18,6 +18,7 @@ import { usePasosNoveades } from "../../Funcionalidades/PasosNovedades";
 import type { PasosProceso } from "../../models/Cesaciones";
 import { usePasosPromocion } from "../../Funcionalidades/PasosPromocion";
 import type { TablaParametrosProps } from "../../models/Props";
+import { usePasosRetail } from "../../Funcionalidades/PasosRetail";
 
 export type ParamTab = {
   id: string;
@@ -83,14 +84,16 @@ const TABS = [
   { id: "cesaciones", label: "Proceso cesación" },
   { id: "novedades", label: "Proceso Novedades Administrativas" },
   { id: "promociones", label: "Proceso Promociones" },
+  { id: "retail", label: "Proceso contratación retail" },
 ];
 
 export const ParametrosPage: React.FC = () => {
   const [active, setActive] = React.useState<string>("empresas");
-  const {PasosCesacion, PasosNovedades,PasosPromocion} = useGraphServices()
+  const {PasosCesacion, PasosNovedades,PasosPromocion, pasosRetail} = useGraphServices()
   const {loadPasosCesacion, rows} = usePasosCesacion()
   const {loadPasosNovedad, rows: rowsNovedades} = usePasosNoveades()
   const {rows: rowsPromocion, loadPasosPromocion} = usePasosPromocion()
+  const {rows: rowsRetail, loadPasosPromocion: loasPasosReatil} = usePasosRetail()
 
   return (
     <section>
@@ -129,6 +132,13 @@ export const ParametrosPage: React.FC = () => {
                                     onAdd={(payload: PasosProceso) => PasosPromocion.create(payload)} 
                                     onEdit={(id: string, changed: Partial<Omit<PasosProceso, "ID">>) => PasosPromocion.update(id, changed)} 
                                     onDelete={(id: string) => PasosPromocion.delete(id)}/>}
+      {active === "retail" && <ProcesosStepManager 
+                                    onReload={() => loasPasosReatil()} 
+                                    pasos={rowsRetail} 
+                                    tipo={"Retail"} 
+                                    onAdd={(payload: PasosProceso) => pasosRetail.create(payload)} 
+                                    onEdit={(id: string, changed: Partial<Omit<PasosProceso, "ID">>) => pasosRetail.update(id, changed)} 
+                                    onDelete={(id: string) => pasosRetail.delete(id)}/>}
       
     </section>
   );

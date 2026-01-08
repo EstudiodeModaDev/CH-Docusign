@@ -23,7 +23,7 @@ export const PazSalvoPage: React.FC = () => {
   const { loadRenovables, updateState } = useRenovar(Renovar);
   const { firmaItem, refresh } = useFirmaUsuario(Firmas, username);
   
-  /*
+  
   const needRenovar = async (correo: string) => {
     if (!correo) return;
     setLoading(true);
@@ -37,7 +37,7 @@ export const PazSalvoPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };*/
+  };
 
   const oldSign = async (correo: string) => {
     if (!correo) return;
@@ -80,7 +80,7 @@ export const PazSalvoPage: React.FC = () => {
     const user = account?.username || "";
     await (oldSign(user));
     await checkAdmin(user);
-    //await needRenovar(user);
+    await needRenovar(user);
     await dontHaveSign(username)
   };
 

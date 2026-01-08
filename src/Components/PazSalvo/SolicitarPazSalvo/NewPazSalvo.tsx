@@ -16,10 +16,10 @@ type Props = {
 };
 
 export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
-  const {PazSalvos, Maestro, Renovar, Firmas} = useGraphServices()
+  const {PazSalvos, Maestro, Renovar, Firmas, mail} = useGraphServices()
   const {account} = useAuth()
   const {getFirmaInline} = useFirmaUsuario(Firmas, account?.username!)
-  const {state, setField, handleSubmit, errors, loading} = usePazSalvo(PazSalvos);
+  const {state, setField, handleSubmit, errors, loading} = usePazSalvo(PazSalvos,mail);
   const {loadRenovables, handleSubmit: createRenovar, setField: setRenovableField,} = useRenovar(Renovar)
   const { workersOptions, loadingWorkers, error: usersError } = useWorkers({onlyEnabled: true,});
   const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
@@ -37,6 +37,23 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
     reloadEmpresas(),
     reloadCargo()
   }, [reloadCO, reloadEmpresas, reloadEmpresas, reloadCargo]);
+
+  React.useEffect(() => {
+    const prederminados: solicitados[] = [
+      {correo: "ngaviria@estudiodemoda.com.co", nombre: "Nicolle Gaviria Mejia", estado: "En espera", fechaRespuesta: "",},
+      {correo: "clbetancur@estudiodemoda.com.co", nombre: "Claudia L Betancur Gaviria", estado: "En espera", fechaRespuesta: "",},
+      {correo: "aprendizgd@estudiodemoda.com.co", nombre: "Aprendiz Gestion Documental", estado: "En espera", fechaRespuesta: "",},
+      {correo: "gestiondocumental@estudiodemoda.com.co", nombre: "Gloria Estela Bustamante Arango", estado: "En espera", fechaRespuesta: "",},
+      {correo: "auxiliarch@estudiodemoda.com.co", nombre: "Melissa Monsalve Gutierrez", estado: "En espera", fechaRespuesta: "",},
+      {correo: "vlopez@estudiodemoda.com.co", nombre: "Veronica Lopez Echavarria", estado: "En espera", fechaRespuesta: "",},
+      {correo: "listo@estudiodemoda.com.co", nombre: "Linea Interna de Servicios tecnologicos", estado: "En espera", fechaRespuesta: "",},
+      {correo: "cesanchez@estudiodemoda.com.co", nombre: "Cesar Eduardo Sanchez Salazar", estado: "En espera", fechaRespuesta: "",},
+      {correo: "nagomez@estudiodemoda.com.co", nombre: "Nixon Alexis Gomez Cuervo", estado: "En espera", fechaRespuesta: "",},
+      {correo: "gcperez@estudiodemoda.com.co", nombre: "Gloria Constanza Perez Bravo", estado: "En espera", fechaRespuesta: "",},
+    ];
+
+    setField("Solicitados", [...prederminados]);
+  }, []);
   
   const handleSelectAprobador = (option: UserOption | null) => {
 

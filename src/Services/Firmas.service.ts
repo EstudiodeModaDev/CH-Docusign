@@ -255,43 +255,69 @@ export class FirmasService {
   async getFirmaByEmail(email: string, folderPath = "Firmas"): Promise<ImagenWrite | null> {
     await this.ensureDriveId();
 
-    const baseName = email.toLowerCase().trim();
-    const name = `${baseName}.png`;
+    const base = email.toLowerCase().trim();
 
-    const safeFileName = encodeURIComponent(name);
     const folderPart = folderPath
       ? folderPath
           .split("/")
           .filter(Boolean)
           .map((seg) => encodeURIComponent(seg))
-          .join("/") + "/"
+          .join("/")
       : "";
 
-    const urlPath = `/drives/${this.driveId}/root:/${folderPart}${safeFileName}`;
+    // Lista archivos dentro de la carpeta (solo necesitamos algunos campos)
+    const url = `/drives/${this.driveId}/root:/${folderPart}:/children?$select=name,webUrl,lastModifiedDateTime,file`;
 
-    try {
-      const res = await this.graph.get<any>(urlPath);
+    const res = await this.graph.get<{ value: any[] }>(url);
+    const items = res?.value ?? [];
 
-      const webUrl: string = res.webUrl;
-      const url = new URL(webUrl);
-      const serverUrl = `${url.protocol}//${url.host}`;
-      const serverRelativeUrl = url.pathname;
+    // extensiones de imagen aceptadas (ajusta si quieres)
+    const allowedExt = new Set(["png", "jpg", "jpeg", "webp", "gif", "bmp", "tif", "tiff"]);
 
-      const returnRes = {
-        fileName: res.name,
-        serverUrl,
-        serverRelativeUrl,
-       lastModified: res.lastModifiedDateTime,
-      }
+    // Encuentra candidatos: mismo nombre base, y que sea archivo (no carpeta), y extensión válida
+    const candidates = items.filter((it) => {
+      if (!it?.file) return false; // descarta carpetas
+      const name: string = (it?.name ?? "").toLowerCase();
+      const dot = name.lastIndexOf(".");
+      if (dot <= 0) return false;
 
-      return returnRes
-    } catch (e: any) {
-      const code = e?.error?.code ?? e?.code;
-      if (code === "itemNotFound") {
-        return null; // el usuario no tiene firma cargada
-      }
-      throw e;
-    }
+      const nameBase = name.slice(0, dot);
+      const ext = name.slice(dot + 1);
+      if (nameBase !== base) return false;
+
+      return allowedExt.has(ext);
+    });
+
+    if (candidates.length === 0) return null;
+
+    // Prioriza png > jpg/jpeg > resto (opcional)
+    const priority = (name: string) => {
+      const ext = name.toLowerCase().split(".").pop() ?? "";
+      if (ext === "png") return 0;
+      if (ext === "jpg" || ext === "jpeg") return 1;
+      return 2;
+    };
+
+    candidates.sort((a, b) => {
+      const pa = priority(a.name);
+      const pb = priority(b.name);
+      if (pa !== pb) return pa - pb;
+
+      // si empatan, más reciente primero
+      return String(b.lastModifiedDateTime).localeCompare(String(a.lastModifiedDateTime));
+    });
+
+    const picked = candidates[0];
+
+    const webUrl: string = picked.webUrl;
+    const urlObj = new URL(webUrl);
+
+    return {
+      fileName: picked.name,
+      serverUrl: `${urlObj.protocol}//${urlObj.host}`,
+      serverRelativeUrl: urlObj.pathname,
+      lastModified: picked.lastModifiedDateTime,
+    };
   }
 
   async getFirmaAsBase64(

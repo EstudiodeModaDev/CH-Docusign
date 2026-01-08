@@ -308,7 +308,7 @@ export function useRetail(RetailSvc: RetailService) {
 
   const searchWorker = async (query: string): Promise<Retail[]> => {
     const resp = await RetailSvc.getAll({
-      filter: `fields/NumeroDoc eq '${query}'`, // si NumeroDoc es texto
+      filter: `fields/Title eq '${query}'`, // si NumeroDoc es texto
       top: 200,
     });
 

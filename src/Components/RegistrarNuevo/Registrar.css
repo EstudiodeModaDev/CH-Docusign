@@ -11,7 +11,7 @@
   color: var(--ink);
   border-radius: var(--radius-3xl, var(--radius));
   padding: var(--pad);
-  overflow: visible;
+  overflow: hidden;
 
   /* Para responsive por espacio real */
   container-type: inline-size;

@@ -41,8 +41,13 @@
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: var(--pad);
-  overflow-x: auto;              /* 🔑 no se “rompe” en pantallas estrechas */
+
+  overflow-x: auto;
+  overflow-y: auto;          /* ✅ clave */
+  max-height: 70vh;          /* ✅ define altura para que haya scroll vertical */
   scrollbar-gutter: stable both-edges;
+
+  position: relative;        /* ✅ ayuda a z-index */
 }
 
 /* --------- Tabla --------- */
@@ -58,8 +63,9 @@
 .tabla-novedades thead th{
   position: sticky;
   top: 0;
-  z-index: 1;
-  background: color-mix(in oklab, var(--card) 98%, transparent);
+  z-index: 10;
+  background: var(--card);               /* ✅ fondo sólido */
+  border-bottom: 1px solid var(--bd);
   color: var(--ink);
   text-align: left;
   font-weight: 700;

@@ -11,7 +11,10 @@
   },
   "dependencies": {
     "@azure/msal-browser": "^4.26.2",
+    "@date-fns/tz": "^1.4.1",
+    "date-fns": "^4.1.0",
     "exceljs": "^4.4.0",
+    "festivos-colombianos": "^1.1.0",
     "file-saver": "^2.0.5",
     "numero-a-letras": "^1.0.6",
     "react": "^19.2.0",

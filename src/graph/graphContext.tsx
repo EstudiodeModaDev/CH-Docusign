@@ -29,6 +29,9 @@ import { CategoriaCargosService } from "../Services/CategoriaCargos.service";
 import { RetailService } from "../Services/Retail.service";
 import { PasosRetailService } from "../Services/PasosRetail.service";
 import { DetallesPasosRetail } from "../Services/DetallesPasosRetail.service";
+import { TicketsService } from "../Services/Tickets.service";
+import { LogService } from "../Services/Log.service";
+
 
 /* ================== Tipos de config ================== */
 export type SiteConfig = {
@@ -39,6 +42,7 @@ export type SiteConfig = {
 export type UnifiedConfig = {
   ch: SiteConfig;    // sitio principal (CH)
   test: SiteConfig;  // sitio de pruebas (Paz y salvos)
+  helpDesk: SiteConfig;  
   lists: {
     // Habeas Data
     HabeasData: string;
@@ -90,6 +94,10 @@ export type UnifiedConfig = {
     renovar: string;
     Firma: string;
     Respuesta: string;
+
+    //Tickets
+    tickets: string
+    log: string
     
   };
 };
@@ -152,6 +160,9 @@ export type GraphServices = {
   Firmas: FirmasService;
   Respuesta: RespuestaService
 
+  //Tickets
+  Tickets: TicketsService
+  log: LogService
 };
 
 /* ================== Contexto ================== */
@@ -166,6 +177,10 @@ const DEFAULT_CONFIG: UnifiedConfig = {
   test: {
     hostname: "estudiodemoda.sharepoint.com",
     sitePath: "/sites/TransformacionDigital/IN/Test",
+  },
+  helpDesk: {
+    hostname: "estudiodemoda.sharepoint.com",
+    sitePath: "/sites/TransformacionDigital/IN/HD",
   },
   lists: {
     // Habeas Data
@@ -217,6 +232,10 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     renovar: "Renovar",
     Firma: "Firma",
     Respuesta: "Respuestas",
+
+    //Tickets
+    tickets: "Tickets",
+    log: "Log"
   },
 };
 
@@ -245,16 +264,21 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       sitePath: normPath(config?.test?.sitePath ?? base.test.sitePath),
     };
 
+    const helpDesk: SiteConfig = {
+      hostname: config?.helpDesk?.hostname ?? base.helpDesk.hostname,
+      sitePath: normPath(config?.helpDesk?.sitePath ?? base.helpDesk.sitePath),
+    };
+
     const lists = { ...base.lists, ...(config?.lists ?? {}) };
 
-    return { ch, test, lists };
+    return { ch, test, helpDesk, lists };
   }, [config]);
 
   // Cliente Graph
   const graph = React.useMemo(() => new GraphRest(getToken), [getToken]);
 
   const services = React.useMemo<GraphServices>(() => {
-    const { ch, lists } = cfg;
+    const { ch, lists, helpDesk } = cfg;
 
     // Habeas Data
     const HabeasData              = new HabeasDataService(graph, ch.hostname,  ch.sitePath,  lists.HabeasData);
@@ -309,6 +333,10 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     const Renovar                 = new RenovarService(graph, ch.hostname, ch.sitePath, lists.renovar);  
     const Firmas                  = new FirmasService (graph, ch.hostname, ch.sitePath, lists.Firma); 
     const Respuesta               = new RespuestaService(graph, ch.hostname, ch.sitePath, lists.Respuesta)
+
+    //Tickets
+    const Tickets                 = new TicketsService(graph, helpDesk.hostname, helpDesk.sitePath, lists.tickets)
+    const log                     = new LogService(graph, helpDesk.hostname, helpDesk.sitePath, lists.log)
     return {
       graph,
       //Habeas
@@ -332,7 +360,9 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       //Bibliotecas
       ColaboradoresEDM, ColaboradoresDH, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta,
       //paz salvos
-      PazSalvos, PermisosPaz, Renovar, Firmas, Respuesta
+      PazSalvos, PermisosPaz, Renovar, Firmas, Respuesta,
+      //Tickets
+    Tickets, log
     };
   }, [graph, cfg]);
 

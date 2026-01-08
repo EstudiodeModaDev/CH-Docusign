@@ -12,7 +12,6 @@
   --rte-text-muted:    var(--muted, #64748b);
   --rte-primary:       var(--primary, #3b82f6);
   --rte-primary-ghost: color-mix(in oklab, var(--ring, rgba(59,130,246,.25)) 45%, transparent);
-  --rte-shadow:        var(--shadow, 0 2px 10px rgba(15,23,42,.06));
   --rte-radius:        var(--radius, 10px);
   --rte-btn-radius:    calc(var(--radius, 10px) - 2px);
   --rte-btn-size:      28px;

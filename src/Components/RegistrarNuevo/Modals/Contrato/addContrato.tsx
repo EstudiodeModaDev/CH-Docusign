@@ -548,25 +548,25 @@ export default function FormContratacion({ onClose, state, setField, handleSubmi
               </div>
 
               <div className="ft-field">
-                <label className="ft-label" htmlFor="FechaInicioLectiva">Fecha de inicio de etapa lectiva*</label>
+                <label className="ft-label" htmlFor="FechaInicioLectiva">Fecha de inicio de etapa lectiva</label>
                 <input id="FechaInicioLectiva" name="FechaInicioLectiva" type="date" value={state.FechaInicioLectiva ?? ""} required aria-required="true" maxLength={300} onChange={(e) => setField("FechaInicioLectiva", e.target.value)}/>
                 <small>{errors.FechaInicioLectiva}</small>
               </div>
 
               <div className="ft-field">
-                <label className="ft-label" htmlFor="FechaFinalLectiva">Fecha final de etapa lectiva*</label>
+                <label className="ft-label" htmlFor="FechaFinalLectiva">Fecha final de etapa lectiva</label>
                 <input id="FechaFinalLectiva" name="FechaFinalLectiva" type="date" value={state.FechaFinalLectiva ?? ""} required aria-required="true" maxLength={300} onChange={(e) => setField("FechaFinalLectiva", e.target.value)}/>
                 <small>{errors.FechaFinalLectiva}</small>
               </div>
 
               <div className="ft-field">
-                <label className="ft-label" htmlFor="FechaInicioProductiva">Fecha de inicio de etapa productiva*</label>
+                <label className="ft-label" htmlFor="FechaInicioProductiva">Fecha de inicio de etapa productiva</label>
                 <input id="FechaInicioProductiva" name="FechaInicioProductiva" type="date" value={state.FechaInicioProductiva ?? ""} required maxLength={300} onChange={(e) => setField("FechaInicioProductiva", e.target.value)}/>
                 <small>{errors.FechaInicioProductiva}</small>
               </div>
 
               <div className="ft-field">
-                <label className="ft-label" htmlFor="FechaFinalProductiva">Fecha final de etapa productiva*</label>
+                <label className="ft-label" htmlFor="FechaFinalProductiva">Fecha final de etapa productiva</label>
                 <input id="FechaFinalProductiva" name="FechaFinalProductiva" type="date" value={state.FechaFinalProductiva ?? ""}  maxLength={300} onChange={(e) => setField("FechaFinalProductiva", e.target.value)} />
                 <small>{errors.FechaFinalProductiva}</small>
               </div>

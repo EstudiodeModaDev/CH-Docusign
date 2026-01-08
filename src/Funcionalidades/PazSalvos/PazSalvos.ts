@@ -7,7 +7,7 @@ import { useAuth } from "../../auth/authProvider";
 import type { FirmaInline } from "../../models/Imagenes";
 import type { MailService } from "../../Services/Mail.service";
 
-export function usePazSalvo(pazSalvoSvc: PazSalvosService,  mail: MailService, isAdmin?: boolean,) {
+export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, isAdmin?: boolean,) {
   const [rows, setRows] = React.useState<PazSalvo[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);

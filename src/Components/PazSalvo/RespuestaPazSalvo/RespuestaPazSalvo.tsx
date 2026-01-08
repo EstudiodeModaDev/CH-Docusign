@@ -14,10 +14,10 @@ type Props = {
 };
 
 export const MotivoAdjuntosForm: React.FC<Props> = ({ IdPazSalvo, onBack }) => {
-  const { Respuesta, Firmas, PazSalvos } = useGraphServices();
+  const { Respuesta, Firmas, PazSalvos, mail } = useGraphServices();
   const [files, setFiles] = React.useState<FileList | null>(null)
   const { state, setField, handleSubmit, loading } = useRespuestasPazSalvos(Respuesta, IdPazSalvo);
-  const {updatePazSalvo} = usePazSalvo(PazSalvos)
+  const {updatePazSalvo} = usePazSalvo(PazSalvos, mail)
   const {account} = useAuth()
   const { getFirmaInline } = useFirmaUsuario(Firmas, account?.username ?? "");
 

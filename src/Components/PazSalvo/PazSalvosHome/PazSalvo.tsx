@@ -16,8 +16,8 @@ type Props = {
 
 export const PazSalvosEnviados: React.FC<Props> = ({onNew, isAdmin, onSelectRow, changeView}) => {
 
-  const {PazSalvos, Respuesta} = useGraphServices()
-  const {visibleRows, range, year, search, estado, setEstado, setYear, setSearch, setRange, toggleSort, } = usePazSalvo(PazSalvos, isAdmin);
+  const {PazSalvos, Respuesta, mail} = useGraphServices()
+  const {visibleRows, range, year, search, estado, setEstado, setYear, setSearch, setRange, toggleSort, } = usePazSalvo(PazSalvos, mail, isAdmin, );
   const {account} = useAuth()
   const {loadUserRespuestas} = useRespuestasPazSalvos(Respuesta)
   const years = ["2023", "2024", "2025", "2026", "2027", "2028", "2029", "2030"];

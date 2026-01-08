@@ -96,10 +96,11 @@ export const PazSalvoPage: React.FC = () => {
       selectedModule === "MustRenovar" ? (  <div className="firma-alert">
                                               <p>Debe actualizar su firma</p>
                                               <FirmaPicker src={url} disabled={loading} onChangeFile={async (file) => {
-                                                                                              const safeUser = (username ?? "").toLowerCase().trim();
-                                                                                              await Firmas.uploadImage(file, "Firmas", `${safeUser}.png`);
-                                                                                              await updateState()
-                                                                                            }}/>
+                                                                                          const safeUser = (username ?? "").toLowerCase().trim();
+                                                                                          await Firmas.uploadImage(file, "Firmas", `${safeUser}.png`);
+                                                                                          await refresh();      // <- para que firmaItem tenga serverUrl/serverRelativeUrl
+                                                                                          await updateState();
+                                                                                        }}/>
                                               <small>Para actualizar su firma debe ir a su correo, descargar la firma que tiene configurada y subirla aqui.</small>
                                               <small>Después de actualizar su firma, podrá continuar solicitando paz y salvo.</small>
                                             </div>

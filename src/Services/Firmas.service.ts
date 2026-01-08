@@ -234,7 +234,9 @@ export class FirmasService {
           .join("/") + "/"
       : "";
 
-    const urlPath = `/drives/${this.driveId}/root:/${folderPart}${safeFileName}:/content`;
+    const urlPath =
+  `/drives/${this.driveId}/root:/${folderPart}${safeFileName}:/content` +
+  `?@microsoft.graph.conflictBehavior=replace`;
 
     const res = await this.graph.putBinary<any>(urlPath, file);
     // si tienes .put en GraphRest, mejor:

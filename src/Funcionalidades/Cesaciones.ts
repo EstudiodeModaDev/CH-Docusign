@@ -406,19 +406,19 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
     filters.push(`fields/Created ge '${from}T00:00:00Z' and fields/Created le '${to}T23:59:59Z'`)
 
     if(EnviadoPor){
-      filters.push(`fields/Informaci_x00f3_n_x0020_enviada_ ge '${EnviadoPor}'`)
+      filters.push(`fields/Reportadopor ge '${EnviadoPor}'`)
     }
 
     if(cargo){
-      filters.push(`fields/CARGO ge '${cargo}'`)
+      filters.push(`fields/Cargo ge '${cargo}'`)
     }
 
     if(empresa){
-      filters.push(`fields/Empresa_x0020_que_x0020_solicita ge '${empresa}'`)
+      filters.push(`fields/Empresaalaquepertenece ge '${empresa}'`)
     }
 
     if(ciudad){
-      filters.push(`fields/CIUDAD ge '${ciudad}'`)
+      filters.push(`fields/Ciudad ge '${ciudad}'`)
     }
 
    const buildedFilter = filters.join(" and ")
@@ -493,3 +493,4 @@ export function useCesaciones(CesacionesSvc: CesacionesService) {
   };
 }
 
+ 

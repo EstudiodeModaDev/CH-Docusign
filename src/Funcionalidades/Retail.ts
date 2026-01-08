@@ -342,14 +342,14 @@ export function useRetail(RetailSvc: RetailService) {
 
     if(EnviadoPor){
       filters.push(`fields/InformacionEnviadaPor ge '${EnviadoPor}'`)
-    }
+    } 
 
     if(cargo){
       filters.push(`fields/Cargo ge '${cargo}'`)
     }
 
     if(empresa){
-      filters.push(`fields/EmpresaSolicitante ge '${empresa}'`)
+      filters.push(`fields/Empresaalaquepertenece ge '${empresa}'`)
     }
 
     if(ciudad){

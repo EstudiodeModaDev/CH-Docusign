@@ -6,7 +6,9 @@ import { useEnvios } from "../../Funcionalidades/Envios";
 import { useContratos } from "../../Funcionalidades/Contratos";
 import { usePromocion } from "../../Funcionalidades/Promocion";
 import { useHabeasData } from "../../Funcionalidades/HabeasData";
-import { exportEnviosToExcel, exportHabeasToExcel, exportNovedadesToExcel, exportPromocionesToExcel } from "../../utils/exportExcel";
+import { exportCesacionesToExcel, exportEnviosToExcel, exportHabeasToExcel, exportNovedadesToExcel, exportPromocionesToExcel, exportRetailToExcel } from "../../utils/exportExcel";
+import { useCesaciones } from "../../Funcionalidades/Cesaciones";
+import { useRetail } from "../../Funcionalidades/Retail";
 
 export const ReporteFiltros: React.FC = () => {
   const [range, setRange] = React.useState<DateRange>({
@@ -21,10 +23,12 @@ export const ReporteFiltros: React.FC = () => {
   const [cargo, setCargo] = React.useState<string>("");
   const [empresa, setEmpresa] = React.useState<string>("");
   const [generando, setGenerando] = React.useState<boolean>(false)
-  const { Envios, Contratos, Promociones, HabeasData } = useGraphServices();
+  const { Envios, Contratos, Promociones, HabeasData, DetallesPasosCesacion, DetallesPasosNovedades, detallesPasosRetail, DetallesPasosPromocion, Cesaciones, Retail } = useGraphServices();
   const { rows: rowsEnvios, loadToReport: loadEnviosToReport } = useEnvios(Envios);
   const { rows: rowsNovedades, loadToReport: loadContratosToReport} = useContratos(Contratos);
   const { rows: rowsPromociones, loadToReport: loadPromocionesToReport } = usePromocion(Promociones);
+  const { rows: rowsCesaciones, loadToReport: loadCesacionesToReport } = useCesaciones(Cesaciones);
+  const { rows: rowsRetail, loadToReport: loadRetailToReport } = useRetail(Retail);
   const { rows: rowsHabeas, loadToReport: loadHabeasToReport } = useHabeasData(HabeasData);
 
   React.useEffect(() => {
@@ -36,6 +40,12 @@ export const ReporteFiltros: React.FC = () => {
         loadPromocionesToReport(range.from, range.to, enviadoPor, cargo, empresa)
     } else if(tipo === "Habeas"){
         loadHabeasToReport(range.from, range.to, enviadoPor, ciudad)
+    } else if(tipo === "cesacion"){
+        loadCesacionesToReport(range.from, range.to, enviadoPor, ciudad)
+    } else if(tipo === "cesacion"){
+        loadCesacionesToReport(range.from, range.to, enviadoPor, cargo, empresa)
+    }else if(tipo === "retail"){
+        loadRetailToReport(range.from, range.to, enviadoPor, cargo, empresa)
     }
   }, [loadEnviosToReport, range, enviadoPor, destinatario, cargo, ciudad, empresa,]);
 
@@ -54,11 +64,15 @@ export const ReporteFiltros: React.FC = () => {
     if (tipo === "Envios") {
       exportEnviosToExcel(rowsEnvios);
     } else if (tipo === "novedad"){
-        exportNovedadesToExcel(rowsNovedades)
+        exportNovedadesToExcel(rowsNovedades, DetallesPasosNovedades)
     } else if (tipo === "Promociones"){
-        exportPromocionesToExcel(rowsPromociones)
+        exportPromocionesToExcel(rowsPromociones, DetallesPasosPromocion)
     } else if (tipo === "Habeas"){
         exportHabeasToExcel(rowsHabeas)
+    } else if (tipo === "cesacion"){
+        exportCesacionesToExcel(rowsCesaciones, DetallesPasosCesacion)
+    } else if (tipo === "retail"){
+        exportRetailToExcel(rowsRetail, detallesPasosRetail)
     }
     
     setGenerando(false)
@@ -107,9 +121,11 @@ export const ReporteFiltros: React.FC = () => {
 
                 <select className="rep-select-top" value={tipo} onChange={(e) => setTipo(e.target.value)}>
                     <option value="Envios">Envios</option>
-                    <option value="novedad">Novedades Administrativas</option>
+                    <option value="novedad">Contrataciones</option>
                     <option value="Promociones">Promociones</option>
                     <option value="Habeas">Habeas Data</option>
+                    <option value="cesacion">Cesaciones</option>
+                    <option value="retail">Retail</option>
                 </select>
         </div>
 
@@ -153,7 +169,7 @@ export const ReporteFiltros: React.FC = () => {
             </div>
             )}
 
-            {(tipo === "novedad" || tipo === "Promociones" || tipo=== "Habeas") && (
+            {(tipo === "novedad" || tipo === "Promociones" || tipo=== "Habeas" || tipo === "cesacion" || tipo === "retail") && (
                 <>
                     <div className="rep-field">
                         <label>Ciudad:</label>
@@ -170,7 +186,7 @@ export const ReporteFiltros: React.FC = () => {
             )}
 
             {/* Novedades / Promociones */}
-            {(tipo === "novedad" || tipo === "Promociones") && (
+            {(tipo === "novedad" || tipo === "Promociones" || tipo === "cesacion" || tipo === "retail") && (
             <>
                 <div className="rep-field">
                     <label>Cargo:</label>

@@ -1027,25 +1027,7 @@ export default function FormContratacion({ onClose, state, setField, handleSubmi
               </label>
             </div>
           </div>
-
-          {/* Temporal */}
-          <div className="ft-field">
-            <label className="ft-label">Temporal *</label>
-            <div className="ft-radio-group">
-              <label className="ft-radio-custom">
-                <input type="radio" name="temporal" value="Si" checked={state.TEMPORAL === "Si"} onChange={() => setField("TEMPORAL", "Si" as any)} />
-                <span className="circle"></span>
-                <span className="text">Si</span>
-              </label>
-
-              <label className="ft-radio-custom">
-                <input type="radio" name="temporal" value="No" checked={state.TEMPORAL === "No"} onChange={() => setField("TEMPORAL", "No" as any)} />
-                <span className="circle"></span>
-                <span className="text">No</span>
-              </label>
-            </div>
-          </div>
-
+          
           {/* ================= Origen Seleccion ================= */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="origen">Origen de la selección *</label>

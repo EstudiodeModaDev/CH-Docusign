@@ -15,8 +15,10 @@ import type { HabeasData } from "../../models/HabeasData";
 import type { Cesacion } from "../../models/Cesaciones";
 import { useCesaciones } from "../../Funcionalidades/Cesaciones";
 import { spDateToDDMMYYYY, spDateToSpanishLong } from "../../utils/Date";
+import type { Retail } from "../../models/Retail";
+import { useRetail } from "../../Funcionalidades/Retail";
 
-export type Proceso = "Promocion" | "Habeas" | "Nuevo" | "Cesacion";
+export type Proceso = "Promocion" | "Habeas" | "Nuevo" | "Cesacion" | "Retail";
 
 type DocuSignVM = {
   nombre: string;
@@ -95,7 +97,8 @@ export function mapPromocionToVM(p: Promocion): DocuSignVM {
     tipoDoc: p.TipoDoc ?? "",
     tipoDocCorto: p.AbreviacionTipoDoc ?? "",
     tipoTel: p.ModalidadTeletrabajo ?? "",
-  };
+    FechaLetras: spDateToSpanishLong(p.FechaIngreso),
+  };  
 }
 
 export function mapNovedadToVM(n: Novedad): DocuSignVM {
@@ -149,17 +152,34 @@ export function mapCesacionToVM(p: Cesacion): DocuSignVM {
     fechaIngreso: p.FechaIngreso ?? "",
     cargo: p.Cargo ?? "",
     ciudad: p.Ciudad ?? "",
-    conectividadLetras: p.auxConectividadValor ?? "",
+    conectividadLetras: p.auxConectividadTexto ?? "",
     conectividadValor: p.auxConectividadValor ?? "",
     identificacion: p.Title ?? "",
     salarioLetras: p.SalarioTexto ?? "",
     salarioValor: p.Salario ?? "",
     tipoDoc: p.TipoDoc ?? "",
-        FechaLetras: spDateToSpanishLong(p.FechaIngreso),
+    FechaLetras: spDateToSpanishLong(p.FechaIngreso),
   };
 }
 
-export function toDocuSignVM(proceso: Proceso, data: Promocion | Novedad | HabeasData | Cesacion): DocuSignVM {
+export function mapRetailToVM(r: Retail): DocuSignVM {
+  return {
+    ...emptyVM(),
+    nombre: r.Nombre ?? "",
+    fechaIngreso: r.FechaIngreso ?? "",
+    cargo: r.Cargo ?? "",
+    ciudad: r.Ciudad ?? "",
+    conectividadLetras: r.Auxiliotransporteletras ?? "",
+    conectividadValor: r.Auxiliodetransporte ?? "",
+    identificacion: r.Title ?? "",
+    salarioLetras: r.SalarioLetras ?? "",
+    salarioValor: r.Salario ?? "",
+    tipoDoc: r.TipoDoc ?? "",
+    FechaLetras: spDateToSpanishLong(r.FechaIngreso),
+  };
+}
+
+export function toDocuSignVM(proceso: Proceso, data: Promocion | Novedad | HabeasData | Cesacion | Retail): DocuSignVM {
   switch (proceso) {
     case "Promocion":
       return mapPromocionToVM(data as Promocion);
@@ -169,6 +189,8 @@ export function toDocuSignVM(proceso: Proceso, data: Promocion | Novedad | Habea
       return mapHabeasToVM(data as HabeasData);
     case "Cesacion":
       return mapCesacionToVM(data as Cesacion)
+    case "Retail":
+      return mapRetailToVM(data as Retail)
   }
 }
 
@@ -187,15 +209,16 @@ const EnviarFormatoCard: React.FC = () => {
   const [loading, setLoading] = React.useState<boolean>(false);
   const [proceso, setProceso] = React.useState<Proceso | "">("");
   const [signers, setSigners] = React.useState<DocusignRecipient[]>([]);
-  const [varColaborador, setVarColaborador] = React.useState<Promocion | Novedad | HabeasData | Cesacion |null>(null);
+  const [varColaborador, setVarColaborador] = React.useState<Promocion | Novedad | HabeasData | Cesacion | Retail | null>(null);
   const [elegir, setElegir] = React.useState<boolean>(false);
   const { templatesOptions, createdraft, getRecipients } = useDocusignTemplates();
-  const { Envios, Promociones, HabeasData, Contratos, Cesaciones } = useGraphServices();
+  const { Envios, Promociones, HabeasData, Contratos, Cesaciones, Retail } = useGraphServices();
   const { state, setField, handleSubmit: crearRegistro } = useEnvios(Envios);
   const { searchWorker: searchWorkerHabeas, workers: workersHabeas, workersOptions: workerOptionsHabeas,} = useHabeasData(HabeasData);
   const { searchWorker: searchWorkerContratos, workers: workersContratos, workersOptions: workerOptionsContratos,} = useContratos(Contratos);
-  const { searchWorker, workers, workersOptions } = usePromocion(Promociones);
-  const { searchWorker: searchWorkerCesacion, workersOptions: workerOptionsCesaciones } = useCesaciones(Cesaciones)
+  const { searchWorker, workers, workersOptions, } = usePromocion(Promociones);
+  const { searchWorker: searchWorkerCesacion, workersOptions: workerOptionsCesaciones, workers: workersCesaciones } = useCesaciones(Cesaciones)
+  const { searchWorker: searchWorkerRetail, workersOptions: workerOptionsRetail, workers: workersRetail } = useRetail(Retail)
   const plantillaSelected = templatesOptions.find((o) => o.value === templateId) ?? null;
 
   const vm = React.useMemo(() => {
@@ -477,7 +500,30 @@ const EnviarFormatoCard: React.FC = () => {
           setElegir(true);
         }
         break;
+
+      case "Retail":
+        results = await searchWorkerRetail(query);
+        cantidad = results.length;
+
+        if (cantidad === 0) {
+          alert("No se encontró el colaborador");
+        } else if (cantidad === 1) {
+          const unico = results[0] as Retail;
+          setVarColaborador(unico);
+
+          setField("CorreoReceptor", unico.CorreoElectronico ?? "");
+          setField("Receptor", unico.Nombre ?? "");
+          setField("Fuente", "Retail");
+          setField("Cedula", unico.Title ?? "");
+          setField("Compa_x00f1_ia", unico.Empresaalaquepertenece ?? "");
+          setField("Estado", "Enviado");
+          setField("ID_Novedad", unico.Id ?? "");
+        } else {
+          setElegir(true);
+        }
+        break;
     }
+
   };
 
   const handleConfirmWorker = (selectedId: string) => {
@@ -531,7 +577,37 @@ const EnviarFormatoCard: React.FC = () => {
         setElegir(false);
         break;
       }
-    }
+      case "Cesacion": {
+        const seleccionado = workersCesaciones.find((w: any) => w.Id === selectedId) as Cesacion | undefined;
+        if (!seleccionado) return;
+
+        setVarColaborador(seleccionado);
+        setField("CorreoReceptor", seleccionado.Correoelectronico ?? "");
+        setField("Receptor", seleccionado.Nombre ?? "");
+        setField("Fuente", "Cesacion");
+        setField("Cedula", seleccionado.Title ?? "");
+        setField("Compa_x00f1_ia", seleccionado.Empresaalaquepertenece ?? "");
+        setField("Estado", "Enviado");
+        setField("ID_Novedad", seleccionado.Id ?? "");
+        setElegir(false);
+      break;
+      }
+      case "Retail": {
+          const seleccionado = workersRetail.find((w: any) => w.Id === selectedId) as Retail | undefined;
+          if (!seleccionado) return;
+
+          setVarColaborador(seleccionado);
+          setField("CorreoReceptor", seleccionado.CorreoElectronico ?? "");
+          setField("Receptor", seleccionado.Nombre ?? "");
+          setField("Fuente", "Retail");
+          setField("Cedula", seleccionado.Title ?? "");
+          setField("Compa_x00f1_ia", seleccionado.Empresaalaquepertenece ?? "");
+          setField("Estado", "Enviado");
+          setField("ID_Novedad", seleccionado.Id ?? "");
+          setElegir(false);
+        break;
+      }
+    };
   };
 
   const handleChangeSigner = (index: number, updated: Partial<DocusignRecipient>) => {
@@ -562,10 +638,11 @@ const EnviarFormatoCard: React.FC = () => {
             <label className="ef-label" htmlFor="proceso"> ¿Que clase de proceso hara? </label>
             <select id="proceso" className="ef-input" value={proceso} onChange={(e) => setProceso(e.target.value as Proceso | "")}>
               <option value="">Selecciona un formato</option>
-              <option value="Nuevo">Nuevo ingreso</option>
+              <option value="Nuevo">Contratación</option>
               <option value="Promocion">Promocion</option>
               <option value="Habeas">Habeas Data</option>
               <option value="Cesacion">Cesación</option>
+              <option value="Retail">Retail</option>
             </select>
           </div>
 
@@ -614,7 +691,8 @@ const EnviarFormatoCard: React.FC = () => {
                                                                                                               proceso === "Promocion" ? workersOptions
                                                                                                                 : proceso === "Habeas"? workerOptionsHabeas
                                                                                                                 : proceso === "Nuevo" ? workerOptionsContratos
-                                                                                                                : proceso === "Cesacion" ? workerOptionsCesaciones:
+                                                                                                                : proceso === "Cesacion" ? workerOptionsCesaciones
+                                                                                                                : proceso === "Retail" ? workerOptionsRetail:
                                                                                                                 workersOptions
                                                                                                             }/>
 

@@ -13,6 +13,7 @@ export class FirmasService {
 
   private siteId?: string;
   private listId?: string;
+
   private driveId?: string;
   private driveName?: string;
 
@@ -20,28 +21,26 @@ export class FirmasService {
     graph: GraphRest,
     hostname = "estudiodemoda.sharepoint.com",
     sitePath = "/sites/TransformacionDigital/IN/CH",
-    listName = "Documentos compartidos",
-    
+    listName = "Documentos compartidos"
   ) {
     this.graph = graph;
     this.hostname = hostname;
     this.sitePath = sitePath.startsWith("/") ? sitePath : `/${sitePath}`;
     this.listName = listName;
-    this.driveName = "Documentos"; // o el nombre que uses
+    this.driveName = "Documentos"; // nombre visible de la biblioteca donde está la carpeta Firmas
   }
 
   // ---------- mapping ----------
   private toModel(item: any): ItemFirma {
     const f = item?.fields ?? {};
-
     return {
       Id: String(item?.id ?? ""),
       Title: f.Title ?? "",
-      Firma: f.Firma ?? undefined,  // <-- nombre interno de la columna
+      Firma: f.Firma ?? undefined, // nombre interno de la columna
     };
   }
 
-  // ---------- CRUD ----------
+  // ---------- CRUD (lista) ----------
   async create(data: { Title: string; Firma?: ImagenWrite }) {
     await this.ensureIds();
 
@@ -58,10 +57,7 @@ export class FirmasService {
     return this.toModel(res);
   }
 
-  async update(
-    id: string,
-    changed: Partial<{ Title: string; Firma: ImagenWrite }>
-  ) {
+  async update(id: string, changed: Partial<{ Title: string; Firma: ImagenWrite }>) {
     await this.ensureIds();
 
     await this.graph.patch<any>(
@@ -78,18 +74,14 @@ export class FirmasService {
 
   async delete(id: string) {
     await this.ensureIds();
-    await this.graph.delete(
-      `/sites/${this.siteId}/lists/${this.listId}/items/${id}`
-    );
+    await this.graph.delete(`/sites/${this.siteId}/lists/${this.listId}/items/${id}`);
   }
 
   async get(id: string) {
     await this.ensureIds();
-
     const res = await this.graph.get<any>(
       `/sites/${this.siteId}/lists/${this.listId}/items/${id}?$expand=fields`
     );
-
     return this.toModel(res);
   }
 
@@ -98,9 +90,7 @@ export class FirmasService {
     await this.ensureIds();
 
     const normalizeFieldTokens = (s: string) =>
-      s
-        .replace(/\bID\b/g, "id")
-        .replace(/(^|[^/])\bTitle\b/g, "$1fields/Title");
+      s.replace(/\bID\b/g, "id").replace(/(^|[^/])\bTitle\b/g, "$1fields/Title");
 
     const escapeLiteral = (v: string) => v.replace(/'/g, "''");
 
@@ -120,9 +110,9 @@ export class FirmasService {
 
     const query = qs.toString().replace(/\+/g, "%20");
 
-    const url = `/sites/${encodeURIComponent(
-      this.siteId!
-    )}/lists/${encodeURIComponent(this.listId!)}/items?${query}`;
+    const url = `/sites/${encodeURIComponent(this.siteId!)}/lists/${encodeURIComponent(
+      this.listId!
+    )}/items?${query}`;
 
     try {
       const res = await this.graph.get<any>(url);
@@ -132,9 +122,9 @@ export class FirmasService {
 
       if (code === "itemNotFound" && opts?.filter) {
         qs.delete("$filter");
-        const url2 = `/sites/${encodeURIComponent(
-          this.siteId!
-        )}/lists/${encodeURIComponent(this.listId!)}/items?${qs.toString()}`;
+        const url2 = `/sites/${encodeURIComponent(this.siteId!)}/lists/${encodeURIComponent(
+          this.listId!
+        )}/items?${qs.toString()}`;
 
         const res2 = await this.graph.get<any>(url2);
         return (res2.value ?? []).map((x: any) => this.toModel(x));
@@ -144,52 +134,48 @@ export class FirmasService {
     }
   }
 
-  // ---------- Resolver siteId / listId ----------
+  // ---------- Resolver siteId / listId / driveId ----------
+  private cacheKeyBase() {
+    return `sp:${this.hostname}${this.sitePath}:${this.listName}`;
+  }
+
   private loadCache() {
     try {
-      const k = `sp:${this.hostname}${this.sitePath}:${this.listName}`;
-      const raw = localStorage.getItem(k);
+      const raw = localStorage.getItem(this.cacheKeyBase());
       if (raw) {
-        const { siteId, listId } = JSON.parse(raw);
+        const { siteId, listId, driveId } = JSON.parse(raw);
         this.siteId = siteId || this.siteId;
         this.listId = listId || this.listId;
+        this.driveId = driveId || this.driveId;
       }
     } catch {}
   }
 
   private saveCache() {
     try {
-      const k = `sp:${this.hostname}${this.sitePath}:${this.listName}`;
       localStorage.setItem(
-        k,
-        JSON.stringify({ siteId: this.siteId, listId: this.listId })
+        this.cacheKeyBase(),
+        JSON.stringify({ siteId: this.siteId, listId: this.listId, driveId: this.driveId })
       );
     } catch {}
   }
 
   private async ensureIds() {
-    if (!this.siteId || !this.listId) this.loadCache();
+    if (!this.siteId || !this.listId || !this.driveId) this.loadCache();
 
     if (!this.siteId) {
-      const site = await this.graph.get<any>(
-        `/sites/${this.hostname}:${this.sitePath}`
-      );
+      const site = await this.graph.get<any>(`/sites/${this.hostname}:${this.sitePath}`);
       this.siteId = site?.id;
-
       if (!this.siteId) throw new Error("No se pudo resolver siteId");
-
       this.saveCache();
     }
 
     if (!this.listId) {
       const lists = await this.graph.get<any>(
-        `/sites/${this.siteId}/lists?$filter=displayName eq '${esc(
-          this.listName
-        )}'`
+        `/sites/${this.siteId}/lists?$filter=displayName eq '${esc(this.listName)}'`
       );
 
       const list = lists?.value?.[0];
-
       if (!list?.id) throw new Error(`Lista no encontrada: ${this.listName}`);
 
       this.listId = list.id;
@@ -197,35 +183,50 @@ export class FirmasService {
     }
   }
 
-  private async ensureDriveId() {
-      await this.ensureIds(); // asegura siteId primero
-      if (this.driveId) return;
+  /**
+   * Resuelve el driveId de la biblioteca "Documentos" (o el nombre que pases).
+   * ✅ Importante: aquí siempre llamamos ensureIds() para garantizar this.siteId.
+   */
+  async ensureDriveId(libraryName = "Documentos") {
+    await this.ensureIds(); // ✅ asegura siteId
+    if (this.driveId) return;
 
-      // puedes usar el drive por defecto:
-      // const drive = await this.graph.get<any>(`/sites/${this.siteId}/drive`);
+    const drives = await this.graph.get<{ value: any[] }>(`/sites/${this.siteId}/drives`);
+    const all = drives?.value ?? [];
 
-      const drives = await this.graph.get<any>(
-      `/sites/${this.siteId}/drives?$filter=name eq '${esc(this.driveName!)}'`
+    const wanted = libraryName.toLowerCase();
+
+    const docDrive =
+      all.find((d) => (d.name ?? "").toLowerCase() === wanted) ??
+      all.find((d) => (d.name ?? "").toLowerCase() === "documents") ??
+      all.find((d) => (d.name ?? "").toLowerCase() === "shared documents") ??
+      all.find((d) => (String(d.driveType ?? "")).toLowerCase() === "documentlibrary");
+
+    if (!docDrive?.id) {
+      throw new Error(
+        `No se encontró la biblioteca '${libraryName}'. Drives disponibles: ${all
+          .map((d) => d.name)
+          .filter(Boolean)
+          .join(", ")}`
       );
-      const drive = (drives.value ?? []).find((d: any) => d.name === this.driveName);
+    }
 
-      if (!drive?.id) throw new Error(`Drive no encontrado: ${this.driveName}`);
-      this.driveId = drive.id;
+    this.driveId = docDrive.id;
+    this.saveCache();
   }
 
+  // ---------- Upload a Documentos/Firmas ----------
   async uploadImage(
     file: File,
     folderPath = "Firmas",
     customFileName?: string
   ): Promise<ImagenWrite> {
-    await this.ensureDriveId();
+    await this.ensureDriveId(this.driveName ?? "Documentos");
 
-    const name = customFileName || file.name || "firma.png";
+    const name = (customFileName || file.name || "firma.png").trim();
 
-    // Solo escapamos el nombre de archivo
     const safeFileName = encodeURIComponent(name);
 
-    // Opcional: escapamos cada segmento de la carpeta, pero mantenemos los '/'
     const folderPart = folderPath
       ? folderPath
           .split("/")
@@ -235,27 +236,24 @@ export class FirmasService {
       : "";
 
     const urlPath =
-  `/drives/${this.driveId}/root:/${folderPart}${safeFileName}:/content` +
-  `?@microsoft.graph.conflictBehavior=replace`;
+      `/drives/${this.driveId}/root:/${folderPart}${safeFileName}:/content` +
+      `?@microsoft.graph.conflictBehavior=replace`;
 
     const res = await this.graph.putBinary<any>(urlPath, file);
-    // si tienes .put en GraphRest, mejor:
-    // const res = await this.graph.put<any>(urlPath, file);
 
     const webUrl: string = res.webUrl;
     const url = new URL(webUrl);
-    const serverUrl = `${url.protocol}//${url.host}`;
-    const serverRelativeUrl = url.pathname;
 
     return {
       fileName: res.name,
-      serverUrl,
-      serverRelativeUrl,
+      serverUrl: `${url.protocol}//${url.host}`,
+      serverRelativeUrl: url.pathname,
     };
   }
 
+  // ---------- Buscar firma por email (cualquier extensión) ----------
   async getFirmaByEmail(email: string, folderPath = "Firmas"): Promise<ImagenWrite | null> {
-    await this.ensureDriveId();
+    await this.ensureDriveId(this.driveName ?? "Documentos");
 
     const base = email.toLowerCase().trim();
 
@@ -267,16 +265,13 @@ export class FirmasService {
           .join("/")
       : "";
 
-    // Lista archivos dentro de la carpeta (solo necesitamos algunos campos)
     const url = `/drives/${this.driveId}/root:/${folderPart}:/children?$select=name,webUrl,lastModifiedDateTime,file`;
 
     const res = await this.graph.get<{ value: any[] }>(url);
     const items = res?.value ?? [];
 
-    // extensiones de imagen aceptadas (ajusta si quieres)
     const allowedExt = new Set(["png", "jpg", "jpeg", "webp", "gif", "bmp", "tif", "tiff"]);
 
-    // Encuentra candidatos: mismo nombre base, y que sea archivo (no carpeta), y extensión válida
     const candidates = items.filter((it) => {
       if (!it?.file) return false; // descarta carpetas
       const name: string = (it?.name ?? "").toLowerCase();
@@ -292,7 +287,6 @@ export class FirmasService {
 
     if (candidates.length === 0) return null;
 
-    // Prioriza png > jpg/jpeg > resto (opcional)
     const priority = (name: string) => {
       const ext = name.toLowerCase().split(".").pop() ?? "";
       if (ext === "png") return 0;
@@ -304,13 +298,10 @@ export class FirmasService {
       const pa = priority(a.name);
       const pb = priority(b.name);
       if (pa !== pb) return pa - pb;
-
-      // si empatan, más reciente primero
       return String(b.lastModifiedDateTime).localeCompare(String(a.lastModifiedDateTime));
     });
 
     const picked = candidates[0];
-
     const webUrl: string = picked.webUrl;
     const urlObj = new URL(webUrl);
 
@@ -322,16 +313,19 @@ export class FirmasService {
     };
   }
 
+  // ---------- Descargar firma como base64 (cualquier extensión) ----------
   async getFirmaAsBase64(
     email: string,
     folderPath = "Firmas"
   ): Promise<{ fileName: string; contentBytes: string } | null> {
-    await this.ensureDriveId();
+    await this.ensureDriveId(this.driveName ?? "Documentos");
 
-    const baseName = email.toLowerCase().trim();
-    const name = `${baseName}.png`; // o la extensión que estés usando
+    // Usa el mismo resolver que ya soporta cualquier extensión
+    const info = await this.getFirmaByEmail(email, folderPath);
+    if (!info) return null;
 
-    const safeFileName = encodeURIComponent(name);
+    const safeFileName = encodeURIComponent(info.fileName);
+
     const folderPart = folderPath
       ? folderPath
           .split("/")
@@ -343,24 +337,13 @@ export class FirmasService {
     const urlPath = `/drives/${this.driveId}/root:/${folderPart}${safeFileName}:/content`;
 
     try {
-      // 🚨 Aquí asumo que GraphRest tiene un método getBinary (igual que putBinary).
-      // Si no lo tienes, puedes usar fetch nativo con el token.
-      const blob = await this.graph.getBlob(urlPath); // Blob / ArrayBuffer
-
+      const blob = await this.graph.getBlob(urlPath);
       const contentBytes = await blobToBase64(blob);
-
-      return {
-        fileName: name,
-        contentBytes,
-      };
+      return { fileName: info.fileName, contentBytes };
     } catch (e: any) {
       const code = e?.error?.code ?? e?.code;
-      if (code === "itemNotFound") {
-        return null; // no tiene firma
-      }
+      if (code === "itemNotFound") return null;
       throw e;
     }
   }
-
-
 }

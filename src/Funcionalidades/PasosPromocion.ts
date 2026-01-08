@@ -56,7 +56,7 @@ export function usePasosPromocion() {
     if (estadoAnterior === "Completado") return; 
 
     const requiereEvidencia = paso.TipoPaso === "SubidaDocumento";
-    const requiereNotas = paso.TipoPaso !== "SubidaDocumento";
+    const requiereNotas = paso.TipoPaso === "Aprobacion";
     const userName = account?.name ?? ""; 
 
     // ========== 1) Caso: requiere evidencia ==========

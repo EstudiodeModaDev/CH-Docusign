@@ -36,6 +36,7 @@ export class PasosRetailService {
         TipoPaso: f.TipoPaso,
         PlantillaCorreo: f.PlantillaCorreo,
         PlantillaAsunto: f.PlantillaAsunto,
+        Obligatorio: f.Obligatorio
     };
     return mapped;
   }

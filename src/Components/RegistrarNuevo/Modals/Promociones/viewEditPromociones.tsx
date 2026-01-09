@@ -344,10 +344,10 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
   const { account } = useAuth();
   const today = getTodayLocalISO();
 
-  const completeStep = React.useCallback( async (detalle: DetallesPasos, ) => {
-      await handleCompleteStep(detalle);
+  const completeStep = React.useCallback( async (detalle: DetallesPasos, estado: string) => {
+      await handleCompleteStep(detalle, estado);
 
-      const porcentaje = await calcPorcentaje();
+      const porcentaje = await calcPorcentaje(); 
 
       if (Number(porcentaje) === 100) {
         const id = selectedPromocion?.Id;
@@ -369,7 +369,7 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
       <section className="ft-scope ft-card" role="region" aria-labelledby="ft_title">
         {modal ?   
           <ProcessDetail 
-            titulo={"Detalles promocion  de: " + selectedPromocion.NumeroDoc + " - " + selectedPromocion.NombreSeleccionado}
+            titulo={"Detalles promoción  de: " + selectedPromocion.NumeroDoc + " - " + selectedPromocion.NombreSeleccionado}
             selectedCesacion={selectedPromocion}
             onClose={() => setModal(false)}
             loadingPasos={loadinPasosPromocion}
@@ -379,7 +379,7 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
             motivos={motivos}
             setMotivos={setMotivos}
             setDecisiones={setDecisiones}
-            handleCompleteStep={(detalle: DetallesPasos) => completeStep(detalle)}
+            handleCompleteStep={(detalle: DetallesPasos, estado: string) => completeStep(detalle, estado)}
             detallesRows={rowsDetalles}
             loadingDetalles={loadingDetalles}
             errorDetalles={errorDetalles}

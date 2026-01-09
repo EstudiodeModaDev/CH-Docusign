@@ -96,8 +96,6 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
   const [displaySalario, setDisplaySalario] = React.useState<string>("");
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");  
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
-  const [promedio, setPromedio] = React.useState<number>(0);
-  const [grupoCVE, setGrupoCVE] = React.useState<string>("");
   const {account} = useAuth()
 
   const deptos = React.useMemo(() => {
@@ -184,27 +182,6 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
     setConectividad(nextValor);
     setConectividadTexto(nextTexto);
   }, [state.Salario, state.Cargo, state.auxConectividadValor, state.auxConectividadTexto, setField]);
-
-  React.useEffect(() => {
-    const nextPromedio = (Number(state.Autonomia || 0) * 0.2) + (Number(state.ImpactoCliente || 0) * 0.2) + (Number(state.contribucionEstrategia || 0) * 0.3) + (Number(state.PresupuestaVentas || 0) * 0.3);
-    const red = Math.floor(nextPromedio);
-
-    let nextGrupo = "";
-    if (red === 1) nextGrupo = "Constructores";
-    else if (red === 2) nextGrupo = "Desarrolladores";
-    else if (red === 3) nextGrupo = "Imaginarios";
-    else if (red === 4) nextGrupo = "Soñadores";
-
-    setPromedio(nextPromedio);
-    setGrupoCVE(nextGrupo);
-
-    if (String(state.Promedio ?? "") !== String(nextPromedio)) {
-      setField("Promedio", String(nextPromedio));
-    }
-    if (String(state.GrupoCVE ?? "") !== nextGrupo) {
-      setField("GrupoCVE", nextGrupo);
-    }
-  }, [state.Autonomia, state.ImpactoCliente, state.contribucionEstrategia, state.PresupuestaVentas, state.Promedio, state.GrupoCVE, setField]);
 
   /* ================== Nivel por cargo ================== */
   React.useEffect(() => {
@@ -608,91 +585,6 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
             <label className="ft-label" htmlFor="abreviacionDoc"> Codigo unidad de negocio *</label>
             <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoUN} readOnly/>
           </div>
-
-          {/* ¿Pertenece al modelo? */}
-          <div className="ft-field">
-            <label className="ft-label"> ¿Pertenece al modelo? *</label>
-            <div className="ft-radio-group">
-              <label className="ft-radio-custom">
-                <input type="radio" name="modelo" value="Si" checked={!!state.Pertenecealmodelo} onChange={() => setField("Pertenecealmodelo", true)}/>
-                <span className="circle"></span>
-                <span className="text">Si</span>
-              </label>
-
-              <label className="ft-radio-custom">
-                <input type="radio" name="modelo" value="No" checked={!state.Pertenecealmodelo} onChange={() => setField("Pertenecealmodelo", false)}/>
-                <span className="circle"></span>
-                <span className="text">No</span>
-              </label>
-            </div>
-          </div>
-
-          {state.Pertenecealmodelo && (
-            <>
-              <div className="ft-field">
-                <label className="ft-label" htmlFor="Autonomia">Autonomía *</label>
-                <select name="Autonomia" onChange={(e) => setField("Autonomia", e.target.value)}>
-                  <option value="0" selected>0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                </select>
-                <small>{errors.Autonomia}</small>
-              </div>
-              
-
-              <div className="ft-field">
-                <label className="ft-label" htmlFor="presupuesto">Presupuesto ventas/magnitud económica *</label>
-                <select name="presupuesto" onChange={(e) => setField("PresupuestaVentas", e.target.value)}>
-                  <option value="0" selected>0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                </select>
-                <small>{errors.PresupuestaVentas}</small>
-              </div>
-
-              <div className="ft-field">
-                <label className="ft-label" htmlFor="impacto">Impacto cliente externo *</label>
-                <select name="impacto" onChange={(e) => setField("ImpactoCliente", e.target.value)}>
-                  <option value="0" selected>0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                </select>
-                <small>{errors.ImpactoCliente}</small>
-              </div>
-
-              <div className="ft-field">
-                <label className="ft-label" htmlFor="contribucion">Contribución a la estrategia *</label>
-                <select name="contribucion" onChange={(e) => setField("contribucionEstrategia", e.target.value)}>
-                  <option value="0" selected>0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                </select>
-                <small>{errors.contribucionEstrategia}</small>
-              </div>
-
-              {/* Promedio */}
-              <div className="ft-field">
-                <label className="ft-label" htmlFor="cve"> Promedio *</label>
-                <input id="cve" name="cve" type="text" placeholder="Rellene los campos anteriores" value={promedio} readOnly/>
-              </div>
-            
-              {/* Grupo de CVE */}
-              <div className="ft-field">
-                <label className="ft-label" htmlFor="cve"> Grupo CVE *</label>
-                <input id="cve" name="cve" type="text" placeholder="Rellene los campos anteriores" value={grupoCVE} readOnly/>
-              </div>
-            </>
-          )}
-
-
 
           {/* Informacion enviada por */}
           <div className="ft-field">

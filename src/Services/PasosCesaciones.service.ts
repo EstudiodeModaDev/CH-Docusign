@@ -36,6 +36,7 @@ export class PasosCesacionService {
         TipoPaso: f.TipoPaso,
         PlantillaCorreo: f.PlantillaCorreo,
         PlantillaAsunto: f.PlantillaAsunto,
+        Obligatorio: f.Obligatorio
     };
     return mapped
   }

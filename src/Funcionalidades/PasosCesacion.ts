@@ -45,8 +45,7 @@ export function usePasosCesacion() {
   }, [loadPasosCesacion]);
 
   
-
-  const handleCompleteStep = async (detalle: DetallesPasos) => {
+  const handleCompleteStep = async (detalle: DetallesPasos, estado: string) => {
     const idDetalle = detalle.Id;
     if (!idDetalle) return;
 
@@ -54,57 +53,87 @@ export function usePasosCesacion() {
     if (!paso) return;
 
     const estadoAnterior = detalle.EstadoPaso;
-    if (estadoAnterior === "Completado") return;
+
+    // si ya está resuelto, no hagas nada
+    if (estadoAnterior === "Completado" || estadoAnterior === "Omitido") return;
 
     const userName = account?.name ?? "";
+    const tipoPaso: TipoPaso = paso.TipoPaso as TipoPaso;
 
-    const tipoPaso: TipoPaso = (paso.TipoPaso as TipoPaso);
+    // ✅ 0) OMITIR (no valida nada, solo marca y desbloquea)
+    if (estado === "Omitido") {
+      await DetallesPasosCesacion.update(idDetalle, {
+        EstadoPaso: "Omitido",
+        CompletadoPor: userName,
+        FechaCompletacion: todayISO(),
+        Notas: "Paso omitido",
+      });
 
-  // ========= 1) SUBIDA DOCUMENTO =========
-  if (tipoPaso === "SubidaDocumento") {
-
-    await DetallesPasosCesacion.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(), Notas: "Archivo subido"});
-
-    alert("Se ha completado con éxito");
-    return;
-  }
-
-  // ========= 2) APROBACIÓN =========
-  if (tipoPaso === "Aprobacion") {
-    // soporta tu estado actual (decisiones/motivos del hook)
-    const decision = (decisiones[idDetalle] ?? "") as | "" | "Aceptado" | "Rechazado";
-
-    const motivo = (motivos[idDetalle] ?? "").toString();
-
-    if (!decision) {
-      alert("Debe seleccionar un estado");
+      alert("Paso omitido");
       return;
     }
 
-    if (decision === "Rechazado" && !motivo.trim()) {
-      alert("Debe indicar el motivo del rechazo");
-      return;
-    }
-
-    const notas = decision === "Rechazado" ? `Rechazado con el motivo: ${motivo}` : "Aceptado";
-
-    await DetallesPasosCesacion.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(), Notas: notas,});
-
-    alert("Se ha completado con éxito");
-    return;
-  }
-
-  // ========= 3) NOTIFICACIÓN =========
-    if (tipoPaso === "Notificacion") {
-
-      await DetallesPasosCesacion.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(), Notas: "Notificación enviada",});
+    // ========= 1) SUBIDA DOCUMENTO =========
+    if (tipoPaso === "SubidaDocumento") {
+      await DetallesPasosCesacion.update(idDetalle, {
+        EstadoPaso: "Completado",
+        CompletadoPor: userName,
+        FechaCompletacion: todayISO(),
+        Notas: "Archivo subido",
+      });
 
       alert("Se ha completado con éxito");
       return;
     }
 
-  // ========= 4) fallback =========
-    await DetallesPasosCesacion.update(idDetalle, {EstadoPaso: "Completado", CompletadoPor: userName, FechaCompletacion: todayISO(),});
+    // ========= 2) APROBACIÓN =========
+    if (tipoPaso === "Aprobacion") {
+      const decision = (decisiones[idDetalle] ?? "") as "" | "Aceptado" | "Rechazado";
+      const motivo = (motivos[idDetalle] ?? "").toString();
+
+      if (!decision) {
+        alert("Debe seleccionar un estado");
+        return;
+      }
+
+      if (decision === "Rechazado" && !motivo.trim()) {
+        alert("Debe indicar el motivo del rechazo");
+        return;
+      }
+
+      const notas = decision === "Rechazado" ? `Rechazado con el motivo: ${motivo}` : "Aceptado";
+
+      await DetallesPasosCesacion.update(idDetalle, {
+        EstadoPaso: "Completado",
+        CompletadoPor: userName,
+        FechaCompletacion: todayISO(),
+        Notas: notas,
+      });
+
+      alert("Se ha completado con éxito");
+      return;
+    }
+
+    // ========= 3) NOTIFICACIÓN =========
+    if (tipoPaso === "Notificacion") {
+      await DetallesPasosCesacion.update(idDetalle, {
+        EstadoPaso: "Completado",
+        CompletadoPor: userName,
+        FechaCompletacion: todayISO(),
+        Notas: "Notificación enviada",
+      });
+
+      alert("Se ha completado con éxito");
+      return;
+    }
+
+    // ========= 4) fallback =========
+    await DetallesPasosCesacion.update(idDetalle, {
+      EstadoPaso: "Completado",
+      CompletadoPor: userName,
+      FechaCompletacion: todayISO(),
+    });
+
     alert("Se ha completado con éxito");
   };
 

@@ -36,6 +36,7 @@ export class PasosNovedadesService {
         TipoPaso: f.TipoPaso,
         PlantillaCorreo: f.PlantillaCorreo,
         PlantillaAsunto: f.PlantillaAsunto,
+        Obligatorio: f.Obligatorio
     };
   }
   

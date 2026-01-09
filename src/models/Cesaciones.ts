@@ -51,6 +51,7 @@ export type PasosProceso = {
     TipoPaso: string;
     PlantillaCorreo: string
     PlantillaAsunto: string;
+    Obligatorio: boolean
 }
 
 export type DetallesPasos = {

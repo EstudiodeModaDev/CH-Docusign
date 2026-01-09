@@ -16,7 +16,7 @@ export type PropsProceso = {
   setMotivos: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   setDecisiones: React.Dispatch<React.SetStateAction<Record<string, "" | "Aceptado" | "Rechazado">>>;
   onClose: () => void;
-  handleCompleteStep: (detalle: DetallesPasos, path?: string) => void;
+  handleCompleteStep: (detalle: DetallesPasos, estado: string,) => void;
   detallesRows: DetallesPasos[];
   loadingDetalles: boolean;
   errorDetalles: string | null;

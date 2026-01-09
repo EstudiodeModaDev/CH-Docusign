@@ -3,7 +3,7 @@ import "../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
 import { useGraphServices } from "../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../models/Desplegables";
-import {useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useOrigenSeleccion, useTemporales, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
+import {useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useOrigenSeleccion, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
 import { useAuth } from "../../../../auth/authProvider";
 import { formatPesosEsCO, numeroATexto,  } from "../../../../utils/Number";
 import { useSalarios } from "../../../../Funcionalidades/Salario";
@@ -62,7 +62,6 @@ export default function FormRetail({onClose, state, setField, handleSubmit, erro
   const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
   const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
   const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
-  const { options: tiemposOptions, loading: loadingTiempos, reload: reloadTiempos} = useTemporales(Maestro);
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
 
   const showCargos = React.useMemo(() => new Set<string>(["31", "42", "9", "33"]), []);
@@ -78,7 +77,6 @@ export default function FormRetail({onClose, state, setField, handleSubmit, erro
       reloadCC();
       reloadCO();
       reloadUN();
-      reloadTiempos()
   }, []);
 
   const selectedEmpresa = empresaOptions.find((o) => o.label.toLocaleLowerCase() === state.Empresaalaquepertenece.toLocaleLowerCase()) ?? null;
@@ -89,7 +87,6 @@ export default function FormRetail({onClose, state, setField, handleSubmit, erro
   const selectedCentroCostos = CentroCostosOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoCentroCostos.toLocaleLowerCase()) ?? null;
   const selectedCentroOperativo = COOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoCentroOperativo.toLocaleLowerCase()) ?? null;
   const selectedUnidadNegocio = UNOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoUnidadNegocio.toLocaleLowerCase()) ?? null;
-  const selectedTemporal = tiemposOptions.find((o) => o.label.toLocaleLowerCase() === state.Temporal.toLocaleLowerCase()) ?? null;
   const selectedOrigenSeleccion = origenOptions.find((o) => o.label.toLocaleLowerCase() === state.OrigenSeleccion.toLocaleLowerCase()) ?? null;
 
 
@@ -99,8 +96,6 @@ export default function FormRetail({onClose, state, setField, handleSubmit, erro
   const [displaySalario, setDisplaySalario] = React.useState<string>("");
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");  
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
-  const [promedio, setPromedio] = React.useState<number>(0);
-  const [grupoCVE, setGrupoCVE] = React.useState<string>("");
   const {account} = useAuth()
 
   const deptos = React.useMemo(() => {
@@ -192,27 +187,6 @@ export default function FormRetail({onClose, state, setField, handleSubmit, erro
 
     console.log(conectividad, conectividadTexto)
   }, [state.Salario, state.Cargo, state.Auxiliodetransporte, state.Auxiliotransporteletras, setField,]);
-
-  React.useEffect(() => {
-    const nextPromedio = (Number(state.Autonomia || 0) * 0.2) + (Number(state.Impacto || 0) * 0.2) + (Number(state.Contribucion || 0) * 0.3) + (Number(state.Presupuesto || 0) * 0.3);
-    const red = Math.floor(nextPromedio);
-
-    let nextGrupo = "";
-    if (red === 1) nextGrupo = "Constructores";
-    else if (red === 2) nextGrupo = "Desarrolladores";
-    else if (red === 3) nextGrupo = "Imaginarios";
-    else if (red === 4) nextGrupo = "Soñadores";
-
-    setPromedio(nextPromedio);
-    setGrupoCVE(nextGrupo);
-
-    if (String(state.Promedio ?? "") !== String(nextPromedio)) {
-      setField("Promedio", String(nextPromedio));
-    }
-    if (String(state.GrupoCVE ?? "") !== nextGrupo) {
-      setField("GrupoCVE", nextGrupo);
-    }
-  }, [state.Autonomia, state.Impacto, state.Contribucion, state.Presupuesto, state.Promedio, state.GrupoCVE, setField]);
 
   /* ================== Nivel por cargo ================== */
   React.useEffect(() => {
@@ -484,26 +458,6 @@ export default function FormRetail({onClose, state, setField, handleSubmit, erro
             <small>{errors.Ciudad}</small>
           </div>
 
-          {/* Temporal */}
-          <div className="ft-field">
-            <label className="ft-label" htmlFor="numeroIdent">Temporal *</label>
-            <Select<desplegablesOption, false>
-              inputId="temporal"
-              options={tiemposOptions}
-              placeholder={loadingTiempos ? "Cargando opciones…" : "Buscar temporal..."}
-              value={selectedTemporal}
-              onChange={(opt) => {setField("Temporal", opt?.label ?? "");}}
-              classNamePrefix="rs"
-              isDisabled={loadingTiempos}
-              isLoading={loadingTiempos}
-              getOptionValue={(o) => String(o.value)}
-              getOptionLabel={(o) => o.label}
-              components={{ Option }}
-              isClearable
-            />
-            <small>{errors.Temporal}</small>
-          </div>
-
           {/* ================= Centro de costos ================= */ }
           <div className="ft-field">
             <label className="ft-label" htmlFor="modalidadTrabajo">Centro de costos *</label>
@@ -601,91 +555,6 @@ export default function FormRetail({onClose, state, setField, handleSubmit, erro
             />
             <small>{errors.OrigenSeleccion}</small>
           </div>
-
-          {/* ¿Pertenece al modelo? */}
-          <div className="ft-field">
-            <label className="ft-label"> ¿Pertenece al modelo? *</label>
-            <div className="ft-radio-group">
-              <label className="ft-radio-custom">
-                <input type="radio" name="modelo" value="Si" checked={!!state.PerteneceModelo} onChange={() => setField("PerteneceModelo", true)}/>
-                <span className="circle"></span>
-                <span className="text">Si</span>
-              </label>
-
-              <label className="ft-radio-custom">
-                <input type="radio" name="modelo" value="No" checked={!state.PerteneceModelo} onChange={() => setField("PerteneceModelo", false)}/>
-                <span className="circle"></span>
-                <span className="text">No</span>
-              </label>
-            </div>
-          </div>
-
-          {state.PerteneceModelo && (
-            <>
-              <div className="ft-field">
-                <label className="ft-label" htmlFor="Autonomia">Autonomía *</label>
-                <select name="Autonomia" onChange={(e) => setField("Autonomia", e.target.value)}>
-                  <option value="0" selected>0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                </select>
-                <small>{errors.Autonomia}</small>
-              </div>
-              
-
-              <div className="ft-field">
-                <label className="ft-label" htmlFor="presupuesto">Presupuesto ventas/magnitud económica *</label>
-                <select name="presupuesto" onChange={(e) => setField("Presupuesto", e.target.value)}>
-                  <option value="0" selected>0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                </select>
-                <small>{errors.Presupuesto}</small>
-              </div>
-
-              <div className="ft-field">
-                <label className="ft-label" htmlFor="impacto">Impacto cliente externo *</label>
-                <select name="impacto" onChange={(e) => setField("Impacto", e.target.value)}>
-                  <option value="0" selected>0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                </select>
-                <small>{errors.Impacto}</small>
-              </div>
-
-              <div className="ft-field">
-                <label className="ft-label" htmlFor="contribucion">Contribución a la estrategia *</label>
-                <select name="contribucion" onChange={(e) => setField("Contribucion", e.target.value)}>
-                  <option value="0" selected>0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                </select>
-                <small>{errors.Contribucion}</small>
-              </div>
-
-              {/* Promedio */}
-              <div className="ft-field">
-                <label className="ft-label" htmlFor="cve"> Promedio *</label>
-                <input id="cve" name="cve" type="text" placeholder="Rellene los campos anteriores" value={promedio} readOnly/>
-              </div>
-            
-              {/* Grupo de CVE */}
-              <div className="ft-field">
-                <label className="ft-label" htmlFor="cve"> Grupo CVE *</label>
-                <input id="cve" name="cve" type="text" placeholder="Rellene los campos anteriores" value={grupoCVE} readOnly/>
-              </div>
-            </>
-          )}
-
-
 
           {/* Informacion enviada por */}
           <div className="ft-field">

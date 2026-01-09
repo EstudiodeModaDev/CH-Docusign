@@ -363,7 +363,6 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
 
   const updatePazSalvo = async (e: React.FormEvent, IdPazSalvo: string) => {
     e.preventDefault();
-    if (!validate()) {return};
     setLoading(true);
     try {
 

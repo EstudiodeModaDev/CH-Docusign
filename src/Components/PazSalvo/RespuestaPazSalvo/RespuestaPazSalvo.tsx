@@ -80,7 +80,7 @@ export const MotivoAdjuntosForm: React.FC<Props> = ({ IdPazSalvo, onBack }) => {
     let respuesta
     if(Firma){
         respuesta =  await handleSubmit(files!, Firma);
-        if(respuesta?.cerrar){
+        if(respuesta.cerrar){
           await updatePazSalvo(e, IdPazSalvo.Id ?? "")
         }
     }

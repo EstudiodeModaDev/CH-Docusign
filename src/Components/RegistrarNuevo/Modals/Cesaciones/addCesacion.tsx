@@ -16,6 +16,7 @@ import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
 import type { Cesacion, CesacionErrors } from "../../../../models/Cesaciones";
 import type { SetField } from "../Contrato/addContrato";
 import { useRetail } from "../../../../Funcionalidades/Retail";
+import { createBody, notifyTeam } from "../../../../utils/mail";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -44,7 +45,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormCesacion({onClose, state, setField, handleSubmit, errors, searchCesacion}: Props){
-  const { Maestro, DeptosYMunicipios, salarios, DetallesPasosCesacion, HabeasData, Contratos, Promociones, categorias, Retail, configuraciones } = useGraphServices();
+  const { Maestro, DeptosYMunicipios, salarios, DetallesPasosCesacion, HabeasData, Contratos, Promociones, categorias, Retail, configuraciones, mail } = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
   const { searchRegister: searchNovedad } = useContratos(Contratos);
   const { searchRegister: searchPromocion } = usePromocion(Promociones);
@@ -231,6 +232,8 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
     if(created.ok){
       await loadPasosCesacion()
       await handleCreateAllSteps(rows, created.created ?? "")
+      const body = createBody(account?.name ?? "", "Cesaciones", state.Nombre, state.Title)
+      await notifyTeam(mail, "Nuevo registro en cesaciones - Gestor documental CH", body)
       await onClose()
     }
   };

@@ -17,6 +17,7 @@ import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
 import type { Promocion, PromocionErrors } from "../../../../models/Promociones";
 import type { SetField } from "../Contrato/addContrato";
 import { useRetail } from "../../../../Funcionalidades/Retail";
+import { createBody, notifyTeam } from "../../../../utils/mail";
 
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -44,7 +45,7 @@ type Props = {
 };
 /* ================== Formulario ================== */
 export default function FormPromociones({onClose, state, setField, handleSubmit, errors, searchPromocion, loadFirstPage}: Props){
-  const { Maestro, DeptosYMunicipios, DetallesPasosPromocion, salarios, HabeasData, Contratos, Cesaciones, categorias, Retail, configuraciones} = useGraphServices();
+  const { Maestro, DeptosYMunicipios, DetallesPasosPromocion, salarios, HabeasData, Contratos, Cesaciones, categorias, Retail, configuraciones, mail} = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
   const { searchRegister: searchNovedad } = useContratos(Contratos);
   const { searchRegister: searchCesacion } = useCesaciones(Cesaciones);
@@ -290,6 +291,8 @@ export default function FormPromociones({onClose, state, setField, handleSubmit,
     if(created.ok){
       await loadPasosPromocion()
       await handleCreateAllSteps(rows, created.created ?? "")
+      const body = createBody(account?.name ?? "", "Promociones", state.NombreSeleccionado, state.NumeroDoc)
+      await notifyTeam(mail, "Nuevo registro en Promociones - Gestor documental CH", body)
       await onClose()
       await loadFirstPage()
     }

@@ -16,6 +16,7 @@ import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
 import type { Novedad, NovedadErrors } from "../../../../models/Novedades";
 import { useAutomaticCargo } from "../../../../Funcionalidades/Niveles";
 import { useRetail } from "../../../../Funcionalidades/Retail";
+import { createBody, notifyTeam } from "../../../../utils/mail";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -46,7 +47,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormContratacion({ onClose, state, setField, handleSubmit, errors, searchRegister: searchNovedad, loadFirstPage }: Props) {
-  const { Maestro, DeptosYMunicipios, DetallesPasosNovedades, salarios, HabeasData, Promociones, Cesaciones, categorias, Retail, configuraciones } = useGraphServices();
+  const { Maestro, DeptosYMunicipios, DetallesPasosNovedades, salarios, HabeasData, Promociones, Cesaciones, categorias, Retail, configuraciones, mail } = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
   const { searchRegister: searchPromocion } = usePromocion(Promociones);
   const { searchRegister: searchRetail } = useRetail(Retail);
@@ -329,6 +330,8 @@ export default function FormContratacion({ onClose, state, setField, handleSubmi
     if (created.ok) {
       await loadPasosNovedad();
       await handleCreateAllSteps(rows, created.created ?? "");
+      const body = createBody(account?.name ?? "", "Contratación", state.NombreSeleccionado, state.Numero_x0020_identificaci_x00f3_)
+      await notifyTeam(mail, "Nuevo registro en contratación - Gestor documental CH", body)
       await loadFirstPage()
       await onClose();
     }

@@ -16,6 +16,7 @@ import type { SetField } from "../Contrato/addContrato";
 import type { Retail, RetailErrors } from "../../../../models/Retail";
 import { useCesaciones } from "../../../../Funcionalidades/Cesaciones";
 import { useDetallesPasosRetail, usePasosRetail } from "../../../../Funcionalidades/PasosRetail";
+import { createBody, notifyTeam } from "../../../../utils/mail";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -44,7 +45,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormRetail({onClose, state, setField, handleSubmit, errors, searchRetail}: Props){
-  const { Maestro, DeptosYMunicipios, salarios, detallesPasosRetail, HabeasData, Contratos, Promociones, categorias, Cesaciones, configuraciones } = useGraphServices();
+  const { Maestro, DeptosYMunicipios, salarios, detallesPasosRetail, HabeasData, Contratos, Promociones, categorias, Cesaciones, configuraciones, mail } = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
   const { searchRegister: searchNovedad } = useContratos(Contratos);
   const { searchRegister: searchPromocion } = usePromocion(Promociones);
@@ -235,6 +236,8 @@ export default function FormRetail({onClose, state, setField, handleSubmit, erro
     if(created.ok){
       await loadPasosPromocion()
       await handleCreateAllSteps(rows, created.created ?? "")
+      const body = createBody(account?.name ?? "", "Retail", state.Nombre, state.Title)
+      await notifyTeam(mail, "Nuevo registro en Habeas Data - Gestor documental CH", body)
       await onClose()
     }
   };

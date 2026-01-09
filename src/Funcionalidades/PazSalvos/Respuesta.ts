@@ -109,8 +109,11 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
     });
   }
 
-  const handleSubmit = async (filesArray: FileList | null, firma: FirmaInline) => {
-    if (!validate()) return;
+const handleSubmit = async (filesArray: FileList | null, firma: FirmaInline ): Promise<{ created: respuestas | null; cerrar: boolean }> => {
+    if (!validate()) return {
+      cerrar: false,
+      created: null
+    };
 
     setLoading(true);
     try {

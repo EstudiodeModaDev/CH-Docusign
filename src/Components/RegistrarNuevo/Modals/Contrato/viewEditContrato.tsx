@@ -39,7 +39,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormContratacion({onClose, selectedNovedad, tipo}: Props){
-  const { Maestro, DeptosYMunicipios, Contratos, DetallesPasosNovedades, categorias, NovedadCancelada} = useGraphServices();
+  const { Maestro, DeptosYMunicipios, Contratos, DetallesPasosNovedades, categorias, NovedadCancelada, configuraciones} = useGraphServices();
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
   const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
   const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
@@ -239,6 +239,8 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     const [conectividadTexto, setConectividadTexto] = React.useState<string>("");
     const [planFinanciado, setPlanfinanciado] = React.useState<boolean>(false)
     const [garantizadoValor, setValorGarantizado] = React.useState<number>(0)
+    const [minimo, setMinimo] = React.useState<number>(0)
+    const [auxTransporte, setAuxTransporte] = React.useState<number>(0)
     const [porcentajeValor, setPorcentajeValor] = React.useState<number>(0)
     const [promedio, setPromedio] = React.useState<number>(0);
     const [porcentajeCompletacion, setPorcetanjeCompletacion] = React.useState<number>(0);
@@ -268,7 +270,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
   }, [state.Auxilio_x0020_de_x0020_rodamient]);
 
   React.useEffect(() => {
-    const dosSalarios = 1750905*2;
+    const dosSalarios = minimo*2;
     const valor = Number(state.SALARIO || 0);
     const cargo = (state.CARGO || "").toLowerCase();
 
@@ -276,8 +278,8 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     let nextTexto = "";
 
     if (valor <= dosSalarios) {
-      nextValor = 249095;
-      nextTexto = "DOSCIENTOS CUARENTA Y NUEVE MIL NOVENTA Y CINCO";
+      nextValor = auxTransporte;
+      nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();;
     } else if (valor > dosSalarios || cargo.includes("aprendiz") || cargo.includes("practicante")) {
       nextValor = 46150;
       nextTexto = "Cuarenta y seis mil ciento noventa pesos";
@@ -387,6 +389,19 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
       cancelled = true;
     };
   }, [state.CARGO,]);
+
+  React.useEffect(() => {
+
+    const run = async () => {
+      const salario = (await configuraciones.get("1")).Valor
+      const auxTransporte = await (await configuraciones.get("2")).Valor
+      alert("Salario " + salario + " aux " + auxTransporte)
+      setMinimo(Number(salario))
+      setAuxTransporte(Number(auxTransporte))
+    };
+
+    run();
+  }, []);
 
 
   const completeStep = React.useCallback( async (detalle: DetallesPasos, estado: string) => {

@@ -19,6 +19,7 @@ import type { PasosProceso } from "../../models/Cesaciones";
 import { usePasosPromocion } from "../../Funcionalidades/PasosPromocion";
 import type { TablaParametrosProps } from "../../models/Props";
 import { usePasosRetail } from "../../Funcionalidades/PasosRetail";
+import { ConfiguracionesVariasComponent } from "./ConfiguracionesVarias/ConfiguracionesVarias";
 
 export type ParamTab = {
   id: string;
@@ -70,6 +71,7 @@ export const ParamTabs: React.FC<TablaParametrosProps> = ({ tabs, value, onChang
 };
 
 const TABS = [
+  { id: "configs", label: "Configuraciones" },
   { id: "empresas", label: "Empresas" },
   { id: "tipodoc", label: "Tipos de documentos" },
   { id: "cargos", label: "Cargos" },
@@ -88,7 +90,7 @@ const TABS = [
 ];
 
 export const ParametrosPage: React.FC = () => {
-  const [active, setActive] = React.useState<string>("empresas");
+  const [active, setActive] = React.useState<string>("configs");
   const {PasosCesacion, PasosNovedades,PasosPromocion, pasosRetail} = useGraphServices()
   const {loadPasosCesacion, rows} = usePasosCesacion()
   const {loadPasosNovedad, rows: rowsNovedades} = usePasosNoveades()
@@ -100,6 +102,7 @@ export const ParametrosPage: React.FC = () => {
       <ParamTabs tabs={TABS} value={active} onChange={setActive} />
 
       {/* aquí renderizas según la pestaña */}
+      {active === "configs" && <ConfiguracionesVariasComponent/>}
       {active === "empresas" && <EmpresasManager></EmpresasManager>}
       {active === "tipodoc" && <DocumentTypeManager/>}
       {active === "cargos" && <CargosManager/>}

@@ -27,3 +27,10 @@ export type salario = {
 }
 
 export type salarioErrors = Partial<Record<keyof salario, string>>;
+
+export type configuraciones = {
+  Id?: string,
+  Title : string,
+  Valor: string
+
+}

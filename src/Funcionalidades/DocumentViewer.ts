@@ -4,12 +4,12 @@ import { useGraphServices } from "../graph/graphContext";
 import type { Archivo } from "../models/archivos";
 import { parseDateFlex } from "../utils/Date";
 
-export type EmpresaKey = "estudio" | "dh" | "denim" | "visual" | "meta";
+export type EmpresaKey = "estudio" | "dh" | "denim" | "visual" | "meta" | "broken";
 
-type PathsState = {estudio: string; dh: string; denim: string; visual: string; meta: string};
+type PathsState = {estudio: string; dh: string; denim: string; visual: string; meta: string, broken: ""};
 
 export function useColaboradoresExplorer() {
-  const { ColaboradoresEDM, ColaboradoresDH, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta } = useGraphServices();
+  const { ColaboradoresEDM, ColaboradoresDH, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta, ColaboradoresBroken } = useGraphServices();
 
   const [empresa, setEmpresaState] = React.useState<EmpresaKey>("estudio");
   const [paths, setPaths] = React.useState<PathsState>({
@@ -17,7 +17,8 @@ export function useColaboradoresExplorer() {
     dh: "",
     denim: "",
     visual: "", 
-    meta: ""
+    meta: "", 
+    broken: ""
   });
 
   const [rawItems, setRawItems] = React.useState<Archivo[]>([]);
@@ -26,8 +27,8 @@ export function useColaboradoresExplorer() {
   const [search, setSearch] = React.useState("");
   const [organizacion, setOrganizacion] = React.useState("asc")
 
-  const currentPath = empresa === "estudio" ? paths.estudio : empresa === "dh" ? paths.dh : empresa === "denim" ? paths.denim : empresa === "visual" ? paths.visual : empresa === "meta" ? paths.meta : "";
-  const activeService = empresa === "estudio" ? ColaboradoresEDM : empresa === "dh" ? ColaboradoresDH : empresa === "denim" ? ColaboradoresDenim : empresa=== "visual" ? ColaboradoresVisual : empresa === "meta" ? ColaboradoresMeta: ColaboradoresEDM;
+  const currentPath = empresa === "estudio" ? paths.estudio : empresa === "dh" ? paths.dh : empresa === "denim" ? paths.denim : empresa === "visual" ? paths.visual : empresa === "meta" ? paths.meta : empresa === "broken" ? paths.broken : "";
+  const activeService = empresa === "estudio" ? ColaboradoresEDM : empresa === "dh" ? ColaboradoresDH : empresa === "denim" ? ColaboradoresDenim : empresa=== "visual" ? ColaboradoresVisual : empresa === "meta" ? ColaboradoresMeta: empresa === "broken" ? ColaboradoresBroken : ColaboradoresMeta;
 
   const load = React.useCallback(async () => {
     setLoading(true);

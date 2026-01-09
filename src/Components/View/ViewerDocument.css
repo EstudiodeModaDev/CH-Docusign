@@ -455,3 +455,15 @@
   transform: translateY(1px);
 }
 
+.colab-explorer__counter{
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  opacity: .85;
+  white-space: nowrap;
+}
+
+.colab-explorer__counter-sep{
+  opacity: .6;
+}

@@ -11,7 +11,7 @@ import { DeptosYMunicipiosService } from "../Services/DeptosYMunicipios.service"
 import { EnviosService } from "../Services/Envios.service";
 import { PasosPromocionService } from "../Services/PasosPromocion.service";
 import { DetallesPasosPromocionService } from "../Services/DetallesPasosPromocion.service";
-import { ColaboradoresDenimService, ColaboradoresDHService, ColaboradoresEDMService, ColaboradoresMetaService, ColaboradoresVisualService } from "../Services/Bibliotecas.service";
+import { ColaboradoresBrokenService, ColaboradoresDenimService, ColaboradoresDHService, ColaboradoresEDMService, ColaboradoresMetaService, ColaboradoresVisualService } from "../Services/Bibliotecas.service";
 import { PazSalvosService } from "../Services/PazSalvos.service";
 import { PermisosPazSalvosService } from "../Services/PermisosPazSalvos.service";
 import { RenovarService } from "../Services/Renovar.service";
@@ -34,6 +34,7 @@ import { LogService } from "../Services/Log.service";
 import { CesacionCanceladaService } from "../Services/CesacionCancelada.service";
 import { PromocionesCanceladasService } from "../Services/PromocionesCanceladas.service";
 import { RetailCanceladosService } from "../Services/RetailCancelado.service";
+import { ConfiguracionesService } from "../Services/Configuraciones.service";
 
 
 /* ================== Tipos de config ================== */
@@ -79,6 +80,7 @@ export type UnifiedConfig = {
     Maestros: string;
     salarios: string;
     categorias: string
+    configuraciones: string
 
     //Seguridad
     Usuarios: string;
@@ -92,7 +94,8 @@ export type UnifiedConfig = {
     ColaboradoresDH: string;
     ColaboradoresDenim: string;
     ColaboradoresVisual: string;
-    ColaboradoresMeta: string
+    ColaboradoresMeta: string;
+    ColaboradoresBroken: string
 
     // Paz Salvos
     PazSalvos: string;
@@ -144,6 +147,7 @@ export type GraphServices = {
   DeptosYMunicipios: DeptosYMunicipiosService;
   salarios: SalariosService
   categorias: CategoriaCargosService
+  configuraciones: ConfiguracionesService
 
   // Seguridad
   Usuarios: UsuariosSPService;
@@ -161,6 +165,7 @@ export type GraphServices = {
   ColaboradoresDenim: ColaboradoresDenimService,
   ColaboradoresVisual: ColaboradoresVisualService
   ColaboradoresMeta: ColaboradoresMetaService
+  ColaboradoresBroken: ColaboradoresBrokenService
 
   // Paz Salvos
   PazSalvos: PazSalvosService;
@@ -224,6 +229,7 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     DeptosYMunicipios: "DeptosyMunicipios",
     salarios: "Cargos - Salarios Recomendados",
     categorias: "Cargos - CategoriaCargos",
+    configuraciones: "Configuraciones",
 
     //Seguridad
     Usuarios: "Permisos Docu",
@@ -238,6 +244,7 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     ColaboradoresDenim: "Colaboradores DENIM",
     ColaboradoresVisual: "Colaboradores Visual",
     ColaboradoresMeta: "Colaboradores METAGRAPHICS",
+    ColaboradoresBroken: "Colaboradores BROKEN",
 
     // Paz y salvos
     PazSalvos: "Paz y salvos",
@@ -325,6 +332,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     const DeptosYMunicipios       = new DeptosYMunicipiosService(graph, ch.hostname, ch.sitePath, lists.DeptosYMunicipios)
     const salarios                = new SalariosService(graph, ch.hostname, ch.sitePath, lists.salarios)
     const categorias              = new CategoriaCargosService(graph, ch.hostname, ch.sitePath, lists.categorias)
+    const configuraciones         = new ConfiguracionesService(graph, ch.hostname, ch.sitePath, lists.configuraciones)
 
     //Seguridad
     const Usuarios                = new UsuariosSPService(graph, ch.hostname, ch.sitePath, lists.Usuarios);
@@ -342,6 +350,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     const ColaboradoresDenim      = new ColaboradoresDenimService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresDenim)
     const ColaboradoresVisual     = new ColaboradoresVisualService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresVisual);
     const ColaboradoresMeta       = new ColaboradoresMetaService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresMeta)
+    const ColaboradoresBroken     = new ColaboradoresBrokenService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresBroken)
     
     //Paz y salvos
     const PazSalvos               = new PazSalvosService(graph, ch.hostname, ch.sitePath, lists.PazSalvos);
@@ -366,7 +375,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       //Retail
       Retail, pasosRetail, detallesPasosRetail,
       //Desplegables
-      Maestro, DeptosYMunicipios, salarios, categorias, retailCancelados,
+      Maestro, DeptosYMunicipios, salarios, categorias, retailCancelados, configuraciones,
       //Seguridad
       Usuarios, Perfiles,
       //Envios
@@ -374,7 +383,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       //Enviar Correo
       mail,
       //Bibliotecas
-      ColaboradoresEDM, ColaboradoresDH, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta,
+      ColaboradoresEDM, ColaboradoresDH, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta, ColaboradoresBroken,
       //paz salvos
       PazSalvos, PermisosPaz, Renovar, Firmas, Respuesta,
       //Tickets

@@ -44,7 +44,7 @@ type Props = {
 };
 /* ================== Formulario ================== */
 export default function FormPromociones({onClose, state, setField, handleSubmit, errors, searchPromocion, loadFirstPage}: Props){
-  const { Maestro, DeptosYMunicipios, DetallesPasosPromocion, salarios, HabeasData, Contratos, Cesaciones, categorias, Retail} = useGraphServices();
+  const { Maestro, DeptosYMunicipios, DetallesPasosPromocion, salarios, HabeasData, Contratos, Cesaciones, categorias, Retail, configuraciones} = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
   const { searchRegister: searchNovedad } = useContratos(Contratos);
   const { searchRegister: searchCesacion } = useCesaciones(Cesaciones);
@@ -120,6 +120,8 @@ export default function FormPromociones({onClose, state, setField, handleSubmit,
   const [conectividadTexto, setConectividadTexto] = React.useState<string>("");
   const [planFinanciado, setPlanfinanciado] = React.useState<boolean>(false)
   const [garantizadoValor, setValorGarantizado] = React.useState<number>(0)
+  const [minimo, setMinimo] = React.useState<number>(0)
+  const [auxTransporte, setAuxTransporte] = React.useState<number>(0)
   const [porcentajeValor, setPorcentajeValor] = React.useState<number>(0)
   const [promedio, setPromedio] = React.useState<number>(0);
   const [grupoCVE, setGrupoCVE] = React.useState<string>("");
@@ -159,7 +161,7 @@ export default function FormPromociones({onClose, state, setField, handleSubmit,
   }, [state.AuxilioRodamiento]);
 
   React.useEffect(() => {
-    const dosSalarios = 1750905*2;
+    const dosSalarios = minimo*2;
     const valor = Number(state.Salario || 0);
     const cargo = (state.Cargo || "").toLowerCase();
 
@@ -167,8 +169,8 @@ export default function FormPromociones({onClose, state, setField, handleSubmit,
     let nextTexto = "";
 
     if (valor <= dosSalarios) {
-      nextValor = 249095;
-      nextTexto = "DOSCIENTOS CUARENTA Y NUEVE MIL NOVENTA Y CINCO";
+      nextValor = auxTransporte;
+      nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();
     } else if (valor > dosSalarios || cargo.includes("aprendiz") || cargo.includes("practicante")) {
       nextValor = 46150;
       nextTexto = "Cuarenta y seis mil ciento noventa pesos";
@@ -268,6 +270,19 @@ export default function FormPromociones({onClose, state, setField, handleSubmit,
       cancelled = true;
     };
   }, [state.Cargo,]);
+
+  React.useEffect(() => {
+
+    const run = async () => {
+      const salario = (await configuraciones.get("1")).Valor
+      const auxTransporte = await (await configuraciones.get("2")).Valor
+      alert("Salario " + salario + " aux " + auxTransporte)
+      setMinimo(Number(salario))
+      setAuxTransporte(Number(auxTransporte))
+    };
+
+    run();
+  }, []);
 
   const handleCreatePromotion = async () => {
     const created = await handleSubmit();

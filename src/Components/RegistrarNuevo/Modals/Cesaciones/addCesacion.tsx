@@ -44,7 +44,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormCesacion({onClose, state, setField, handleSubmit, errors, searchCesacion}: Props){
-  const { Maestro, DeptosYMunicipios, salarios, DetallesPasosCesacion, HabeasData, Contratos, Promociones, categorias, Retail } = useGraphServices();
+  const { Maestro, DeptosYMunicipios, salarios, DetallesPasosCesacion, HabeasData, Contratos, Promociones, categorias, Retail, configuraciones } = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
   const { searchRegister: searchNovedad } = useContratos(Contratos);
   const { searchRegister: searchPromocion } = usePromocion(Promociones);
@@ -96,6 +96,8 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
   const [displaySalario, setDisplaySalario] = React.useState<string>("");
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");  
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
+  const [minimo, setMinimo] = React.useState<number>(0);
+  const [auxTransporte, setAuxTransporte] = React.useState<number>(0);
   const {account} = useAuth()
 
   const deptos = React.useMemo(() => {
@@ -155,7 +157,7 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
   }, [state.Salario]);
 
   React.useEffect(() => {
-    const dosSalarios = 1750905*2;
+    const dosSalarios = minimo*2;
     const valor = Number(state.Salario || 0);
     const cargo = (state.Cargo || "").toLowerCase();
 
@@ -163,8 +165,8 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
     let nextTexto = "";
 
     if (valor <= dosSalarios) {
-      nextValor = 249095;
-      nextTexto = "DOSCIENTOS CUARENTA Y NUEVE MIL NOVENTA Y CINCO";
+      nextValor = auxTransporte;
+      nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();
     } else if (valor > dosSalarios || cargo.includes("aprendiz") || cargo.includes("practicante")) {
       nextValor = 46150;
       nextTexto = "Cuarenta y seis mil ciento noventa pesos";
@@ -208,6 +210,19 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
       cancelled = true;
     };
   }, [state.Cargo,]);
+
+  React.useEffect(() => {
+
+    const run = async () => {
+      const salario = (await configuraciones.get("1")).Valor
+      const auxTransporte = await (await configuraciones.get("2")).Valor
+      alert("Salario " + salario + " aux " + auxTransporte)
+      setMinimo(Number(salario))
+      setAuxTransporte(Number(auxTransporte))
+    };
+
+    run();
+  }, []);
 
 
   const handleCreateCesacion = async () => {

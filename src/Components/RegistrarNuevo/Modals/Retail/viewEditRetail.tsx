@@ -39,7 +39,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function EditRetail({onClose, selectedRetail, tipo}: Props){
-    const { Maestro, Retail, DeptosYMunicipios, salarios, detallesPasosRetail, categorias, retailCancelados } = useGraphServices();
+    const { Maestro, Retail, DeptosYMunicipios, salarios, detallesPasosRetail, categorias, retailCancelados, configuraciones } = useGraphServices();
     const { state, setField, handleEdit, errors, handleCancelProcessbyId} = useRetail(Retail, retailCancelados);
     const { byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep, error: errorPasos, loading: loadingPasos} = usePasosRetail()
     const { loading: loadingDetalles, rows: rowsDetalles, error: errorDetalles, loadDetallesPromocion, calcPorcentaje} = useDetallesPasosRetail(detallesPasosRetail, selectedRetail.Id ?? "")
@@ -125,6 +125,8 @@ export default function EditRetail({onClose, selectedRetail, tipo}: Props){
 
   /* ================== Display local para campos monetarios ================== */
   const [conectividad, setConectividad] = React.useState<Number>(0);
+  const [minimo, setMinimo] = React.useState<Number>(0);
+  const [auxTransporte, setAuxTransporte] = React.useState<Number>(0);
   const [conectividadTexto, setConectividadTexto] = React.useState<string>("");
   const [displaySalario, setDisplaySalario] = React.useState<string>("");
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");  
@@ -193,7 +195,7 @@ export default function EditRetail({onClose, selectedRetail, tipo}: Props){
 
 
   React.useEffect(() => {
-    const dosSalarios = 1750905*2;
+    const dosSalarios = Number(minimo)*2;
     const valor = Number(state.Salario || 0);
     const cargo = (state.Cargo || "").toLowerCase();
 
@@ -201,8 +203,8 @@ export default function EditRetail({onClose, selectedRetail, tipo}: Props){
     let nextTexto = "";
 
     if (valor <= dosSalarios) {
-      nextValor = 249095;
-      nextTexto = "DOSCIENTOS CUARENTA Y NUEVE MIL NOVENTA Y CINCO";
+      nextValor = Number(auxTransporte);
+      nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();
     } else if (valor > dosSalarios || cargo.includes("aprendiz") || cargo.includes("practicante")) {
       nextValor = 46150;
       nextTexto = "Cuarenta y seis mil ciento noventa pesos";
@@ -271,6 +273,19 @@ export default function EditRetail({onClose, selectedRetail, tipo}: Props){
       cancelled = true;
     };
   }, [state.Cargo,]);
+
+  React.useEffect(() => {
+
+    const run = async () => {
+      const salario = (await configuraciones.get("1")).Valor
+      const auxTransporte = await (await configuraciones.get("2")).Valor
+      alert("Salario " + salario + " aux " + auxTransporte)
+      setMinimo(Number(salario))
+      setAuxTransporte(Number(auxTransporte))
+    };
+
+    run();
+  }, []);
 
   const completeStep = React.useCallback( async (detalle: DetallesPasos, ) => {
       await handleCompleteStep(detalle);

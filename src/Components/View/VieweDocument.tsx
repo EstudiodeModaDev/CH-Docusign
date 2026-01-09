@@ -20,6 +20,9 @@ export const ColaboradoresExplorer: React.FC = () => {
     const [cancelProcess, setCancelProcess] = React.useState<boolean>(false)
  
     const hayRuta = !!currentPath.trim();
+    const totalItems = items.length;
+    const totalFolders = React.useMemo(() => items.filter(i => i.isFolder).length, [items]);
+    const totalFiles = totalItems - totalFolders;
 
     const handleCancel = async (razon: string) => {
         const parts = currentPath.split("/").filter(Boolean);
@@ -36,6 +39,10 @@ export const ColaboradoresExplorer: React.FC = () => {
         {/* Sidebar */}
             <aside className="colab-explorer__sidebar">
                 <h2 className="colab-explorer__sidebar-title">Colaboradores</h2>
+
+                <button type="button"  className={"colab-explorer__empresa-btn" + (empresa === "broken" ? " colab-explorer__empresa-btn--active" : "")} onClick={() => setEmpresa("broken")}>
+                    BROKEN
+                </button>
 
                 <button type="button" className={"colab-explorer__empresa-btn" + (empresa === "estudio" ? " colab-explorer__empresa-btn--active" : "")} onClick={() => setEmpresa("estudio")}>
                     ESTUDIO DE MODA
@@ -56,6 +63,7 @@ export const ColaboradoresExplorer: React.FC = () => {
                 <button type="button"  className={"colab-explorer__empresa-btn" + (empresa === "visual" ? " colab-explorer__empresa-btn--active" : "")} onClick={() => setEmpresa("visual")}>
                     VISUAL
                 </button>
+                
             </aside>
 
         {/* Panel derecho */}
@@ -88,6 +96,11 @@ export const ColaboradoresExplorer: React.FC = () => {
                     </div>
 
                     <div className="colab-explorer__toolbar-right">
+                        <div className="colab-explorer__counter" aria-label="Contador de elementos">
+                            <span>{totalFiles} archivos</span>
+                            <span className="colab-explorer__counter-sep">•</span>
+                            <span>{totalFolders} carpetas</span>
+                        </div>
                         <select name="orden" id="orden" onChange={(e) => setOrganizacion(e.target.value)} value={organizacion}>
                             <option value="asc" selected>Mas antiguas primero</option>
                             <option value="desc">Mas nuevas primero</option>

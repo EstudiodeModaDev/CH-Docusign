@@ -271,6 +271,12 @@ export class ColaboradoresEDMService extends BibliotecaBaseService {
   }
 }
 
+export class ColaboradoresBrokenService extends BibliotecaBaseService {
+  constructor(graph: GraphRest, hostname: string, sitePath: string, name: string) {
+    super(graph, hostname, sitePath, name);
+  }
+}
+
 export class ColaboradoresDHService extends BibliotecaBaseService {
   constructor(graph: GraphRest, hostname: string, sitePath: string, name: string) {
     super(graph, hostname, sitePath, name);

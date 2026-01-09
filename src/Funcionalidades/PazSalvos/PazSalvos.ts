@@ -2,7 +2,7 @@ import React from "react";
 import type { PazSalvosService } from "../../Services/PazSalvos.service";
 import type { PazSalvo, PazSalvoErrors } from "../../models/PazSalvo";
 import type { DateRange, GetAllOpts, SortDir, SortField } from "../../models/Commons";
-import { parseDateFlex, toGraphDateTime } from "../../utils/Date";
+import { spDateToDDMMYYYY, toGraphDateTime } from "../../utils/Date";
 import { useAuth } from "../../auth/authProvider";
 import type { FirmaInline } from "../../models/Imagenes";
 import type { MailService } from "../../Services/Mail.service";
@@ -264,11 +264,6 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
         // base64 PURO (sin data:image/...;base64,)
         firmaBase64 = stripDataUrl(firma!.contentBytes).replace(/\s+/g, "");
 
-        // Debug rápido
-        console.warn("[DEBUG] firmaFileName:", firmaFileName);
-        console.warn("[DEBUG] firmaMime:", firmaMime);
-        console.warn("[DEBUG] firmaBase64 length:", firmaBase64.length);
-
         if (firmaBase64.length < 50) {
           alert("[DEBUG] Firma base64 muy corta. Probable error al obtener la firma.");
         }
@@ -296,8 +291,8 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
           <tr>
             <td style="padding: 8px;">${created.Title}</td>
             <td style="padding: 8px;">${created.Nombre}</td>
-            <td style="padding: 8px;">${parseDateFlex(created.FechaIngreso)}</td>
-            <td style="padding: 8px;">${parseDateFlex(created.FechaSalida)}</td>
+            <td style="padding: 8px;">${spDateToDDMMYYYY(created.FechaIngreso)}</td>
+            <td style="padding: 8px;">${spDateToDDMMYYYY(created.FechaSalida)}</td>
             <td style="padding: 8px;">${created.Cargo}</td>
             <td style="padding: 8px;">${created.Empresa}</td>
             <td style="padding: 8px;">${created.Jefe}</td>

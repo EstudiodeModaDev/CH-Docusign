@@ -17,18 +17,9 @@ type AdjuntoSimplificado = {
   url: string;
 };
 
-export const RespuestasDetalleModal: React.FC<Props> = ({
-  open,
-  onClose,
-  titulo = "Detalle de respuestas",
-  solicitado,
-  PazSalvoId,
-}) => {
+export const RespuestasDetalleModal: React.FC<Props> = ({open, onClose, titulo = "Detalle de respuestas", solicitado, PazSalvoId,}) => {
   const { Respuesta } = useGraphServices();
-  const { loadUserRespuestasAll, getAttachments } = useRespuestasPazSalvos(
-    Respuesta,
-    PazSalvoId
-  );
+  const { loadAllPazRespuestas, getAttachments } = useRespuestasPazSalvos(Respuesta, PazSalvoId);
 
   const [respuestas, setRespuestas] = React.useState<respuestas[]>([]);
   const [adjuntos, setAdjuntos] = React.useState<Record<string, AdjuntoSimplificado[]>>({});
@@ -42,7 +33,7 @@ export const RespuestasDetalleModal: React.FC<Props> = ({
       setLoading(true);
 
       // 1) Traer todas las respuestas del Paz y Salvo
-      const all = (await loadUserRespuestasAll(PazSalvoId.Id ?? "")) ?? [];
+      const all = (await loadAllPazRespuestas(PazSalvoId.Id ?? "")) ?? [];
 
       // 2) Filtrar solo las del solicitado
       const filtered = all.filter((r) => r.Correo === solicitado);

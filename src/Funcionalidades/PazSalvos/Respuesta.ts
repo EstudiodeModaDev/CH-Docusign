@@ -205,7 +205,24 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
       setLoading(true);
       try {
         const items = await respuestaSvc.getAll({
-          filter: `fields/IdPazSalvo eq '${PazSalvoId}' and fields/Correo eq '${account?.username}' and fields/Estado eq 'Aprobado' or fields/Estado eq 'Novedad'`,
+          filter: `fields/IdPazSalvo eq '${PazSalvoId}' and fields/Correo eq '${account?.username}' and (fields/Estado eq 'Aprobado' or fields/Estado eq 'Novedad')`,
+        });
+        setRows(items)
+        return items;
+      } catch (e: any) {
+        setRows([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [respuestaSvc, account?.username]
+  );
+
+  const loadAllPazRespuestas = React.useCallback(async (PazSalvoId: string,) => {
+      setLoading(true);
+      try {
+        const items = await respuestaSvc.getAll({
+          filter: `fields/IdPazSalvo eq '${PazSalvoId}'`,
         });
         return items;
       } catch (e: any) {
@@ -217,12 +234,11 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
     [respuestaSvc, account?.username]
   );
 
-  const loadUserRespuestasAll = React.useCallback(
-    async (PazSalvoId: string) => {
+  const loadUserRespuestasAll = React.useCallback(async (PazSalvoId: string,) => {
       setLoading(true);
       try {
         const items = await respuestaSvc.getAll({
-          filter: `fields/IdPazSalvo eq '${PazSalvoId}' and fields/Correo eq '${account?.username}'`,
+          filter: `fields/IdPazSalvo eq '${PazSalvoId} and fields/Correo eq '${account?.username}'`,
         });
         return items;
       } catch (e: any) {
@@ -310,7 +326,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
 
       // Consultas en paralelo para cierre
       const [aprobados, todos] = await Promise.all([
-        respuestaSvc.getAll({filter: `fields/IdPazSalvo eq '${IdPazSalvo!.Id}' and fields/Estado eq 'Aprobado'`,}),
+        respuestaSvc.getAll({filter: `fields/IdPazSalvo eq '${IdPazSalvo!.Id}' and fields/Estado ne 'Rechazado'`,}),
         respuestaSvc.getAll({filter: `fields/IdPazSalvo eq '${IdPazSalvo!.Id}'`,}),
       ]);
 
@@ -364,7 +380,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
     state,
     errors,
 
-    applyRange,
+    applyRange, loadAllPazRespuestas,
     reloadAll,
     setSearch,
     setField,

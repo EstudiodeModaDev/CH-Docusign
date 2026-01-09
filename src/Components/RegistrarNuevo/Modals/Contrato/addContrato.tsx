@@ -330,7 +330,7 @@ export default function FormContratacion({ onClose, state, setField, handleSubmi
     if (created.ok) {
       await loadPasosNovedad();
       await handleCreateAllSteps(rows, created.created ?? "");
-      const body = createBody(account?.name ?? "", "Contratación", state.NombreSeleccionado, state.Numero_x0020_identificaci_x00f3_)
+      const body = createBody(account?.name ?? "", "Contratación", state.NombreSeleccionado, state.Numero_x0020_identificaci_x00f3_, state.CARGO, state.FECHA_x0020_REQUERIDA_x0020_PARA0 ?? "",)
       await notifyTeam(mail, "Nuevo registro en contratación - Gestor documental CH", body)
       await loadFirstPage()
       await onClose();

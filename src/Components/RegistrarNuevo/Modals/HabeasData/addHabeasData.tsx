@@ -87,7 +87,7 @@ export default function FormHabeas({onClose, state, setField, handleSubmit, erro
     await handleSubmit(e);
     await cleanState();
     await loadFirstPage()
-    const body = createBody(account?.name ?? "", "Habeas Data", state.Title, state.NumeroDocumento)
+    const body = createBody(account?.name ?? "", "Habeas Data", state.Title, state.NumeroDocumento, "", "")
     await notifyTeam(mail, "Nuevo registro en Habeas Data - Gestor documental CH", body)
     onClose()
   };

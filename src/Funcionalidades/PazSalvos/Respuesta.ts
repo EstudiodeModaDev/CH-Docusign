@@ -125,8 +125,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
 
       const created = await respuestaSvc.create(payload);
 
-      // ---- Adjuntos al flujo ----
-      if (filesArray && filesArray.length > 0 && created?.Id) {
+      if (filesArray?.length && created?.Id) {
         const filesForFlow = await Promise.all(
           Array.from(filesArray).map(async (f) => ({
             name: f.name,
@@ -136,130 +135,139 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
 
         await notifyFlow.invoke<any, any>({
           pazId: Number(created.Id),
-          files: filesForFlow, // <-- AQUÍ ya es un ARRAY de objetos simples
+          files: filesForFlow,
         });
       }
 
-      if(state.Estado === "Rechazado"){
-        const toRecipients = [
-          { emailAddress: { address: IdPazSalvo!.CorreoJefe } },
-          { emailAddress: { address: IdPazSalvo!.Solicitante } },
-        ];
-        
-        const htmlBody = `
-          <table border="1" style="border-collapse: collapse; width: 100%;">
-            <tr style="background-color: #ff0000;">
-              <th style="padding: 8px; color: #ffffff;">Área</th>
-              <th style="padding: 8px; color: #ffffff;">Nombre del Aprobador</th>
-              <th style="padding: 8px; color: #ffffff;">Correo del Aprobador</th>
-              <th style="padding: 8px; color: #ffffff;">Respuesta</th>
-              <th style="padding: 8px; color: #ffffff;">Motivo</th>
-            </tr>
+      // ========= Helpers =========
+      const from = account?.username ?? "";
+      const toRecipients = [
+        { emailAddress: { address: IdPazSalvo!.CorreoJefe } },
+        { emailAddress: { address: IdPazSalvo!.Solicitante } },
+      ];
 
-            <tr>
-              <td style="padding: 8px;">${state.Area}</td>
-              <td style="padding: 8px;">${state.Title}</td>
-              <td style="padding: 8px;">${state.Correo}</td>
-              <td style="padding: 8px;">${state.Estado}</td>
-              <td style="padding: 8px;">${state.Respuesta}</td>
+      const firmaHtml = firma
+        ? `
+          <br/>
+          <p style="margin:12px 0 6px 0;">Firma del solicitante:</p>
+          <img
+            src="cid:firma-usuario"
+            alt="Firma del solicitante"
+            style="max-width:200px; max-height:80px; object-fit:contain; display:block;"
+          />
+        `
+        : "";
+
+      type TableVariant = "danger" | "warning" | "success";
+
+      const headerStyleByVariant: Record<TableVariant, string> = {
+        danger: "background-color:#f8d7da; color:#842029;",   // rojo suave
+        warning: "background-color:#fff3cd; color:#664d03;",  // amarillo
+        success: "background-color:#d1e7dd; color:#0f5132;",  // verde
+      };
+
+      const buildRowsHtml = (rows: any[]) =>
+        rows
+          .map(
+            (a) => `
+              <tr>
+                <td style="padding:8px; border:1px solid #ddd;">${a.Area ?? ""}</td>
+                <td style="padding:8px; border:1px solid #ddd;">${a.Title ?? ""}</td>
+                <td style="padding:8px; border:1px solid #ddd;">${a.Correo ?? ""}</td>
+                <td style="padding:8px; border:1px solid #ddd;">${a.Estado ?? ""}</td>
+                <td style="padding:8px; border:1px solid #ddd;">${a.Respuesta ?? ""}</td>
+              </tr>
+            `
+          )
+          .join("");
+
+      const buildTableHtml = (variant: TableVariant, rows: any[]) => `
+        <table border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse; width:100%; font-family:Segoe UI, Arial, sans-serif; font-size:14px;">
+          <thead>
+            <tr style="${headerStyleByVariant[variant]}">
+              <th style="padding:10px; border:1px solid #ddd; text-align:left;">Área</th>
+              <th style="padding:10px; border:1px solid #ddd; text-align:left;">Nombre del aprobador</th>
+              <th style="padding:10px; border:1px solid #ddd; text-align:left;">Correo del aprobador</th>
+              <th style="padding:10px; border:1px solid #ddd; text-align:left;">Respuesta</th>
+              <th style="padding:10px; border:1px solid #ddd; text-align:left;">Motivo</th>
             </tr>
-          </table>
-  
-            ${firma ? `
-            <br/>
-            <p>Firma del solicitante:</p>
-            <img src="cid:firma-usuario"
-                alt="Firma del solicitante"
-                style="max-width: 200px; max-height: 80px; object-fit: contain;" />
-          `
-          : ""
-        }
-        `;
-        
-        const from = account?.username ?? ""; // ajusta esto
-  
+          </thead>
+          <tbody>
+            ${buildRowsHtml(rows)}
+          </tbody>
+        </table>
+        ${firmaHtml}
+      `;
+
+      const sendMailHtml = async (html: string, subject: string) => {
         await graph.sendMail(from, {
           message: {
-            subject: `Novedad paz y salvo - ${IdPazSalvo!.Nombre}  ${IdPazSalvo!.Title} `,
-            body: {
-              contentType: "HTML",
-              content: htmlBody,
-            },
+            subject,
+            body: { contentType: "HTML", content: html },
             toRecipients,
           },
           saveToSentItems: true,
         });
+      };
+
+      // ========= 3) Si el estado actual es Rechazado -> mail inmediato =========
+      if (state.Estado === "Rechazado") {
+        const singleRow = [
+          {
+            Area: state.Area,
+            Title: state.Title,
+            Correo: state.Correo,
+            Estado: state.Estado,
+            Respuesta: state.Respuesta,
+          },
+        ];
+
+        await sendMailHtml(buildTableHtml("danger", singleRow), `Novedad paz y salvo - ${IdPazSalvo!.Nombre} ${IdPazSalvo!.Title}`);
       }
 
-      const aprobados = await respuestaSvc.getAll({filter:  `fields/IdPazSalvo eq '${IdPazSalvo!.Id}' and fields/Estado eq 'Aprobado'`})
-      const todos= await respuestaSvc.getAll({filter:  `fields/IdPazSalvo eq '${IdPazSalvo!.Id}'`})
-      let cerrar
-      if(aprobados.length >= IdPazSalvo!.Solicitados.length){
-        cerrar = true
-        const toRecipients = [
-          { emailAddress: { address: IdPazSalvo!.CorreoJefe } },
-          { emailAddress: { address: IdPazSalvo!.Solicitante } },
-        ];
-        
-        const htmlBody = `
-          <table border="1" style="border-collapse: collapse; width: 100%;">
-            <tr style="background-color: #ff0000;">
-              <th style="padding: 8px; color: #ffffff;">Área</th>
-              <th style="padding: 8px; color: #ffffff;">Nombre del Aprobador</th>
-              <th style="padding: 8px; color: #ffffff;">Correo del Aprobador</th>
-              <th style="padding: 8px; color: #ffffff;">Respuesta</th>
-              <th style="padding: 8px; color: #ffffff;">Motivo</th>
-            </tr>
-
-            <tr>
-              ${todos.map(a => `
-                  <tr>
-                    <td style="padding: 8px;">${a.Area}</td>
-                    <td style="padding: 8px;">${a.Title}</td>
-                    <td style="padding: 8px;">${a.Correo}</td>
-                    <td style="padding: 8px;">${a.Estado}</td>
-                    <td style="padding: 8px;">${a.Respuesta ?? ""}</td>
-                  </tr>
-                `)}
-            </tr>
-          </table>
-  
-            ${firma ? `
-            <br/>
-            <p>Firma del solicitante:</p>
-            <img src="cid:firma-usuario"
-                alt="Firma del solicitante"
-                style="max-width: 200px; max-height: 80px; object-fit: contain;" />
-          `
-          : ""
-        }
-        `;
-        
-        const from = account?.username ?? ""; // ajusta esto
-  
-        await graph.sendMail(from, {
-          message: {
-            subject: `Novedad paz y salvo - ${IdPazSalvo!.Nombre}  ${IdPazSalvo!.Title} `,
-            body: {
-              contentType: "HTML",
-              content: htmlBody,
-            },
-            toRecipients,
+      if (state.Estado === "Novedad") {
+        const singleRow = [
+          {
+            Area: state.Area,
+            Title: state.Title,
+            Correo: state.Correo,
+            Estado: state.Estado,
+            Respuesta: state.Respuesta,
           },
-          saveToSentItems: true,
-        });
+        ];
+
+        await sendMailHtml(buildTableHtml("warning", singleRow), `Novedad paz y salvo - ${IdPazSalvo!.Nombre} ${IdPazSalvo!.Title}`);
+      }
+
+      // ========= 4) Calcular cierre (consultas en paralelo) =========
+      const [aprobados, todos] = await Promise.all([
+        respuestaSvc.getAll({
+          filter: `fields/IdPazSalvo eq '${IdPazSalvo!.Id}' and fields/Estado eq 'Aprobado'`,
+        }),
+        respuestaSvc.getAll({
+          filter: `fields/IdPazSalvo eq '${IdPazSalvo!.Id}'`,
+        }),
+      ]);
+
+      let cerrar = false;
+
+      if (aprobados.length >= IdPazSalvo!.Solicitados.length) {
+        cerrar = true;
+        const allApproved = todos.every((x: any) => String(x.Estado ?? "").toLowerCase() === "aprobado");
+        const variant: TableVariant = allApproved ? "success" : "warning";
+
+        await sendMailHtml(buildTableHtml(variant, todos), `Consolidado paz y salvo - ${IdPazSalvo!.Nombre} ${IdPazSalvo!.Title}`);
       }
 
       alert("Se ha registrado la respuesta con éxito");
       cleanState();
-      return {
-        created,
-        cerrar
-      };
+
+      return { created, cerrar };
     } finally {
       setLoading(false);
     }
   };
+
 
   const getAttachments = async (idRespuesta: string) => {
 

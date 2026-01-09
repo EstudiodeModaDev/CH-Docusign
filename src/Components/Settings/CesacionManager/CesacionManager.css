@@ -416,3 +416,46 @@
 .csx-modal__body .csx__input{
   overflow: hidden;
 }
+
+/* Backdrop: centra pero permite scroll si hace falta */
+.csx-modal__backdrop{
+  position: fixed;
+  inset: 0;
+  background: color-mix(in oklab, black 45%, transparent);
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  z-index: 9999;
+  overflow: auto;                 /* ✅ si el modal es grande, el backdrop puede scrollear */
+}
+
+/* Card: límite de altura y layout por filas */
+.csx-modal__card{
+  width: min(720px, 100%);
+  max-height: 90dvh;              /* ✅ no se pasa de la pantalla */
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-3xl, 18px);
+  box-shadow: var(--shadow, 0 16px 50px rgba(0,0,0,.18));
+  overflow: hidden;
+  display: grid;                  /* ✅ header fijo + body scrolleable */
+  grid-template-rows: auto 1fr;
+}
+
+/* Body: scrollea */
+.csx-modal__body{
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  overflow-y: auto;               /* ✅ scroll interno */
+  overscroll-behavior: contain;
+}
+
+/* Footer: opcional sticky dentro del body (si quieres) */
+.csx-modal__footer{
+  position: sticky;
+  bottom: 0;
+  background: var(--surface, #fff);
+  padding-top: 10px;
+  margin-top: 6px;
+}

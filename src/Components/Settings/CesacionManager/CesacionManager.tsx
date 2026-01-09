@@ -1,34 +1,43 @@
 import * as React from "react";
 import "./CesacionManager.css";
 import type { PasosProceso } from "../../../models/Cesaciones";
+import RichTextBase64 from "../../RichText/RichText";
 
 type PasoCesacionDraft = Omit<PasosProceso, "Id">;
 
 type Props = {
   onChanged?: () => void;
-  onReload: () => void
+  onReload: () => void;
   onAdd: (payload: PasosProceso) => void;
-  onEdit: (id: string, edited: any) => void
-  onDelete: (id: string) => void
-  pasos: PasosProceso[]
-  tipo: string
+  onEdit: (id: string, edited: any) => void;
+  onDelete: (id: string) => void;
+  pasos: PasosProceso[];
+  tipo: string;
 };
 
 const TIPOS_PASO = ["Aprobacion", "Notificacion", "SubidaDocumento"];
-
 
 function toInt(v: any, fallback = 0) {
   const n = Number(v);
   return Number.isFinite(n) ? Math.trunc(n) : fallback;
 }
 
-export const ProcesosStepManager: React.FC<Props> = ({ onChanged, pasos, onReload, tipo, onAdd, onEdit, onDelete}) => {
-  const [state, setState] = React.useState<PasosProceso>({NombreEvidencia: "", NombrePaso: "", Orden: 0, TipoPaso: "", Title: "", PlantillaCorreo:"", PlantillaAsunto:"", Obligatorio: true});
+export const ProcesosStepManager: React.FC<Props> = ({onChanged, pasos, onReload, tipo, onAdd, onEdit, onDelete,}) => {
+  const [state, setState] = React.useState<PasosProceso>({
+    NombreEvidencia: "",
+    NombrePaso: "",
+    Orden: 0,
+    TipoPaso: "",
+    Title: "",
+    PlantillaCorreo: "",
+    PlantillaAsunto: "",
+    Obligatorio: true,
+  });
+
   const setField = <K extends keyof PasosProceso>(k: K, v: PasosProceso[K]) => setState((s) => ({ ...s, [k]: v }));
 
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState("");
-
   const [editingId, setEditingId] = React.useState<string | null>(null);
 
   // MODAL
@@ -58,6 +67,9 @@ export const ProcesosStepManager: React.FC<Props> = ({ onChanged, pasos, onReloa
       Orden: maxOrden + 1,
       NombreEvidencia: "",
       TipoPaso: "Aprobacion",
+      PlantillaCorreo: "",
+      PlantillaAsunto: "",
+      Obligatorio: true,
     }));
 
     setError("");
@@ -73,7 +85,7 @@ export const ProcesosStepManager: React.FC<Props> = ({ onChanged, pasos, onReloa
       TipoPaso: s.TipoPaso ?? "Aprobacion",
       PlantillaCorreo: s.PlantillaCorreo ?? "",
       PlantillaAsunto: s.PlantillaAsunto ?? "",
-      Obligatorio: s.Obligatorio
+      Obligatorio: s.Obligatorio ?? true,
     });
 
     setEditingId(s.Id!);
@@ -96,6 +108,12 @@ export const ProcesosStepManager: React.FC<Props> = ({ onChanged, pasos, onReloa
     if (d.TipoPaso === "SubidaDocumento" && !d.NombreEvidencia?.trim()) {
       return "Si es SubidaDocumento, debes indicar el nombre de la evidencia.";
     }
+
+    if (d.TipoPaso === "Notificacion") {
+      if (!d.PlantillaAsunto?.trim()) return "Si es Notificación, debes indicar una plantilla de asunto.";
+      if (!d.PlantillaCorreo?.trim()) return "Si es Notificación, debes indicar una plantilla de cuerpo.";
+    }
+
     return "";
   };
 
@@ -127,7 +145,7 @@ export const ProcesosStepManager: React.FC<Props> = ({ onChanged, pasos, onReloa
   };
 
   const remove = async (s: PasosProceso) => {
-    if ( !s.Id) return;
+    if (!s.Id) return;
 
     setSaving(true);
     setError("");
@@ -175,6 +193,7 @@ export const ProcesosStepManager: React.FC<Props> = ({ onChanged, pasos, onReloa
           <ul className="csx__list">
             {pasos.map((s) => {
               const isEditing = editingId === s.Id;
+
               return (
                 <li key={s.Id ?? `${s.Orden}-${s.NombrePaso}`} className={`csx__item ${isEditing ? "is-editing" : ""}`}>
                   <div className="csx__itemMain">
@@ -185,6 +204,11 @@ export const ProcesosStepManager: React.FC<Props> = ({ onChanged, pasos, onReloa
 
                     <div className="csx__meta">
                       <span className="csx__pill">{s.TipoPaso}</span>
+
+                      {/* ✅ Obligatorio / Opcional */}
+                      <span className="csx__pill">
+                        {s.Obligatorio ?? true ? "Obligatorio" : "Opcional"}
+                      </span>
 
                       {s.TipoPaso === "SubidaDocumento" && (
                         <span className="csx__pill">
@@ -227,36 +251,32 @@ export const ProcesosStepManager: React.FC<Props> = ({ onChanged, pasos, onReloa
             <div className="csx-modal__body">
               <div className="csx__field">
                 <label className="csx__label">Nombre del paso</label>
-                <input
-                  className="csx__input"
-                  value={state.NombrePaso}
-                  onChange={(e) => {setField("NombrePaso", e.target.value), setField("Title", e.target.value)}}
-                  placeholder="Ej: Recolección de carnet"
-                  disabled={saving}
-                />
+                <input className="csx__input" value={state.NombrePaso} placeholder="Ej: Recolección de carnet" disabled={saving} onChange={(e) => {
+                                                                                                                                  setField("NombrePaso", e.target.value);
+                                                                                                                                  setField("Title", e.target.value);
+                                                                                                                                }}/>
               </div>
 
               <div className="csx-modal__row2">
                 <div className="csx__field">
                   <label className="csx__label">Orden</label>
-                  <input
-                    className="csx__input"
-                    type="number"
-                    min={1}
-                    value={state.Orden}
-                    onChange={(e) => setField("Orden", Number(e.target.value))}
-                    disabled={saving}
-                  />
+                  <input className="csx__input" type="number" min={1} value={state.Orden} onChange={(e) => setField("Orden", Number(e.target.value))} disabled={saving}/>
                 </div>
 
                 <div className="csx__field">
                   <label className="csx__label">Tipo de paso</label>
-                  <select
-                    className="csx__input"
-                    value={state.TipoPaso}
-                    onChange={(e) => setField("TipoPaso", e.target.value)}
-                    disabled={saving}
-                  >
+                  <select className="csx__input" value={state.TipoPaso} disabled={saving} onChange={(e) => {
+                                                                                            const next = e.target.value;
+
+                                                                                            setField("TipoPaso", next);
+
+                                                                                            // ✅ Limpia campos específicos si cambian de tipo
+                                                                                            if (next !== "SubidaDocumento") setField("NombreEvidencia", "" as any);
+                                                                                            if (next !== "Notificacion") {
+                                                                                              setField("PlantillaAsunto", "" as any);
+                                                                                              setField("PlantillaCorreo", "" as any);
+                                                                                            }
+                                                                                          }}>
                     {TIPOS_PASO.map((t) => (
                       <option key={t} value={t}>
                         {t}
@@ -266,17 +286,35 @@ export const ProcesosStepManager: React.FC<Props> = ({ onChanged, pasos, onReloa
                 </div>
               </div>
 
+              {/* ✅ CHECK DE OBLIGATORIEDAD */}
+              <div className="csx__field">
+                <label className="csx__label">Obligatoriedad</label>
+                <label style={{ display: "inline-flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+                  <input type="checkbox" checked={state.Obligatorio ?? true} onChange={(e) => setField("Obligatorio", e.target.checked as any)} disabled={saving}/>
+                  <span>{state.Obligatorio ?? true ? "Este paso es obligatorio" : "Este paso es opcional (se puede omitir)"}</span>
+                </label>
+              </div>
+
               {state.TipoPaso === "SubidaDocumento" && (
                 <div className="csx__field">
                   <label className="csx__label">Nombre de evidencia</label>
-                  <input
-                    className="csx__input"
-                    value={state.NombreEvidencia}
-                    onChange={(e) => setField("NombreEvidencia", e.target.value)}
-                    placeholder="Ej: Paz y salvo, carta, acta…"
-                    disabled={saving}
-                  />
+                  <input className="csx__input" value={state.NombreEvidencia} onChange={(e) => setField("NombreEvidencia", e.target.value)} placeholder="Ej: Paz y salvo, carta, acta…" disabled={saving}/>
                 </div>
+              )}
+
+              {/* ✅ Campos extra para Notificación */}
+              {state.TipoPaso === "Notificacion" && (
+                <>
+                  <div className="csx__field">
+                    <label className="csx__label">Plantilla de asunto</label>
+                    <input className="csx__input" value={state.PlantillaAsunto ?? ""} onChange={(e) => setField("PlantillaAsunto", e.target.value)} placeholder="Ej: Contratación {nombre} - {numeroDoc}" disabled={saving}/>
+                  </div>
+
+                  <div className="csx__field">
+                    <label className="csx__label">Plantilla de cuerpo</label>
+                    <RichTextBase64 value={state.PlantillaCorreo ?? ""} onChange={(html) => setField("PlantillaCorreo", html)} placeholder="Ej: Contratación {nombre} - {numeroDoc}"/>
+                  </div>
+                </>
               )}
 
               <div className="csx-modal__footer">

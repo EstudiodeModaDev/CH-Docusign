@@ -205,7 +205,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
       setLoading(true);
       try {
         const items = await respuestaSvc.getAll({
-          filter: `fields/IdPazSalvo eq '${PazSalvoId}' and fields/Correo eq '${account?.username}' and fields/Estado eq 'Aprobado'`,
+          filter: `fields/IdPazSalvo eq '${PazSalvoId}' and fields/Correo eq '${account?.username}' and fields/Estado eq 'Aprobado' or fields/Estado eq 'Novedad'`,
         });
         return items;
       } catch (e: any) {

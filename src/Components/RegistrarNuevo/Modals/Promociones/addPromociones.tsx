@@ -277,7 +277,6 @@ export default function FormPromociones({onClose, state, setField, handleSubmit,
     const run = async () => {
       const salario = (await configuraciones.get("1")).Valor
       const auxTransporte = await (await configuraciones.get("2")).Valor
-      alert("Salario " + salario + " aux " + auxTransporte)
       setMinimo(Number(salario))
       setAuxTransporte(Number(auxTransporte))
     };

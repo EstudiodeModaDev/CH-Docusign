@@ -7,7 +7,7 @@ export function createBody(user: string, modulo: string, nombre: string, cedula:
                         
                         <div style="padding:18px 22px; background:#0f172a;">
                         <h2 style="margin:0; font-size:18px; color:#ffffff; font-weight:700;">
-                            📌 Nuevo registro creado
+                            Nuevo registro creado
                         </h2>
                         <p style="margin:6px 0 0; font-size:13px; color:#cbd5e1;">
                             Notificación automática del sistema
@@ -57,9 +57,9 @@ export function createBody(user: string, modulo: string, nombre: string, cedula:
 
 export async function notifyTeam(mail: MailService, subject: string, body: string) {
   const to: GraphRecipient[] = [
-   // { emailAddress: { address: "auxiliarch@estudiodemoda.com.co" } },
-   // { emailAddress: { address: "nagomez@estudiodemoda.com.co" } },
-   // { emailAddress: { address: "parios@estudiodemoda.com.co" } },
+    { emailAddress: { address: "auxiliarch@estudiodemoda.com.co" } },
+    { emailAddress: { address: "nagomez@estudiodemoda.com.co" } },
+    { emailAddress: { address: "parios@estudiodemoda.com.co" } },
     { emailAddress: { address: "dpalacios@estudiodemoda.com.co" } },
   ];
 

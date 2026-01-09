@@ -217,7 +217,6 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
     const run = async () => {
       const salario = (await configuraciones.get("1")).Valor
       const auxTransporte = await (await configuraciones.get("2")).Valor
-      alert("Salario " + salario + " aux " + auxTransporte)
       setMinimo(Number(salario))
       setAuxTransporte(Number(auxTransporte))
     };

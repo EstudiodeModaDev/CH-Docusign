@@ -185,7 +185,6 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
     })
   };
   
-
   const handleSubmit = async (e: React.FormEvent, firma: FirmaInline | null) => {
     e.preventDefault();
 
@@ -361,7 +360,6 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
       setLoading(false);
     }
   };
-
 
   const updatePazSalvo = async (e: React.FormEvent, IdPazSalvo: string) => {
     e.preventDefault();

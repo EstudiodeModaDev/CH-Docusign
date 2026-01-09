@@ -43,6 +43,10 @@
   background-color: #e00000;
 }
 
+.ps-status-dot--warning{
+  background-color: rgb(231, 231, 77);
+}
+
 .ps-empty-row {
   padding: 6px;
   text-align: center;

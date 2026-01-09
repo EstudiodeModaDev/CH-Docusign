@@ -251,10 +251,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
   // Submit
   // =========================
 
-  const handleSubmit = async (
-    filesArray: FileList | null,
-    firma: FirmaInline | null
-  ): Promise<{ created: respuestas | null; cerrar: boolean }> => {
+  const handleSubmit = async (filesArray: FileList | null, firma: FirmaInline | null): Promise<{ created: respuestas | null; cerrar: boolean }> => {
     if (!IdPazSalvo?.Id) {
       alert("No hay paz y salvo seleccionado.");
       return { created: null, cerrar: false };
@@ -313,12 +310,8 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
 
       // Consultas en paralelo para cierre
       const [aprobados, todos] = await Promise.all([
-        respuestaSvc.getAll({
-          filter: `fields/IdPazSalvo eq '${IdPazSalvo!.Id}' and fields/Estado eq 'Aprobado'`,
-        }),
-        respuestaSvc.getAll({
-          filter: `fields/IdPazSalvo eq '${IdPazSalvo!.Id}'`,
-        }),
+        respuestaSvc.getAll({filter: `fields/IdPazSalvo eq '${IdPazSalvo!.Id}' and fields/Estado eq 'Aprobado'`,}),
+        respuestaSvc.getAll({filter: `fields/IdPazSalvo eq '${IdPazSalvo!.Id}'`,}),
       ]);
 
       let cerrar = false;

@@ -38,9 +38,9 @@ const uiRows = React.useMemo(() => {
         estadoFinal = "Aprobado";
       } else if (respuestasParticipante.some(r => r.Estado === "Rechazado")) {
         estadoFinal = "Rechazado";
+      } else if (respuestasParticipante.some(r => r.Estado === "Novedad")) {
+        estadoFinal = "Novedad";
       } else {
-        // Tiene respuestas pero ninguna marcada explícitamente,
-        // puedes dejarlo como En espera o poner otro estado si quisieras
         estadoFinal = "En espera";
       }
     } else {
@@ -75,7 +75,7 @@ const uiRows = React.useMemo(() => {
                         <td className="ps-td">{row.nombre || LABEL_SIN_RESPUESTA}</td>
                         <td className="ps-td">{row.correo || LABEL_SIN_RESPUESTA}</td>
                         <td className="ps-td">
-                            <span className={"ps-status-dot " + (row.estado === "Aprobado" ? "ps-status-dot--ok" : row.estado === "Rechazado" ? "ps-status-dot--bad" : "ps-status-dot--pending")}/>
+                            <span className={"ps-status-dot " + (row.estado === "Aprobado" ? "ps-status-dot--ok" : row.estado === "Novedad" ? "ps-status-dot--warning" : row.estado === "Rechazado" ? "ps-status-dot--bad" : "ps-status-dot--pending")}/>
                         </td>
                     </tr>
                 ))}

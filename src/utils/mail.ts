@@ -1,7 +1,8 @@
 import type { GraphRecipient } from "../graph/graphRest";
 import type { MailService } from "../Services/Mail.service";
+import { spDateToDDMMYYYY } from "./Date";
 
-export function createBody(user: string, modulo: string, nombre: string, cedula: string){
+export function createBody(user: string, modulo: string, nombre: string, cedula: string, cargo: string, fechaIngreso: string){
     const body = `<div style="font-family:Segoe UI, Roboto, Arial, sans-serif; background:#f6f7fb; padding:24px;">
                     <div style="max-width:720px; margin:0 auto; background:#ffffff; border:1px solid #e6e8ef; border-radius:14px; overflow:hidden;">
                         
@@ -26,12 +27,20 @@ export function createBody(user: string, modulo: string, nombre: string, cedula:
 
                         <div style="border:1px solid #e6e8ef; border-radius:12px; padding:14px 16px; background:#fbfcff; margin:0 0 16px;">
                             <div style="display:flex; gap:10px; align-items:flex-start; margin-bottom:8px;">
-                            <span style="font-size:12px; color:#64748b; min-width:90px;">Cédula</span>
-                            <span style="font-size:13px; color:#0f172a; font-weight:600;">${cedula}</span>
+                                <span style="font-size:12px; color:#64748b; min-width:90px;">Cédula</span>
+                                <span style="font-size:13px; color:#0f172a; font-weight:600;">${cedula}</span>
                             </div>
                             <div style="display:flex; gap:10px; align-items:flex-start;">
-                            <span style="font-size:12px; color:#64748b; min-width:90px;">Nombre</span>
-                            <span style="font-size:13px; color:#0f172a; font-weight:600;">${nombre}</span>
+                                <span style="font-size:12px; color:#64748b; min-width:90px;">Nombre</span>
+                                <span style="font-size:13px; color:#0f172a; font-weight:600;">${nombre}</span>
+                            </div>
+                            <div style="display:flex; gap:10px; align-items:flex-start;">
+                                <span style="font-size:12px; color:#64748b; min-width:90px;">Cargo</span>
+                                <span style="font-size:13px; color:#0f172a; font-weight:600;">${cargo ?? "N/A"}</span>
+                            </div>
+                            <div style="display:flex; gap:10px; align-items:flex-start;">
+                                <span style="font-size:12px; color:#64748b; min-width:90px;">Fecha de ingreso</span>
+                                <span style="font-size:13px; color:#0f172a; font-weight:600;">${fechaIngreso ? spDateToDDMMYYYY(fechaIngreso) : "N/A"}</span>
                             </div>
                         </div>
 

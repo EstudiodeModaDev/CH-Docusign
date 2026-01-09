@@ -7,19 +7,38 @@ import type { PazSalvo } from "../../../models/PazSalvo";
 import { useFirmaUsuario } from "../../../Funcionalidades/PazSalvos/Firmas";
 import { useAuth } from "../../../auth/authProvider";
 import { usePazSalvo } from "../../../Funcionalidades/PazSalvos/PazSalvos";
+import Select, { components, type OptionProps } from "react-select";
+import type { desplegablesOption } from "../../../models/Desplegables";
+import { useCentroCostos, } from "../../../Funcionalidades/Desplegables";
 
 type Props = {
   IdPazSalvo: PazSalvo;
   onBack?: () => void; // opcional, por si quieres volver a la tabla
 };
 
+export const Option = (props: OptionProps<desplegablesOption, false>) => {
+  const { label } = props;
+
+  return (
+    <components.Option {...props}>
+      <div className="rs-opt">
+        <div className="rs-opt__text">
+          <span className="rs-opt__title">{label}</span>
+        </div>
+      </div>
+    </components.Option>
+  );
+};
+
 export const MotivoAdjuntosForm: React.FC<Props> = ({ IdPazSalvo, onBack }) => {
-  const { Respuesta, Firmas, PazSalvos, mail } = useGraphServices();
+  const { Respuesta, Firmas, PazSalvos, mail, Maestro } = useGraphServices();
+  const { options: COOptions, loading: loadingCO, reload: reloadCC} = useCentroCostos(Maestro);
   const [files, setFiles] = React.useState<FileList | null>(null)
   const { state, setField, handleSubmit, loading } = useRespuestasPazSalvos(Respuesta, IdPazSalvo);
   const {updatePazSalvo} = usePazSalvo(PazSalvos, mail)
   const {account} = useAuth()
   const { getFirmaInline } = useFirmaUsuario(Firmas, account?.username ?? "");
+  const selectedCentroOperativo = COOptions.find((o) => o.label.toLocaleLowerCase() === state.Area.toLocaleLowerCase()) ?? null;
 
   const onChangeEstado = (estado: string) => {
     if (estado === "Rechazado") {
@@ -38,6 +57,19 @@ export const MotivoAdjuntosForm: React.FC<Props> = ({ IdPazSalvo, onBack }) => {
         "Respuesta",
         `<p>El usuario <strong>${IdPazSalvo.Nombre}</strong> está a paz y salvo con el área <strong>${state.Area}</strong>.</p>`
       );
+    } else if (estado === "Novedad") {
+      setField(
+        "Respuesta",
+        `<p>
+          El usuario <strong>${IdPazSalvo.Nombre}</strong> presenta las siguientes novedades con el área <strong>${state.Area}</strong>:
+        </p>
+        <ol>
+          <li>
+          </li>
+        </ol>
+        Mas sin embargo estos no son inhabilitantes para el seguimiento del flujo del paz y salvo
+        `
+      );
     } else {
       setField("Respuesta", "");
     }
@@ -54,14 +86,18 @@ export const MotivoAdjuntosForm: React.FC<Props> = ({ IdPazSalvo, onBack }) => {
     }
   };
 
-const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const selected = e.target.files; // FileList | null
-  if (!selected || selected.length === 0) {
-    setFiles(null); // opcional: limpiar si no hay nada
-    return;
-  }
-  setFiles(selected);
-};
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files; // FileList | null
+    if (!selected || selected.length === 0) {
+      setFiles(null); // opcional: limpiar si no hay nada
+      return;
+    }
+    setFiles(selected);
+  };
+
+  React.useEffect(() => {
+    reloadCC()
+  }, []);
 
 
   const disableEstado = state.Area === "";
@@ -74,7 +110,20 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       <div className="ps-row ps-row--two">
         <div className="ps-field">
           <label className="ps-label" htmlFor="area">Área</label>
-          <input id="area" className="ps-input" value={state.Area} onChange={(e) => setField("Area", e.target.value)} placeholder=""/>
+            <Select<desplegablesOption, false>
+              inputId="modalidadTrabajo"
+              options={COOptions}
+              placeholder={loadingCO ? "Cargando opciones…" : "Buscar centro operativo..."}
+              value={selectedCentroOperativo}
+              onChange={(opt) => {setField("Area", opt?.label ?? "");}}
+              classNamePrefix="rs"
+              isDisabled={loadingCO}
+              isLoading={loadingCO}
+              getOptionValue={(o) => String(o.value)}
+              getOptionLabel={(o) => o.label}
+              components={{ Option }}
+              isClearable
+            />
         </div>
 
         <div className="ps-field">
@@ -85,8 +134,9 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                                                                                                                         onChangeEstado(e.target.value);
                                                                                                                     }}>
               <option value="">Buscar elementos</option>
-              <option value="Rechazado">Rechazado</option>
               <option value="Aprobado">Aprobado</option>
+              <option value="Novedad">Novedad</option>
+              <option value="Rechazado">Rechazado</option>
             </select>
             <span className="ps-select-arrow">▾</span>
           </div>

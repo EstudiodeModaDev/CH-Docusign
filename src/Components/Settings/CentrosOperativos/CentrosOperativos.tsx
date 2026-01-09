@@ -4,6 +4,8 @@ import { useGraphServices } from "../../../graph/graphContext";
 import { useCentroOperativo, } from "../../../Funcionalidades/Desplegables";
 import type { withCode } from "../../../models/Maestros";
 import type { maestro } from "../../../models/Desplegables";
+import { MasiveChargeModal } from "../CentroCostos/CentroCostos";
+import { masiveChargeCO } from "../../../Funcionalidades/CargaMasiva";
 
 export const CentroOperativoManager: React.FC = () => {
     const { Maestro, } = useGraphServices();
@@ -11,6 +13,7 @@ export const CentroOperativoManager: React.FC = () => {
     const [isEditing, setIsEditing] = React.useState(false);
     const [state, setState] = React.useState<withCode>({ Title: "", Codigo: ""})
     const [isAdding, setIsAdding] = React.useState<boolean>(false)
+    const [plantilla, setPlantilla] = React.useState<boolean>(false)
 
 
     const handleAddNew = () => {
@@ -47,10 +50,13 @@ export const CentroOperativoManager: React.FC = () => {
             <div className="emp-header">
                 <button type="button" className="btn btn-primary btn-xs" onClick={() => {setIsAdding(true); setState({...state, Title: "", Codigo: ""})}}>
                     <span className="emp-add-btn__icon">＋</span>
-                    Añadir nuevo CO
+                    Añadir nuevo CC
+                </button>
+                <button type="button" className="btn btn-primary btn-xs" onClick={() => {setPlantilla(true); setState({...state, Title: "", Codigo: ""})}}>
+                    <span className="emp-add-btn__icon">＋</span>
+                    Añadir por plantilla
                 </button>
             </div>
-
             <div className="emp-layout">
                 {/* Lista izquierda */}
                 <section className="emp-list">
@@ -121,7 +127,7 @@ export const CentroOperativoManager: React.FC = () => {
                     </>
                 }
             </div>
-            
+            <MasiveChargeModal open={plantilla} onClose={() => setPlantilla(false)} maestroSvc={Maestro} masiveCharge={masiveChargeCO} titulo={"Centros Operativos"}/>
 
         </div>
     );

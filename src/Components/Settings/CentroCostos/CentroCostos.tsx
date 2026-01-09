@@ -128,7 +128,7 @@ export const CentroCostosManager: React.FC = () => {
                     </>
                 }
             </div>
-            <MasiveChargeModal open={plantilla} onClose={() => setPlantilla(false)} maestroSvc={Maestro}/>
+            <MasiveChargeModal open={plantilla} onClose={() => setPlantilla(false)} maestroSvc={Maestro} masiveCharge={masiveCharge} titulo={"Centro de costos"}/>
         </div>
     );
 };
@@ -137,9 +137,11 @@ type Props = {
   open: boolean;
   onClose: () => void;
   maestroSvc: MaestrosService;
+  masiveCharge: (file: File, maestro: MaestrosService) => void,
+  titulo: string
 };
 
-export const MasiveChargeModal: React.FC<Props> = ({ open, onClose, maestroSvc }) => {
+export const MasiveChargeModal: React.FC<Props> = ({ open, onClose, maestroSvc, masiveCharge, titulo }) => {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const [file, setFile] = React.useState<File | null>(null);
   const [error, setError] = React.useState<string>("");
@@ -220,7 +222,7 @@ export const MasiveChargeModal: React.FC<Props> = ({ open, onClose, maestroSvc }
     <div className="mc-modal__backdrop" role="dialog" aria-modal="true">
       <div className="mc-modal__card">
         <header className="mc-modal__header">
-          <h2 className="mc-modal__title">Carga masiva (Centros de costos)</h2>
+          <h2 className="mc-modal__title">Carga masiva ({titulo})</h2>
 
           <button type="button" className="mc-modal__close"  onClick={() => !loading && onClose()} aria-label="Cerrar">
             ✕

@@ -72,3 +72,37 @@ export async function masiveCharge(file: File, maestroSvc: MaestrosService) {
     }
   }
 }
+
+export async function masiveChargeCO(file: File, maestroSvc: MaestrosService) {
+  const centros = await parseCentroCostosXls(file);
+  const existentes = await maestroSvc.getAll({filter: `fields/Title eq 'Centros operativos'`});
+
+  const map = new Map<string, any>();
+  for (const item of existentes) {
+    const codigo = String(item?.Codigo ?? "").trim();
+    if (codigo) map.set(codigo, item);
+  }
+
+  // 3) Iterar excel
+  for (const cc of centros) {
+    const codigo = String(cc.codigo).trim();
+    const nombre = String(cc.nombre).trim();
+    if (!codigo || !nombre) continue;
+
+    const found = map.get(codigo);
+
+    if (found) {
+      await maestroSvc.update(found.Id!, {
+        Codigo: codigo,
+        T_x00ed_tulo1: nombre,
+      });
+    } else {
+      await maestroSvc.create({
+        Abreviacion: "",
+        Codigo: codigo,
+        T_x00ed_tulo1: nombre,
+        Title: "Centros operativos",
+      });
+    }
+  }
+}

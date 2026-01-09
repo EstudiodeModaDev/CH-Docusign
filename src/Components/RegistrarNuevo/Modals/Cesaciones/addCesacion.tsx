@@ -231,7 +231,7 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
     if(created.ok){
       await loadPasosCesacion()
       await handleCreateAllSteps(rows, created.created ?? "")
-      const body = createBody(account?.name ?? "", "Cesaciones", state.Nombre, state.Title)
+      const body = createBody(account?.name ?? "", "Cesaciones", state.Nombre, state.Title, state.Cargo, state.FechaIngreso ?? "")
       await notifyTeam(mail, "Nuevo registro en cesaciones - Gestor documental CH", body)
       await onClose()
     }

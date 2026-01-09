@@ -20,6 +20,7 @@ import { usePasosPromocion } from "../../Funcionalidades/PasosPromocion";
 import type { TablaParametrosProps } from "../../models/Props";
 import { usePasosRetail } from "../../Funcionalidades/PasosRetail";
 import { ConfiguracionesVariasComponent } from "./ConfiguracionesVarias/ConfiguracionesVarias";
+import { OrigenSeleccionManager } from "./OrigenSeleccion/OrigenSeleccion";
 
 export type ParamTab = {
   id: string;
@@ -73,6 +74,7 @@ export const ParamTabs: React.FC<TablaParametrosProps> = ({ tabs, value, onChang
 const TABS = [
   { id: "configs", label: "Configuraciones" },
   { id: "empresas", label: "Empresas" },
+  { id: "origen", label: "Origenes de selección" },
   { id: "tipodoc", label: "Tipos de documentos" },
   { id: "cargos", label: "Cargos" },
   { id: "modalidad", label: "Modalidades de trabajo" },
@@ -104,6 +106,7 @@ export const ParametrosPage: React.FC = () => {
       {/* aquí renderizas según la pestaña */}
       {active === "configs" && <ConfiguracionesVariasComponent/>}
       {active === "empresas" && <EmpresasManager></EmpresasManager>}
+      {active === "origen" && <OrigenSeleccionManager/>}
       {active === "tipodoc" && <DocumentTypeManager/>}
       {active === "cargos" && <CargosManager/>}
       {active === "modalidad" && <ModalidadesManager/>}

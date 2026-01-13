@@ -24,6 +24,8 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
 
   const getFlow = new FlowClient("https://defaultcd48ecd97e154f4b97d9ec813ee42b.2c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/89d64252417d4a96b3fa8c87fc66e776/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=v-oDHxbLUjANTLzoOQRH5o9ks4BdL4LsEHuJNUNL4c4");
 
+  const finalizeFlow = new FlowClient("https://defaultcd48ecd97e154f4b97d9ec813ee42b.2c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f7cd69bfc131493d97e639add92f5033/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=6m0RK5ta0cNWK0sAnldiipjYfTARgo_0nCPN19NSUnI");
+
   // =========================
   // Helpers
   // =========================
@@ -276,9 +278,10 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
     if (!validate()) {
       return { created: null, cerrar: false };
     }
-
+    
     setLoading(true);
     try {
+      // 1) Crear respuesta
       const payload: respuestas = {
         Correo: account?.username ?? "",
         Title: account?.name ?? "",
@@ -290,7 +293,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
 
       const created = await respuestaSvc.create(payload);
 
-      // Adjuntos al flow
+      // 2) Adjuntos al flow (notifyFlow)
       if (filesArray?.length && created?.Id) {
         const filesForFlow = await Promise.all(
           Array.from(filesArray).map(async (f) => ({
@@ -305,9 +308,9 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
         });
       }
 
+      // 3) Correo inmediato si Rechazado o Novedad
       const subjectBase = `Novedad paz y salvo - ${IdPazSalvo!.Nombre} ${IdPazSalvo!.Title}`;
 
-      // Correo inmediato dependiendo del estado
       if (state.Estado === "Rechazado" || state.Estado === "Novedad") {
         const variant: TableVariant = state.Estado === "Rechazado" ? "danger" : "warning";
 
@@ -324,10 +327,14 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
         await sendMailHtml(buildTableHtml(variant, singleRow), subjectBase, firma);
       }
 
-      // Consultas en paralelo para cierre
+      // 4) Consultas en paralelo para saber si ya es la última respuesta (cierre)
       const [aprobados, todos] = await Promise.all([
-        respuestaSvc.getAll({filter: `fields/IdPazSalvo eq '${IdPazSalvo!.Id}' and fields/Estado ne 'Rechazado'`,}),
-        respuestaSvc.getAll({filter: `fields/IdPazSalvo eq '${IdPazSalvo!.Id}'`,}),
+        respuestaSvc.getAll({
+          filter: `fields/IdPazSalvo eq '${IdPazSalvo!.Id}' and fields/Estado ne 'Rechazado'`,
+        }),
+        respuestaSvc.getAll({
+          filter: `fields/IdPazSalvo eq '${IdPazSalvo!.Id}'`,
+        }),
       ]);
 
       let cerrar = false;
@@ -335,6 +342,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
       if (aprobados.length >= (IdPazSalvo!.Solicitados?.length ?? 0)) {
         cerrar = true;
 
+        // 5) Correo consolidado
         const allApproved = todos.every(
           (x: any) => String(x?.Estado ?? "").toLowerCase() === "aprobado"
         );
@@ -343,6 +351,20 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
         const subject = `Consolidado paz y salvo - ${IdPazSalvo!.Nombre} ${IdPazSalvo!.Title}`;
 
         await sendMailHtml(buildTableHtml(variant, todos), subject, firma);
+
+        // ✅ 6) NUEVO: al ser la última respuesta, ejecutar el flow final
+        try {
+          await finalizeFlow.invoke<any, any>({
+            pazId: IdPazSalvo!.Id,         // si tu flow lo espera numérico, usa Number(IdPazSalvo!.Id)
+            cedula: IdPazSalvo!.Title,     // opcional
+            nombre: IdPazSalvo!.Nombre,    // opcional
+            empresa: (IdPazSalvo as any).Empresa ?? "", // opcional (si existe en tu modelo)
+            // html: buildTableHtml(variant, todos), // opcional si quieres mandar el HTML al flow
+          });
+        } catch (flowErr: any) {
+          console.error("[finalizeFlow] error:", flowErr);
+          alert("Se cerró el paz y salvo, pero falló el flujo final: " + (flowErr?.message ?? flowErr));
+        }
       }
 
       alert("Se ha registrado la respuesta con éxito");
@@ -357,6 +379,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
       setLoading(false);
     }
   };
+
 
   // =========================
   // Attachments getter

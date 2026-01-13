@@ -296,7 +296,7 @@ export default function FormContratacion({ onClose, state, setField, handleSubmi
     return () => {
       cancelled = true;
     };
-  }, [state.CARGO, state.SALARIO]);
+  }, [state.CARGO]);
 
   /* ================== Nivel por cargo ================== */
   React.useEffect(() => {

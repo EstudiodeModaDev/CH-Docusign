@@ -202,7 +202,7 @@ export function useDetallesPasosNovedades(DetallesSvc: DetallesPasosNovedadesSer
   }
 
   const calcPorcentaje = async (): Promise<number> => {
-    const items = await DetallesSvc.getAll({filter: `fields/Title eq ${selected} and Obligatorio eq true`, orderby: "fields/NumeroPaso asc"})
+    const items = await DetallesSvc.getAll({filter: `fields/Title eq ${selected}`, orderby: "fields/NumeroPaso asc"})
     if(items.length > 0){
       const completados = items.filter(i => i.EstadoPaso === "Completado").length;
       return (completados / items.length) * 100;

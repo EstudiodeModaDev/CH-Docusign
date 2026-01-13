@@ -218,7 +218,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     const selectedTipoDocumento = tipoDocOptions.find((o) => o.label === state.tipodoc.trim()) ?? null; 
     const selectedCargo = cargoOptions.find((o) => o.label.toLocaleLowerCase() === state.CARGO.toLocaleLowerCase()) ?? null;
     const selectedModalidad = modalidadOptions.find((o) => o.label.toLowerCase() === state.MODALIDAD_x0020_TELETRABAJO.toLowerCase()) ?? null;
-    const selectedEspecificidad = especificidadOptions.find((o) => o.label.toLowerCase() === state.ESPECIFICIDAD_x0020_DEL_x0020_CA) ?? null;
+    const selectedEspecificidad = especificidadOptions.find((o) => o.label.toLowerCase() === state.ESPECIFICIDAD_x0020_DEL_x0020_CA.toLocaleLowerCase()) ?? null;
     const selectedNivelCargo = nivelCargoOptions.find((o) => o.label.toLowerCase() === state.NIVEL_x0020_DE_x0020_CARGO.toLowerCase()) ?? null;
     const selectedCentroCostos = CentroCostosOptions.find((o) => o.value.toLowerCase() === state.CODIGO_x0020_CENTRO_x0020_DE_x00.toLowerCase()) ?? null;
     const selectedCentroOperativo = COOptions.find((o) => o.value.toLowerCase() === state.CENTRO_x0020_OPERATIVO_x0020_.toLowerCase()) ?? null;

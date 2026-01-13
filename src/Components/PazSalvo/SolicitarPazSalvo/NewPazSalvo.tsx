@@ -142,7 +142,7 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
     // ✅ Si no está cargada, la traemos aquí
     let encuestaFinal = encuesta?.trim();
     if (!encuestaFinal) {
-      const cfg = await configuraciones.get("3");
+      const cfg = await configuraciones.get("4");
       encuestaFinal = String(cfg?.Valor ?? "").trim();
       setEncuesta(encuestaFinal);
     }

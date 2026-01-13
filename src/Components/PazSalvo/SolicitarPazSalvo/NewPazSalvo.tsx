@@ -41,15 +41,6 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
     reloadCargo()
   }, [reloadCO, reloadEmpresas, reloadEmpresas, reloadCargo]);
 
-  React.useEffect(() => {
-
-    const run = async () => {
-      const encuesta = (await configuraciones.get("3")).Valor
-      setEncuesta(encuesta)
-    };
-
-    run();
-  }, []);
 
   React.useEffect(() => {
     const prederminados: solicitados[] = [
@@ -140,18 +131,33 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
     await handleSelectAprobadorRenovable(opt!); 
   };
 
-  const solicitarPazSalvo = async (e: React.FormEvent,)=> {
-    e.preventDefault()
-    if(!correo) {
-      alert("Hay campos vacios")
-      return
+  const solicitarPazSalvo = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!correo) {
+      alert("Hay campos vacios");
+      return;
     }
-    const firma = await getFirmaInline()
-    if(firma){
-      await handleSubmit(e, firma, correo, encuesta)
-    } 
+
+    // ✅ Si no está cargada, la traemos aquí
+    let encuestaFinal = encuesta?.trim();
+    if (!encuestaFinal) {
+      const cfg = await configuraciones.get("3");
+      encuestaFinal = String(cfg?.Valor ?? "").trim();
+      setEncuesta(encuestaFinal);
+    }
+
+    if (!encuestaFinal) {
+      alert("No se pudo cargar el link de la encuesta. Intenta de nuevo.");
+      return;
+    }
+
+    const firma = await getFirmaInline();
+    if (firma) {
+      await handleSubmit(e, firma, correo, encuestaFinal);
+    }
   };
-  
+
   return (
     <div className="psf-page">
       <div className="psf-shell">

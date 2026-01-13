@@ -6,6 +6,7 @@ import { spDateToDDMMYYYY, toGraphDateTime } from "../../utils/Date";
 import { useAuth } from "../../auth/authProvider";
 import type { FirmaInline } from "../../models/Imagenes";
 import type { MailService } from "../../Services/Mail.service";
+import { buildRecipients } from "../../utils/mail";
 
 export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, isAdmin?: boolean,) {
   const [rows, setRows] = React.useState<PazSalvo[]>([]);
@@ -185,7 +186,7 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
     })
   };
   
-  const handleSubmit = async (e: React.FormEvent, firma: FirmaInline | null, correo: string, link: string) => {
+  const handleSubmit = async (e: React.FormEvent, firma: FirmaInline | null, correo: string, link: string, copias: string[]) => {
     e.preventDefault();
 
     if (!validate()) {
@@ -241,12 +242,12 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
       console.warn("[DEBUG] creado:", created);
 
       // 3) Recipients
-      const toRecipients = [
-        ...state.Solicitados.map((s) => ({
-          emailAddress: { address: s.correo },
-        })),
-        { emailAddress: { address: state.CorreoJefe } },
-      ];
+      const toEmails = (Array.isArray(state.Solicitados) ? state.Solicitados : [])
+      .map(s => (s?.correo ?? "").trim())
+      .filter(Boolean);
+
+      const toRecipients = buildRecipients(toEmails);     
+      const ccRecipients = buildRecipients(copias);
 
       // 4) Preparar firma inline (CID)
       const hasFirma = !!firma?.contentBytes;
@@ -331,6 +332,7 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
           subject: `Nueva solicitud Paz y Salvo - ${state.Nombre}`,
           body: { contentType: "HTML", content: htmlBody },
           toRecipients,
+          ccRecipients
         },
         saveToSentItems: true,
       };

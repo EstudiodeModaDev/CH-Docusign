@@ -26,6 +26,7 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
   const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
   const [aprobadorSelected, setSelectedAprobador] = React.useState<UserOption | null>(null);
+  const [copiaSelected, setCopiaSelected] = React.useState<UserOption | null>(null);
   const selectedJefe = workersOptions.find((o) => o.value.trim().toLocaleLowerCase() === state.CorreoJefe.trim().toLocaleLowerCase()) ?? null;
   const selectedEmpresa = empresaOptions.find((o) => o.label.trim().toLocaleLowerCase() === state.Empresa.trim().toLocaleLowerCase()) ?? null;
   const selectedCentroOperativo = COOptions.find((o) => o.value === state.CO) ?? null;
@@ -33,6 +34,7 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
 
   const [correo, setCorreo] = React.useState<string>("")
   const [encuesta, setEncuesta] = React.useState<string>("")
+  const [copias, setCopias] = React.useState<string[]>([])
   
   React.useEffect(() => {
     reloadCO(),
@@ -91,6 +93,35 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
     setField("Solicitados", [...actuales, nuevo]);
     setSelectedAprobador(null);
   };
+
+  const handleSelectCopia = (option: UserOption | null) => {
+    if (!option) {
+      setCopiaSelected(null);
+      return;
+    }
+
+    const actuales = Array.isArray(copias) ? copias : [];
+    const correo = (option.value ?? "").trim();
+    if (!correo) {
+      setCopiaSelected(null);
+      return;
+    }
+
+    const yaExiste = actuales.some((s) => s.toLowerCase() === correo.toLowerCase());
+    if (yaExiste) {
+      setCopiaSelected(null);
+      return;
+    }
+
+    setCopias([...actuales, correo]);
+    setCopiaSelected(null); // ✅ correcto
+  };
+
+  const handleRemoveCopia = (correo: string) => {
+    const actuales = Array.isArray(copias) ? copias : [];
+    setCopias(actuales.filter((c) => c.toLowerCase() !== correo.toLowerCase()));
+  };
+
 
   const handleRemoveSolicitado = (correo: string) => {
     const actuales: solicitados[] = Array.isArray(state.Solicitados)
@@ -154,7 +185,7 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
 
     const firma = await getFirmaInline();
     if (firma) {
-      await handleSubmit(e, firma, correo, encuestaFinal);
+      await handleSubmit(e, firma, correo, encuestaFinal, copias);
     }
   };
 
@@ -214,6 +245,26 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
               />
             </div>
 
+            <div className="psf-field psf-field--full">
+              <label className="psf-label">
+                <span className="psf-label-text" title="Selecciona unicamente cuentas de correos a las que se les enviara el correo en copia">
+                  * Observadores
+                  <span className="psf-info-icon" aria-hidden="true">i</span>
+                </span>
+              </label>
+              <Select<UserOption, false>
+                options={workersOptions}
+                placeholder={loadingWorkers ? "Cargando opciones…" : "Buscar solicitado..."}
+                value={copiaSelected}
+                onChange={(opt) =>handleSelectCopia(opt)}
+                classNamePrefix="rs"
+                isDisabled={ loadingWorkers}
+                isLoading={loadingWorkers }
+                noOptionsMessage={() => (usersError ? "Error cargando opciones" : "Sin coincidencias")}
+                isClearable
+              />
+            </div>
+
             {/* ====== CORREOS SELECCIONADOS ====== */}
             {Array.isArray(state.Solicitados) &&
               state.Solicitados.length > 0 && (
@@ -226,6 +277,27 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
                       <li className="psf-selected-item" key={s.correo}>
                         <span className="psf-selected-name">{s.nombre}</span>
                         <button type="button" className="psf-selected-remove" onClick={() => handleRemoveSolicitado(s.correo)} aria-label={`Quitar ${s.nombre}`}>
+                          ✕
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {Array.isArray(copias) && copias.length > 0 && (
+                <div className="psf-selected">
+                  <span className="psf-selected-title">Observadores seleccionados</span>
+                  <ul className="psf-selected-list">
+                    {copias.map((c) => (
+                      <li className="psf-selected-item" key={c}>
+                        <span className="psf-selected-name">{c}</span>
+                        <button
+                          type="button"
+                          className="psf-selected-remove"
+                          onClick={() => handleRemoveCopia(c)}
+                          aria-label={`Quitar ${c}`}
+                        >
                           ✕
                         </button>
                       </li>

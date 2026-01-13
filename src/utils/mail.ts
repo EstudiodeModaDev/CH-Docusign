@@ -81,3 +81,15 @@ export async function notifyTeam(mail: MailService, subject: string, body: strin
     },
   });
 }
+
+export function buildRecipients(emails: string[]): GraphRecipient[] {
+  const unique = Array.from(
+    new Set(
+      (emails ?? [])
+        .map(e => String(e ?? "").trim().toLowerCase())
+        .filter(Boolean)
+    )
+  );
+
+  return unique.map(address => ({ emailAddress: { address } }));
+}

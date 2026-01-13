@@ -34,6 +34,7 @@ const CATALOGO_CATS: Cat[] = [
   { ID: "C6", Title: "Parámetros y desplegables" },
   { ID: "C7", Title: "Explorador de documentos" },
   { ID: "C8", Title: "Paz y salvo" },
+  { ID: "C9", Title: "Otro" },
 ];
 
 // Subcategorías: IDs únicos (S###)
@@ -76,6 +77,8 @@ const CATALOGO_SUBS: Sub[] = [
   { ID: "S803", Title: "Flujo del proceso (no sigue el orden esperado)", Id_categoria: "C8" },
   { ID: "S804", Title: "Documento final (no se guarda en la carpeta)", Id_categoria: "C8" },
   { ID: "S805", Title: "Encuesta (no se envía)", Id_categoria: "C8" },
+
+  { ID: "S901", Title: "Otro", Id_categoria: "C9" },
 ];
 
 // Helpers para reusar “artículos estándar” por módulo (sin repetir IDs)

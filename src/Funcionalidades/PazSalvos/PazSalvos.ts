@@ -354,24 +354,19 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
       const formPayload: any = {
         message: {
           subject: `Encuesta de retiro Estudio de Moda`,
-          body: { contentType: "HTML", content: `<!doctype html>
-                                                  <html lang="es">
-                                                    <body style="font-family: Arial, Helvetica, sans-serif; color:#111; line-height:1.5;">
-                                                      <p>Hola,</p>
-
-                                                      <p>
-                                                        Desde <strong>Estudio de Moda</strong> te invitamos a rellenar esta encuesta de retiro para ayudarnos a mejorar:
-                                                      </p>
-
-                                                      <p>
-                                                        <a href="${link}" target="_blank" rel="noopener">
-                                                          Responder encuesta
-                                                        </a>
-                                                      </p>
-
-                                                      <p>Gracias.</p>
-                                                    </body>
-                                                  </html>`},
+          body: { contentType: "HTML", content:`
+                                                <p>Hola,</p>
+                                                <p>Desde <strong>Estudio de Moda</strong> te invitamos a rellenar esta encuesta de retiro para ayudarnos a mejorar:</p>
+                                                <p>
+                                                  <a href="${link}"
+                                                    style="color:#2563eb;text-decoration:underline;"
+                                                    target="_blank" rel="noopener noreferrer">
+                                                    Responder encuesta
+                                                  </a>
+                                                </p>
+                                                <p style="font-size:12px;color:#6b7280;">Si no te abre, copia y pega este enlace: ${link}</p>
+                                                <p>Gracias.</p>
+                                              `.trim(),},
               toRecipients: [{emailAddress: { address: correo },},],
         },
         saveToSentItems: true,

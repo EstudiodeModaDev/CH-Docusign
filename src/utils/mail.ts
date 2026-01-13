@@ -70,6 +70,8 @@ export async function notifyTeam(mail: MailService, subject: string, body: strin
     { emailAddress: { address: "nagomez@estudiodemoda.com.co" } },
     { emailAddress: { address: "parios@estudiodemoda.com.co" } },
     { emailAddress: { address: "dpalacios@estudiodemoda.com.co" } },
+    { emailAddress: { address: "aprendizsst@estudiodemoda.com.co" } },
+    { emailAddress: { address: "disaza@estudiodemoda.com.co" } },
   ];
 
   // ejemplo de uso:

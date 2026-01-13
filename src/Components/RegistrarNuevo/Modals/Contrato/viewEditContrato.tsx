@@ -3,12 +3,11 @@ import "../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
 import { useGraphServices } from "../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../models/Desplegables";
-import {useCargo, useCentroCostos, useCentroOperativo, useDeptosMunicipios, useEmpresasSelect, useEspecificidadCargo, useEtapa, useModalidadTrabajo, useNivelCargo, useOrigenSeleccion, useTipoContrato, useTipoDocumentoSelect, useTipoVacante, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
+import {useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useEspecificidadCargo, useEtapa, useModalidadTrabajo, useNivelCargo, useOrigenSeleccion, useTipoContrato, useTipoDocumentoSelect, useTipoVacante, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
 import { useContratos } from "../../../../Funcionalidades/Contratos";
 import {formatPesosEsCO, numeroATexto, toNumberFromEsCO,} from "../../../../utils/Number";
 import { useAuth } from "../../../../auth/authProvider";
 import { getTodayLocalISO, toISODateFlex } from "../../../../utils/Date";
-import { useDependencias } from "../../../../Funcionalidades/Dependencias";
 import type { Novedad } from "../../../../models/Novedades";
 import { ProcessDetail } from "../Cesaciones/procesoCesacion";
 import { useDetallesPasosNovedades, usePasosNoveades } from "../../../../Funcionalidades/PasosNovedades";
@@ -57,7 +56,8 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
   const { options: tipoContratoOptions, loading: loadingTipoContrato, reload: reloadTipoContrato} = useTipoContrato(Maestro);
   const { options: tipoVacanteOptions, loading: loadingTipoVacante, reload: reloadTipoVacante} = useTipoVacante(Maestro);
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
-  const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();
+
+  const { options: dependenciaOptions, loading: loadingDependencias } = useDependenciasMixtas(Maestro);
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
 
@@ -226,7 +226,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     const selectedOrigenSeleccion = origenOptions.find((o) => o.label.toLowerCase() === state.ORIGEN_x0020_DE_x0020_LA_x0020_S.toLowerCase()) ?? null;
     const selectedTipoContrato = tipoContratoOptions.find((o) => o.label.toLowerCase() === state.TIPO_x0020_DE_x0020_CONTRATO.toLowerCase()) ?? null;
     const selectedTipoVacante = tipoVacanteOptions.find((o) => o.label.toLowerCase() === state.TIPO_x0020_DE_x0020_VACANTE_x002.toLowerCase()) ?? null;
-    const selectedDependencia = dependenciaOptions.find((o) => o.label.toLowerCase().trim().includes(state.DEPENDENCIA_x0020_.toLowerCase().trim())) ?? null;
+    const selectedDependencia = dependenciaOptions.find((o) => o.label.toLowerCase().trim() === state.DEPENDENCIA_x0020_.toLowerCase().trim()) ?? null;
     const selectedEtapa = etapasOptions.find((o) => lower(o?.label) === lower(state?.Etapa)) ?? null;
     const opciones = [{ value: "Escritorio", label: "Escritorio" }, { value: "Silla", label: "Silla" }, { value: "Escritorio/Silla", label: "Escritorio/Silla" }];
     const isView = tipo === "view"

@@ -3,8 +3,7 @@ import "../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
 import { useGraphServices } from "../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../models/Desplegables";
-import {useCargo, useCentroCostos, useCentroOperativo, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useTemporales, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
-import { useDependencias } from "../../../../Funcionalidades/Dependencias";
+import {useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useTemporales, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
 import { formatPesosEsCO, numeroATexto,  } from "../../../../utils/Number";
 import { useSalarios } from "../../../../Funcionalidades/Salario";
 import type { DetallesPasos } from "../../../../models/Cesaciones";
@@ -50,7 +49,7 @@ export default function EditRetail({onClose, selectedRetail, tipo}: Props){
     const { options: tipoDocOptions, loading: loadingTipoDoc, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
     const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
     const { options: nivelCargoOptions, loading: loadinNivelCargo, reload: reloadNivelCargo} = useNivelCargo(Maestro);
-    const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();  
+    const { options: dependenciaOptions, loading: loadingDependencias } = useDependenciasMixtas(Maestro);
     const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
     const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
     const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);

@@ -3,12 +3,11 @@ import "../AddContrato.css";
 import Select, { components, type OptionProps } from "react-select";
 import { useGraphServices } from "../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../models/Desplegables";
-import {useCargo, useCentroCostos, useCentroOperativo, useDeptosMunicipios, useEmpresasSelect, useEspecificidadCargo, useModalidadTrabajo, useNivelCargo, useTipoDocumentoSelect, useTipoVacante, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
+import {useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useEspecificidadCargo, useModalidadTrabajo, useNivelCargo, useTipoDocumentoSelect, useTipoVacante, useUnidadNegocio,} from "../../../../Funcionalidades/Desplegables";
 import { useAuth } from "../../../../auth/authProvider";
 import { getTodayLocalISO, toISODateFlex } from "../../../../utils/Date";
 import type { Promocion } from "../../../../models/Promociones";
 import { usePromocion } from "../../../../Funcionalidades/Promocion";
-import { useDependencias } from "../../../../Funcionalidades/Dependencias";
 import { formatPesosEsCO, numeroATexto, toNumberFromEsCO } from "../../../../utils/Number";
 import { ProcessDetail } from "../Cesaciones/procesoCesacion";
 import { useDetallesPasosPromocion, usePasosPromocion } from "../../../../Funcionalidades/PasosPromocion";
@@ -52,7 +51,7 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
   const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
   const { options: tipoVacanteOptions, loading: loadingTipoVacante, reload: reloadTipoVacante} = useTipoVacante(Maestro);
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
-  const { options: dependenciaOptions, loading: loadingDependencias } = useDependencias();
+  const { options: dependenciaOptions, loading: loadingDependencias } = useDependenciasMixtas(Maestro);
   const { loading: loadinPasosPromocion, error: errorPasosPromocion, byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep} = usePasosPromocion()
   const {rows: rowsDetalles, loading: loadingDetalles, error: errorDetalles, loadDetallesPromocion, calcPorcentaje} = useDetallesPasosPromocion(DetallesPasosPromocion, selectedPromocion.Id)
   const { loadSpecificLevel } = useAutomaticCargo(categorias);

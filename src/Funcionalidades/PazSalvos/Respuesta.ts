@@ -278,7 +278,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
     if (!validate()) {
       return { created: null, cerrar: false };
     }
-    
+
     setLoading(true);
     try {
       // 1) Crear respuesta
@@ -358,8 +358,8 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
             pazId: IdPazSalvo!.Id,         // si tu flow lo espera numérico, usa Number(IdPazSalvo!.Id)
             cedula: IdPazSalvo!.Title,     // opcional
             nombre: IdPazSalvo!.Nombre,    // opcional
-            empresa: (IdPazSalvo as any).Empresa ?? "", // opcional (si existe en tu modelo)
-            // html: buildTableHtml(variant, todos), // opcional si quieres mandar el HTML al flow
+            empresa: IdPazSalvo.Empresa, // opcional (si existe en tu modelo)
+            html: buildTableHtml(variant, todos),
           });
         } catch (flowErr: any) {
           console.error("[finalizeFlow] error:", flowErr);

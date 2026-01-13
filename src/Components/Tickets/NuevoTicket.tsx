@@ -34,7 +34,6 @@ const CATALOGO_CATS: Cat[] = [
   { ID: "C6", Title: "Parámetros y desplegables" },
   { ID: "C7", Title: "Explorador de documentos" },
   { ID: "C8", Title: "Paz y salvo" },
-  { ID: "C9", Title: "Otro" },
 ];
 
 // Subcategorías: IDs únicos (S###)
@@ -55,21 +54,26 @@ const CATALOGO_SUBS: Sub[] = [
 
   // C3 - Consulta de documentos
   { ID: "S301", Title: "No se muestra información o resultados", Id_categoria: "C3" },
+  { ID: "S302", Title: "Otro", Id_categoria: "C3" },
 
   // C4 - Reportes y exportaciones
   { ID: "S401", Title: "Exportación (no descarga / falla)", Id_categoria: "C4" },
   { ID: "S402", Title: "Solicitud de incluir un módulo en reportes", Id_categoria: "C4" },
+  { ID: "S403", Title: "Otro", Id_categoria: "C4" },
 
   // C5 - Solicitudes y mejoras
   { ID: "S501", Title: "Mejoras sobre funcionalidad existente", Id_categoria: "C5" },
   { ID: "S502", Title: "Nueva funcionalidad (no existe actualmente)", Id_categoria: "C5" },
+  { ID: "S503", Title: "Otro", Id_categoria: "C5" },
 
   // C6 - Parámetros y desplegables
   { ID: "S601", Title: "Solicitud de nuevo desplegable", Id_categoria: "C6" },
   { ID: "S602", Title: "Error al administrar opciones de un desplegable", Id_categoria: "C6" },
+  { ID: "S603", Title: "Otro", Id_categoria: "C6" },
 
   // C7 - Explorador de documentos
   { ID: "S701", Title: "No carga documentos / error al listar", Id_categoria: "C7" },
+  { ID: "S702", Title: "Otro", Id_categoria: "C7" },
 
   // C8 - Paz y salvo
   { ID: "S801", Title: "Generación del paz y salvo (no crea)", Id_categoria: "C8" },
@@ -77,8 +81,7 @@ const CATALOGO_SUBS: Sub[] = [
   { ID: "S803", Title: "Flujo del proceso (no sigue el orden esperado)", Id_categoria: "C8" },
   { ID: "S804", Title: "Documento final (no se guarda en la carpeta)", Id_categoria: "C8" },
   { ID: "S805", Title: "Encuesta (no se envía)", Id_categoria: "C8" },
-
-  { ID: "S901", Title: "Otro", Id_categoria: "C9" },
+  { ID: "S806", Title: "Otro", Id_categoria: "C8" },
 ];
 
 // Helpers para reusar “artículos estándar” por módulo (sin repetir IDs)
@@ -88,6 +91,7 @@ const ART_STD = (subId: string, prefix: string): Art[] => [
   { ID: `${prefix}-03`, Title: "No permite visualizar / cargar información", Id_subCategoria: subId },
   { ID: `${prefix}-04`, Title: "Error desconocido (mensaje inesperado)", Id_subCategoria: subId },
   { ID: `${prefix}-05`, Title: "Solicitud de nuevo campo o ajuste de formulario", Id_subCategoria: subId },
+  { ID: `${prefix}-06`, Title: "Otro", Id_subCategoria: subId },
 ];
 
 const CATALOGO_ARTS: Art[] = [

@@ -185,7 +185,7 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
     })
   };
   
-  const handleSubmit = async (e: React.FormEvent, firma: FirmaInline | null) => {
+  const handleSubmit = async (e: React.FormEvent, firma: FirmaInline | null, correo: string, link: string) => {
     e.preventDefault();
 
     if (!validate()) {
@@ -350,6 +350,35 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
       }
 
       await mail.sendEmail(mailPayload);
+
+      const formPayload: any = {
+        message: {
+          subject: `Encuesta de retiro Estudio de Moda`,
+          body: { contentType: "HTML", content: `<!doctype html>
+                                                  <html lang="es">
+                                                    <body style="font-family: Arial, Helvetica, sans-serif; color:#111; line-height:1.5;">
+                                                      <p>Hola,</p>
+
+                                                      <p>
+                                                        Desde <strong>Estudio de Moda</strong> te invitamos a rellenar esta encuesta de retiro para ayudarnos a mejorar:
+                                                      </p>
+
+                                                      <p>
+                                                        <a href="${link}" target="_blank" rel="noopener">
+                                                          Responder encuesta
+                                                        </a>
+                                                      </p>
+
+                                                      <p>Gracias.</p>
+                                                    </body>
+                                                  </html>`},
+              toRecipients: [{emailAddress: { address: correo },},],
+        },
+        saveToSentItems: true,
+      };
+
+      //7) Enviar form
+      await mail.sendEmail(formPayload)
 
       alert("Se ha creado el registro con éxito y se enviaron las notificaciones.");
       cleanState();

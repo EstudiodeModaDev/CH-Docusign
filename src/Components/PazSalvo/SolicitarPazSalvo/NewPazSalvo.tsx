@@ -16,7 +16,7 @@ type Props = {
 };
 
 export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
-  const {PazSalvos, Maestro, Renovar, Firmas, mail} = useGraphServices()
+  const {PazSalvos, Maestro, Renovar, Firmas, mail, configuraciones} = useGraphServices()
   const {account} = useAuth()
   const {getFirmaInline} = useFirmaUsuario(Firmas, account?.username!)
   const {state, setField, handleSubmit, errors, loading} = usePazSalvo(PazSalvos,mail);
@@ -30,6 +30,9 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
   const selectedEmpresa = empresaOptions.find((o) => o.label.trim().toLocaleLowerCase() === state.Empresa.trim().toLocaleLowerCase()) ?? null;
   const selectedCentroOperativo = COOptions.find((o) => o.value === state.CO) ?? null;
   const selectedCargo = cargoOptions.find((o) => o.label === state.Cargo) ?? null;
+
+  const [correo, setCorreo] = React.useState<string>("")
+  const [encuesta, setEncuesta] = React.useState<string>("")
   
   React.useEffect(() => {
     reloadCO(),
@@ -37,6 +40,16 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
     reloadEmpresas(),
     reloadCargo()
   }, [reloadCO, reloadEmpresas, reloadEmpresas, reloadCargo]);
+
+  React.useEffect(() => {
+
+    const run = async () => {
+      const encuesta = (await configuraciones.get("3")).Valor
+      setEncuesta(encuesta)
+    };
+
+    run();
+  }, []);
 
   React.useEffect(() => {
     const prederminados: solicitados[] = [
@@ -127,11 +140,15 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
     await handleSelectAprobadorRenovable(opt!); 
   };
 
-  const solicitarPazSalvo = async (e: React.FormEvent)=> {
+  const solicitarPazSalvo = async (e: React.FormEvent,)=> {
     e.preventDefault()
+    if(!correo) {
+      alert("Hay campos vacios")
+      return
+    }
     const firma = await getFirmaInline()
     if(firma){
-      await handleSubmit(e, firma)
+      await handleSubmit(e, firma, correo, encuesta)
     } 
   };
   
@@ -226,6 +243,11 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
                     <label className="psf-label"> * Nombre (Tercero) </label>
                     <input className="psf-input" value={state.Nombre} onChange={(e) =>  setField("Nombre", e.target.value)}/>
                     <small className="psf-error">{errors.Nombre}</small>
+                </div>
+
+                <div className="psf-field">
+                    <label className="psf-label">* Correo electronico</label>
+                    <input className="psf-input" value={correo} onChange={(e) =>  setCorreo(e.target.value)}/>    
                 </div>
 
                 <div className="psf-field">

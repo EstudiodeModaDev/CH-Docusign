@@ -358,7 +358,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
             pazId: IdPazSalvo!.Id,         // si tu flow lo espera numérico, usa Number(IdPazSalvo!.Id)
             cedula: IdPazSalvo!.Title,     // opcional
             nombre: IdPazSalvo!.Nombre,    // opcional
-            empresa: IdPazSalvo.Empresa, // opcional (si existe en tu modelo)
+            empresaKey: IdPazSalvo.Empresa, 
             html: buildTableHtml(variant, todos),
           });
         } catch (flowErr: any) {

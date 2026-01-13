@@ -226,7 +226,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     const selectedOrigenSeleccion = origenOptions.find((o) => o.label.toLowerCase() === state.ORIGEN_x0020_DE_x0020_LA_x0020_S.toLowerCase()) ?? null;
     const selectedTipoContrato = tipoContratoOptions.find((o) => o.label.toLowerCase() === state.TIPO_x0020_DE_x0020_CONTRATO.toLowerCase()) ?? null;
     const selectedTipoVacante = tipoVacanteOptions.find((o) => o.label.toLowerCase() === state.TIPO_x0020_DE_x0020_VACANTE_x002.toLowerCase()) ?? null;
-    const selectedDependencia = dependenciaOptions.find((o) => o.value.toLowerCase() === state.DEPENDENCIA_x0020_.toLowerCase()) ?? null;
+    const selectedDependencia = dependenciaOptions.find((o) => o.label.toLowerCase().trim().includes(state.DEPENDENCIA_x0020_.toLowerCase().trim())) ?? null;
     const selectedEtapa = etapasOptions.find((o) => lower(o?.label) === lower(state?.Etapa)) ?? null;
     const opciones = [{ value: "Escritorio", label: "Escritorio" }, { value: "Silla", label: "Silla" }, { value: "Escritorio/Silla", label: "Escritorio/Silla" }];
     const isView = tipo === "view"

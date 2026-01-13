@@ -172,7 +172,7 @@ export default function FormContratacion({ onClose, state, setField, handleSubmi
   const selectedOrigenSeleccion = origenOptions.find((o) => o.label.toLocaleLowerCase() === state.ORIGEN_x0020_DE_x0020_LA_x0020_S.toLocaleLowerCase()) ?? null;
   const selectedTipoContrato = tipoContratoOptions.find((o) => o.label.toLocaleLowerCase() === state.TIPO_x0020_DE_x0020_CONTRATO.toLocaleLowerCase()) ?? null;
   const selectedTipoVacante = tipoVacanteOptions.find((o) => o.label.toLocaleLowerCase() === state.TIPO_x0020_DE_x0020_VACANTE_x002.toLocaleLowerCase()) ?? null;
-  const selectedDependencia = dependenciaOptions.find((o) => o.value.toLocaleLowerCase() === state.DEPENDENCIA_x0020_.toLocaleLowerCase()) ?? null;
+  const selectedDependencia = dependenciaOptions.find((o) => o.label.toLocaleLowerCase() === state.DEPENDENCIA_x0020_.toLocaleLowerCase()) ?? null;
   const selectedEtapa = etapasOptions.find((o) => o.label.toLocaleLowerCase() === state.Etapa.toLocaleLowerCase()) ?? null;
 
   /* ================== display salario ================== */

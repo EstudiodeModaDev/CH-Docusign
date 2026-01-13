@@ -84,7 +84,7 @@ export default function FormRetail({onClose, state, setField, handleSubmit, erro
   const selectedCargo = cargoOptions.find((o) => o.label.toLocaleLowerCase() === state.Cargo.toLocaleLowerCase()) ?? null;
   const selectedTipoDocumento = tipoDocOptions.find((o) => o.label.toLocaleLowerCase() === state.TipoDoc.toLocaleLowerCase()) ?? null;
   const selectedNivelCargo = nivelCargoOptions.find((o) => o.label.toLocaleLowerCase() === state.NivelCargo.toLocaleLowerCase()) ?? null;   
-  const selectedDependencia = dependenciaOptions.find((o) => o.value.toLocaleLowerCase() === state.Depedencia.toLocaleLowerCase()) ?? null;  
+  const selectedDependencia = dependenciaOptions.find((o) => o.label.toLocaleLowerCase() === state.Depedencia.toLocaleLowerCase()) ?? null;  
   const selectedCentroCostos = CentroCostosOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoCentroCostos.toLocaleLowerCase()) ?? null;
   const selectedCentroOperativo = COOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoCentroOperativo.toLocaleLowerCase()) ?? null;
   const selectedUnidadNegocio = UNOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoUnidadNegocio.toLocaleLowerCase()) ?? null;

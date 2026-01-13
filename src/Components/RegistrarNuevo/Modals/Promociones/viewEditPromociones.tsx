@@ -67,7 +67,7 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
   const selectedCentroOperativo = COOptions.find((o) => o.value.toLowerCase() === state.CentroOperativo.toLowerCase()) ?? null;
   const selectedUnidadNegocio = UNOptions.find((o) => o.value.toLowerCase() === state.IDUnidadNegocio.toLowerCase()) ?? null;
   const selectedTipoVacante = tipoVacanteOptions.find((o) => o.label.toLowerCase() === state.TipoVacante.toLowerCase()) ?? null;
-  const selectedDependencia = dependenciaOptions.find((o) => o.value.toLowerCase() === state.Dependencia.toLowerCase()) ?? null;
+  const selectedDependencia = dependenciaOptions.find((o) => o.label.toLowerCase() === state.Dependencia.toLowerCase()) ?? null;
   const opciones = [{ value: "Escritorio", label: "Escritorio" }, { value: "Silla", label: "Silla" }, { value: "Escritorio/Silla", label: "Escritorio/Silla" }];
   const opcionesTipoNomina = [{ value: "Retail", label: "Retail" }, { value: "Administrativa", label: "Administrativa" },];
  /* ================== Display local para campos monetarios ================== */

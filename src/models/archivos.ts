@@ -5,4 +5,6 @@ export type Archivo = {
   isFolder: boolean;
   size?: number;
   lastModified?: string;
+  childCount?: number
+  created?: string;
 };

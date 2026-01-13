@@ -98,6 +98,8 @@ class BibliotecaBaseService {
       isFolder: !!item.folder,
       size: item.size,
       lastModified: item.lastModifiedDateTime,
+      childCount: item.folder?.childCount ?? undefined,
+      created: item.createdDateTime, 
     }));
   }
   async findFolderByDocNumber(docNumber: string): Promise<Archivo | null> {
@@ -130,6 +132,7 @@ class BibliotecaBaseService {
       isFolder: !!folder.folder,
       size: folder.size,
       lastModified: folder.lastModified
+      
     };
   }
 
@@ -147,6 +150,8 @@ class BibliotecaBaseService {
       isFolder: !!item.folder,
       size: item.size,
       lastModified: item.lastModifiedDateTime,
+      childCount: item.folder?.childCount ?? undefined,
+      created: item.createdDateTime, 
     }));
   }
 

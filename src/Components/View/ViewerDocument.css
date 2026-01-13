@@ -467,3 +467,34 @@
 .colab-explorer__counter-sep{
   opacity: .6;
 }
+
+.colab-explorer__row-meta{
+  margin-left: 10px;
+  font-size: 12px;
+  opacity: .75;
+}
+
+.colab-explorer__row-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.colab-explorer__name-wrap{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width: 0; /* permite ellipsis si lo usas */
+}
+
+.colab-explorer__file-seq{
+  width: 32px;              /* columna fija */
+  text-align: left;         /* ✅ no centrado */
+  font-variant-numeric: tabular-nums;
+  opacity: .75;
+  flex: 0 0 32px;           /* no crece, no se centra */
+}
+
+.colab-explorer__row-name{
+  flex: 1 1 auto;
+}

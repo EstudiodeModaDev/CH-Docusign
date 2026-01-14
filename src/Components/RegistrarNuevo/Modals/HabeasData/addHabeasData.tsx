@@ -9,7 +9,6 @@ import { useAuth } from "../../../../auth/authProvider";
 import { getTodayLocalISO } from "../../../../utils/Date";
 import type { HabeasData, HabeasErrors } from "../../../../models/HabeasData";
 import type { SetField } from "../Contrato/addContrato";
-import { createBody, notifyTeam } from "../../../../utils/mail";
 
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -38,7 +37,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormHabeas({onClose, state, setField, handleSubmit, errors, loadFirstPage, cleanState, }: Props){
-  const { Maestro, DeptosYMunicipios, mail} = useGraphServices();
+  const { Maestro, DeptosYMunicipios, } = useGraphServices();
   const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
   const { loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
   const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
@@ -87,8 +86,6 @@ export default function FormHabeas({onClose, state, setField, handleSubmit, erro
     await handleSubmit(e);
     await cleanState();
     await loadFirstPage()
-    const body = createBody(account?.name ?? "", "Habeas Data", state.Title, state.NumeroDocumento, "", "")
-    await notifyTeam(mail, "Nuevo registro en Habeas Data - Gestor documental CH", body)
     onClose()
   };
   

@@ -1,14 +1,5 @@
 // src/auth/msal.ts
-import {
-  PublicClientApplication,
-  EventType,
-  InteractionRequiredAuthError,
-  type AccountInfo,
-  type EventMessage,
-  type PopupRequest,
-  type RedirectRequest,
-  type SilentRequest,
-} from '@azure/msal-browser';
+import {PublicClientApplication, EventType, InteractionRequiredAuthError, type AccountInfo, type EventMessage, type PopupRequest, type RedirectRequest, type SilentRequest,} from '@azure/msal-browser';
 
 /* ===========================
    Configuración básica MSAL

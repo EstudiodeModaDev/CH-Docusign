@@ -1,7 +1,7 @@
 export type GetAllOpts = {
-  filter?: string;    
-  orderby?: string;   
-  top?: number;        
+  filter?: string;
+  orderby?: string;
+  top?: number;
 };
 
 export type PageResult<T> = {

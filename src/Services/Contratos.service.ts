@@ -264,6 +264,34 @@ export class ContratosService {
     }
   }
 
+  async search(term: string, opts?: { top?: number; orderby?: string }): Promise<PageResult<Novedad>> {
+    await this.ensureIds();
+
+    // $search NO es por columna, es búsqueda full-text en lo indexado.
+    // Importante: se envía con comillas. Ej: "perez"
+    const safe = (term ?? "").trim();
+    const quoted = `"${safe.replace(/"/g, '\\"')}"`;
+
+    const qs = new URLSearchParams();
+    qs.set('$expand', 'fields');
+    qs.set('$search', quoted);
+    if (opts?.orderby) qs.set('$orderby', opts.orderby);
+    if (opts?.top != null) qs.set('$top', String(opts.top));
+
+    const url = `/sites/${this.siteId}/lists/${this.listId}/items?${qs.toString().replace(/\+/g, '%20')}`;
+
+    // 👇 Header clave para que Graph acepte $search en muchos casos
+    const res = await this.graph.get<any>(url, {
+      headers: { ConsistencyLevel: 'eventual' },
+    });
+
+    const raw = Array.isArray(res?.value) ? res.value : [];
+    const items = raw.map((x: any) => this.toModel(x));
+    const nextLink = res?.['@odata.nextLink'] ? String(res['@odata.nextLink']) : null;
+
+    return { items, nextLink };
+  }
+
 }
 
 

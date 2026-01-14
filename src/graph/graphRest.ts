@@ -19,7 +19,7 @@ export type GraphSendMailPayload = {
 
 export class GraphRest {
   private getToken: () => Promise<string>;
-  private base = 'https://graph.microsoft.com/v1.0';
+  private base = 'https://graph.microsoft.com/v1.0/';
 
   constructor(getToken: () => Promise<string>, baseUrl?: string) {
     this.getToken = getToken;
@@ -27,12 +27,7 @@ export class GraphRest {
   }
 
   // Core: hace la llamada y parsea respuesta de forma segura (maneja 204/no content)
-  private async call<T>(
-    method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
-    path: string,
-    body?: any,
-    init?: RequestInit
-  ): Promise<T> {
+  private async call<T>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, body?: any, init?: RequestInit): Promise<T> {
     const token = await this.getToken();
     const hasBody = body !== undefined && body !== null;
 

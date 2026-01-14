@@ -5,9 +5,60 @@ import type { Novedad, NovedadCancelada, NovedadErrors } from "../models/Novedad
 import { getTodayLocalISO, toGraphDateTime, toISODateTimeFlex } from "../utils/Date";
 import { useAuth } from "../auth/authProvider";
 import { NovedadCanceladaService } from "../Services/NovedadCancelada.service";
+import { norm } from "../utils/text";
+
+
+export function useDebouncedValue<T>(value: T, delay = 250) {
+  const [deb, setDeb] = React.useState(value);
+  React.useEffect(() => {
+    const t = setTimeout(() => setDeb(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return deb;
+}
+
+function includesSearch(row: Novedad, q: string) {
+  const qq = norm(q);
+  if (!qq) return true;
+
+  return (
+    norm(row.NombreSeleccionado).includes(qq) ||
+    norm(row.Numero_x0020_identificaci_x00f3_).includes(qq) ||
+    norm(row.CARGO).includes(qq)
+  );
+}
+
+function compareRows(a: Novedad, b: Novedad, field: SortField, dir: SortDir) {
+  const mul = dir === "asc" ? 1 : -1;
+
+  const get = (r: Novedad) => {
+    switch (field) {
+      case "Cedula":
+        return norm(r.Numero_x0020_identificaci_x00f3_);
+      case "Nombre":
+        return norm(r.NombreSeleccionado);
+      case "Salario":
+        return Number(r.SALARIO ?? 0);
+      case "inicio":
+        return norm(r.FECHA_x0020_REQUERIDA_x0020_PARA0 ?? "");
+      case "id":
+      default:
+        // tu tabla usa id como Created (según sortFieldToOData anterior)
+        return norm(r.FechaReporte ?? r.Title ?? "");
+    }
+  };
+
+  const av = get(a);
+  const bv = get(b);
+
+  if (typeof av === "number" && typeof bv === "number") return (av - bv) * mul;
+  return String(av).localeCompare(String(bv), "es", { numeric: true }) * mul;
+}
+
 
 export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc?: NovedadCanceladaService) {
   const [rows, setRows] = React.useState<Novedad[]>([]);
+  const [baseRows, setBaseRows] = React.useState<Novedad[]>([]);
   const [workers, setWorkers] = React.useState<Novedad[]>([]);
   const [workersOptions, setWorkersOptions] = React.useState<rsOption[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -102,73 +153,97 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
   const setField = React.useCallback(<K extends keyof Novedad>(k: K, v: Novedad[K]) => { setState((s) => ({ ...s, [k]: v }));},
     []
   );
-  
-  // construir filtro OData
-  const buildFilter = React.useCallback((): GetAllOpts => {
+  const debouncedSearch = useDebouncedValue(search, 250);
+
+  const buildServerFilter = React.useCallback((): GetAllOpts => {
     const filters: string[] = [];
 
-    if(search){
-        filters.push(`(startswith(fields/NombreSeleccionado, '${search}') or startswith(fields/Numero_x0020_identificaci_x00f3_, '${search}') or startswith(fields/CARGO, '${search}'))`)
+    if (estado === "proceso") filters.push(`fields/Estado eq 'En proceso'`);
+    if (estado === "finalizado") filters.push(`fields/Estado eq 'Completado'`);
+
+    if (range.from && range.to && range.from < range.to) {
+      filters.push(`fields/Created ge '${range.from}T00:00:00Z'`);
+      filters.push(`fields/Created le '${range.to}T23:59:59Z'`);
     }
 
-    if(estado){
-      switch(estado){
-        case "proceso":
-          filters.push(`fields/Estado eq 'En proceso'`)
-          break;
-        
-        case "finalizado":
-          filters.push(`fields/Estado eq 'Completado'`)
-          break;
-
-        default:
-          break;
-      }
-    }
-
-    if (range.from && range.to && (range.from < range.to)) {
-      if (range.from) filters.push(`fields/Created ge '${range.from}T00:00:00Z'`);
-      if (range.to)   filters.push(`fields/Created le '${range.to}T23:59:59Z'`);
-    }
-
-    const orderParts: string[] = sorts
-      .map(s => {
-        const col = sortFieldToOData[s.field];
-        return col ? `${col} ${s.dir}` : '';
-      })
-      .filter(Boolean);
-
-    // Estabilidad de orden: si no incluiste 'id', agrega 'id desc' como desempate.
-    if (!sorts.some(s => s.field === 'id')) {
-      orderParts.push('ID desc');
-    }
     return {
-      filter: filters.join(" and "),
-      orderby: orderParts.join(","),
-      top: pageSize,
+      filter: filters.length ? filters.join(" and ") : undefined,
+      orderby: "fields/Created desc",
+      top: 2000,
     };
-  }, [range.from, range.to, pageSize, sorts, search, estado] ); 
- 
-  const loadFirstPage = React.useCallback(async () => {
-    setLoading(true); setError(null);
+  }, [estado, range.from, range.to]);
+
+  const loadBase = React.useCallback(async () => {
+    if (!account?.username) return;
+
+    setLoading(true);
+    setError(null);
+
     try {
-      const { items, nextLink } = await ContratosSvc.getAll(buildFilter()); // debe devolver {items,nextLink}
-      setRows(items);
-      setNextLink(nextLink ?? null);
+      const { items } = await ContratosSvc.getAll(buildServerFilter());
+      setBaseRows(items ?? []);
       setPageIndex(1);
     } catch (e: any) {
       setError(e?.message ?? "Error cargando tickets");
+      setBaseRows([]);
       setRows([]);
       setNextLink(null);
       setPageIndex(1);
     } finally {
       setLoading(false);
     }
-  }, [ContratosSvc, buildFilter, sorts]);
+  }, [account?.username, ContratosSvc, buildServerFilter]);
 
+  // Traer de Graph SOLO cuando cambie estado/rango (o cuando auth esté listo)
   React.useEffect(() => {
-    loadFirstPage();
-  }, [loadFirstPage, range, search]);
+    loadBase();
+  }, [loadBase, estado, range.from, range.to, pageSize]);
+
+  // Cuando cambie search (debounced) volvemos a la primera página CSR
+  React.useEffect(() => {
+    setPageIndex(1);
+  }, [debouncedSearch]);
+
+  // =========================
+  // CSR pipeline: search contains + sort multi + pagination
+  // =========================
+  React.useEffect(() => {
+    // 1) filter contains (CSR)
+    let data = baseRows;
+    if (debouncedSearch?.trim()) {
+      data = baseRows.filter((r) => includesSearch(r, debouncedSearch));
+    }
+
+    // 2) sort multi-col
+    if (sorts?.length) {
+      data = [...data].sort((a, b) => {
+        for (const s of sorts) {
+          const c = compareRows(a, b, s.field, s.dir);
+          if (c !== 0) return c;
+        }
+        return 0;
+      });
+    }
+
+    // 3) paginate local
+    const start = (pageIndex - 1) * pageSize;
+    const page = data.slice(start, start + pageSize);
+
+    setRows(page);
+
+    const hasMore = data.length > start + pageSize;
+    setNextLink(hasMore ? "local" : null);
+  }, [baseRows, debouncedSearch, sorts, pageIndex, pageSize]);
+
+  // =========================
+  // API-compatible: loadFirstPage / paging
+  // =========================
+  const loadFirstPage = React.useCallback(async () => {
+    // CSR: recarga base del server y vuelve a page 1
+    await loadBase();
+    setPageIndex(1);
+  }, [loadBase]);
+
 
   // siguiente página: seguir el nextLink tal cual
   const hasNext = !!nextLink;
@@ -192,13 +267,6 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
   const applyRange = React.useCallback(() => { loadFirstPage(); }, [loadFirstPage]);
   const reloadAll  = React.useCallback(() => { loadFirstPage(); }, [loadFirstPage, range, search]);
 
-  const sortFieldToOData: Record<SortField, string> = {
-    id: 'fields/Created',
-    Cedula: 'fields/Numero_x0020_identificaci_x00f3_',
-    Nombre: 'fields/NombreSeleccionado',
-    Salario: 'fields/SALARIO',
-    inicio: 'fields/FECHA_x0020_REQUERIDA_x0020_PARA0',
-  };
 
   const toggleSort = React.useCallback((field: SortField, additive = false) => {
     setSorts(prev => {

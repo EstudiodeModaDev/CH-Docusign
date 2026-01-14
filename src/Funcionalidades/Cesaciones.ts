@@ -6,8 +6,50 @@ import type { CesacionesService } from "../Services/Cesaciones.service";
 import type { Cesacion, CesacionCancelada, CesacionErrors } from "../models/Cesaciones";
 import { useAuth } from "../auth/authProvider";
 import type { CesacionCanceladaService } from "../Services/CesacionCancelada.service";
+import { useDebouncedValue } from "./Contratos";
+import { norm } from "../utils/text";
+
+function includesSearch(row: Cesacion, q: string) {
+  const qq = norm(q);
+  if (!qq) return true;
+
+  return (
+    norm(row.Nombre).includes(qq) ||
+    norm(row.Title).includes(qq) ||
+    norm(row.Cargo).includes(qq)
+  );
+}
+
+function compareRows(a: Cesacion, b: Cesacion, field: SortField, dir: SortDir) {
+  const mul = dir === "asc" ? 1 : -1;
+
+  const get = (r: Cesacion) => {
+    switch (field) {
+      case "Cedula":
+        return norm(r.Title);
+      case "Nombre":
+        return norm(r.Nombre);
+      case "Salario":
+        return Number(r.Salario ?? 0);
+      case "inicio":
+        return norm(r.FechaIngreso ?? "");
+      case "id":
+      default:
+        // tu tabla usa id como Created (según sortFieldToOData anterior)
+        return norm(r.Fechaenlaquesereporta ?? r.Title ?? "");
+    }
+  };
+
+  const av = get(a);
+  const bv = get(b);
+
+  if (typeof av === "number" && typeof bv === "number") return (av - bv) * mul;
+  return String(av).localeCompare(String(bv), "es", { numeric: true }) * mul;
+}
+
 
 export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCanceladaSvc?: CesacionCanceladaService) {
+  const [baseRows, setBaseRows] = React.useState<Cesacion[]>([]);
   const [rows, setRows] = React.useState<Cesacion[]>([]);
   const [workers, setWorkers] = React.useState<Cesacion[]>([]);
   const [workersOptions, setWorkersOptions] = React.useState<rsOption[]>([]);
@@ -63,73 +105,97 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
   const [estado, setEstado] = React.useState<string>("proceso");
   const [errors, setErrors] = React.useState<CesacionErrors>({});
   const setField = <K extends keyof Cesacion>(k: K, v: Cesacion[K]) => setState((s) => ({ ...s, [k]: v }));
+  const debouncedSearch = useDebouncedValue(search, 250);
   
   // construir filtro OData
-  const buildFilter = React.useCallback((): GetAllOpts => {
+ const buildServerFilter = React.useCallback((): GetAllOpts => {
     const filters: string[] = [];
 
-    if(search){
-        filters.push(`(startswith(fields/Nombre, '${search}') or startswith(fields/Title, '${search}') or startswith(fields/Cargo, '${search}'))`)
+    if (estado === "proceso") filters.push(`fields/Estado eq 'En proceso'`);
+    if (estado === "finalizado") filters.push(`fields/Estado eq 'Completado'`);
+
+    if (range.from && range.to && range.from < range.to) {
+      filters.push(`fields/Created ge '${range.from}T00:00:00Z'`);
+      filters.push(`fields/Created le '${range.to}T23:59:59Z'`);
     }
 
-    if(estado){
-      switch(estado){
-        case "proceso":
-          filters.push(`fields/Estado eq 'En proceso'`)
-          break;
-        
-        case "finalizado":
-          filters.push(`fields/Estado eq 'Completado'`)
-          break;
-
-        default:
-          break;
-      }
-    }
-
-    if (range.from && range.to && (range.from < range.to)) {
-      if (range.from) filters.push(`fields/Created ge '${range.from}T00:00:00Z'`);
-      if (range.to)   filters.push(`fields/Created le '${range.to}T23:59:59Z'`);
-    }
-
-    const orderParts: string[] = sorts
-      .map(s => {
-        const col = sortFieldToOData[s.field];
-        return col ? `${col} ${s.dir}` : '';
-      })
-      .filter(Boolean);
-
-    // Estabilidad de orden: si no incluiste 'id', agrega 'id desc' como desempate.
-    if (!sorts.some(s => s.field === 'id')) {
-      orderParts.push('ID desc');
-    }
     return {
-      filter: filters.join(" and "),
-      orderby: orderParts.join(","),
-      top: pageSize,
+      filter: filters.length ? filters.join(" and ") : undefined,
+      orderby: "fields/Created desc",
+      top: 2000,
     };
-  }, [range.from, range.to, pageSize, sorts, search, estado]); 
+  }, [estado, range.from, range.to]);
 
-  const loadFirstPage = React.useCallback(async () => {
-    setLoading(true); setError(null);
+  const loadBase = React.useCallback(async () => {
+    if (!account?.username) return;
+
+    setLoading(true);
+    setError(null);
+
     try {
-      const { items, nextLink } = await CesacionesSvc.getAll(buildFilter());
-      setRows(items);
-      setNextLink(nextLink ?? null);
+      const { items } = await CesacionesSvc.getAll(buildServerFilter());
+      setBaseRows(items ?? []);
       setPageIndex(1);
     } catch (e: any) {
-      setError(e?.message ?? "Error cargando cesaciones registradas");
+      setError(e?.message ?? "Error cargando tickets");
+      setBaseRows([]);
       setRows([]);
       setNextLink(null);
       setPageIndex(1);
     } finally {
       setLoading(false);
     }
-  }, [CesacionesSvc, buildFilter, sorts]);
+  }, [account?.username, CesacionesSvc, buildServerFilter]);
 
+  // Traer de Graph SOLO cuando cambie estado/rango (o cuando auth esté listo)
   React.useEffect(() => {
-    loadFirstPage();
-  }, [loadFirstPage, range, search]);
+    loadBase();
+  }, [loadBase, estado, range.from, range.to, pageSize]);
+
+  // Cuando cambie search (debounced) volvemos a la primera página CSR
+  React.useEffect(() => {
+    setPageIndex(1);
+  }, [debouncedSearch]);
+
+  // =========================
+  // CSR pipeline: search contains + sort multi + pagination
+  // =========================
+  React.useEffect(() => {
+    // 1) filter contains (CSR)
+    let data = baseRows;
+    if (debouncedSearch?.trim()) {
+      data = baseRows.filter((r) => includesSearch(r, debouncedSearch));
+    }
+
+    // 2) sort multi-col
+    if (sorts?.length) {
+      data = [...data].sort((a, b) => {
+        for (const s of sorts) {
+          const c = compareRows(a, b, s.field, s.dir);
+          if (c !== 0) return c;
+        }
+        return 0;
+      });
+    }
+
+    // 3) paginate local
+    const start = (pageIndex - 1) * pageSize;
+    const page = data.slice(start, start + pageSize);
+
+    setRows(page);
+
+    const hasMore = data.length > start + pageSize;
+    setNextLink(hasMore ? "local" : null);
+  }, [baseRows, debouncedSearch, sorts, pageIndex, pageSize]);
+
+  // =========================
+  // API-compatible: loadFirstPage / paging
+  // =========================
+  const loadFirstPage = React.useCallback(async () => {
+    // CSR: recarga base del server y vuelve a page 1
+    await loadBase();
+    setPageIndex(1);
+  }, [loadBase]);
 
   // siguiente página: seguir el nextLink tal cual
   const hasNext = !!nextLink;
@@ -152,14 +218,6 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
   // recargas por cambios externos
   const applyRange = React.useCallback(() => { loadFirstPage(); }, [loadFirstPage]);
   const reloadAll  = React.useCallback(() => { loadFirstPage(); }, [loadFirstPage, range, search]);
-
-  const sortFieldToOData: Record<SortField, string> = {
-    id: 'fields/Created',
-    Cedula: 'fields/Title',
-    Nombre: 'fields/Nombre',
-    Cargo: 'fields/Cargo',
-    Tienda: 'fields/Tienda',
-  };
 
   const toggleSort = React.useCallback((field: SortField, additive = false) => {
     setSorts(prev => {

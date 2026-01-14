@@ -495,7 +495,7 @@ export function useCentroCostos(centroCostosSvc: MaestrosService) {
 
 export function useCentroOperativo(centroOperativoSvc: MaestrosService) {
   const load = React.useCallback(
-    () => centroOperativoSvc.getAll({filter: "fields/Title eq 'Centros operativos'"}),
+    () => centroOperativoSvc.getAll({filter: "fields/Title eq 'Centros operativos'", top:5000}),
     [centroOperativoSvc]
   );
 

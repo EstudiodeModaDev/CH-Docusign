@@ -129,7 +129,6 @@ export const EnvioMasivoUI: React.FC = () => {
 
   const [sendingBulk, setSendingBulk] = React.useState(false);
   const [batchId, setBatchId] = React.useState("");
-  const [bulkResults, setBulkResults] = React.useState<BulkResultRow[]>([]);
 
   const plantillaSelected = templatesOptions.find((o) => o.value === templateId) ?? null;
   const gridReady = columns.length > 0;
@@ -148,7 +147,6 @@ export const EnvioMasivoUI: React.FC = () => {
 
       setColumns(build.headers);
       setRows([makeFirstRow(build.headers)]);
-      setBulkResults([]);
       setBatchId("");
     } catch (e) {
       console.error(e);
@@ -171,7 +169,6 @@ export const EnvioMasivoUI: React.FC = () => {
   const handleReset = () => {
     setColumns([]);
     setRows([]);
-    setBulkResults([]);
     setBatchId("");
   };
 
@@ -216,7 +213,6 @@ export const EnvioMasivoUI: React.FC = () => {
 
     try {
       setSendingBulk(true);
-      setBulkResults([]);
       setBatchId("");
 
       // 1) Grid -> bulkCopies
@@ -244,7 +240,6 @@ export const EnvioMasivoUI: React.FC = () => {
 
         if (mapped.length) {
           finalResults = mapped;
-          setBulkResults(mapped);
           break;
         }
 
@@ -270,7 +265,6 @@ export const EnvioMasivoUI: React.FC = () => {
       setSendingBulk(true);
       const data = await getBulkSendBatchEnvelopes(batchId);
       const mapped = mapBatchEnvelopesToResults(data);
-      setBulkResults(mapped);
       if (!mapped.length) alert("Aún no hay resultados. Intenta de nuevo en unos segundos.");
     } catch (e) {
       console.error(e);
@@ -409,36 +403,6 @@ export const EnvioMasivoUI: React.FC = () => {
               <BulkGrid columns={columns} rows={rows} onRowsChange={setRows} />
             </div>
 
-            <div className="bulk-card bulk-results">
-              <div className="bulk-results__title">Resultados</div>
-
-              {bulkResults.length === 0 ? (
-                <div className="bulk-results__empty">
-                  Aún no hay resultados. Envía el bulk o actualiza resultados.
-                </div>
-              ) : (
-                <div className="bulk-results__wrap">
-                  <table className="bulk-results__table">
-                    <thead>
-                      <tr>
-                        <th className="bulk-results__th">ReferenceId</th>
-                        <th className="bulk-results__th">EnvelopeId</th>
-                        <th className="bulk-results__th">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {bulkResults.map((r) => (
-                        <tr key={r.referenceId} className="bulk-results__tr">
-                          <td className="bulk-results__td">{r.referenceId}</td>
-                          <td className="bulk-results__td">{r.envelopeId}</td>
-                          <td className="bulk-results__td">{r.status ?? ""}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
           </div>
         </>
       )}

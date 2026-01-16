@@ -1,136 +1,34 @@
 /* =========================================================
-   Bulk.css — cumple:
-   1) Resultados debajo de la tabla (SIEMPRE)
-   2) Tabla lo más ancha posible
-   3) Si hay overflow -> scroll (horizontal y vertical donde aplique)
-   Incluye estilos para BulkGrid (bulk-grid__*)
+   Bulk.css (NUEVO) — Orden obligado:
+   1) Toolbar arriba
+   2) Tabla (grid) debajo
+   3) Resultados debajo
+   + Tabla full width con overflow scroll
    ========================================================= */
 
-/* ---------- Base / Scope ---------- */
+/* ---------- Scope base ---------- */
 .ef-page.bulk-send{
-  --bg: var(--app-bg, #ffffff);
-  --surface: var(--surface, #ffffff);
-  --ink: var(--ink, #0f172a);
-  --muted: var(--muted, #64748b);
-  --border: var(--border, #e5e7eb);
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --line: #e6e8ef;
+  --line2: #dfe3ee;
   --brand: var(--brand-600, #2563eb);
-  --ring: color-mix(in oklab, var(--brand) 35%, transparent);
-
+  --brand2: color-mix(in oklab, var(--brand) 75%, white);
   --radius: 22px;
-  --radius-sm: 14px;
-  --shadow: 0 18px 55px rgba(2, 6, 23, .16);
-  --shadow2: 0 14px 40px rgba(2, 6, 23, .12);
+  --shadow: 0 18px 45px rgba(2, 6, 23, .12);
 
-  --pad: clamp(14px, 2.2vw, 20px);
-  --gap: clamp(14px, 2.2vw, 18px);
+  --pad: clamp(14px, 2vw, 20px);
+  --gap: clamp(14px, 2vw, 18px);
 
+  background: var(--bg);
   color: var(--ink);
-  padding: clamp(14px, 2.5vw, 22px);
+  padding: clamp(14px, 2.4vw, 22px);
 }
 
-/* ---------- Cards ---------- */
-.ef-page.bulk-send .bulk-card,
-.ef-page.bulk-send .ef-card{
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow2);
-  overflow: hidden;
-}
-
-/* ---------- Panel inicial ---------- */
-.ef-page.bulk-send .bulk-panel{
-  max-width: 980px;
-  margin: 0 auto;
-}
-
-.ef-page.bulk-send .bulk-panel__field{
-  padding: var(--pad);
-  display: grid;
-  gap: 8px;
-}
-
-.ef-page.bulk-send .ef-label{
-  font-size: 12.5px;
-  color: var(--muted);
-  font-weight: 650;
-}
-
-.ef-page.bulk-send .ef-input{
-  width: 100%;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: #fff;
-  color: var(--ink);
-  padding: 10px 12px;
-  outline: none;
-  transition: box-shadow .15s ease, border-color .15s ease;
-}
-
-.ef-page.bulk-send .ef-input:focus{
-  border-color: color-mix(in oklab, var(--brand) 35%, var(--border));
-  box-shadow: 0 0 0 4px var(--ring);
-}
-
-.ef-page.bulk-send .bulk-panel__actions{
-  padding: 0 var(--pad) var(--pad);
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-/* ---------- Buttons (scoped) ---------- */
-.ef-page.bulk-send .btn{
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: #fff;
-  color: var(--ink);
-  padding: 9px 12px;
-  font-size: 12.5px;
-  line-height: 1;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease, opacity .12s ease;
-  box-shadow: 0 10px 24px rgba(2, 6, 23, .10);
-  user-select: none;
-}
-
-.ef-page.bulk-send .btn:hover{
-  transform: translateY(-1px);
-  border-color: color-mix(in oklab, var(--border) 60%, black);
-}
-
-.ef-page.bulk-send .btn:active{ transform: translateY(0); }
-
-.ef-page.bulk-send .btn:disabled{
-  opacity: .55;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.ef-page.bulk-send .btn.btn-xs{
-  padding: 8px 12px;
-  font-size: 12px;
-}
-
-.ef-page.bulk-send .btn.btn-primary-final{
-  background: linear-gradient(180deg,
-    color-mix(in oklab, var(--brand) 85%, white) 0%,
-    var(--brand) 70%,
-    color-mix(in oklab, var(--brand) 80%, black) 100%
-  );
-  color: #fff;
-  border-color: color-mix(in oklab, var(--brand) 55%, black);
-  box-shadow: 0 14px 30px rgba(37, 99, 235, .22);
-}
-
-.ef-page.bulk-send .btn.btn-secondary{
-  background: #fff;
-}
-
-/* ---------- Toolbar ---------- */
-.ef-page.bulk-send .bulk-toolbar{
+/* ---------- Toolbar arriba ---------- */
+.bulk-send .bulk-toolbar{
   position: sticky;
   top: 0;
   z-index: 50;
@@ -143,277 +41,319 @@
   padding: 14px var(--pad);
   margin-bottom: var(--gap);
 
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: rgba(255,255,255,.92);
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.88);
   backdrop-filter: blur(10px);
-  box-shadow: var(--shadow2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
 }
 
-.ef-page.bulk-send .bulk-toolbar__left{
+.bulk-send .bulk-toolbar__left{
   display: grid;
   gap: 6px;
-  min-width: 220px;
 }
 
-.ef-page.bulk-send .bulk-toolbar__title{
+.bulk-send .bulk-toolbar__title{
   font-weight: 900;
-  letter-spacing: .2px;
+  letter-spacing: .25px;
   font-size: 16px;
   text-transform: uppercase;
 }
 
-.ef-page.bulk-send .bulk-toolbar__meta{
+.bulk-send .bulk-toolbar__meta{
   font-size: 12.5px;
   color: var(--muted);
   font-weight: 650;
 }
 
-.ef-page.bulk-send .bulk-toolbar__right{
+.bulk-send .bulk-toolbar__right{
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   justify-content: flex-end;
+  align-items: center;
+}
+
+/* ---------- Botones (scoped) ---------- */
+.bulk-send .btn{
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(2, 6, 23, .10);
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease, opacity .12s ease;
+}
+
+.bulk-send .btn:hover{
+  transform: translateY(-1px);
+  border-color: var(--line2);
+  box-shadow: 0 14px 26px rgba(2, 6, 23, .12);
+}
+
+.bulk-send .btn:active{ transform: translateY(0); }
+
+.bulk-send .btn:disabled{
+  opacity: .55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.bulk-send .btn.btn-xs{ padding: 8px 12px; }
+
+.bulk-send .btn.btn-primary-final{
+  background: linear-gradient(180deg, var(--brand2), var(--brand));
+  color: #fff;
+  border-color: color-mix(in oklab, var(--brand) 60%, black);
+}
+
+.bulk-send .btn.btn-secondary{
+  background: #fff;
 }
 
 /* =========================================================
-   ✅ CONDICIÓN 1: RESULTADOS DEBAJO
-   Fuerza 1 columna aunque haya CSS viejo/global
+   ✅ Orden: tabla debajo / resultados debajo
+   Fuerza layout en columna aunque exista CSS viejo
    ========================================================= */
-.ef-page.bulk-send .bulk-main{
+.bulk-send .bulk-main{
   display: grid !important;
-  grid-template-columns: 1fr !important; /* SIEMPRE stack */
-  gap: var(--gap) !important;
-  align-items: start !important;
+  grid-template-columns: 1fr !important;
+  grid-auto-flow: row;
+  gap: var(--gap);
+}
+
+/* ---------- Cards ---------- */
+.bulk-send .bulk-card,
+.bulk-send .ef-card{
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
 /* =========================================================
-   ✅ CONDICIÓN 2 y 3: TABLA LO MÁS ANCHA + SCROLL
-   El scroll debe vivir en el contenedor .bulk-grid-host
+   ✅ TABLA (BulkGrid): full width + overflow scroll
    ========================================================= */
-.ef-page.bulk-send .bulk-grid-host{
-  padding: 0;
+.bulk-send .bulk-grid-host{
+  width: 100%;
   max-width: 100%;
-  overflow: auto !important; /* horizontal/vertical según necesidad */
+  padding: 0;
 }
 
-/* Scrollbar (opcional suave) */
-.ef-page.bulk-send .bulk-grid-host{
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklab, var(--muted) 55%, transparent) transparent;
+/* El scroll horizontal/vertical lo maneja ESTE wrapper */
+.bulk-send .bulk-grid__wrap{
+  overflow: auto;
+  max-width: 100%;
 }
-.ef-page.bulk-send .bulk-grid-host::-webkit-scrollbar{ height: 10px; width: 10px; }
-.ef-page.bulk-send .bulk-grid-host::-webkit-scrollbar-thumb{
-  background: color-mix(in oklab, var(--muted) 55%, transparent);
+
+/* Scrollbars */
+.bulk-send .bulk-grid__wrap{
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--muted) 45%, transparent) transparent;
+}
+.bulk-send .bulk-grid__wrap::-webkit-scrollbar{ height: 10px; width: 10px; }
+.bulk-send .bulk-grid__wrap::-webkit-scrollbar-thumb{
+  background: color-mix(in oklab, var(--muted) 45%, transparent);
   border-radius: 999px;
 }
-.ef-page.bulk-send .bulk-grid-host::-webkit-scrollbar-track{ background: transparent; }
+.bulk-send .bulk-grid__wrap::-webkit-scrollbar-track{ background: transparent; }
 
-/* =========================================================
-   BulkGrid (grid editable tipo Excel)
-   ========================================================= */
-.ef-page.bulk-send .bulk-grid{
-  min-width: 100%;
-  padding: 0;
-}
-
-/* topbar del grid */
-.ef-page.bulk-send .bulk-grid__topbar{
+/* Header superior del grid (botón agregar + contador) */
+.bulk-send .bulk-grid__topbar{
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-
   padding: 14px var(--pad);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
   background: #fff;
 }
 
-.ef-page.bulk-send .bulk-grid__left{
+.bulk-send .bulk-grid__left{
   display: flex;
-  align-items: center;
   gap: 12px;
+  align-items: center;
   flex-wrap: wrap;
 }
 
-.ef-page.bulk-send .bulk-grid__meta{
+.bulk-send .bulk-grid__meta{
   color: var(--muted);
-  font-weight: 650;
+  font-weight: 700;
+  font-size: 12.5px;
 }
 
-/* botones del grid */
-.ef-page.bulk-send .bulk-grid__btn{
-  border-radius: 999px;
-  border: 1px solid var(--border);
+/* Botones del grid */
+.bulk-send .bulk-grid__btn{
+  border: 1px solid var(--line);
   background: #fff;
   color: var(--ink);
+  border-radius: 999px;
   padding: 9px 12px;
-  font-weight: 800;
-  font-size: 12.5px;
+  font-size: 12px;
+  font-weight: 900;
   cursor: pointer;
-  box-shadow: 0 10px 24px rgba(2, 6, 23, .10);
+  box-shadow: 0 10px 20px rgba(2, 6, 23, .10);
   transition: transform .12s ease, border-color .12s ease, opacity .12s ease;
 }
 
-.ef-page.bulk-send .bulk-grid__btn:hover{
+.bulk-send .bulk-grid__btn:hover{
   transform: translateY(-1px);
-  border-color: color-mix(in oklab, var(--border) 60%, black);
+  border-color: var(--line2);
 }
 
-.ef-page.bulk-send .bulk-grid__btn:active{ transform: translateY(0); }
-
-.ef-page.bulk-send .bulk-grid__btn--danger{
-  border-color: color-mix(in oklab, #ef4444 45%, var(--border));
+.bulk-send .bulk-grid__btn--danger{
+  border-color: color-mix(in oklab, #ef4444 40%, var(--line));
   color: #b91c1c;
 }
 
-/* wrap interno del grid: no maneja el scroll (lo maneja bulk-grid-host) */
-.ef-page.bulk-send .bulk-grid__wrap{
-  padding: 0;
-  min-width: 100%;
-}
-
-/* tabla: crecer lo que necesite para que aparezca scroll horizontal */
-.ef-page.bulk-send .bulk-grid__table{
-  width: max-content !important; /* clave: crece por columnas */
-  min-width: 100% !important;    /* pero mínimo llena el card */
+/* Tabla: que sea TAN ancha como necesite */
+.bulk-send .bulk-grid__table{
+  width: max-content;     /* crece según columnas */
+  min-width: 100%;        /* pero mínimo ocupa todo el card */
   border-collapse: separate;
   border-spacing: 0;
   font-size: 13px;
 }
 
-/* header */
-.ef-page.bulk-send .bulk-grid__th{
+/* header sticky */
+.bulk-send .bulk-grid__th{
   position: sticky;
   top: 0;
   z-index: 5;
+
   background: #fff;
-  text-align: left;
+  border-bottom: 1px solid var(--line2);
 
   padding: 12px 12px;
-  border-bottom: 1px solid var(--border);
-  color: var(--ink);
-  font-weight: 900;
+  text-align: left;
   white-space: nowrap;
+  font-weight: 950;
 }
 
-/* celdas */
-.ef-page.bulk-send .bulk-grid__td{
+/* filas */
+.bulk-send .bulk-grid__td{
   padding: 8px 10px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
   background: #fff;
   white-space: nowrap;
   vertical-align: middle;
 }
 
-/* zebra */
-.ef-page.bulk-send .bulk-grid__tr:nth-child(2n) .bulk-grid__td{
-  background: color-mix(in oklab, #fff 92%, #f1f5f9);
+.bulk-send .bulk-grid__tr:nth-child(2n) .bulk-grid__td{
+  background: #fafbff;
 }
 
-/* inputs de celda */
-.ef-page.bulk-send .bulk-grid__cell{
+/* inputs tipo excel */
+.bulk-send .bulk-grid__cell{
   width: 100%;
-  min-width: 220px;     /* para que se vea tipo excel y no se aplaste */
-  max-width: 360px;
+  min-width: 220px;     /* evita aplastamiento */
+  max-width: 380px;
 
-  border: 1px solid color-mix(in oklab, var(--border) 80%, black);
-  border-radius: 8px;
-  padding: 6px 8px;
-  outline: none;
-
+  border: 1px solid var(--line2);
+  border-radius: 10px;
+  padding: 7px 9px;
   background: #fff;
   color: var(--ink);
+  outline: none;
 
-  transition: box-shadow .15s ease, border-color .15s ease;
+  transition: border-color .15s ease, box-shadow .15s ease;
 }
 
-.ef-page.bulk-send .bulk-grid__cell:focus{
-  border-color: color-mix(in oklab, var(--brand) 40%, var(--border));
-  box-shadow: 0 0 0 3px var(--ring);
+.bulk-send .bulk-grid__cell:focus{
+  border-color: color-mix(in oklab, var(--brand) 45%, var(--line2));
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--brand) 18%, transparent);
 }
 
-.ef-page.bulk-send .bulk-grid__cell:disabled{
-  background: color-mix(in oklab, #fff 85%, #e2e8f0);
-  color: color-mix(in oklab, var(--ink) 70%, var(--muted));
+.bulk-send .bulk-grid__cell:disabled{
+  background: #f1f5f9;
+  color: color-mix(in oklab, var(--ink) 65%, var(--muted));
 }
 
 /* acciones */
-.ef-page.bulk-send .bulk-grid__actions{
+.bulk-send .bulk-grid__actions{
   display: flex;
-  gap: 8px;
   justify-content: flex-end;
+  gap: 8px;
 }
 
-/* empty row */
-.ef-page.bulk-send .bulk-grid__empty{
+/* empty */
+.bulk-send .bulk-grid__empty{
   padding: 18px var(--pad);
   color: var(--muted);
-  text-align: left;
-}
-
-/* ---------------------------------------------------------
-   Sticky columns (ReferenceId + siguiente)
-   OJO: necesitan left con widths consistentes.
-   --------------------------------------------------------- */
-.ef-page.bulk-send .bulk-grid__th.sticky-left,
-.ef-page.bulk-send .bulk-grid__td.sticky-left{
-  position: sticky;
-  left: 0;
-  z-index: 6;
-  background: #fff;
-  box-shadow: 10px 0 18px rgba(2, 6, 23, .06);
-}
-
-.ef-page.bulk-send .bulk-grid__th.sticky-left-2,
-.ef-page.bulk-send .bulk-grid__td.sticky-left-2{
-  position: sticky;
-  left: 280px; /* ≈ min-width de la 1ra columna (220) + paddings/bordes */
-  z-index: 6;
-  background: #fff;
-  box-shadow: 10px 0 18px rgba(2, 6, 23, .06);
-}
-
-/* Ajuste para que la 1ra columna tenga ancho estable */
-.ef-page.bulk-send .bulk-grid__td.sticky-left .bulk-grid__cell,
-.ef-page.bulk-send .bulk-grid__th.sticky-left{
-  min-width: 260px;
-}
-.ef-page.bulk-send .bulk-grid__td.sticky-left-2 .bulk-grid__cell,
-.ef-page.bulk-send .bulk-grid__th.sticky-left-2{
-  min-width: 260px;
+  font-weight: 700;
 }
 
 /* =========================================================
-   Resultados (debajo) + scroll si es ancho
+   Sticky columnas (ReferenceId y la 2da)
+   Para que no se desalineen: widths fijos
    ========================================================= */
-.ef-page.bulk-send .bulk-results{
+.bulk-send .bulk-grid__th.sticky-left,
+.bulk-send .bulk-grid__td.sticky-left{
+  position: sticky;
+  left: 0;
+  z-index: 7;
+  background: #fff;
+  box-shadow: 10px 0 18px rgba(2, 6, 23, .06);
+  min-width: 260px;
+}
+
+.bulk-send .bulk-grid__th.sticky-left-2,
+.bulk-send .bulk-grid__td.sticky-left-2{
+  position: sticky;
+  left: 260px; /* debe igualar min-width de la sticky-left */
+  z-index: 7;
+  background: #fff;
+  box-shadow: 10px 0 18px rgba(2, 6, 23, .06);
+  min-width: 260px;
+}
+
+/* Cuando hay zebra, mantenemos color en sticky cells */
+.bulk-send .bulk-grid__tr:nth-child(2n) .bulk-grid__td.sticky-left,
+.bulk-send .bulk-grid__tr:nth-child(2n) .bulk-grid__td.sticky-left-2{
+  background: #fafbff;
+}
+
+/* =========================================================
+   ✅ RESULTADOS: abajo de la tabla (otro card)
+   ========================================================= */
+.bulk-send .bulk-results{
   display: grid;
   grid-template-rows: auto 1fr;
   min-height: 260px;
 }
 
-.ef-page.bulk-send .bulk-results__title{
+.bulk-send .bulk-results__title{
   padding: 14px var(--pad);
-  border-bottom: 1px solid var(--border);
-  font-size: 14px;
-  font-weight: 900;
-  background: #fff;
+  border-bottom: 1px solid var(--line);
+  font-weight: 950;
+  letter-spacing: .2px;
 }
 
-.ef-page.bulk-send .bulk-results__empty{
+.bulk-send .bulk-results__empty{
   padding: var(--pad);
   color: var(--muted);
-  font-weight: 650;
+  font-weight: 700;
 }
 
-.ef-page.bulk-send .bulk-results__wrap{
+/* scroll si la tabla de resultados es ancha */
+.bulk-send .bulk-results__wrap{
   overflow: auto;
   max-width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--muted) 45%, transparent) transparent;
 }
+.bulk-send .bulk-results__wrap::-webkit-scrollbar{ height: 10px; width: 10px; }
+.bulk-send .bulk-results__wrap::-webkit-scrollbar-thumb{
+  background: color-mix(in oklab, var(--muted) 45%, transparent);
+  border-radius: 999px;
+}
+.bulk-send .bulk-results__wrap::-webkit-scrollbar-track{ background: transparent; }
 
-/* tabla resultados: max-content para que si crece, haga scroll */
-.ef-page.bulk-send .bulk-results__table{
+.bulk-send .bulk-results__table{
   width: max-content;
   min-width: 100%;
   border-collapse: separate;
@@ -421,34 +361,43 @@
   font-size: 12.5px;
 }
 
-.ef-page.bulk-send .bulk-results__th,
-.ef-page.bulk-send .bulk-results__td{
+.bulk-send .bulk-results__th,
+.bulk-send .bulk-results__td{
   padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
+  border-bottom: 1px solid var(--line);
   white-space: nowrap;
+  vertical-align: top;
 }
 
-.ef-page.bulk-send .bulk-results__th{
+.bulk-send .bulk-results__th{
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 3;
   background: #fff;
-  font-weight: 900;
+  font-weight: 950;
+  border-bottom: 1px solid var(--line2);
 }
 
-/* Error column legible */
-.ef-page.bulk-send .bulk-results__table th:last-child,
-.ef-page.bulk-send .bulk-results__table td:last-child{
+.bulk-send .bulk-results__table tbody tr:nth-child(2n){
+  background: #fafbff;
+}
+
+.bulk-send .bulk-results__table tbody tr:hover{
+  background: #f2f6ff;
+}
+
+/* columna error legible */
+.bulk-send .bulk-results__table th:last-child,
+.bulk-send .bulk-results__table td:last-child{
   white-space: normal;
   min-width: 360px;
-  max-width: 900px;
+  max-width: 1000px;
   word-break: break-word;
 }
 
-/* Focus visible */
-.ef-page.bulk-send :where(button, select, input, textarea, a):focus-visible{
+/* Focus general */
+.bulk-send :where(button, select, input, textarea, a):focus-visible{
   outline: none;
-  box-shadow: 0 0 0 4px var(--ring);
-  border-color: color-mix(in oklab, var(--brand) 35%, var(--border));
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--brand) 18%, transparent);
+  border-color: color-mix(in oklab, var(--brand) 40%, var(--line2));
 }

@@ -1,5 +1,6 @@
 import * as React from "react";
 import "./Bulk.css";
+
 import { useDocusignTemplates } from "../../../../Funcionalidades/GD/Docusign";
 import { generateCsvForTemplate } from "../../../../Funcionalidades/GD/Bulk";
 import { exportRowsToCsv } from "../../../../utils/csv";
@@ -9,6 +10,8 @@ import { useGraphServices } from "../../../../graph/graphContext";
 import type { EnviosService } from "../../../../Services/Envios.service";
 import { useAuth } from "../../../../auth/authProvider";
 import type { AccountInfo } from "@azure/msal-browser";
+import { useEmpresasSelect } from "../../../../Funcionalidades/Desplegables";
+import type { maestro } from "../../../../models/Desplegables";
 
 type Row = Record<string, string>;
 
@@ -18,6 +21,8 @@ type BulkResultRow = {
   status: "SENT" | "FAILED";
   error?: string;
 };
+
+const COMPANY_COL_KEY = "empresa"; 
 
 function normKey(s: string) {
   return (s ?? "").trim().toLowerCase();
@@ -49,7 +54,7 @@ function makeEmptyRow(columns: string[], index: number) {
 function makeFirstRow(columns: string[]) {
   const r: Row = {};
   for (const c of columns) r[c] = "";
-  if (columns.includes("ReferenceId")) r["ReferenceId"] = "ROW-001";
+  if (columns.some((c) => normKey(c) === normKey("ReferenceId"))) r["ReferenceId"] = "ROW-001";
   return r;
 }
 
@@ -68,7 +73,6 @@ async function runWithConcurrency<T, R>(items: T[], worker: (item: T, index: num
   return results;
 }
 
-
 function buildTextTabPairsFromRow(columns: string[], row: Row) {
   const skip = new Set(["ReferenceId"]);
   return columns
@@ -77,13 +81,6 @@ function buildTextTabPairsFromRow(columns: string[], row: Row) {
     .filter((x) => (x.value ?? "").toString().trim().length > 0);
 }
 
-/**
- * ENVÍA 1 SOBRE usando el mismo flujo del envío individual:
- * - crear draft desde plantilla con templateRoles (firma asignada)
- * - prefill tabs (documentId "1")
- * - docGen form fields (si aplica)
- * - enviar
- */
 async function sendSingleFromRow(params: {templateId: string; templateName: string; columns: string[]; row: Row; index: number;}): Promise<BulkResultRow> {
   const { templateId, templateName, columns, row, index } = params;
   const referenceId = safeRef(row, index);
@@ -119,9 +116,7 @@ async function sendSingleFromRow(params: {templateId: string; templateName: stri
       .map((t) => {
         if (!t.tabId) return null;
 
-        const match = pairs.find(
-          (p) => normKey(p.tabLabel) === normKey(t.tabLabel ?? "")
-        );
+        const match = pairs.find((p) => normKey(p.tabLabel) === normKey(t.tabLabel ?? ""));
         if (!match) return null;
 
         return { tabId: t.tabId, value: match.value };
@@ -161,11 +156,15 @@ async function sendSingleFromRow(params: {templateId: string; templateName: stri
 /** =========================
  * GRID editable (tipo Excel)
  * ========================= */
-export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (rows: Row[]) => void;}) {
-  const { columns, rows, onRowsChange } = props;
+export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (rows: Row[]) => void; companyOptions: maestro[];}) {
+  const { columns, rows, onRowsChange, companyOptions } = props;
 
   const addRow = () => {
     const next = [...rows, makeEmptyRow(columns, rows.length + 1)];
+    // fuerza key en blanco para que el usuario seleccione
+    const idx = next.length - 1;
+    const compKey = columns.find((c) => normKey(c) === normKey(COMPANY_COL_KEY));
+    if (compKey) next[idx][compKey] = "";
     onRowsChange(next);
   };
 
@@ -197,8 +196,8 @@ export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (
           <thead>
             <tr>
               {columns.map((c) => (
-                <th key={c} className={"bulk-grid__th"}>
-                  {c}
+                <th key={c} className="bulk-grid__th">
+                  {normKey(c) === normKey(COMPANY_COL_KEY) ? "Compañía" : c}
                 </th>
               ))}
               <th className="bulk-grid__th">Acciones</th>
@@ -208,11 +207,28 @@ export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (
           <tbody>
             {rows.map((row, idx) => (
               <tr className="bulk-grid__tr" key={idx}>
-                {columns.map((col) => (
-                  <td key={col} className={"bulk-grid__td"}>
-                    <input className="bulk-grid__cell" value={row[col] ?? ""}  onChange={(e) => setCell(idx, col, e.target.value)} disabled={col === "ReferenceId"} placeholder={col === "ReferenceId" ? "" : col}/>
-                  </td>
-                ))}
+                {columns.map((col) => {
+                  const isRef = normKey(col) === normKey("ReferenceId");
+                  const isCompany = normKey(col) === normKey(COMPANY_COL_KEY);
+                  const value = row[col] ?? "";
+
+                  return (
+                    <td key={col} className="bulk-grid__td">
+                      {isCompany ? (
+                        <select className="bulk-grid__cell bulk-grid__select" value={value} onChange={(e) => setCell(idx, col, e.target.value)}>
+                          <option value="">Selecciona compañía</option>
+                          {companyOptions.map((c) => (
+                            <option key={c.T_x00ed_tulo1} value={c.T_x00ed_tulo1}>
+                              {c.T_x00ed_tulo1}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input className="bulk-grid__cell" value={value} onChange={(e) => setCell(idx, col, e.target.value)} disabled={isRef} placeholder={isRef ? "" : col}/>
+                      )}
+                    </td>
+                  );
+                })}
 
                 <td className="bulk-grid__td">
                   <div className="bulk-grid__actions">
@@ -243,8 +259,10 @@ export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (
  * ========================= */
 export const EnvioMasivoUI: React.FC = () => {
   const { templatesOptions, createdraft, getRecipients } = useDocusignTemplates();
-  const { account} = useAuth()
-  const {Envios} = useGraphServices()
+  const { account, } = useAuth();
+  const { Envios, Maestro } = useGraphServices();
+  const {items , reload} = useEmpresasSelect(Maestro)
+
   const [templateId, setTemplateId] = React.useState("");
   const [columns, setColumns] = React.useState<string[]>([]);
   const [rows, setRows] = React.useState<Row[]>([]);
@@ -256,14 +274,14 @@ export const EnvioMasivoUI: React.FC = () => {
   const plantillaSelected = templatesOptions.find((o) => o.value === templateId) ?? null;
   const gridReady = columns.length > 0;
 
+  React.useEffect(() => {
+    void reload();
+  }, [reload]);
+
   const handleGenerateGrid = async () => {
-    if (!templateId) {
-      alert("Selecciona una plantilla");
-      return;
-    }
+    if (!templateId) return alert("Selecciona una plantilla");
 
     setLoading(true);
-
     try {
       const build = await generateCsvForTemplate({
         templateId,
@@ -272,21 +290,18 @@ export const EnvioMasivoUI: React.FC = () => {
         getRecipients,
       });
 
-      // 1) Headers originales de la plantilla
+      // 1) Headers base
       const headers = [...build.headers];
 
       // 2) Forzar columna obligatoria "compania"
-      if (!headers.some((h) => normKey(h) === "compania")) {
-        headers.push("compania");
+      if (!headers.some((h) => normKey(h) === normKey(COMPANY_COL_KEY))) {
+        headers.push(COMPANY_COL_KEY);
       }
 
-      // 3) Crear primera fila
+      // 3) Primera fila (compania vacía para obligar selección)
       const firstRow: Row = makeFirstRow(headers);
+      firstRow[headers.find((h) => normKey(h) === normKey(COMPANY_COL_KEY)) ?? COMPANY_COL_KEY] = "";
 
-      // compania SIEMPRE debe ser ingresada por el usuario
-      firstRow["compania"] = "";
-
-      // 4) Setear estado
       setColumns(headers);
       setRows([firstRow]);
       setBulkResults([]);
@@ -313,9 +328,26 @@ export const EnvioMasivoUI: React.FC = () => {
     setBulkResults([]);
   };
 
+  // Validación previa: obliga compañía en TODAS las filas
+  const validateRowsBeforeSend = (rowsToValidate: Row[], headers: string[]) => {
+    const compHeader = headers.find((h) => normKey(h) === normKey(COMPANY_COL_KEY)) ?? COMPANY_COL_KEY;
+
+    for (let i = 0; i < rowsToValidate.length; i++) {
+      const ref = safeRef(rowsToValidate[i], i);
+      const comp = getCell(rowsToValidate[i], compHeader).trim();
+      if (!comp) {
+        alert(`Falta "compañía" en la fila ${i + 1} (${ref}).`);
+        return false;
+      }
+    }
+    return true;
+  };
+
   const handleSendMasivoOpcionB = async (envios: EnviosService, account: AccountInfo | null) => {
     if (!templateId) return alert("Selecciona una plantilla.");
     if (!rows.length || !columns.length) return alert("Primero genera la tabla y agrega filas.");
+
+    if (!validateRowsBeforeSend(rows, columns)) return;
 
     setSending(true);
     setBulkResults([]);
@@ -328,6 +360,7 @@ export const EnvioMasivoUI: React.FC = () => {
       setRows(normalizedRows);
 
       const templateName = plantillaSelected?.label ?? "Template";
+      const compHeader = columns.find((h) => normKey(h) === normKey(COMPANY_COL_KEY)) ?? COMPANY_COL_KEY;
 
       await runWithConcurrency(
         normalizedRows,
@@ -342,43 +375,44 @@ export const EnvioMasivoUI: React.FC = () => {
 
           // Actualiza resultados en tiempo real
           setBulkResults((prev) => {
-            // evita duplicados por ref (por si reintentas)
             const next = prev.filter((p) => p.referenceId !== res.referenceId);
             next.push(res);
             return next;
           });
 
+          // Guardar en SharePoint si se envió
           if (res.status === "SENT" && res.envelopeId) {
-            const nombre = getCell(row, "nombre");       
-            const cedula = getCell(row, "numeroDoc");   
-            const correo = getCell(row, "COLABORADOR_Email").trim(); 
-            const compania = getCell(row, "compania").trim();
-            if (!compania) throw new Error(`Falta compania en la fila ${idx + 1}`);
+            // Reglas tuyas:
+            // - nombre siempre "nombre"
+            // - cedula siempre "numeroDoc"
+            const nombre = must(row, "nombre");
+            const cedula = must(row, "numeroDoc");
+            const compania = must(row, compHeader);
+            const correo = must(row, "COLABORADOR_Email");
 
             await envios.create({
-              Cedula: cedula, 
-              Compa_x00f1_ia: compania, 
-              CorreoReceptor: correo, 
-              Datos: "", 
-              EnviadoPor: account?.name ?? "", 
-              Estado: "En espera", 
-              Fechadeenvio: new Date().toISOString(), 
-              Fuente: "Masiva", 
-              ID_Novedad: "", 
+              Cedula: cedula,
+              Compa_x00f1_ia: compania,
+              CorreoReceptor: correo,
+              Datos: "",
+              EnviadoPor: account?.name ?? "",
+              Estado: "Enviado",
+              Fechadeenvio: new Date().toISOString(),
+              Fuente: "Masiva",
+              ID_Novedad: "",
               IdSobre: res.envelopeId,
               Receptor: nombre.toUpperCase(),
               Recipients: "",
-              Title: templateName
-            })
+              Title: templateName,
+            });
           }
 
           return res;
         },
-        2 // concurrencia (2 recomendado)
+        2
       );
 
-      bulkResults.filter((x) => x.status === "SENT").length;
-      alert(`Proceso finalizado.`);
+      alert("Proceso finalizado.");
     } catch (e) {
       console.error(e);
       alert(e instanceof Error ? e.message : "Error enviando masivo");
@@ -435,7 +469,7 @@ export const EnvioMasivoUI: React.FC = () => {
                 Descargar CSV
               </button>
 
-              <button type="button" className="btn btn-primary-final btn-xs" onClick={() => {handleSendMasivoOpcionB(Envios, account)}} disabled={loading || sending || !rows.length}>
+              <button type="button" className="btn btn-primary-final btn-xs" onClick={() => handleSendMasivoOpcionB(Envios, account)} disabled={loading || sending || !rows.length}>
                 {sending ? "Enviando..." : "Enviar masivo"}
               </button>
             </div>
@@ -443,7 +477,7 @@ export const EnvioMasivoUI: React.FC = () => {
 
           <div className="bulk-main">
             <div className="bulk-card bulk-grid-host">
-              <BulkGrid columns={columns} rows={rows} onRowsChange={setRows} />
+              <BulkGrid columns={columns} rows={rows} onRowsChange={setRows} companyOptions={items} />
             </div>
 
             <div className="bulk-card bulk-results">

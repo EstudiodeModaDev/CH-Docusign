@@ -195,7 +195,7 @@ export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (
         <table className="bulk-grid__table">
           <thead>
             <tr>
-              {columns.map((c, i) => (
+              {columns.map((c) => (
                 <th key={c} className={"bulk-grid__th"}>
                   {c}
                 </th>
@@ -207,8 +207,8 @@ export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (
           <tbody>
             {rows.map((row, idx) => (
               <tr className="bulk-grid__tr" key={idx}>
-                {columns.map((col, i) => (
-                  <td key={col} className={[ "bulk-grid__td", i === 0 ? "sticky-left" : "", i === 1 ? "sticky-left-2" : "",].join(" ")}>
+                {columns.map((col) => (
+                  <td key={col} className={"bulk-grid__td"}>
                     <input className="bulk-grid__cell" value={row[col] ?? ""}  onChange={(e) => setCell(idx, col, e.target.value)} disabled={col === "ReferenceId"} placeholder={col === "ReferenceId" ? "" : col}/>
                   </td>
                 ))}

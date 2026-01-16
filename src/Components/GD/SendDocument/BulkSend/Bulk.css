@@ -1,57 +1,62 @@
-/* ============================
-   BULK SEND — layout: tabla arriba / resultados abajo
-   - Tabla full width
-   - Overflow => scroll
-   ============================ */
+/* =========================================================
+   Bulk.css — cumple:
+   1) Resultados debajo de la tabla (SIEMPRE)
+   2) Tabla lo más ancha posible
+   3) Si hay overflow -> scroll (horizontal y vertical donde aplique)
+   Incluye estilos para BulkGrid (bulk-grid__*)
+   ========================================================= */
 
-.bulk-send{
-  --bg: var(--app-bg, #0b1220);
-  --surface: var(--surface, #0f172a);
-  --card: color-mix(in oklab, var(--surface) 92%, black);
+/* ---------- Base / Scope ---------- */
+.ef-page.bulk-send{
+  --bg: var(--app-bg, #ffffff);
+  --surface: var(--surface, #ffffff);
   --ink: var(--ink, #0f172a);
   --muted: var(--muted, #64748b);
   --border: var(--border, #e5e7eb);
-  --ring: color-mix(in oklab, var(--brand-400, #60a5fa) 65%, transparent);
+  --brand: var(--brand-600, #2563eb);
+  --ring: color-mix(in oklab, var(--brand) 35%, transparent);
 
-  --radius: 18px;
-  --radius-sm: 12px;
-  --shadow: 0 18px 50px rgba(2, 6, 23, .12);
-  --shadow2: 0 12px 30px rgba(2, 6, 23, .10);
+  --radius: 22px;
+  --radius-sm: 14px;
+  --shadow: 0 18px 55px rgba(2, 6, 23, .16);
+  --shadow2: 0 14px 40px rgba(2, 6, 23, .12);
 
-  --pad: clamp(12px, 2vw, 18px);
-  --gap: clamp(12px, 2vw, 16px);
+  --pad: clamp(14px, 2.2vw, 20px);
+  --gap: clamp(14px, 2.2vw, 18px);
 
   color: var(--ink);
+  padding: clamp(14px, 2.5vw, 22px);
 }
 
-.bulk-send.ef-page{
-  padding: clamp(12px, 2.5vw, 22px);
-}
-
-/* ---------- Panel inicial ---------- */
-.bulk-send .bulk-panel{
-  max-width: 980px;
-  margin: 0 auto;
-  border-radius: var(--radius);
+/* ---------- Cards ---------- */
+.ef-page.bulk-send .bulk-card,
+.ef-page.bulk-send .ef-card{
   border: 1px solid var(--border);
-  background: #fff;
-  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow2);
   overflow: hidden;
 }
 
-.bulk-send .bulk-panel__field{
+/* ---------- Panel inicial ---------- */
+.ef-page.bulk-send .bulk-panel{
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.ef-page.bulk-send .bulk-panel__field{
   padding: var(--pad);
   display: grid;
   gap: 8px;
 }
 
-.bulk-send .ef-label{
+.ef-page.bulk-send .ef-label{
   font-size: 12.5px;
   color: var(--muted);
-  letter-spacing: .2px;
+  font-weight: 650;
 }
 
-.bulk-send .ef-input{
+.ef-page.bulk-send .ef-input{
   width: 100%;
   border-radius: 12px;
   border: 1px solid var(--border);
@@ -59,24 +64,23 @@
   color: var(--ink);
   padding: 10px 12px;
   outline: none;
-  transition: border-color .15s ease, box-shadow .15s ease;
+  transition: box-shadow .15s ease, border-color .15s ease;
 }
 
-.bulk-send .ef-input:focus{
-  border-color: color-mix(in oklab, var(--ring) 60%, var(--border));
-  box-shadow: 0 0 0 4px color-mix(in oklab, var(--ring) 35%, transparent);
+.ef-page.bulk-send .ef-input:focus{
+  border-color: color-mix(in oklab, var(--brand) 35%, var(--border));
+  box-shadow: 0 0 0 4px var(--ring);
 }
 
-.bulk-send .bulk-panel__actions{
+.ef-page.bulk-send .bulk-panel__actions{
   padding: 0 var(--pad) var(--pad);
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  align-items: center;
 }
 
-/* ---------- Botones (scoped) ---------- */
-.bulk-send .btn{
+/* ---------- Buttons (scoped) ---------- */
+.ef-page.bulk-send .btn{
   border-radius: 999px;
   border: 1px solid var(--border);
   background: #fff;
@@ -84,55 +88,57 @@
   padding: 9px 12px;
   font-size: 12.5px;
   line-height: 1;
+  font-weight: 700;
   cursor: pointer;
   transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease, opacity .12s ease;
   box-shadow: 0 10px 24px rgba(2, 6, 23, .10);
+  user-select: none;
 }
 
-.bulk-send .btn:hover{
+.ef-page.bulk-send .btn:hover{
   transform: translateY(-1px);
-  border-color: color-mix(in oklab, var(--border) 70%, black);
+  border-color: color-mix(in oklab, var(--border) 60%, black);
 }
 
-.bulk-send .btn:active{ transform: translateY(0); }
+.ef-page.bulk-send .btn:active{ transform: translateY(0); }
 
-.bulk-send .btn:disabled{
+.ef-page.bulk-send .btn:disabled{
   opacity: .55;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
-.bulk-send .btn.btn-primary-final{
-  background: linear-gradient(180deg,
-    color-mix(in oklab, var(--brand-600, #2563eb) 78%, white) 0%,
-    var(--brand-600, #2563eb) 70%,
-    color-mix(in oklab, var(--brand-600, #2563eb) 78%, black) 100%
-  );
-  color: white;
-  border-color: color-mix(in oklab, var(--brand-600, #2563eb) 55%, black);
-  box-shadow: 0 14px 30px rgba(37, 99, 235, .22);
-}
-
-.bulk-send .btn.btn-secondary{
-  background: #fff;
-}
-
-.bulk-send .btn.btn-xs{
+.ef-page.bulk-send .btn.btn-xs{
   padding: 8px 12px;
   font-size: 12px;
 }
 
+.ef-page.bulk-send .btn.btn-primary-final{
+  background: linear-gradient(180deg,
+    color-mix(in oklab, var(--brand) 85%, white) 0%,
+    var(--brand) 70%,
+    color-mix(in oklab, var(--brand) 80%, black) 100%
+  );
+  color: #fff;
+  border-color: color-mix(in oklab, var(--brand) 55%, black);
+  box-shadow: 0 14px 30px rgba(37, 99, 235, .22);
+}
+
+.ef-page.bulk-send .btn.btn-secondary{
+  background: #fff;
+}
+
 /* ---------- Toolbar ---------- */
-.bulk-send .bulk-toolbar{
+.ef-page.bulk-send .bulk-toolbar{
   position: sticky;
   top: 0;
-  z-index: 40;
+  z-index: 50;
 
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 14px;
-  align-items: flex-start;
 
   padding: 14px var(--pad);
   margin-bottom: var(--gap);
@@ -144,115 +150,270 @@
   box-shadow: var(--shadow2);
 }
 
-.bulk-send .bulk-toolbar__left{
-  min-width: 240px;
+.ef-page.bulk-send .bulk-toolbar__left{
   display: grid;
   gap: 6px;
+  min-width: 220px;
 }
 
-.bulk-send .bulk-toolbar__title{
-  font-size: 15px;
-  font-weight: 750;
+.ef-page.bulk-send .bulk-toolbar__title{
+  font-weight: 900;
   letter-spacing: .2px;
+  font-size: 16px;
+  text-transform: uppercase;
 }
 
-.bulk-send .bulk-toolbar__meta{
+.ef-page.bulk-send .bulk-toolbar__meta{
   font-size: 12.5px;
   color: var(--muted);
+  font-weight: 650;
 }
 
-.bulk-send .bulk-toolbar__right{
+.ef-page.bulk-send .bulk-toolbar__right{
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   justify-content: flex-end;
-  align-items: center;
 }
 
-/* =========================================
-   CAMBIO CLAVE: MAIN en 1 columna (stack)
-   Tabla arriba / Resultados abajo
-   ========================================= */
-.bulk-send .bulk-main{
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--gap);
-  align-items: start;
+/* =========================================================
+   ✅ CONDICIÓN 1: RESULTADOS DEBAJO
+   Fuerza 1 columna aunque haya CSS viejo/global
+   ========================================================= */
+.ef-page.bulk-send .bulk-main{
+  display: grid !important;
+  grid-template-columns: 1fr !important; /* SIEMPRE stack */
+  gap: var(--gap) !important;
+  align-items: start !important;
 }
 
-/* ---------- Cards ---------- */
-.bulk-send .bulk-card{
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: #fff;
-  box-shadow: var(--shadow2);
-  overflow: hidden;
-}
-
-/* =========================================
-   GRID HOST: full width + overflow scroll
-   ========================================= */
-.bulk-send .bulk-grid-host{
-  /* importante: que el contenedor permita scroll horizontal */
-  overflow: auto;
+/* =========================================================
+   ✅ CONDICIÓN 2 y 3: TABLA LO MÁS ANCHA + SCROLL
+   El scroll debe vivir en el contenedor .bulk-grid-host
+   ========================================================= */
+.ef-page.bulk-send .bulk-grid-host{
+  padding: 0;
   max-width: 100%;
+  overflow: auto !important; /* horizontal/vertical según necesidad */
+}
+
+/* Scrollbar (opcional suave) */
+.ef-page.bulk-send .bulk-grid-host{
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--muted) 55%, transparent) transparent;
+}
+.ef-page.bulk-send .bulk-grid-host::-webkit-scrollbar{ height: 10px; width: 10px; }
+.ef-page.bulk-send .bulk-grid-host::-webkit-scrollbar-thumb{
+  background: color-mix(in oklab, var(--muted) 55%, transparent);
+  border-radius: 999px;
+}
+.ef-page.bulk-send .bulk-grid-host::-webkit-scrollbar-track{ background: transparent; }
+
+/* =========================================================
+   BulkGrid (grid editable tipo Excel)
+   ========================================================= */
+.ef-page.bulk-send .bulk-grid{
+  min-width: 100%;
   padding: 0;
 }
 
-/* evita que los hijos rompan el contenedor */
-.bulk-send .bulk-grid-host > *{
-  min-width: 0;
+/* topbar del grid */
+.ef-page.bulk-send .bulk-grid__topbar{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+
+  padding: 14px var(--pad);
+  border-bottom: 1px solid var(--border);
+  background: #fff;
 }
 
-/* Si tu BulkGrid renderiza una tabla, esto ayuda:
-   - el contenido puede ser más ancho que el card
-   - pero el scroll queda en el host */
-.bulk-send .bulk-grid-host table{
-  width: max-content;     /* permite crecer según columnas */
-  min-width: 100%;        /* pero mínimo ocupa todo el ancho visible */
-  border-collapse: separate;
-  border-spacing: 0;
+.ef-page.bulk-send .bulk-grid__left{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-/* Si tu BulkGrid NO es table sino div-grid, igual sirve:
-   fuerza que el primer hijo pueda ser ancho */
-.bulk-send .bulk-grid-host > :first-child{
-  width: max-content;
+.ef-page.bulk-send .bulk-grid__meta{
+  color: var(--muted);
+  font-weight: 650;
+}
+
+/* botones del grid */
+.ef-page.bulk-send .bulk-grid__btn{
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  padding: 9px 12px;
+  font-weight: 800;
+  font-size: 12.5px;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(2, 6, 23, .10);
+  transition: transform .12s ease, border-color .12s ease, opacity .12s ease;
+}
+
+.ef-page.bulk-send .bulk-grid__btn:hover{
+  transform: translateY(-1px);
+  border-color: color-mix(in oklab, var(--border) 60%, black);
+}
+
+.ef-page.bulk-send .bulk-grid__btn:active{ transform: translateY(0); }
+
+.ef-page.bulk-send .bulk-grid__btn--danger{
+  border-color: color-mix(in oklab, #ef4444 45%, var(--border));
+  color: #b91c1c;
+}
+
+/* wrap interno del grid: no maneja el scroll (lo maneja bulk-grid-host) */
+.ef-page.bulk-send .bulk-grid__wrap{
+  padding: 0;
   min-width: 100%;
 }
 
-/* =========================================
-   RESULTADOS: debajo, más compacto
-   ========================================= */
-.bulk-send .bulk-results{
+/* tabla: crecer lo que necesite para que aparezca scroll horizontal */
+.ef-page.bulk-send .bulk-grid__table{
+  width: max-content !important; /* clave: crece por columnas */
+  min-width: 100% !important;    /* pero mínimo llena el card */
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+
+/* header */
+.ef-page.bulk-send .bulk-grid__th{
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #fff;
+  text-align: left;
+
+  padding: 12px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+/* celdas */
+.ef-page.bulk-send .bulk-grid__td{
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* zebra */
+.ef-page.bulk-send .bulk-grid__tr:nth-child(2n) .bulk-grid__td{
+  background: color-mix(in oklab, #fff 92%, #f1f5f9);
+}
+
+/* inputs de celda */
+.ef-page.bulk-send .bulk-grid__cell{
+  width: 100%;
+  min-width: 220px;     /* para que se vea tipo excel y no se aplaste */
+  max-width: 360px;
+
+  border: 1px solid color-mix(in oklab, var(--border) 80%, black);
+  border-radius: 8px;
+  padding: 6px 8px;
+  outline: none;
+
+  background: #fff;
+  color: var(--ink);
+
+  transition: box-shadow .15s ease, border-color .15s ease;
+}
+
+.ef-page.bulk-send .bulk-grid__cell:focus{
+  border-color: color-mix(in oklab, var(--brand) 40%, var(--border));
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.ef-page.bulk-send .bulk-grid__cell:disabled{
+  background: color-mix(in oklab, #fff 85%, #e2e8f0);
+  color: color-mix(in oklab, var(--ink) 70%, var(--muted));
+}
+
+/* acciones */
+.ef-page.bulk-send .bulk-grid__actions{
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* empty row */
+.ef-page.bulk-send .bulk-grid__empty{
+  padding: 18px var(--pad);
+  color: var(--muted);
+  text-align: left;
+}
+
+/* ---------------------------------------------------------
+   Sticky columns (ReferenceId + siguiente)
+   OJO: necesitan left con widths consistentes.
+   --------------------------------------------------------- */
+.ef-page.bulk-send .bulk-grid__th.sticky-left,
+.ef-page.bulk-send .bulk-grid__td.sticky-left{
+  position: sticky;
+  left: 0;
+  z-index: 6;
+  background: #fff;
+  box-shadow: 10px 0 18px rgba(2, 6, 23, .06);
+}
+
+.ef-page.bulk-send .bulk-grid__th.sticky-left-2,
+.ef-page.bulk-send .bulk-grid__td.sticky-left-2{
+  position: sticky;
+  left: 280px; /* ≈ min-width de la 1ra columna (220) + paddings/bordes */
+  z-index: 6;
+  background: #fff;
+  box-shadow: 10px 0 18px rgba(2, 6, 23, .06);
+}
+
+/* Ajuste para que la 1ra columna tenga ancho estable */
+.ef-page.bulk-send .bulk-grid__td.sticky-left .bulk-grid__cell,
+.ef-page.bulk-send .bulk-grid__th.sticky-left{
+  min-width: 260px;
+}
+.ef-page.bulk-send .bulk-grid__td.sticky-left-2 .bulk-grid__cell,
+.ef-page.bulk-send .bulk-grid__th.sticky-left-2{
+  min-width: 260px;
+}
+
+/* =========================================================
+   Resultados (debajo) + scroll si es ancho
+   ========================================================= */
+.ef-page.bulk-send .bulk-results{
   display: grid;
   grid-template-rows: auto 1fr;
   min-height: 260px;
 }
 
-.bulk-send .bulk-results__title{
+.ef-page.bulk-send .bulk-results__title{
   padding: 14px var(--pad);
   border-bottom: 1px solid var(--border);
-  font-size: 13.5px;
-  font-weight: 750;
-  letter-spacing: .2px;
+  font-size: 14px;
+  font-weight: 900;
   background: #fff;
 }
 
-.bulk-send .bulk-results__empty{
+.ef-page.bulk-send .bulk-results__empty{
   padding: var(--pad);
   color: var(--muted);
-  font-size: 12.5px;
+  font-weight: 650;
 }
 
-/* wrapper con scroll por si hay tabla ancha */
-.bulk-send .bulk-results__wrap{
+.ef-page.bulk-send .bulk-results__wrap{
   overflow: auto;
   max-width: 100%;
 }
 
-/* tabla resultados */
-.bulk-send .bulk-results__table{
+/* tabla resultados: max-content para que si crece, haga scroll */
+.ef-page.bulk-send .bulk-results__table{
   width: max-content;
   min-width: 100%;
   border-collapse: separate;
@@ -260,65 +421,34 @@
   font-size: 12.5px;
 }
 
-.bulk-send .bulk-results__th,
-.bulk-send .bulk-results__td{
+.ef-page.bulk-send .bulk-results__th,
+.ef-page.bulk-send .bulk-results__td{
   padding: 10px 12px;
   border-bottom: 1px solid var(--border);
   vertical-align: top;
   white-space: nowrap;
 }
 
-/* header sticky de resultados */
-.bulk-send .bulk-results__th{
+.ef-page.bulk-send .bulk-results__th{
   position: sticky;
   top: 0;
   z-index: 2;
-  text-align: left;
-  font-weight: 750;
   background: #fff;
+  font-weight: 900;
 }
 
-/* zebra + hover */
-.bulk-send .bulk-results__table tbody tr:nth-child(2n){
-  background: color-mix(in oklab, #fff 92%, #f1f5f9);
-}
-
-.bulk-send .bulk-results__table tbody tr:hover{
-  background: color-mix(in oklab, #fff 85%, #e2e8f0);
-}
-
-/* Columna Error: que se lea bien */
-.bulk-send .bulk-results__table th:last-child,
-.bulk-send .bulk-results__table td:last-child{
+/* Error column legible */
+.ef-page.bulk-send .bulk-results__table th:last-child,
+.ef-page.bulk-send .bulk-results__table td:last-child{
   white-space: normal;
-  min-width: 320px;
-  max-width: 720px;
+  min-width: 360px;
+  max-width: 900px;
   word-break: break-word;
 }
 
-/* ---------- Focus visible ---------- */
-.bulk-send :where(button, select, input, textarea, a):focus-visible{
+/* Focus visible */
+.ef-page.bulk-send :where(button, select, input, textarea, a):focus-visible{
   outline: none;
-  box-shadow: 0 0 0 4px color-mix(in oklab, var(--ring) 35%, transparent);
-  border-color: color-mix(in oklab, var(--ring) 60%, var(--border));
-}
-
-/* ---------- Scrollbars suaves ---------- */
-.bulk-send :where(.bulk-grid-host, .bulk-results__wrap){
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklab, var(--muted) 60%, transparent) transparent;
-}
-
-.bulk-send :where(.bulk-grid-host, .bulk-results__wrap)::-webkit-scrollbar{
-  height: 10px;
-  width: 10px;
-}
-
-.bulk-send :where(.bulk-grid-host, .bulk-results__wrap)::-webkit-scrollbar-thumb{
-  background: color-mix(in oklab, var(--muted) 55%, transparent);
-  border-radius: 999px;
-}
-
-.bulk-send :where(.bulk-grid-host, .bulk-results__wrap)::-webkit-scrollbar-track{
-  background: transparent;
+  box-shadow: 0 0 0 4px var(--ring);
+  border-color: color-mix(in oklab, var(--brand) 35%, var(--border));
 }

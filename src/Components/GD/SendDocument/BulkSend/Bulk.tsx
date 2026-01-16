@@ -2,8 +2,12 @@ import React from "react";
 import { useDocusignTemplates } from "../../../../Funcionalidades/GD/Docusign";
 import { buildBulkCopiesFromGrid, generateCsvForTemplate } from "../../../../Funcionalidades/GD/Bulk";
 import { exportRowsToCsv } from "../../../../utils/csv";
-import "./Bulk.css"
-import { createBulkSendList, createBulkSendRequest, getBulkSendBatchEnvelopes } from "../../../../Services/DocusignAPI.service";
+import {
+  createBulkSendList,
+  createBulkSendRequest,
+  getBulkSendBatchEnvelopes,
+} from "../../../../Services/DocusignAPI.service";
+import "./Bulk.css";
 
 type Row = Record<string, string>;
 
@@ -14,95 +18,6 @@ function makeEmptyRow(columns: string[], index: number) {
   return r;
 }
 
-export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (rows: Row[]) => void;}) {
-  const { columns, rows, onRowsChange } = props;
-
-  const addRow = () => {
-    const next = [...rows, makeEmptyRow(columns, rows.length + 1)];
-    onRowsChange(next);
-  };
-
-  const removeRow = (idx: number) => {
-    const next = rows.filter((_, i) => i !== idx);
-    onRowsChange(next);
-  };
-
-  const setCell = (idx: number, col: string, value: string) => {
-    const next = rows.map((r, i) => (i === idx ? { ...r, [col]: value } : r));
-    onRowsChange(next);
-  };
-
-  return (
-    <div style={{ overflow: "auto", border: "1px solid var(--border,#e5e7eb)", borderRadius: 12 }}>
-      <div style={{ display: "flex", gap: 8, padding: 10 }}>
-        <button type="button" className="btn btn-primary-final btn-xs" onClick={addRow}>
-          + Agregar fila
-        </button>
-      </div>
-
-      <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
-        <thead>
-          <tr>
-            {columns.map((c) => (
-              <th key={c} style={{
-                  position: "sticky",
-                  top: 0,
-                  background: "var(--surface,#fff)",
-                  textAlign: "left",
-                  padding: "10px 12px",
-                  borderBottom: "1px solid var(--border,#e5e7eb)",
-                  fontWeight: 700,
-                  whiteSpace: "nowrap",
-                }}>
-                {c}
-              </th>
-            ))}
-            <th style={{
-                  position: "sticky",
-                  top: 0,
-                  background: "var(--surface,#fff)",
-                  padding: "10px 12px",
-                  borderBottom: "1px solid var(--border,#e5e7eb)",}}>
-              Acciones
-            </th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {rows.map((row, idx) => (
-            <tr key={idx}>
-              {columns.map((col) => (
-                <td key={col} style={{ borderBottom: "1px solid var(--border,#e5e7eb)" }}>
-                  <input value={row[col] ?? ""} onChange={(e) => setCell(idx, col, e.target.value)} disabled={col === "ReferenceId"} style={{
-                                                                                                      width: "100%",
-                                                                                                      padding: "8px 10px",
-                                                                                                      border: "0",
-                                                                                                      outline: "none",
-                                                                                                      background: "transparent",
-                                                                                                      minWidth: 180,
-                                                                                                    }}/>
-                </td>
-              ))}
-              <td style={{ borderBottom: "1px solid var(--border,#e5e7eb)", padding: "6px 10px" }}>
-                <button type="button" className="btn btn-secondary btn-xs" onClick={() => removeRow(idx)}>
-                  Quitar
-                </button>
-              </td>
-            </tr>
-          ))}
-          {rows.length === 0 && (
-            <tr>
-              <td colSpan={columns.length + 1} style={{ padding: 14, color: "var(--muted,#64748b)" }}>
-                Agrega una fila para empezar.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 function makeFirstRow(columns: string[]) {
   const r: Row = {};
   for (const c of columns) r[c] = "";
@@ -110,8 +25,100 @@ function makeFirstRow(columns: string[]) {
   return r;
 }
 
+/** ============== GRID ============== */
+export function BulkGrid(props: {
+  columns: string[];
+  rows: Row[];
+  onRowsChange: (rows: Row[]) => void;
+}) {
+  const { columns, rows, onRowsChange } = props;
+
+  const addRow = () => onRowsChange([...rows, makeEmptyRow(columns, rows.length + 1)]);
+  const removeRow = (idx: number) => onRowsChange(rows.filter((_, i) => i !== idx));
+
+  const setCell = (idx: number, col: string, value: string) => {
+    onRowsChange(rows.map((r, i) => (i === idx ? { ...r, [col]: value } : r)));
+  };
+
+  const stickyClass = (col: string) => {
+    if (col === "ReferenceId") return "sticky-left";
+    if (col === "COLABORADOR_Name") return "sticky-left-2";
+    return "";
+  };
+
+  return (
+    <div className="bulk-grid">
+      <div className="bulk-grid__topbar">
+        <div className="bulk-grid__left">
+          <button type="button" className="btn btn-primary-final btn-xs" onClick={addRow}>
+            + Agregar fila
+          </button>
+          <div className="bulk-grid__meta">
+            Filas: <b>{rows.length}</b>
+          </div>
+        </div>
+      </div>
+
+      <div className="bulk-grid__wrap">
+        <table className="bulk-grid__table">
+          <thead>
+            <tr>
+              {columns.map((c) => (
+                <th key={c} className={`bulk-grid__th ${stickyClass(c)}`}>
+                  {c}
+                </th>
+              ))}
+              <th className="bulk-grid__th">Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {rows.map((row, idx) => (
+              <tr key={idx} className="bulk-grid__tr">
+                {columns.map((col) => (
+                  <td key={col} className={`bulk-grid__td ${stickyClass(col)}`}>
+                    <input
+                      className="bulk-grid__cell"
+                      value={row[col] ?? ""}
+                      onChange={(e) => setCell(idx, col, e.target.value)}
+                      disabled={col === "ReferenceId"}
+                      placeholder={col === "ReferenceId" ? "" : "Escribe..."}
+                    />
+                  </td>
+                ))}
+                <td className="bulk-grid__td">
+                  <div className="bulk-grid__actions">
+                    <button
+                      type="button"
+                      className="bulk-grid__btn bulk-grid__btn--danger"
+                      onClick={() => removeRow(idx)}
+                      disabled={rows.length <= 1}
+                      title={rows.length <= 1 ? "Debe existir al menos 1 fila" : "Quitar fila"}
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={columns.length + 1} className="bulk-grid__empty">
+                  Agrega una fila para empezar.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 type BulkResultRow = { referenceId: string; envelopeId: string; status?: string };
 
+/** ============== UI ============== */
 export const EnvioMasivoUI: React.FC = () => {
   const { templatesOptions, createdraft, getRecipients } = useDocusignTemplates();
 
@@ -128,10 +135,7 @@ export const EnvioMasivoUI: React.FC = () => {
   const gridReady = columns.length > 0;
 
   const handleGenerateGrid = async () => {
-    if (!templateId) {
-      alert("Selecciona una plantilla");
-      return;
-    }
+    if (!templateId) return alert("Selecciona una plantilla");
 
     setLoading(true);
     try {
@@ -155,10 +159,7 @@ export const EnvioMasivoUI: React.FC = () => {
   };
 
   const handleDownloadCsv = () => {
-    if (!columns.length) {
-      alert("Primero genera la tabla");
-      return;
-    }
+    if (!columns.length) return alert("Primero genera la tabla");
 
     const safeName = (plantillaSelected?.label ?? "Template")
       .replace(/[^\w\- ]/g, "")
@@ -174,13 +175,22 @@ export const EnvioMasivoUI: React.FC = () => {
     setBatchId("");
   };
 
+  /** IMPORTANTE: si ya corriges customFields a ARRAY en el payload,
+   *  aquí también debes leer customFields como array (no textCustomFields).
+   */
   const mapBatchEnvelopesToResults = (data: any): BulkResultRow[] => {
     const envs = data?.envelopes ?? [];
+
     const mapped = envs
       .map((e: any) => {
-        const tcf = e.customFields?.textCustomFields ?? [];
+        // ✅ Opción A: si DocuSign devuelve customFields como objeto clásico
+        // const tcf = e.customFields?.textCustomFields ?? [];
+        // const ref = tcf.find((x: any) => (x.name ?? "").toLowerCase() === "referenceid")?.value ?? "";
+
+        // ✅ Opción B: si devuelve customFields como array (más consistente con lo que enviamos)
+        const cf = Array.isArray(e.customFields) ? e.customFields : [];
         const ref =
-          tcf.find((x: any) => (x.name ?? "").toLowerCase() === "referenceid")?.value ?? "";
+          cf.find((x: any) => (x.name ?? "").toLowerCase() === "referenceid")?.value ?? "";
 
         if (!ref) return null;
 
@@ -192,7 +202,6 @@ export const EnvioMasivoUI: React.FC = () => {
       })
       .filter(Boolean) as BulkResultRow[];
 
-    // dedupe por referenceId
     const seen = new Set<string>();
     return mapped.filter((m) => {
       if (seen.has(m.referenceId)) return false;
@@ -210,20 +219,28 @@ export const EnvioMasivoUI: React.FC = () => {
       setBulkResults([]);
       setBatchId("");
 
-      // 1) Grid -> bulkCopies (incluye customFields ReferenceId)
+      // 1) Grid -> bulkCopies
       const bulkCopies = buildBulkCopiesFromGrid(columns, rows);
 
       // 2) Crear bulk send list
-      const list = await createBulkSendList({name: `Bulk_${(plantillaSelected?.label ?? "Template").replace(/\s+/g, "_")}_${new Date().toISOString().slice(0, 19)}`, bulkCopies,});
+      const list = await createBulkSendList({
+        name: `Bulk_${(plantillaSelected?.label ?? "Template").replace(/\s+/g, "_")}_${new Date()
+          .toISOString()
+          .slice(0, 19)}`,
+        bulkCopies,
+      });
 
-      // 3) Crear request (dispara el batch)
-      const req = await createBulkSendRequest({templateId, bulkSendListId: list.bulkSendListId,});
+      // 3) Disparar batch
+      const req = await createBulkSendRequest({
+        templateId,
+        bulkSendListId: list.bulkSendListId,
+      });
 
       const id = req.bulkSendBatchId || req.batchId || "";
       if (!id) throw new Error("No vino batchId/bulkSendBatchId en la respuesta.");
       setBatchId(id);
 
-      // 4) Poll inicial (hasta 25 intentos * 2s = 50s)
+      // 4) Poll
       let finalResults: BulkResultRow[] = [];
       for (let attempt = 0; attempt < 25; attempt++) {
         const data = await getBulkSendBatchEnvelopes(id);
@@ -269,7 +286,6 @@ export const EnvioMasivoUI: React.FC = () => {
 
   return (
     <div className="ef-page bulk-send">
-      {/* PANEL (se esconde cuando hay grid) */}
       {!gridReady && (
         <div className="ef-card bulk-panel">
           <div className="bulk-panel__field">
@@ -277,7 +293,13 @@ export const EnvioMasivoUI: React.FC = () => {
               Plantilla
             </label>
 
-            <select id="bulk-template" className="ef-input" value={templateId} onChange={(e) => setTemplateId(e.target.value)} disabled={loading || sendingBulk}>
+            <select
+              id="bulk-template"
+              className="ef-input"
+              value={templateId}
+              onChange={(e) => setTemplateId(e.target.value)}
+              disabled={loading || sendingBulk}
+            >
               <option value="">Selecciona una plantilla</option>
               {templatesOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -288,39 +310,49 @@ export const EnvioMasivoUI: React.FC = () => {
           </div>
 
           <div className="bulk-panel__actions">
-            <button type="button" className="btn btn-primary-final btn-xs" disabled={!templateId || loading || sendingBulk}  onClick={handleGenerateGrid}>
+            <button
+              type="button"
+              className="btn btn-primary-final btn-xs"
+              disabled={!templateId || loading || sendingBulk}
+              onClick={handleGenerateGrid}
+            >
               {loading ? "Generando..." : "Generar tabla"}
             </button>
 
-            <button type="button" className="btn btn-secondary btn-xs" disabled={!templateId || loading || sendingBulk} onClick={async () => {
-                                                                                                                          try {
-                                                                                                                            setLoading(true);
-                                                                                                                            const build = await generateCsvForTemplate({
-                                                                                                                              templateId,
-                                                                                                                              templateName: plantillaSelected?.label ?? "template",
-                                                                                                                              createdraft,
-                                                                                                                              getRecipients,
-                                                                                                                            });
+            <button
+              type="button"
+              className="btn btn-secondary btn-xs"
+              disabled={!templateId || loading || sendingBulk}
+              onClick={async () => {
+                try {
+                  setLoading(true);
 
-                                                                                                                            const safeName = (plantillaSelected?.label ?? "Template")
-                                                                                                                              .replace(/[^\w\- ]/g, "")
-                                                                                                                              .replace(/\s+/g, "_");
+                  const build = await generateCsvForTemplate({
+                    templateId,
+                    templateName: plantillaSelected?.label ?? "template",
+                    createdraft,
+                    getRecipients,
+                  });
 
-                                                                                                                            exportRowsToCsv(build.headers, [makeFirstRow(build.headers)], `Bulk_${safeName}.csv`);
-                                                                                                                          } catch (e) {
-                                                                                                                            console.error(e);
-                                                                                                                            alert(e instanceof Error ? e.message : "Error descargando CSV");
-                                                                                                                          } finally {
-                                                                                                                            setLoading(false);
-                                                                                                                          }
-                                                                                                                        }}>
+                  const safeName = (plantillaSelected?.label ?? "Template")
+                    .replace(/[^\w\- ]/g, "")
+                    .replace(/\s+/g, "_");
+
+                  exportRowsToCsv(build.headers, [makeFirstRow(build.headers)], `Bulk_${safeName}.csv`);
+                } catch (e) {
+                  console.error(e);
+                  alert(e instanceof Error ? e.message : "Error descargando CSV");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
               {loading ? "Cargando..." : "Descargar CSV"}
             </button>
           </div>
         </div>
       )}
 
-      {/* GRID + TOOLBAR */}
       {gridReady && (
         <>
           <div className="bulk-toolbar">
@@ -330,34 +362,52 @@ export const EnvioMasivoUI: React.FC = () => {
                 Filas: <b>{rows.length}</b>
                 {batchId ? (
                   <>
-                    {" "}• BatchId: <b>{batchId}</b>
+                    {" "}
+                    • BatchId: <b>{batchId}</b>
                   </>
                 ) : null}
               </div>
             </div>
 
             <div className="bulk-toolbar__right">
-              <button type="button" className="btn btn-secondary btn-xs" onClick={handleReset} disabled={loading || sendingBulk}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-xs"
+                onClick={handleReset}
+                disabled={loading || sendingBulk}
+              >
                 Cambiar plantilla
               </button>
 
-              <button type="button" className="btn btn-secondary btn-xs" onClick={handleDownloadCsv} disabled={loading || sendingBulk || !rows.length}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-xs"
+                onClick={handleDownloadCsv}
+                disabled={loading || sendingBulk || !rows.length}
+              >
                 Descargar CSV
               </button>
 
-              <button type="button" className="btn btn-primary-final btn-xs" onClick={handleBulkSend} disabled={loading || sendingBulk || !rows.length}>
+              <button
+                type="button"
+                className="btn btn-primary-final btn-xs"
+                onClick={handleBulkSend}
+                disabled={loading || sendingBulk || !rows.length}
+              >
                 {sendingBulk ? "Enviando..." : "Enviar masivo"}
               </button>
 
-              <button type="button" className="btn btn-secondary btn-xs" onClick={handleRefreshResults} disabled={loading || sendingBulk || !batchId}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-xs"
+                onClick={handleRefreshResults}
+                disabled={loading || sendingBulk || !batchId}
+              >
                 Actualizar resultados
               </button>
             </div>
           </div>
 
-          <BulkGrid columns={columns} rows={rows} onRowsChange={setRows} />
-
-          {/* RESULTADOS */}
           <div className="bulk-main">
             <div className="bulk-card bulk-grid-host">
               <BulkGrid columns={columns} rows={rows} onRowsChange={setRows} />
@@ -372,7 +422,24 @@ export const EnvioMasivoUI: React.FC = () => {
                 </div>
               ) : (
                 <div className="bulk-results__wrap">
-                  {/* tu tabla */}
+                  <table className="bulk-results__table">
+                    <thead>
+                      <tr>
+                        <th className="bulk-results__th">ReferenceId</th>
+                        <th className="bulk-results__th">EnvelopeId</th>
+                        <th className="bulk-results__th">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bulkResults.map((r) => (
+                        <tr key={r.referenceId} className="bulk-results__tr">
+                          <td className="bulk-results__td">{r.referenceId}</td>
+                          <td className="bulk-results__td">{r.envelopeId}</td>
+                          <td className="bulk-results__td">{r.status ?? ""}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
@@ -384,5 +451,3 @@ export const EnvioMasivoUI: React.FC = () => {
 };
 
 export default EnvioMasivoUI;
-
-

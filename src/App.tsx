@@ -39,7 +39,7 @@ const SECTIONS: Section[] = [
                                                                                               <path fill="white" d="M.292 1.665L24.002 12L.293 22.336L3.94 12L.292 1.665ZM5.708 13l-2 5.665L18.999 12L3.708 5.336l2 5.664H11v2H5.708Z"/>
                                                                                             </svg>
   },
-  { id: "bulk", label: "Prueba Masivo", perm: "send", element: <EnvioMasivoUI/>, icon: 
+  { id: "bulk", label: "Envio Masivo de documentos", perm: "send", element: <EnvioMasivoUI/>, icon: 
                                                                                   <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24">
                                                                                     <path fill="white" d="M.292 1.665L24.002 12L.293 22.336L3.94 12L.292 1.665ZM5.708 13l-2 5.665L18.999 12L3.708 5.336l2 5.664H11v2H5.708Z"/>
                                                                                   </svg>

@@ -129,6 +129,13 @@ export type CreateBulkSendListInput = {
   bulkCopies: BulkCopy[];
 };
 
+export type BulkResultRow = {
+  referenceId: string;
+  envelopeId?: string;
+  status: "SENT" | "FAILED";
+  error?: string;
+};
+
 export type BulkSendListResponse = {
   bulkSendListId: string;
   name?: string;

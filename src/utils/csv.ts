@@ -32,3 +32,20 @@ export function exportRowsToCsv(columns: string[], rows: Array<Record<string,str
   const csv = [headerLine, ...lines].join("\n") + "\n";
   downloadTextFile(fileName, csv);
 }
+type Row = Record<string, string>;
+
+function getCell(row: Row , key: string) {
+  const k = key.trim().toLowerCase();
+  const found = Object.keys(row).find(x => x.trim().toLowerCase() === k);
+  return found ? (row[found] ?? "") : "";
+}
+
+export function must(row: Row, key: string) {
+  const v = getCell(row, key);
+  if (!v) throw new Error(`Falta columna/valor requerido: ${key}`);
+  return v;
+}
+
+export function safeRef(row: Row, index: number) {
+  return getCell(row, "ReferenceId") || `ROW-${String(index + 1).padStart(3, "0")}`;
+}

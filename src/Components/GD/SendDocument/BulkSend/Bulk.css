@@ -1,7 +1,10 @@
 /* =========================================================
    Bulk.css — Envío masivo (Grid + Resultados)
-   - Basado en tokens globales (con fallbacks)
-   - Tabla responsive + sticky columns + scroll suave
+   Fixes incluidos:
+   - Scroll horizontal real para ver TODAS las columnas
+   - Sin solapes de inputs
+   - Sticky columns estables
+   - Headers largos: wrap (no se “cortan” feo)
    ========================================================= */
 
 .bulk-send{
@@ -13,26 +16,27 @@
   --ring: var(--ring, rgba(37, 99, 235, .35));
   --brand: var(--brand-600, #2563eb);
   --danger: #ef4444;
-  --danger-ink: #fff;
 
   --radius: 18px;
   --radius-sm: 12px;
-  --shadow: 0 18px 50px rgba(2, 6, 23, .08);
   --shadow2: 0 10px 25px rgba(2, 6, 23, .06);
 
   --pad: clamp(12px, 1.6vw, 18px);
   --gap: clamp(10px, 1.4vw, 14px);
 
+  /* Sticky widths (ajústalos si quieres) */
+  --sticky-1: 180px;  /* ReferenceId */
+  --sticky-2: 260px;  /* COLABORADOR_Name */
+
   color: var(--ink);
 }
 
-/* ====== Page container helpers (si no existen en tu app) ====== */
+/* ====== Layout base ====== */
 .ef-page.bulk-send{
   display: grid;
   gap: var(--gap);
 }
 
-/* Si tu app ya trae .ef-card, esto solo lo “embellece” */
 .bulk-send .ef-card,
 .bulk-card{
   background: var(--surface);
@@ -106,23 +110,18 @@
 }
 
 @media (max-width: 1100px){
-  .bulk-main{
-    grid-template-columns: 1fr;
-  }
+  .bulk-main{ grid-template-columns: 1fr; }
 }
 
 /* ====== Cards ====== */
 .bulk-card{
   padding: var(--pad);
+  min-width: 0; /* clave para overflow dentro de grid */
+  overflow: visible; /* no recortar la tabla */
 }
 
-.bulk-grid-host{
-  min-width: 0; /* clave para que el overflow funcione dentro de grid */
-}
-
-.bulk-results{
-  min-width: 0;
-}
+.bulk-grid-host{ min-width: 0; overflow: visible; }
+.bulk-results{ min-width: 0; }
 
 /* ====== Grid header ====== */
 .bulk-grid__topbar{
@@ -145,73 +144,96 @@
   color: var(--muted);
 }
 
-/* ====== Table wrapper ====== */
+/* ====== Wrapper con SCROLL horizontal/vertical ====== */
 .bulk-grid__wrap{
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  overflow: auto;
-  max-height: min(62vh, 720px);
   background: var(--surface);
-  box-shadow: inset 0 0 0 1px rgba(2,6,23,.02);
+
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+
+  width: 100%;
+  max-width: 100%;
+  max-height: min(62vh, 720px);
+
+  scrollbar-gutter: stable both-edges;
   -webkit-overflow-scrolling: touch;
 }
 
 /* scrollbar suave */
-.bulk-grid__wrap::-webkit-scrollbar{
-  height: 10px;
-  width: 10px;
-}
+.bulk-grid__wrap::-webkit-scrollbar{ height: 10px; width: 10px; }
 .bulk-grid__wrap::-webkit-scrollbar-thumb{
   background: color-mix(in oklab, var(--border) 55%, var(--ink));
   border-radius: 999px;
 }
-.bulk-grid__wrap::-webkit-scrollbar-track{
-  background: transparent;
-}
+.bulk-grid__wrap::-webkit-scrollbar-track{ background: transparent; }
 
-/* ====== Table ====== */
+/* ====== Tabla: debe crecer para mostrar TODAS las columnas ====== */
 .bulk-grid__table{
-  width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 860px; /* para que exista scroll horizontal cuando hay muchas cols */
+
+  width: max-content !important; /* clave */
+  min-width: 100% !important;    /* pero nunca menos que el wrapper */
+  table-layout: fixed;           /* estable */
 }
 
+/* Columnas base (esto “crea” el scroll horizontal cuando hay muchas) */
 .bulk-grid__th,
 .bulk-grid__td{
+  width: 240px;
+  min-width: 240px;
+
   border-bottom: 1px solid var(--border);
   padding: 10px 10px;
   vertical-align: middle;
   background: var(--surface);
+
+  box-sizing: border-box;
 }
 
+/* Header sticky arriba */
 .bulk-grid__th{
   position: sticky;
   top: 0;
   z-index: 20;
-  font-size: 12px;
-  letter-spacing: .02em;
-  text-transform: none;
-  color: color-mix(in oklab, var(--muted) 70%, var(--ink));
+
   background: color-mix(in oklab, var(--surface) 92%, var(--border));
   border-bottom: 1px solid var(--border-strong);
+
+  font-size: 12px;
+  font-weight: 800;
+  color: color-mix(in oklab, var(--muted) 70%, var(--ink));
+
+  /* WRAP para que no se corte el texto */
+  white-space: normal;
+  line-height: 1.15;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
+/* Hover fila */
 .bulk-grid__tr:hover .bulk-grid__td{
   background: color-mix(in oklab, var(--surface) 92%, var(--border));
 }
 
-/* ====== Inputs ====== */
+/* Inputs: NO deben desbordarse del td */
 .bulk-grid__cell{
   width: 100%;
-  min-width: 160px;
+  min-width: 0 !important; /* importantísimo */
   height: 34px;
+
   padding: 7px 10px;
   border-radius: 10px;
   border: 1px solid var(--border);
+
   background: color-mix(in oklab, var(--surface) 95%, var(--border));
   color: var(--ink);
+
   outline: none;
+  box-sizing: border-box;
+
   transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
 }
 
@@ -227,7 +249,48 @@
   background: color-mix(in oklab, var(--surface) 85%, var(--border));
 }
 
-/* ====== Actions ====== */
+/* Columna acciones más angosta */
+.bulk-grid__th:last-child,
+.bulk-grid__td:last-child{
+  width: 140px;
+  min-width: 140px;
+}
+
+/* ====== Sticky columns ====== */
+.bulk-grid__table .sticky-left{
+  position: sticky;
+  left: 0;
+  z-index: 30;
+  background: var(--surface);
+  box-shadow: 1px 0 0 0 var(--border);
+}
+
+.bulk-grid__table thead .sticky-left{ z-index: 60; }
+
+.bulk-grid__table .sticky-left-2{
+  position: sticky;
+  left: var(--sticky-1);
+  z-index: 29;
+  background: var(--surface);
+  box-shadow: 1px 0 0 0 var(--border);
+}
+
+.bulk-grid__table thead .sticky-left-2{ z-index: 59; }
+
+/* Widths reales para sticky */
+.bulk-grid__table th.sticky-left,
+.bulk-grid__table td.sticky-left{
+  width: var(--sticky-1);
+  min-width: var(--sticky-1);
+}
+
+.bulk-grid__table th.sticky-left-2,
+.bulk-grid__table td.sticky-left-2{
+  width: var(--sticky-2);
+  min-width: var(--sticky-2);
+}
+
+/* ====== Actions buttons (si no te los da el framework) ====== */
 .bulk-grid__actions{
   display: flex;
   gap: 8px;
@@ -243,24 +306,15 @@
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--ink);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 12px;
   cursor: pointer;
   transition: transform .08s ease, filter .15s ease, background .15s ease, border-color .15s ease;
 }
 
-.bulk-grid__btn:hover{
-  filter: brightness(0.98);
-}
-
-.bulk-grid__btn:active{
-  transform: translateY(1px);
-}
-
-.bulk-grid__btn:disabled{
-  opacity: .55;
-  cursor: not-allowed;
-}
+.bulk-grid__btn:hover{ filter: brightness(0.98); }
+.bulk-grid__btn:active{ transform: translateY(1px); }
+.bulk-grid__btn:disabled{ opacity: .55; cursor: not-allowed; }
 
 .bulk-grid__btn--danger{
   background: color-mix(in oklab, var(--danger) 12%, var(--surface));
@@ -272,7 +326,7 @@
   background: color-mix(in oklab, var(--danger) 16%, var(--surface));
 }
 
-/* ====== Empty state ====== */
+/* Empty */
 .bulk-grid__empty{
   padding: 18px;
   text-align: center;
@@ -280,51 +334,11 @@
 }
 
 /* =========================================================
-   Sticky columns
-   - Ajusta widths si tus celdas son más anchas
-   ========================================================= */
-.bulk-grid__table .sticky-left{
-  position: sticky;
-  left: 0;
-  z-index: 30; /* arriba de td normales */
-  background: var(--surface);
-  box-shadow: 1px 0 0 0 var(--border);
-}
-
-.bulk-grid__table thead .sticky-left{
-  z-index: 60; /* arriba del header */
-}
-
-.bulk-grid__table .sticky-left-2{
-  position: sticky;
-  left: 180px; /* ancho aproximado de la primera columna */
-  z-index: 29;
-  background: var(--surface);
-  box-shadow: 1px 0 0 0 var(--border);
-}
-
-.bulk-grid__table thead .sticky-left-2{
-  z-index: 59;
-}
-
-/* Opcional: fija widths para que el sticky quede perfecto */
-.bulk-grid__table th.sticky-left,
-.bulk-grid__table td.sticky-left{
-  min-width: 180px;
-  width: 180px;
-}
-.bulk-grid__table th.sticky-left-2,
-.bulk-grid__table td.sticky-left-2{
-  min-width: 220px;
-  width: 220px;
-}
-
-/* =========================================================
    Resultados
    ========================================================= */
 .bulk-results__title{
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 900;
   margin-bottom: 10px;
 }
 
@@ -340,6 +354,7 @@
   overflow: auto;
   max-height: min(62vh, 720px);
   background: var(--surface);
+  scrollbar-gutter: stable both-edges;
 }
 
 .bulk-results__table{
@@ -361,100 +376,36 @@
   position: sticky;
   top: 0;
   z-index: 10;
+
   background: color-mix(in oklab, var(--surface) 92%, var(--border));
   color: color-mix(in oklab, var(--muted) 70%, var(--ink));
   border-bottom: 1px solid var(--border-strong);
+
   font-size: 12px;
+  font-weight: 800;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .bulk-results__tr:hover .bulk-results__td{
   background: color-mix(in oklab, var(--surface) 92%, var(--border));
 }
 
-/* Mejor lectura para ids largos */
 .bulk-results__td:nth-child(2){
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 12.5px;
 }
 
-/* =========================================================
-   Pequeños fixes si tus botones globales no tienen gap
-   ========================================================= */
-.bulk-send .btn{
-  border-radius: 12px;
-}
-
-/* Reduce “saltos” en pantallas pequeñas */
+/* ====== Responsive micro ====== */
 @media (max-width: 560px){
-  .bulk-toolbar{
-    align-items: stretch;
+  .bulk-toolbar{ align-items: stretch; }
+  .bulk-toolbar__right{ justify-content: flex-start; }
+
+  .bulk-grid__th,
+  .bulk-grid__td{
+    width: 220px;
+    min-width: 220px;
   }
-  .bulk-toolbar__right{
-    justify-content: flex-start;
-  }
-  .bulk-grid__cell{
-    min-width: 140px;
-  }
-  .bulk-grid__table{
-    min-width: 760px;
-  }
-}
-
-/* ===== FIX: columnas comprimidas + inputs desbordándose ===== */
-.bulk-grid__table{
-  table-layout: fixed;        /* evita compresión rara */
-  width: max-content;         /* que la tabla mida lo que necesita */
-  min-width: 100%;            /* pero nunca menos que el contenedor */
-}
-
-/* Haz que cada columna tenga ancho estable */
-.bulk-grid__th,
-.bulk-grid__td{
-  box-sizing: border-box;
-  white-space: nowrap;        /* no rompas títulos largos */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 220px;           /* ancho base para columnas dinámicas */
-  width: 220px;
-}
-
-/* La columna de acciones que sea más angosta */
-.bulk-grid__th:last-child,
-.bulk-grid__td:last-child{
-  min-width: 140px;
-  width: 140px;
-}
-
-/* IMPORTANTÍSIMO: quita el min-width del input para que NO se salga del td */
-.bulk-grid__cell{
-  min-width: 0 !important;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* Sticky columnas con offsets consistentes */
-.bulk-grid-host{
-  --sticky-1: 180px;  /* ReferenceId */
-  --sticky-2: 260px;  /* COLABORADOR_Name */
-}
-
-/* 1ra sticky */
-.bulk-grid__table th.sticky-left,
-.bulk-grid__table td.sticky-left{
-  width: var(--sticky-1);
-  min-width: var(--sticky-1);
-  left: 0;
-}
-
-/* 2da sticky */
-.bulk-grid__table th.sticky-left-2,
-.bulk-grid__table td.sticky-left-2{
-  width: var(--sticky-2);
-  min-width: var(--sticky-2);
-  left: var(--sticky-1);
-}
-
-/* que el wrapper permita scroll horizontal siempre que haga falta */
-.bulk-grid__wrap{
-  overflow: auto;
 }

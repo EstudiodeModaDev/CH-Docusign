@@ -1,24 +1,3 @@
-export interface DocusignTemplateSummary {
-  templateId: string;
-  name: string;
-  description?: string;
-  lastModifiedDateTime?: string;
-  [key: string]: any; // por si quieres acceder a más campos
-}
-
-export type ListTemplatesResponse = {
-  envelopeTemplates?: DocusignTemplateSummary[];
-  resultSetSize?: string;
-  totalSetSize?: string;
-  [key: string]: any;
-};
-
-export type UseDocusignTemplatesOptions = {
-  searchText?: string;
-  includeAdvanced?: boolean;
-  auto?: boolean; // si false, no carga automáticamente
-};
-
 export type DsUserInfoAccount = {
   account_id: string;
   base_uri: string; // ej: https://na4.docusign.net
@@ -131,7 +110,55 @@ export interface DocGenUpdateDocPayload {
   fields: Array<{ name: string; value: string }>;
 }
 
-export type EnvelopeTabsResult = {
-  tabs: PrefillTabsResponse;           // lo que devuelve getEnvelopeDocumentTabs
-  documentGeneration: DocGenFormFieldResponse; // lo que devuelve docGenFormFields
+export type BulkRole = { roleName: string; name: string; email: string };
+
+export type BulkCopy = {
+  recipients: BulkRole[];
+  // tabs por copia (si vas a setear campos variables)
+  tabs?: {
+    textTabs?: Array<{ tabLabel: string; value: string }>;
+    // si luego quieres: numberTabs/dateTabs/etc
+  };
+  // para mapear fila -> envelopeId
+  customFields?: {
+    textCustomFields?: Array<{ name: string; value: string; show?: "true" | "false" }>;
+  };
+};
+
+export type CreateBulkSendListInput = {
+  name: string;
+  bulkCopies: BulkCopy[];
+};
+
+export type BulkSendListResponse = {
+  bulkSendListId: string;
+  name?: string;
+  totalCopies?: number;
+  [k: string]: any;
+};
+
+export type CreateBulkSendRequestInput = {
+  templateId: string;
+  bulkSendListId: string;
+};
+
+export type BulkSendRequestResponse = {
+  bulkSendBatchId?: string; // algunas cuentas lo retornan así
+  batchId?: string;         // otras así
+  bulkSendRequestId?: string;
+  [k: string]: any;
+};
+
+export type BulkSendBatchEnvelopesResponse = {
+  envelopes?: Array<{
+    envelopeId: string;
+    status?: string;
+    // según configuración puede venir customFields
+    customFields?: {
+      textCustomFields?: Array<{ name: string; value: string }>;
+    };
+    errorDetails?: any;
+    [k: string]: any;
+  }>;
+  [k: string]: any;
 };

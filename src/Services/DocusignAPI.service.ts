@@ -1,6 +1,6 @@
 // src/services/docusignContext.ts
 import { getStoredAuth, isAuthValid, type DocusignAuthState } from "../auth/authDocusign";
-import type { CreateDraftFromTemplateInput, DocGenFormFieldResponse, DocGenUpdateDocPayload, DocusignRecipient, DsContext, DsUserInfo, EnvelopeBasic, EnvelopeRecipients, PrefillTabsResponse, UpdateDocumentTabsResponse, UpdatePrefillTextTabPayload, UpdateRecipientTabsPayload } from "../models/Docusign";
+import type { BulkSendBatchEnvelopesResponse, BulkSendListResponse, BulkSendRequestResponse, CreateBulkSendListInput, CreateBulkSendRequestInput, CreateDraftFromTemplateInput, DocGenFormFieldResponse, DocGenUpdateDocPayload, DocusignRecipient, DsContext, DsUserInfo, EnvelopeBasic, EnvelopeRecipients, PrefillTabsResponse, UpdateDocumentTabsResponse, UpdatePrefillTextTabPayload, UpdateRecipientTabsPayload } from "../models/Docusign";
 
 
 const CTX_CACHE_KEY = "ds_ctx_v1";
@@ -411,4 +411,69 @@ export async function getEnvelopeInfo(envelopeId: string) {
 
   return data;
 }
+
+export async function createBulkSendList(input: CreateBulkSendListInput): Promise<BulkSendListResponse> {
+  const auth = await getAuthOrThrow();
+  const ctx = await getDocusignContext();
+
+  const resp = await fetch(`${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/bulk_send_lists`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${auth.accessToken}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    console.error("Error createBulkSendList:", data);
+    throw new Error(`DocuSign error createBulkSendList: ${resp.status}`);
+  }
+
+  return data as BulkSendListResponse;
+}
+
+export async function createBulkSendRequest(input: CreateBulkSendRequestInput): Promise<BulkSendRequestResponse> {
+  const auth = await getAuthOrThrow();
+  const ctx = await getDocusignContext();
+
+  const resp = await fetch(`${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/bulk_send_requests`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${auth.accessToken}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    console.error("Error createBulkSendRequest:", data);
+    throw new Error(`DocuSign error createBulkSendRequest: ${resp.status}`);
+  }
+
+  return data as BulkSendRequestResponse;
+}
+
+export async function getBulkSendBatchEnvelopes(batchId: string): Promise<BulkSendBatchEnvelopesResponse> {
+  const auth = await getAuthOrThrow();
+  const ctx = await getDocusignContext();
+
+  const resp = await fetch(
+    `${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/bulk_send_batches/${batchId}/envelopes`,
+    { headers: { Authorization: `Bearer ${auth.accessToken}`, Accept: "application/json" } }
+  );
+
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    console.error("Error getBulkSendBatchEnvelopes:", data);
+    throw new Error(`DocuSign error getBulkSendBatchEnvelopes: ${resp.status}`);
+  }
+
+  return data as BulkSendBatchEnvelopesResponse;
+}
+
 

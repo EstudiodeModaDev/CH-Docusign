@@ -2,6 +2,7 @@ import React from "react";
 import { useDocusignTemplates } from "../../../../Funcionalidades/GD/Docusign";
 import { generateCsvForTemplate } from "../../../../Funcionalidades/GD/Bulk";
 import { exportRowsToCsv } from "../../../../utils/csv";
+import "./Bulk.css"
 
 type Row = Record<string, string>;
 

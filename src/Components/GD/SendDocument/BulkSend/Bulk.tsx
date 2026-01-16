@@ -231,11 +231,7 @@ export const EnvioMasivoUI: React.FC = () => {
       });
 
       // 3) Disparar batch
-      const req = await createBulkSendRequest({
-        templateId,
-        bulkSendListId: list.bulkSendListId,
-      });
-
+      const req = await createBulkSendRequest({ templateId, bulkSendListId: list.bulkSendListId });
       const id = req.bulkSendBatchId || req.batchId || "";
       if (!id) throw new Error("No vino batchId/bulkSendBatchId en la respuesta.");
       setBatchId(id);

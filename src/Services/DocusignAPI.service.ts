@@ -1,6 +1,6 @@
 // src/services/docusignContext.ts
 import { getStoredAuth, isAuthValid, type DocusignAuthState } from "../auth/authDocusign";
-import type { BulkSendBatchEnvelopesResponse, BulkSendListResponse, BulkSendRequestResponse, CreateBulkSendListInput, CreateBulkSendRequestInput, CreateDraftFromTemplateInput, DocGenFormFieldResponse, DocGenUpdateDocPayload, DocusignRecipient, DsContext, DsUserInfo, EnvelopeBasic, EnvelopeRecipients, PrefillTabsResponse, UpdateDocumentTabsResponse, UpdatePrefillTextTabPayload, UpdateRecipientTabsPayload } from "../models/Docusign";
+import type { BulkSendBatchEnvelopesResponse, BulkSendListResponse, BulkSendRequestResponse, BulkSendSendResponse, CreateBulkSendListInput, CreateBulkSendRequestInput, CreateDraftFromTemplateInput, DocGenFormFieldResponse, DocGenUpdateDocPayload, DocusignRecipient, DsContext, DsUserInfo, EnvelopeBasic, EnvelopeRecipients, PrefillTabsResponse, UpdateDocumentTabsResponse, UpdatePrefillTextTabPayload, UpdateRecipientTabsPayload } from "../models/Docusign";
 
 
 const CTX_CACHE_KEY = "ds_ctx_v1";
@@ -474,6 +474,30 @@ export async function getBulkSendBatchEnvelopes(batchId: string): Promise<BulkSe
   }
 
   return data as BulkSendBatchEnvelopesResponse;
+}
+
+export async function sendBulkSendList(bulkSendListId: string): Promise<BulkSendSendResponse> {
+  const auth = await getAuthOrThrow();
+  const ctx = await getDocusignContext();
+
+  const resp = await fetch(
+    `${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/bulk_send_lists/${encodeURIComponent(bulkSendListId)}/send`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${auth.accessToken}`,
+        Accept: "application/json",
+      },
+    }
+  );
+
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    console.error("Error sendBulkSendList:", data);
+    throw new Error(`DocuSign error sendBulkSendList: ${resp.status}`);
+  }
+
+  return data as BulkSendSendResponse;
 }
 
 

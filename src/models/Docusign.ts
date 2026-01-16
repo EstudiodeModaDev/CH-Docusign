@@ -118,6 +118,11 @@ export type BulkCopy = {
   customFields: [{ name: string, value: string, show: "false" }],
 };
 
+export type BulkSendSendResponse = {
+  bulkSendBatchId?: string;
+  batchId?: string;
+  [k: string]: any;
+};
 
 export type CreateBulkSendListInput = {
   name: string;

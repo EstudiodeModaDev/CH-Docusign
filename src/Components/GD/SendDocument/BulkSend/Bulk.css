@@ -399,3 +399,62 @@
     min-width: 760px;
   }
 }
+
+/* ===== FIX: columnas comprimidas + inputs desbordándose ===== */
+.bulk-grid__table{
+  table-layout: fixed;        /* evita compresión rara */
+  width: max-content;         /* que la tabla mida lo que necesita */
+  min-width: 100%;            /* pero nunca menos que el contenedor */
+}
+
+/* Haz que cada columna tenga ancho estable */
+.bulk-grid__th,
+.bulk-grid__td{
+  box-sizing: border-box;
+  white-space: nowrap;        /* no rompas títulos largos */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 220px;           /* ancho base para columnas dinámicas */
+  width: 220px;
+}
+
+/* La columna de acciones que sea más angosta */
+.bulk-grid__th:last-child,
+.bulk-grid__td:last-child{
+  min-width: 140px;
+  width: 140px;
+}
+
+/* IMPORTANTÍSIMO: quita el min-width del input para que NO se salga del td */
+.bulk-grid__cell{
+  min-width: 0 !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Sticky columnas con offsets consistentes */
+.bulk-grid-host{
+  --sticky-1: 180px;  /* ReferenceId */
+  --sticky-2: 260px;  /* COLABORADOR_Name */
+}
+
+/* 1ra sticky */
+.bulk-grid__table th.sticky-left,
+.bulk-grid__table td.sticky-left{
+  width: var(--sticky-1);
+  min-width: var(--sticky-1);
+  left: 0;
+}
+
+/* 2da sticky */
+.bulk-grid__table th.sticky-left-2,
+.bulk-grid__table td.sticky-left-2{
+  width: var(--sticky-2);
+  min-width: var(--sticky-2);
+  left: var(--sticky-1);
+}
+
+/* que el wrapper permita scroll horizontal siempre que haga falta */
+.bulk-grid__wrap{
+  overflow: auto;
+}

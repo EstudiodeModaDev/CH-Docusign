@@ -382,36 +382,6 @@ export const EnvioMasivoUI: React.FC = () => {
             >
               {loading ? "Generando..." : "Generar tabla"}
             </button>
-
-            <button
-              type="button"
-              className="btn btn-secondary btn-xs"
-              disabled={!templateId || loading || sending}
-              onClick={async () => {
-                try {
-                  setLoading(true);
-                  const build = await generateCsvForTemplate({
-                    templateId,
-                    templateName: plantillaSelected?.label ?? "template",
-                    createdraft,
-                    getRecipients,
-                  });
-
-                  const safeName = (plantillaSelected?.label ?? "Template")
-                    .replace(/[^\w\- ]/g, "")
-                    .replace(/\s+/g, "_");
-
-                  exportRowsToCsv(build.headers, [makeFirstRow(build.headers)], `Bulk_${safeName}.csv`);
-                } catch (e) {
-                  console.error(e);
-                  alert(e instanceof Error ? e.message : "Error descargando CSV");
-                } finally {
-                  setLoading(false);
-                }
-              }}
-            >
-              {loading ? "Cargando..." : "Descargar CSV"}
-            </button>
           </div>
         </div>
       )}

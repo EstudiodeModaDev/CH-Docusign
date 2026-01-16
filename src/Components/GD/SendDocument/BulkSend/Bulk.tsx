@@ -1,12 +1,14 @@
 import * as React from "react";
 import "./Bulk.css";
-
-// ✅ Reusa tus servicios EXISTENTES (los mismos que ya usas en envío 1:1)
 import { useDocusignTemplates } from "../../../../Funcionalidades/GD/Docusign";
 import { generateCsvForTemplate } from "../../../../Funcionalidades/GD/Bulk";
 import { exportRowsToCsv } from "../../../../utils/csv";
 import { createEnvelopeFromTemplateDraft, getEnvelopeDocumentTabs, getEnvelopeDocGenFormFields, updateEnvelopePrefillTextTabs, updateEnvelopeDocGenFormFields, sendEnvelope,} from "../../../../Services/DocusignAPI.service";
 import type { DocGenUpdateDocPayload, UpdatePrefillTextTabPayload } from "../../../../models/Docusign";
+import { useGraphServices } from "../../../../graph/graphContext";
+import type { EnviosService } from "../../../../Services/Envios.service";
+import { useAuth } from "../../../../auth/authProvider";
+import type { AccountInfo } from "@azure/msal-browser";
 
 type Row = Record<string, string>;
 
@@ -84,7 +86,6 @@ function buildTextTabPairsFromRow(columns: string[], row: Row) {
  */
 async function sendSingleFromRow(params: {templateId: string; templateName: string; columns: string[]; row: Row; index: number;}): Promise<BulkResultRow> {
   const { templateId, templateName, columns, row, index } = params;
-
   const referenceId = safeRef(row, index);
 
   try {
@@ -242,7 +243,8 @@ export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (
  * ========================= */
 export const EnvioMasivoUI: React.FC = () => {
   const { templatesOptions, createdraft, getRecipients } = useDocusignTemplates();
-
+  const { account} = useAuth()
+  const {Envios} = useGraphServices()
   const [templateId, setTemplateId] = React.useState("");
   const [columns, setColumns] = React.useState<string[]>([]);
   const [rows, setRows] = React.useState<Row[]>([]);
@@ -255,9 +257,13 @@ export const EnvioMasivoUI: React.FC = () => {
   const gridReady = columns.length > 0;
 
   const handleGenerateGrid = async () => {
-    if (!templateId) return alert("Selecciona una plantilla");
+    if (!templateId) {
+      alert("Selecciona una plantilla");
+      return;
+    }
 
     setLoading(true);
+
     try {
       const build = await generateCsvForTemplate({
         templateId,
@@ -266,8 +272,23 @@ export const EnvioMasivoUI: React.FC = () => {
         getRecipients,
       });
 
-      setColumns(build.headers);
-      setRows([makeFirstRow(build.headers)]);
+      // 1) Headers originales de la plantilla
+      const headers = [...build.headers];
+
+      // 2) Forzar columna obligatoria "compania"
+      if (!headers.some((h) => normKey(h) === "compania")) {
+        headers.push("compania");
+      }
+
+      // 3) Crear primera fila
+      const firstRow: Row = makeFirstRow(headers);
+
+      // compania SIEMPRE debe ser ingresada por el usuario
+      firstRow["compania"] = "";
+
+      // 4) Setear estado
+      setColumns(headers);
+      setRows([firstRow]);
       setBulkResults([]);
     } catch (e) {
       console.error(e);
@@ -292,7 +313,7 @@ export const EnvioMasivoUI: React.FC = () => {
     setBulkResults([]);
   };
 
-  const handleSendMasivoOpcionB = async () => {
+  const handleSendMasivoOpcionB = async (envios: EnviosService, account: AccountInfo | null) => {
     if (!templateId) return alert("Selecciona una plantilla.");
     if (!rows.length || !columns.length) return alert("Primero genera la tabla y agrega filas.");
 
@@ -327,10 +348,29 @@ export const EnvioMasivoUI: React.FC = () => {
             return next;
           });
 
-          // ✅ Aquí luego conectas guardado en SharePoint usando tu servicio Envios
-          // if (res.status === "SENT" && res.envelopeId) {
-          //   await Envios.add({ Title: templateName, Receptor: ..., Cedula: ..., CorreoReceptor: ..., IdSobre: res.envelopeId, Estado: "Enviado" })
-          // }
+          if (res.status === "SENT" && res.envelopeId) {
+            const nombre = getCell(row, "nombre");       
+            const cedula = getCell(row, "numeroDoc");   
+            const correo = getCell(row, "COLABORADOR_Email").trim(); 
+            const compania = getCell(row, "compania").trim();
+            if (!compania) throw new Error(`Falta compania en la fila ${idx + 1}`);
+
+            await envios.create({
+              Cedula: cedula, 
+              Compa_x00f1_ia: compania, 
+              CorreoReceptor: correo, 
+              Datos: "", 
+              EnviadoPor: account?.name ?? "", 
+              Estado: "En espera", 
+              Fechadeenvio: new Date().toISOString(), 
+              Fuente: "Masiva", 
+              ID_Novedad: "", 
+              IdSobre: res.envelopeId,
+              Receptor: nombre.toUpperCase(),
+              Recipients: "",
+              Title: templateName
+            })
+          }
 
           return res;
         },
@@ -357,13 +397,7 @@ export const EnvioMasivoUI: React.FC = () => {
               Plantilla
             </label>
 
-            <select
-              id="bulk-template"
-              className="ef-input"
-              value={templateId}
-              onChange={(e) => setTemplateId(e.target.value)}
-              disabled={loading || sending}
-            >
+            <select id="bulk-template" className="ef-input" value={templateId} onChange={(e) => setTemplateId(e.target.value)} disabled={loading || sending}>
               <option value="">Selecciona una plantilla</option>
               {templatesOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -374,12 +408,7 @@ export const EnvioMasivoUI: React.FC = () => {
           </div>
 
           <div className="bulk-panel__actions">
-            <button
-              type="button"
-              className="btn btn-primary-final btn-xs"
-              disabled={!templateId || loading || sending}
-              onClick={handleGenerateGrid}
-            >
+            <button type="button" className="btn btn-primary-final btn-xs" disabled={!templateId || loading || sending} onClick={handleGenerateGrid}>
               {loading ? "Generando..." : "Generar tabla"}
             </button>
           </div>
@@ -406,7 +435,7 @@ export const EnvioMasivoUI: React.FC = () => {
                 Descargar CSV
               </button>
 
-              <button type="button" className="btn btn-primary-final btn-xs" onClick={handleSendMasivoOpcionB} disabled={loading || sending || !rows.length}>
+              <button type="button" className="btn btn-primary-final btn-xs" onClick={() => {handleSendMasivoOpcionB(Envios, account)}} disabled={loading || sending || !rows.length}>
                 {sending ? "Enviando..." : "Enviar masivo"}
               </button>
             </div>

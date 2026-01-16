@@ -358,47 +358,24 @@ export const EnvioMasivoUI: React.FC = () => {
           <BulkGrid columns={columns} rows={rows} onRowsChange={setRows} />
 
           {/* RESULTADOS */}
-          <div className="ef-card" style={{ marginTop: 12 }}>
-            <h4 style={{ margin: "8px 0 12px" }}>Resultados</h4>
+          <div className="bulk-main">
+            <div className="bulk-card bulk-grid-host">
+              <BulkGrid columns={columns} rows={rows} onRowsChange={setRows} />
+            </div>
 
-            {bulkResults.length === 0 ? (
-              <div style={{ color: "var(--muted,#64748b)" }}>
-                Aún no hay resultados. Envía el bulk o actualiza resultados.
-              </div>
-            ) : (
-              <div style={{ overflow: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr>
-                      <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid var(--border,#e5e7eb)" }}>
-                        ReferenceId
-                      </th>
-                      <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid var(--border,#e5e7eb)" }}>
-                        EnvelopeId
-                      </th>
-                      <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid var(--border,#e5e7eb)" }}>
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bulkResults.map((r) => (
-                      <tr key={r.referenceId}>
-                        <td style={{ padding: 8, borderBottom: "1px solid var(--border,#e5e7eb)" }}>
-                          {r.referenceId}
-                        </td>
-                        <td style={{ padding: 8, borderBottom: "1px solid var(--border,#e5e7eb)" }}>
-                          {r.envelopeId}
-                        </td>
-                        <td style={{ padding: 8, borderBottom: "1px solid var(--border,#e5e7eb)" }}>
-                          {r.status ?? ""}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <div className="bulk-card bulk-results">
+              <div className="bulk-results__title">Resultados</div>
+
+              {bulkResults.length === 0 ? (
+                <div className="bulk-results__empty">
+                  Aún no hay resultados. Envía el bulk o actualiza resultados.
+                </div>
+              ) : (
+                <div className="bulk-results__wrap">
+                  {/* tu tabla */}
+                </div>
+              )}
+            </div>
           </div>
         </>
       )}

@@ -5,15 +5,7 @@ import "./Bulk.css";
 import { useDocusignTemplates } from "../../../../Funcionalidades/GD/Docusign";
 import { generateCsvForTemplate } from "../../../../Funcionalidades/GD/Bulk";
 import { exportRowsToCsv } from "../../../../utils/csv";
-
-import {
-  createEnvelopeFromTemplateDraft,
-  getEnvelopeDocumentTabs,
-  getEnvelopeDocGenFormFields,
-  updateEnvelopePrefillTextTabs,
-  updateEnvelopeDocGenFormFields,
-  sendEnvelope,
-} from "../../../../Services/DocusignAPI.service";
+import { createEnvelopeFromTemplateDraft, getEnvelopeDocumentTabs, getEnvelopeDocGenFormFields, updateEnvelopePrefillTextTabs, updateEnvelopeDocGenFormFields, sendEnvelope,} from "../../../../Services/DocusignAPI.service";
 import type { DocGenUpdateDocPayload, UpdatePrefillTextTabPayload } from "../../../../models/Docusign";
 
 type Row = Record<string, string>;
@@ -59,11 +51,7 @@ function makeFirstRow(columns: string[]) {
   return r;
 }
 
-async function runWithConcurrency<T, R>(
-  items: T[],
-  worker: (item: T, index: number) => Promise<R>,
-  concurrency = 2
-): Promise<R[]> {
+async function runWithConcurrency<T, R>(items: T[], worker: (item: T, index: number) => Promise<R>, concurrency = 2): Promise<R[]> {
   const results: R[] = new Array(items.length);
   let i = 0;
 
@@ -78,11 +66,7 @@ async function runWithConcurrency<T, R>(
   return results;
 }
 
-/**
- * Construye pares tabLabel/value desde la fila del grid.
- * Asume convención: el tabLabel en DocuSign coincide con el nombre de la columna.
- * (ReferenceId se omite)
- */
+
 function buildTextTabPairsFromRow(columns: string[], row: Row) {
   const skip = new Set(["ReferenceId"]);
   return columns
@@ -98,13 +82,7 @@ function buildTextTabPairsFromRow(columns: string[], row: Row) {
  * - docGen form fields (si aplica)
  * - enviar
  */
-async function sendSingleFromRow(params: {
-  templateId: string;
-  templateName: string;
-  columns: string[];
-  row: Row;
-  index: number;
-}): Promise<BulkResultRow> {
+async function sendSingleFromRow(params: {templateId: string; templateName: string; columns: string[]; row: Row; index: number;}): Promise<BulkResultRow> {
   const { templateId, templateName, columns, row, index } = params;
 
   const referenceId = safeRef(row, index);
@@ -182,11 +160,7 @@ async function sendSingleFromRow(params: {
 /** =========================
  * GRID editable (tipo Excel)
  * ========================= */
-export function BulkGrid(props: {
-  columns: string[];
-  rows: Row[];
-  onRowsChange: (rows: Row[]) => void;
-}) {
+export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (rows: Row[]) => void;}) {
   const { columns, rows, onRowsChange } = props;
 
   const addRow = () => {
@@ -222,14 +196,7 @@ export function BulkGrid(props: {
           <thead>
             <tr>
               {columns.map((c, i) => (
-                <th
-                  key={c}
-                  className={[
-                    "bulk-grid__th",
-                    i === 0 ? "sticky-left" : "",
-                    i === 1 ? "sticky-left-2" : "",
-                  ].join(" ")}
-                >
+                <th key={c} className={["bulk-grid__th", i === 0 ? "sticky-left" : "", i === 1 ? "sticky-left-2" : "",].join(" ")}>
                   {c}
                 </th>
               ))}
@@ -241,31 +208,14 @@ export function BulkGrid(props: {
             {rows.map((row, idx) => (
               <tr className="bulk-grid__tr" key={idx}>
                 {columns.map((col, i) => (
-                  <td
-                    key={col}
-                    className={[
-                      "bulk-grid__td",
-                      i === 0 ? "sticky-left" : "",
-                      i === 1 ? "sticky-left-2" : "",
-                    ].join(" ")}
-                  >
-                    <input
-                      className="bulk-grid__cell"
-                      value={row[col] ?? ""}
-                      onChange={(e) => setCell(idx, col, e.target.value)}
-                      disabled={col === "ReferenceId"}
-                      placeholder={col === "ReferenceId" ? "" : col}
-                    />
+                  <td key={col} className={[ "bulk-grid__td", i === 0 ? "sticky-left" : "", i === 1 ? "sticky-left-2" : "",].join(" ")}>
+                    <input className="bulk-grid__cell" value={row[col] ?? ""}  onChange={(e) => setCell(idx, col, e.target.value)} disabled={col === "ReferenceId"} placeholder={col === "ReferenceId" ? "" : col}/>
                   </td>
                 ))}
 
                 <td className="bulk-grid__td">
                   <div className="bulk-grid__actions">
-                    <button
-                      type="button"
-                      className="bulk-grid__btn bulk-grid__btn--danger"
-                      onClick={() => removeRow(idx)}
-                    >
+                    <button type="button" className="bulk-grid__btn bulk-grid__btn--danger" onClick={() => removeRow(idx)}>
                       Quitar
                     </button>
                   </div>
@@ -350,7 +300,6 @@ export const EnvioMasivoUI: React.FC = () => {
     setBulkResults([]);
 
     try {
-      // asegúrate que ReferenceId exista en todas
       const normalizedRows = rows.map((r, i) => {
         const ref = safeRef(r, i);
         return { ...r, ReferenceId: ref };

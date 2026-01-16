@@ -409,3 +409,20 @@
     min-width: 220px;
   }
 }
+
+/* ===== FIX: headers no se montan sobre otras columnas ===== */
+.bulk-grid__th{
+  overflow: hidden;           /* CLAVE: que no se salga del th */
+  text-overflow: ellipsis;    /* si no cabe, recorta bonito */
+  word-break: break-word;     /* permite romper palabras */
+  overflow-wrap: anywhere;    /* rompe underscores/textos largos */
+  line-height: 1.15;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+/* opcional: alinear para que se lea mejor */
+.bulk-grid__th,
+.bulk-grid__td{
+  text-align: left;
+}

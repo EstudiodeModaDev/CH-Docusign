@@ -1,453 +1,22 @@
-/* =========================================================
-   Bulk.css — Envío masivo (Grid + Resultados)
-   Fixes incluidos:
-   - Scroll horizontal real para ver TODAS las columnas
-   - Sin solapes de inputs
-   - Sticky columns estables
-   - Headers largos: wrap (no se “cortan” feo)
-   ========================================================= */
-
-.bulk-send{
-  --surface: var(--surface, #ffffff);
-  --ink: var(--ink, #0f172a);
-  --muted: var(--muted, #64748b);
-  --border: var(--border, #e5e7eb);
-  --border-strong: var(--bd-strong, color-mix(in oklab, var(--border) 75%, black));
-  --ring: var(--ring, rgba(37, 99, 235, .35));
-  --brand: var(--brand-600, #2563eb);
-  --danger: #ef4444;
-
-  --radius: 18px;
-  --radius-sm: 12px;
-  --shadow2: 0 10px 25px rgba(2, 6, 23, .06);
-
-  --pad: clamp(12px, 1.6vw, 18px);
-  --gap: clamp(10px, 1.4vw, 14px);
-
-  /* Sticky widths (ajústalos si quieres) */
-  --sticky-1: 180px;  /* ReferenceId */
-  --sticky-2: 260px;  /* COLABORADOR_Name */
-
-  color: var(--ink);
-}
-
-/* ====== Layout base ====== */
-.ef-page.bulk-send{
-  display: grid;
-  gap: var(--gap);
-}
-
-.bulk-send .ef-card,
-.bulk-card{
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow2);
-}
-
-.bulk-panel{
-  padding: var(--pad);
-  display: grid;
-  gap: 14px;
-}
-
-.bulk-panel__field{
-  display: grid;
-  gap: 8px;
-}
-
-.bulk-panel__actions{
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-}
-
-/* ====== Toolbar ====== */
-.bulk-toolbar{
-  padding: var(--pad);
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-  justify-content: space-between;
-
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow2);
-}
-
-.bulk-toolbar__left{
-  display: grid;
-  gap: 6px;
-  min-width: 220px;
-}
-
-.bulk-toolbar__title{
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1.15;
-}
-
-.bulk-toolbar__meta{
-  font-size: 12.5px;
-  color: var(--muted);
-}
-
-.bulk-toolbar__right{
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-/* ====== Main layout ====== */
-.bulk-main{
-  display: grid;
-  grid-template-columns: 1.45fr .75fr;
-  gap: var(--gap);
-  align-items: start;
-}
-
-@media (max-width: 1100px){
-  .bulk-main{ grid-template-columns: 1fr; }
-}
-
-/* ====== Cards ====== */
-.bulk-card{
-  padding: var(--pad);
-  min-width: 0; /* clave para overflow dentro de grid */
-  overflow: visible; /* no recortar la tabla */
-}
-
-.bulk-grid-host{ min-width: 0; overflow: visible; }
-.bulk-results{ min-width: 0; }
-
-/* ====== Grid header ====== */
-.bulk-grid__topbar{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.bulk-grid__left{
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.bulk-grid__meta{
-  font-size: 12.5px;
-  color: var(--muted);
-}
-
-/* ====== Wrapper con SCROLL horizontal/vertical ====== */
-.bulk-grid__wrap{
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-
-  overflow-x: auto !important;
-  overflow-y: auto !important;
-
-  width: 100%;
-  max-width: 100%;
-  max-height: min(62vh, 720px);
-
-  scrollbar-gutter: stable both-edges;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* scrollbar suave */
-.bulk-grid__wrap::-webkit-scrollbar{ height: 10px; width: 10px; }
-.bulk-grid__wrap::-webkit-scrollbar-thumb{
-  background: color-mix(in oklab, var(--border) 55%, var(--ink));
-  border-radius: 999px;
-}
-.bulk-grid__wrap::-webkit-scrollbar-track{ background: transparent; }
-
-/* ====== Tabla: debe crecer para mostrar TODAS las columnas ====== */
-.bulk-grid__table{
-  border-collapse: separate;
-  border-spacing: 0;
-
-  width: max-content !important; /* clave */
-  min-width: 100% !important;    /* pero nunca menos que el wrapper */
-  table-layout: fixed;           /* estable */
-}
-
-/* Columnas base (esto “crea” el scroll horizontal cuando hay muchas) */
-.bulk-grid__th,
-.bulk-grid__td{
-  width: 240px;
-  min-width: 240px;
-
-  border-bottom: 1px solid var(--border);
-  padding: 10px 10px;
-  vertical-align: middle;
-  background: var(--surface);
-
-  box-sizing: border-box;
-}
-
-/* Header sticky arriba */
-.bulk-grid__th{
-  position: sticky;
-  top: 0;
-  z-index: 20;
-
-  background: color-mix(in oklab, var(--surface) 92%, var(--border));
-  border-bottom: 1px solid var(--border-strong);
-
-  font-size: 12px;
-  font-weight: 800;
-  color: color-mix(in oklab, var(--muted) 70%, var(--ink));
-
-  /* WRAP para que no se corte el texto */
-  white-space: normal;
-  line-height: 1.15;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-}
-
-/* Hover fila */
-.bulk-grid__tr:hover .bulk-grid__td{
-  background: color-mix(in oklab, var(--surface) 92%, var(--border));
-}
-
-/* Inputs: NO deben desbordarse del td */
-.bulk-grid__cell{
-  width: 100%;
-  min-width: 0 !important; /* importantísimo */
-  height: 34px;
-
-  padding: 7px 10px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-
-  background: color-mix(in oklab, var(--surface) 95%, var(--border));
-  color: var(--ink);
-
-  outline: none;
-  box-sizing: border-box;
-
-  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
-}
-
-.bulk-grid__cell:focus{
-  border-color: color-mix(in oklab, var(--brand) 60%, var(--border));
-  box-shadow: 0 0 0 4px var(--ring);
-  background: var(--surface);
-}
-
-.bulk-grid__cell:disabled{
-  opacity: .75;
-  cursor: not-allowed;
-  background: color-mix(in oklab, var(--surface) 85%, var(--border));
-}
-
-/* Columna acciones más angosta */
-.bulk-grid__th:last-child,
-.bulk-grid__td:last-child{
-  width: 140px;
-  min-width: 140px;
-}
-
-/* ====== Sticky columns ====== */
-.bulk-grid__table .sticky-left{
-  position: sticky;
-  left: 0;
-  z-index: 30;
-  background: var(--surface);
-  box-shadow: 1px 0 0 0 var(--border);
-}
-
-.bulk-grid__table thead .sticky-left{ z-index: 60; }
-
-.bulk-grid__table .sticky-left-2{
-  position: sticky;
-  left: var(--sticky-1);
-  z-index: 29;
-  background: var(--surface);
-  box-shadow: 1px 0 0 0 var(--border);
-}
-
-.bulk-grid__table thead .sticky-left-2{ z-index: 59; }
-
-/* Widths reales para sticky */
-.bulk-grid__table th.sticky-left,
-.bulk-grid__table td.sticky-left{
-  width: var(--sticky-1);
-  min-width: var(--sticky-1);
-}
-
-.bulk-grid__table th.sticky-left-2,
-.bulk-grid__table td.sticky-left-2{
-  width: var(--sticky-2);
-  min-width: var(--sticky-2);
-}
-
-/* ====== Actions buttons (si no te los da el framework) ====== */
-.bulk-grid__actions{
-  display: flex;
-  gap: 8px;
-  justify-content: flex-start;
-  align-items: center;
-  white-space: nowrap;
-}
-
-.bulk-grid__btn{
-  height: 34px;
-  padding: 0 10px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--ink);
-  font-weight: 800;
-  font-size: 12px;
-  cursor: pointer;
-  transition: transform .08s ease, filter .15s ease, background .15s ease, border-color .15s ease;
-}
-
-.bulk-grid__btn:hover{ filter: brightness(0.98); }
-.bulk-grid__btn:active{ transform: translateY(1px); }
-.bulk-grid__btn:disabled{ opacity: .55; cursor: not-allowed; }
-
-.bulk-grid__btn--danger{
-  background: color-mix(in oklab, var(--danger) 12%, var(--surface));
-  border-color: color-mix(in oklab, var(--danger) 35%, var(--border));
-  color: color-mix(in oklab, var(--danger) 80%, var(--ink));
-}
-
-.bulk-grid__btn--danger:hover{
-  background: color-mix(in oklab, var(--danger) 16%, var(--surface));
-}
-
-/* Empty */
-.bulk-grid__empty{
-  padding: 18px;
-  text-align: center;
-  color: var(--muted);
-}
-
-/* =========================================================
-   Resultados
-   ========================================================= */
-.bulk-results__title{
-  font-size: 14px;
-  font-weight: 900;
-  margin-bottom: 10px;
-}
-
-.bulk-results__empty{
-  color: var(--muted);
-  font-size: 13px;
-  padding: 10px 0;
-}
-
-.bulk-results__wrap{
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  overflow: auto;
-  max-height: min(62vh, 720px);
-  background: var(--surface);
-  scrollbar-gutter: stable both-edges;
-}
-
-.bulk-results__table{
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  min-width: 520px;
-}
-
-.bulk-results__th,
-.bulk-results__td{
-  padding: 10px 10px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-  font-size: 13px;
-}
-
-.bulk-results__th{
-  position: sticky;
-  top: 0;
-  z-index: 10;
-
-  background: color-mix(in oklab, var(--surface) 92%, var(--border));
-  color: color-mix(in oklab, var(--muted) 70%, var(--ink));
-  border-bottom: 1px solid var(--border-strong);
-
-  font-size: 12px;
-  font-weight: 800;
-
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.bulk-results__tr:hover .bulk-results__td{
-  background: color-mix(in oklab, var(--surface) 92%, var(--border));
-}
-
-.bulk-results__td:nth-child(2){
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size: 12.5px;
-}
-
-/* ====== Responsive micro ====== */
-@media (max-width: 560px){
-  .bulk-toolbar{ align-items: stretch; }
-  .bulk-toolbar__right{ justify-content: flex-start; }
-
-  .bulk-grid__th,
-  .bulk-grid__td{
-    width: 220px;
-    min-width: 220px;
-  }
-}
-
-/* ===== FIX: headers no se montan sobre otras columnas ===== */
-.bulk-grid__th{
-  overflow: hidden;           /* CLAVE: que no se salga del th */
-  text-overflow: ellipsis;    /* si no cabe, recorta bonito */
-  word-break: break-word;     /* permite romper palabras */
-  overflow-wrap: anywhere;    /* rompe underscores/textos largos */
-  line-height: 1.15;
-  padding-top: 12px;
-  padding-bottom: 12px;
-}
-
-/* opcional: alinear para que se lea mejor */
-.bulk-grid__th,
-.bulk-grid__td{
-  text-align: left;
-}
-
 /* ============================
-   BULK SEND — estilos nuevos
-   Scope: SOLO dentro de .bulk-send
+   BULK SEND — layout: tabla arriba / resultados abajo
+   - Tabla full width
+   - Overflow => scroll
    ============================ */
 
 .bulk-send{
-  /* tokens locales (heredan si ya tienes globales) */
   --bg: var(--app-bg, #0b1220);
   --surface: var(--surface, #0f172a);
-  --surface-2: color-mix(in oklab, var(--surface) 86%, white);
   --card: color-mix(in oklab, var(--surface) 92%, black);
-  --ink: var(--ink, #e5e7eb);
-  --muted: var(--muted, #94a3b8);
-  --border: var(--border, color-mix(in oklab, var(--ink) 12%, transparent));
-  --border-2: color-mix(in oklab, var(--border) 70%, black);
+  --ink: var(--ink, #0f172a);
+  --muted: var(--muted, #64748b);
+  --border: var(--border, #e5e7eb);
   --ring: color-mix(in oklab, var(--brand-400, #60a5fa) 65%, transparent);
 
-  --radius: 16px;
+  --radius: 18px;
   --radius-sm: 12px;
-  --shadow: 0 18px 50px rgba(0,0,0,.35);
-  --shadow2: 0 12px 30px rgba(0,0,0,.28);
+  --shadow: 0 18px 50px rgba(2, 6, 23, .12);
+  --shadow2: 0 12px 30px rgba(2, 6, 23, .10);
 
   --pad: clamp(12px, 2vw, 18px);
   --gap: clamp(12px, 2vw, 16px);
@@ -455,22 +24,17 @@
   color: var(--ink);
 }
 
-/* ---------- Layout base ---------- */
 .bulk-send.ef-page{
   padding: clamp(12px, 2.5vw, 22px);
 }
 
 /* ---------- Panel inicial ---------- */
 .bulk-send .bulk-panel{
-  max-width: 880px;
+  max-width: 980px;
   margin: 0 auto;
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  background: linear-gradient(180deg,
-    color-mix(in oklab, var(--card) 85%, white) 0%,
-    var(--card) 55%,
-    color-mix(in oklab, var(--card) 92%, black) 100%
-  );
+  background: #fff;
   box-shadow: var(--shadow);
   overflow: hidden;
 }
@@ -487,17 +51,15 @@
   letter-spacing: .2px;
 }
 
-/* inputs dentro del bulk */
 .bulk-send .ef-input{
   width: 100%;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: color-mix(in oklab, var(--surface) 70%, black);
+  background: #fff;
   color: var(--ink);
   padding: 10px 12px;
   outline: none;
-  box-shadow: 0 0 0 0 rgba(0,0,0,0);
-  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+  transition: border-color .15s ease, box-shadow .15s ease;
 }
 
 .bulk-send .ef-input:focus{
@@ -513,28 +75,26 @@
   align-items: center;
 }
 
-/* ---------- Botones (solo bulk) ---------- */
+/* ---------- Botones (scoped) ---------- */
 .bulk-send .btn{
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: color-mix(in oklab, var(--surface) 62%, black);
+  background: #fff;
   color: var(--ink);
   padding: 9px 12px;
   font-size: 12.5px;
   line-height: 1;
   cursor: pointer;
   transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease, opacity .12s ease;
-  box-shadow: 0 10px 24px rgba(0,0,0,.22);
+  box-shadow: 0 10px 24px rgba(2, 6, 23, .10);
 }
 
 .bulk-send .btn:hover{
   transform: translateY(-1px);
-  border-color: color-mix(in oklab, var(--border) 55%, white);
+  border-color: color-mix(in oklab, var(--border) 70%, black);
 }
 
-.bulk-send .btn:active{
-  transform: translateY(0px);
-}
+.bulk-send .btn:active{ transform: translateY(0); }
 
 .bulk-send .btn:disabled{
   opacity: .55;
@@ -543,22 +103,21 @@
   box-shadow: none;
 }
 
-/* variantes respetando tus clases */
 .bulk-send .btn.btn-primary-final{
   background: linear-gradient(180deg,
-    color-mix(in oklab, var(--brand-600, #2563eb) 75%, white) 0%,
-    var(--brand-600, #2563eb) 60%,
-    color-mix(in oklab, var(--brand-600, #2563eb) 75%, black) 100%
+    color-mix(in oklab, var(--brand-600, #2563eb) 78%, white) 0%,
+    var(--brand-600, #2563eb) 70%,
+    color-mix(in oklab, var(--brand-600, #2563eb) 78%, black) 100%
   );
+  color: white;
   border-color: color-mix(in oklab, var(--brand-600, #2563eb) 55%, black);
-  box-shadow: 0 14px 30px rgba(37, 99, 235, .25);
+  box-shadow: 0 14px 30px rgba(37, 99, 235, .22);
 }
 
 .bulk-send .btn.btn-secondary{
-  background: color-mix(in oklab, var(--surface) 68%, black);
+  background: #fff;
 }
 
-/* tamaños */
 .bulk-send .btn.btn-xs{
   padding: 8px 12px;
   font-size: 12px;
@@ -569,6 +128,7 @@
   position: sticky;
   top: 0;
   z-index: 40;
+
   display: flex;
   justify-content: space-between;
   gap: 14px;
@@ -579,13 +139,13 @@
 
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: color-mix(in oklab, var(--surface) 82%, black);
+  background: rgba(255,255,255,.92);
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow2);
 }
 
 .bulk-send .bulk-toolbar__left{
-  min-width: 220px;
+  min-width: 240px;
   display: grid;
   gap: 6px;
 }
@@ -609,54 +169,65 @@
   align-items: center;
 }
 
-/* ---------- Main split ---------- */
+/* =========================================
+   CAMBIO CLAVE: MAIN en 1 columna (stack)
+   Tabla arriba / Resultados abajo
+   ========================================= */
 .bulk-send .bulk-main{
   display: grid;
-  grid-template-columns: 1.7fr 1fr;
+  grid-template-columns: 1fr;
   gap: var(--gap);
   align-items: start;
-}
-
-@media (max-width: 1120px){
-  .bulk-send .bulk-main{
-    grid-template-columns: 1fr;
-  }
 }
 
 /* ---------- Cards ---------- */
 .bulk-send .bulk-card{
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: linear-gradient(180deg,
-    color-mix(in oklab, var(--card) 90%, white) 0%,
-    var(--card) 55%,
-    color-mix(in oklab, var(--card) 92%, black) 100%
-  );
+  background: #fff;
   box-shadow: var(--shadow2);
   overflow: hidden;
 }
 
-/* ---------- Grid host (tu BulkGrid) ---------- */
+/* =========================================
+   GRID HOST: full width + overflow scroll
+   ========================================= */
 .bulk-send .bulk-grid-host{
-  padding: 0; /* que el grid use todo el espacio */
-  min-height: 420px;
+  /* importante: que el contenedor permita scroll horizontal */
+  overflow: auto;
+  max-width: 100%;
+  padding: 0;
 }
 
-/* Si tu BulkGrid tiene un wrapper, esto ayuda a que no “explote” el layout */
+/* evita que los hijos rompan el contenedor */
 .bulk-send .bulk-grid-host > *{
   min-width: 0;
 }
 
-/* Forzar que el área sea scrollable si hay muchas columnas */
-.bulk-send .bulk-grid-host{
-  overflow: auto;
+/* Si tu BulkGrid renderiza una tabla, esto ayuda:
+   - el contenido puede ser más ancho que el card
+   - pero el scroll queda en el host */
+.bulk-send .bulk-grid-host table{
+  width: max-content;     /* permite crecer según columnas */
+  min-width: 100%;        /* pero mínimo ocupa todo el ancho visible */
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
-/* ---------- Resultados ---------- */
+/* Si tu BulkGrid NO es table sino div-grid, igual sirve:
+   fuerza que el primer hijo pueda ser ancho */
+.bulk-send .bulk-grid-host > :first-child{
+  width: max-content;
+  min-width: 100%;
+}
+
+/* =========================================
+   RESULTADOS: debajo, más compacto
+   ========================================= */
 .bulk-send .bulk-results{
   display: grid;
   grid-template-rows: auto 1fr;
-  min-height: 420px;
+  min-height: 260px;
 }
 
 .bulk-send .bulk-results__title{
@@ -665,7 +236,7 @@
   font-size: 13.5px;
   font-weight: 750;
   letter-spacing: .2px;
-  background: color-mix(in oklab, var(--surface) 78%, black);
+  background: #fff;
 }
 
 .bulk-send .bulk-results__empty{
@@ -674,22 +245,19 @@
   font-size: 12.5px;
 }
 
-/* wrapper con scroll */
+/* wrapper con scroll por si hay tabla ancha */
 .bulk-send .bulk-results__wrap{
   overflow: auto;
+  max-width: 100%;
 }
 
-/* tabla */
+/* tabla resultados */
 .bulk-send .bulk-results__table{
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 12.5px;
-  min-width: 720px; /* evita que se “apriete” y se monten */
-}
-
-.bulk-send .bulk-results__tr{
-  background: transparent;
 }
 
 .bulk-send .bulk-results__th,
@@ -700,61 +268,57 @@
   white-space: nowrap;
 }
 
-/* header sticky */
+/* header sticky de resultados */
 .bulk-send .bulk-results__th{
   position: sticky;
   top: 0;
   z-index: 2;
   text-align: left;
   font-weight: 750;
-  color: color-mix(in oklab, var(--ink) 88%, white);
-  background: color-mix(in oklab, var(--surface) 84%, black);
-  border-bottom: 1px solid var(--border-2);
-}
-
-/* celdas */
-.bulk-send .bulk-results__td{
-  color: color-mix(in oklab, var(--ink) 92%, black);
+  background: #fff;
 }
 
 /* zebra + hover */
 .bulk-send .bulk-results__table tbody tr:nth-child(2n){
-  background: color-mix(in oklab, var(--surface) 70%, black);
+  background: color-mix(in oklab, #fff 92%, #f1f5f9);
 }
 
 .bulk-send .bulk-results__table tbody tr:hover{
-  background: color-mix(in oklab, var(--surface) 78%, white);
+  background: color-mix(in oklab, #fff 85%, #e2e8f0);
 }
 
-/* Columna Error: permite leer sin romper todo */
+/* Columna Error: que se lea bien */
 .bulk-send .bulk-results__table th:last-child,
 .bulk-send .bulk-results__table td:last-child{
   white-space: normal;
-  min-width: 280px;
-  max-width: 520px;
+  min-width: 320px;
+  max-width: 720px;
   word-break: break-word;
 }
 
-/* ---------- Accesibilidad: focus visible ---------- */
+/* ---------- Focus visible ---------- */
 .bulk-send :where(button, select, input, textarea, a):focus-visible{
   outline: none;
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--ring) 35%, transparent);
   border-color: color-mix(in oklab, var(--ring) 60%, var(--border));
 }
 
-/* ---------- Scrollbars (suaves, opcional) ---------- */
+/* ---------- Scrollbars suaves ---------- */
 .bulk-send :where(.bulk-grid-host, .bulk-results__wrap){
   scrollbar-width: thin;
   scrollbar-color: color-mix(in oklab, var(--muted) 60%, transparent) transparent;
 }
+
 .bulk-send :where(.bulk-grid-host, .bulk-results__wrap)::-webkit-scrollbar{
   height: 10px;
   width: 10px;
 }
+
 .bulk-send :where(.bulk-grid-host, .bulk-results__wrap)::-webkit-scrollbar-thumb{
   background: color-mix(in oklab, var(--muted) 55%, transparent);
   border-radius: 999px;
 }
+
 .bulk-send :where(.bulk-grid-host, .bulk-results__wrap)::-webkit-scrollbar-track{
   background: transparent;
 }

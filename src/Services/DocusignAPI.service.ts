@@ -1,26 +1,7 @@
 // src/services/docusignContext.ts
 import { getStoredAuth, isAuthValid, type DocusignAuthState } from "../auth/authDocusign";
+import type { CreateDraftFromTemplateInput, DocGenFormFieldResponse, DocGenUpdateDocPayload, DocusignRecipient, DsContext, DsUserInfo, EnvelopeBasic, EnvelopeRecipients, PrefillTabsResponse, UpdateDocumentTabsResponse, UpdatePrefillTextTabPayload, UpdateRecipientTabsPayload } from "../models/Docusign";
 
-export type DsUserInfoAccount = {
-  account_id: string;
-  base_uri: string; // ej: https://na4.docusign.net
-  is_default?: boolean;
-  account_name?: string;
-};
-
-export type DsUserInfo = {
-  sub: string;
-  name?: string;
-  email?: string;
-  accounts: DsUserInfoAccount[];
-};
-
-export type DsContext = {
-  env: "prod" | "demo";
-  accountId: string;
-  baseUrl: string; // base_uri + "/restapi"
-  accountName?: string;
-};
 
 const CTX_CACHE_KEY = "ds_ctx_v1";
 
@@ -53,12 +34,7 @@ export async function fetchUserInfo(accessToken: string, ): Promise<DsUserInfo> 
   return data;
 }
 
-/**
- * Obtiene el contexto real:
- * - accountId
- * - base_uri (na4, euX, etc)
- * y lo cachea en localStorage
- */
+
 export async function getDocusignContext(forceRefresh = false): Promise<DsContext> {
   const auth = await readAuthOrThrow();
 
@@ -138,106 +114,9 @@ export async function listTemplates(params?: { searchText?: string; includeAdvan
 }
 
 /** =========================
- * Tipos auxiliares
- * ========================= */
-
-export interface DsTemplateRoleInput {
-  roleName: string;
-  name: string;
-  email: string;
-}
-
-export interface CreateDraftFromTemplateInput {
-  templateId: string;
-  emailSubject: string;
-  emailBlurb?: string;
-  roles: DsTemplateRoleInput[];
-}
-
-export interface EnvelopeBasic {
-  envelopeId: string;
-  status: string;
-}
-
-export interface DocusignRecipientTabs {
-  textTabs?: Array<{
-    tabId: string;
-    tabLabel?: string;
-    value?: string;
-  }>;
-}
-
-export interface DocusignRecipient {
-  recipientId: string;
-  email: string;
-  name: string;
-  roleName?: string;
-  tabs?: DocusignRecipientTabs;
-  routingOrder?: string;
-  status?: string;
-}
-
-export interface EnvelopeRecipients {
-  signers: DocusignRecipient[];
-}
-
-export interface UpdateRecipientTabsPayload {
-  textTabs?: Array<{ tabId: string; value: string }>;
-}
-
-export interface PrefillTabsResponse {
-  prefillTabs?: {
-    textTabs?: Array<{
-      tabId?: string;
-      tabLabel?: string;
-      value?: string;
-      documentId?: string;
-      pageNumber?: string;
-      [k: string]: any;
-    }>;
-    [k: string]: any;
-  };
-  [k: string]: any;
-}
-
-export interface DocGenFormField {
-  name: string;
-  label?: string;
-  type?: string;
-  required?: string;
-  value?: string;
-  [k: string]: any;
-}
-
-export interface DocGenFormFieldsByDoc {
-  documentId: string;
-  docGenFormFieldList: DocGenFormField[];
-}
-
-export interface DocGenFormFieldResponse {
-  docGenFormFields: DocGenFormFieldsByDoc[];
-}
-
-export interface UpdatePrefillTextTabPayload {
-  tabId: string;
-  value: string;
-}
-
-export interface UpdateDocumentTabsResponse {
-  [k: string]: any;
-}
-
-export interface DocGenUpdateDocPayload {
-  documentId: string;
-  fields: Array<{ name: string; value: string }>;
-}
-
-/** =========================
  * Crear sobre draft desde plantilla
  * ========================= */
-export async function createEnvelopeFromTemplateDraft(
-  input: CreateDraftFromTemplateInput
-): Promise<EnvelopeBasic> {
+export async function createEnvelopeFromTemplateDraft(input: CreateDraftFromTemplateInput): Promise<EnvelopeBasic> {
   const auth = await getAuthOrThrow();
   const ctx = await getDocusignContext();
 
@@ -307,11 +186,7 @@ export async function getEnvelopeRecipientsWithTabs(envelopeId: string): Promise
 /** =========================
  * Actualizar tabs de recipient
  * ========================= */
-export async function updateRecipientTabs(
-  envelopeId: string,
-  recipientId: string,
-  tabs: UpdateRecipientTabsPayload
-): Promise<void> {
+export async function updateRecipientTabs(envelopeId: string, recipientId: string, tabs: UpdateRecipientTabsPayload): Promise<void> {
   const auth = await getAuthOrThrow();
   const ctx = await getDocusignContext();
 
@@ -363,10 +238,7 @@ export async function sendEnvelope(envelopeId: string): Promise<void> {
 /** =========================
  * Tabs de documento
  * ========================= */
-export async function getEnvelopeDocumentTabs(
-  envelopeId: string,
-  documentId: string
-): Promise<PrefillTabsResponse> {
+export async function getEnvelopeDocumentTabs(envelopeId: string, documentId: string): Promise<PrefillTabsResponse> {
   const auth = await getAuthOrThrow();
   const ctx = await getDocusignContext();
 
@@ -416,11 +288,7 @@ export async function getEnvelopeDocGenFormFields(envelopeId: string): Promise<D
 /** =========================
  * Prefill text tabs (PUT)
  * ========================= */
-export async function updateEnvelopePrefillTextTabs(
-  envelopeId: string,
-  documentId: string,
-  tabs: UpdatePrefillTextTabPayload[]
-): Promise<UpdateDocumentTabsResponse> {
+export async function updateEnvelopePrefillTextTabs(envelopeId: string, documentId: string, tabs: UpdatePrefillTextTabPayload[]): Promise<UpdateDocumentTabsResponse> {
   const auth = await getAuthOrThrow();
   const ctx = await getDocusignContext();
 
@@ -459,10 +327,7 @@ export async function updateEnvelopePrefillTextTabs(
 /** =========================
  * DocGen update (PUT)
  * ========================= */
-export async function updateEnvelopeDocGenFormFields(
-  envelopeId: string,
-  docs: DocGenUpdateDocPayload[]
-): Promise<DocGenFormFieldResponse> {
+export async function updateEnvelopeDocGenFormFields(envelopeId: string, docs: DocGenUpdateDocPayload[]): Promise<DocGenFormFieldResponse> {
   const auth = await getAuthOrThrow();
   const ctx = await getDocusignContext();
 
@@ -498,11 +363,7 @@ export async function updateEnvelopeDocGenFormFields(
 /** =========================
  * Update recipients (PUT)
  * ========================= */
-export async function updateEnvelopeRecipients(
-  envelopeId: string,
-  recipients: EnvelopeRecipients,
-  options?: { resendEnvelope?: boolean }
-): Promise<EnvelopeRecipients> {
+export async function updateEnvelopeRecipients(envelopeId: string, recipients: EnvelopeRecipients, options?: { resendEnvelope?: boolean }): Promise<EnvelopeRecipients> {
   const auth = await getAuthOrThrow();
   const ctx = await getDocusignContext();
 

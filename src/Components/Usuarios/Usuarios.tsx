@@ -1,6 +1,6 @@
 import * as React from "react";
 import "../Settings/SettingsPage.css";
-import { ParamTabs } from "../Settings/SettingsPage";
+import { ParamTabs } from "../GD/Settings/SettingsPage";
 
 export type ParamTab = {
   id: string;

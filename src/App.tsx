@@ -6,12 +6,12 @@ import { GraphServicesProvider } from "./graph/graphContext";
 import type { User } from "./models/User";
 import Welcome from "./Components/Welcome/Welcome";
 import { AppHeader } from "./Components/Header/Header";
-import RegistrarNuevoPage from "./Components/RegistrarNuevo/RegistrarNuevo";
-import { ColaboradoresExplorer } from "./Components/View/VieweDocument";
-import { ParametrosPage } from "./Components/Settings/SettingsPage";
-import TablaEnvios from "./Components/ConsultarDocumentos/ConsultarDocumentos";
-import EnviarFormatoCard from "./Components/SendDocument/SendDocument";
-import { ReporteFiltros } from "./Components/Reports/Reports";
+import RegistrarNuevoPage from "./Components/GD/RegistrarNuevo/RegistrarNuevo";
+import { ColaboradoresExplorer } from "./Components/GD/View/VieweDocument";
+import { ParametrosPage } from "./Components/GD/Settings/SettingsPage";
+import TablaEnvios from "./Components/GD/ConsultarDocumentos/ConsultarDocumentos";
+import EnviarFormatoCard from "./Components/GD/SendDocument/SendDocument";
+import { ReporteFiltros } from "./Components/GD/Reports/Reports";
 import { PazSalvoPage } from "./Components/PazSalvo/PazSalvoPage";
 import NuevoTicketForm from "./Components/Tickets/NuevoTicket";
 

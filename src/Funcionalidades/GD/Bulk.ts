@@ -160,9 +160,7 @@ export function buildBulkCopiesFromGrid(columns: string[], rows: Row[]): BulkCop
     return {
       recipients,
       tabs: textTabs.length ? { textTabs } : undefined,
-      customFields: {
-        textCustomFields: [{ name: "ReferenceId", value: referenceId, show: "false" }],
-      },
+        customFields: [{ name: "ReferenceId", value: referenceId, show: "false" }],
     };
   });
 }

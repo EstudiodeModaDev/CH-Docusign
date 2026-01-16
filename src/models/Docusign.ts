@@ -115,9 +115,7 @@ export type BulkRole = { roleName: string; name: string; email: string };
 export type BulkCopy = {
   recipients: BulkRole[];
   tabs?: { textTabs?: Array<{ tabLabel: string; value: string }> };
-  customFields?: {
-    textCustomFields?: Array<{ name: string; value: string; show?: "true" | "false" }>;
-  };
+  customFields: [{ name: string, value: string, show: "false" }],
 };
 
 

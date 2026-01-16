@@ -25,3 +25,10 @@ export function downloadTextFile(filename: string, text: string, mime = "text/cs
   a.remove();
   URL.revokeObjectURL(url);
 }
+
+export function exportRowsToCsv(columns: string[], rows: Array<Record<string,string>>, fileName: string) {
+  const headerLine = toCsvLine(columns);
+  const lines = rows.map((r) => toCsvLine(columns.map((c) => r[c] ?? "")));
+  const csv = [headerLine, ...lines].join("\n") + "\n";
+  downloadTextFile(fileName, csv);
+}

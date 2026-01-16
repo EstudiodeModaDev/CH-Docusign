@@ -162,3 +162,29 @@ export type BulkSendBatchEnvelopesResponse = {
   }>;
   [k: string]: any;
 };
+
+export interface DocusignTemplateSummary {
+  templateId: string;
+  name: string;
+  description?: string;
+  lastModifiedDateTime?: string;
+  [key: string]: any; // por si quieres acceder a más campos
+}
+
+export type ListTemplatesResponse = {
+  envelopeTemplates?: DocusignTemplateSummary[];
+  resultSetSize?: string;
+  totalSetSize?: string;
+  [key: string]: any;
+};
+
+export type UseDocusignTemplatesOptions = {
+  searchText?: string;
+  includeAdvanced?: boolean;
+  auto?: boolean; // si false, no carga automáticamente
+};
+
+export type EnvelopeTabsResult = {
+  tabs: PrefillTabsResponse;           // lo que devuelve getEnvelopeDocumentTabs
+  documentGeneration: DocGenFormFieldResponse; // lo que devuelve docGenFormFields
+};

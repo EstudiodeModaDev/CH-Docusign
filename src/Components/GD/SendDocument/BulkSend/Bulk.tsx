@@ -196,7 +196,7 @@ export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (
           <thead>
             <tr>
               {columns.map((c, i) => (
-                <th key={c} className={["bulk-grid__th", i === 0 ? "sticky-left" : "", i === 1 ? "sticky-left-2" : "",].join(" ")}>
+                <th key={c} className={"bulk-grid__th"}>
                   {c}
                 </th>
               ))}

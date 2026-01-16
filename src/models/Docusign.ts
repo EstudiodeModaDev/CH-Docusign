@@ -114,16 +114,12 @@ export type BulkRole = { roleName: string; name: string; email: string };
 
 export type BulkCopy = {
   recipients: BulkRole[];
-  // tabs por copia (si vas a setear campos variables)
-  tabs?: {
-    textTabs?: Array<{ tabLabel: string; value: string }>;
-    // si luego quieres: numberTabs/dateTabs/etc
-  };
-  // para mapear fila -> envelopeId
+  tabs?: { textTabs?: Array<{ tabLabel: string; value: string }> };
   customFields?: {
     textCustomFields?: Array<{ name: string; value: string; show?: "true" | "false" }>;
   };
 };
+
 
 export type CreateBulkSendListInput = {
   name: string;

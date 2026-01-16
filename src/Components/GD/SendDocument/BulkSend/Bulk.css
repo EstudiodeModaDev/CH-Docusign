@@ -1,347 +1,401 @@
-/* Bulk.css
-   Estilos para EnvioMasivoUI + BulkGrid (editable tipo Excel)
-   Compatible con tus tokens globales.
-*/
+/* =========================================================
+   Bulk.css — Envío masivo (Grid + Resultados)
+   - Basado en tokens globales (con fallbacks)
+   - Tabla responsive + sticky columns + scroll suave
+   ========================================================= */
 
 .bulk-send{
-  --surface: var(--surface, #fff);
+  --surface: var(--surface, #ffffff);
   --ink: var(--ink, #0f172a);
   --muted: var(--muted, #64748b);
   --border: var(--border, #e5e7eb);
-  --border-strong: var(--border-strong, color-mix(in oklab, var(--border) 78%, black));
-  --ring: var(--ring, #93c5fd);
-  --shadow: var(--shadow, 0 14px 40px rgba(2,6,23,.08));
-  --radius: var(--radius, 18px);
+  --border-strong: var(--bd-strong, color-mix(in oklab, var(--border) 75%, black));
+  --ring: var(--ring, rgba(37, 99, 235, .35));
+  --brand: var(--brand-600, #2563eb);
+  --danger: #ef4444;
+  --danger-ink: #fff;
 
-  width: 100%;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow: 0 18px 50px rgba(2, 6, 23, .08);
+  --shadow2: 0 10px 25px rgba(2, 6, 23, .06);
+
+  --pad: clamp(12px, 1.6vw, 18px);
+  --gap: clamp(10px, 1.4vw, 14px);
+
   color: var(--ink);
 }
 
-/* PANEL inicial */
+/* ====== Page container helpers (si no existen en tu app) ====== */
+.ef-page.bulk-send{
+  display: grid;
+  gap: var(--gap);
+}
+
+/* Si tu app ya trae .ef-card, esto solo lo “embellece” */
+.bulk-send .ef-card,
+.bulk-card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow2);
+}
+
 .bulk-panel{
+  padding: var(--pad);
   display: grid;
   gap: 14px;
-  padding: 22px 18px;
-  border-radius: var(--radius);
 }
 
 .bulk-panel__field{
   display: grid;
   gap: 8px;
-  justify-items: center;
-  text-align: center;
 }
 
 .bulk-panel__actions{
   display: flex;
-  gap: 12px;
-  justify-content: center;
-  align-items: center;
   flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }
 
-/* TOOLBAR arriba */
+/* ====== Toolbar ====== */
 .bulk-toolbar{
-  width: 100%;
-  margin: 0 0 14px 0;
-  padding: 14px 14px;
-
+  padding: var(--pad);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 14px;
+  align-items: flex-start;
+  justify-content: space-between;
 
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow2);
 }
 
 .bulk-toolbar__left{
   display: grid;
   gap: 6px;
+  min-width: 220px;
 }
 
 .bulk-toolbar__title{
-  font-weight: 900;
-  font-size: 15px;
-  letter-spacing: .2px;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.15;
 }
 
 .bulk-toolbar__meta{
+  font-size: 12.5px;
   color: var(--muted);
-  font-size: 12px;
 }
 
 .bulk-toolbar__right{
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
   flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
 }
 
-.bulk-toolbar .btn{
-  white-space: nowrap;
-}
-
-/* Layout 2 columnas */
+/* ====== Main layout ====== */
 .bulk-main{
   display: grid;
-  grid-template-columns: minmax(0, 1.75fr) minmax(340px, 1fr);
-  gap: 16px;
+  grid-template-columns: 1.45fr .75fr;
+  gap: var(--gap);
   align-items: start;
 }
 
-/* Cards */
+@media (max-width: 1100px){
+  .bulk-main{
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ====== Cards ====== */
 .bulk-card{
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow);
-  padding: 14px;
+  padding: var(--pad);
 }
 
 .bulk-grid-host{
-  padding: 0;
-  border: 0;
-  box-shadow: none;
-  background: transparent;
+  min-width: 0; /* clave para que el overflow funcione dentro de grid */
 }
 
-/* ======================
-   BulkGrid (tabla)
-====================== */
-
-.bulk-grid{
-  background: var(--surface);
-  color: var(--ink);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
-  overflow: hidden;
+.bulk-results{
+  min-width: 0;
 }
 
+/* ====== Grid header ====== */
 .bulk-grid__topbar{
   display: flex;
-  gap: 10px;
-  align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
-  background: color-mix(in oklab, var(--surface) 92%, var(--border));
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .bulk-grid__left{
   display: flex;
-  gap: 10px;
   align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .bulk-grid__meta{
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--muted);
 }
 
+/* ====== Table wrapper ====== */
 .bulk-grid__wrap{
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   overflow: auto;
-  max-height: min(62vh, 560px);
+  max-height: min(62vh, 720px);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px rgba(2,6,23,.02);
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Scrollbar */
-.bulk-grid__wrap::-webkit-scrollbar{ height: 10px; width: 10px; }
+/* scrollbar suave */
+.bulk-grid__wrap::-webkit-scrollbar{
+  height: 10px;
+  width: 10px;
+}
 .bulk-grid__wrap::-webkit-scrollbar-thumb{
-  background: color-mix(in oklab, var(--border) 70%, var(--ink));
+  background: color-mix(in oklab, var(--border) 55%, var(--ink));
   border-radius: 999px;
 }
-.bulk-grid__wrap::-webkit-scrollbar-track{ background: transparent; }
-
-.bulk-grid__table{
-  width: 100%;
-  min-width: 980px;
-  border-collapse: separate;
-  border-spacing: 0;
+.bulk-grid__wrap::-webkit-scrollbar-track{
+  background: transparent;
 }
 
-/* Header sticky */
+/* ====== Table ====== */
+.bulk-grid__table{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 860px; /* para que exista scroll horizontal cuando hay muchas cols */
+}
+
+.bulk-grid__th,
+.bulk-grid__td{
+  border-bottom: 1px solid var(--border);
+  padding: 10px 10px;
+  vertical-align: middle;
+  background: var(--surface);
+}
+
 .bulk-grid__th{
   position: sticky;
   top: 0;
-  z-index: 3;
-  background: var(--surface);
-  padding: 10px 12px;
-  text-align: left;
-  font-weight: 800;
+  z-index: 20;
   font-size: 12px;
-  letter-spacing: .2px;
-  white-space: nowrap;
+  letter-spacing: .02em;
+  text-transform: none;
+  color: color-mix(in oklab, var(--muted) 70%, var(--ink));
+  background: color-mix(in oklab, var(--surface) 92%, var(--border));
   border-bottom: 1px solid var(--border-strong);
 }
 
-/* Sticky cols */
-.bulk-grid__th.sticky-left,
-.bulk-grid__td.sticky-left{
-  position: sticky;
-  left: 0;
-  z-index: 4;
-  background: var(--surface);
-  box-shadow: 1px 0 0 var(--border);
-}
-
-.bulk-grid__th.sticky-left-2,
-.bulk-grid__td.sticky-left-2{
-  position: sticky;
-  left: 180px;
-  z-index: 4;
-  background: var(--surface);
-  box-shadow: 1px 0 0 var(--border);
-}
-
 .bulk-grid__tr:hover .bulk-grid__td{
-  background: color-mix(in oklab, var(--surface) 94%, var(--border));
+  background: color-mix(in oklab, var(--surface) 92%, var(--border));
 }
 
-.bulk-grid__td{
-  border-bottom: 1px solid var(--border);
-  padding: 0;
-  vertical-align: middle;
-}
-
+/* ====== Inputs ====== */
 .bulk-grid__cell{
   width: 100%;
-  min-width: 180px;
-  padding: 10px 10px;
-  border: 0;
-  outline: none;
-  background: transparent;
+  min-width: 160px;
+  height: 34px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--surface) 95%, var(--border));
   color: var(--ink);
-  font-size: 13px;
-}
-
-.bulk-grid__cell::placeholder{
-  color: color-mix(in oklab, var(--muted) 85%, transparent);
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
 }
 
 .bulk-grid__cell:focus{
-  background: color-mix(in oklab, var(--surface) 88%, var(--ring));
-  box-shadow: inset 0 0 0 2px var(--ring);
-  border-radius: 10px;
+  border-color: color-mix(in oklab, var(--brand) 60%, var(--border));
+  box-shadow: 0 0 0 4px var(--ring);
+  background: var(--surface);
 }
 
-.bulk-grid__cell[disabled]{
-  color: color-mix(in oklab, var(--muted) 75%, transparent);
+.bulk-grid__cell:disabled{
+  opacity: .75;
   cursor: not-allowed;
+  background: color-mix(in oklab, var(--surface) 85%, var(--border));
 }
 
-/* Acciones */
+/* ====== Actions ====== */
 .bulk-grid__actions{
   display: flex;
-  justify-content: center;
+  gap: 8px;
+  justify-content: flex-start;
   align-items: center;
-  padding: 8px 10px;
-  min-width: 110px;
+  white-space: nowrap;
 }
 
 .bulk-grid__btn{
-  appearance: none;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--ink);
-  border-radius: 999px;
-  padding: 7px 10px;
+  font-weight: 700;
   font-size: 12px;
-  font-weight: 800;
   cursor: pointer;
-  transition: transform .06s ease, box-shadow .12s ease, border-color .12s ease;
+  transition: transform .08s ease, filter .15s ease, background .15s ease, border-color .15s ease;
 }
 
 .bulk-grid__btn:hover{
-  border-color: var(--border-strong);
-  box-shadow: 0 10px 20px rgba(2,6,23,.08);
+  filter: brightness(0.98);
 }
 
 .bulk-grid__btn:active{
   transform: translateY(1px);
 }
 
+.bulk-grid__btn:disabled{
+  opacity: .55;
+  cursor: not-allowed;
+}
+
 .bulk-grid__btn--danger{
-  border-color: color-mix(in oklab, var(--border) 55%, red);
-  color: #b91c1c;
+  background: color-mix(in oklab, var(--danger) 12%, var(--surface));
+  border-color: color-mix(in oklab, var(--danger) 35%, var(--border));
+  color: color-mix(in oklab, var(--danger) 80%, var(--ink));
 }
 
-/* Resultados */
-.bulk-results{
-  padding: 14px;
+.bulk-grid__btn--danger:hover{
+  background: color-mix(in oklab, var(--danger) 16%, var(--surface));
 }
 
+/* ====== Empty state ====== */
+.bulk-grid__empty{
+  padding: 18px;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* =========================================================
+   Sticky columns
+   - Ajusta widths si tus celdas son más anchas
+   ========================================================= */
+.bulk-grid__table .sticky-left{
+  position: sticky;
+  left: 0;
+  z-index: 30; /* arriba de td normales */
+  background: var(--surface);
+  box-shadow: 1px 0 0 0 var(--border);
+}
+
+.bulk-grid__table thead .sticky-left{
+  z-index: 60; /* arriba del header */
+}
+
+.bulk-grid__table .sticky-left-2{
+  position: sticky;
+  left: 180px; /* ancho aproximado de la primera columna */
+  z-index: 29;
+  background: var(--surface);
+  box-shadow: 1px 0 0 0 var(--border);
+}
+
+.bulk-grid__table thead .sticky-left-2{
+  z-index: 59;
+}
+
+/* Opcional: fija widths para que el sticky quede perfecto */
+.bulk-grid__table th.sticky-left,
+.bulk-grid__table td.sticky-left{
+  min-width: 180px;
+  width: 180px;
+}
+.bulk-grid__table th.sticky-left-2,
+.bulk-grid__table td.sticky-left-2{
+  min-width: 220px;
+  width: 220px;
+}
+
+/* =========================================================
+   Resultados
+   ========================================================= */
 .bulk-results__title{
-  margin: 6px 0 12px;
-  font-weight: 900;
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 10px;
 }
 
 .bulk-results__empty{
   color: var(--muted);
-  font-size: 14px;
-  line-height: 1.45;
+  font-size: 13px;
+  padding: 10px 0;
 }
 
 .bulk-results__wrap{
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   overflow: auto;
+  max-height: min(62vh, 720px);
+  background: var(--surface);
 }
 
 .bulk-results__table{
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   min-width: 520px;
 }
 
-.bulk-results__th{
-  text-align: left;
-  padding: 10px 10px;
-  border-bottom: 1px solid var(--border-strong);
-  font-size: 12px;
-  font-weight: 900;
-  position: sticky;
-  top: 0;
-  background: var(--surface);
-  z-index: 2;
-}
-
+.bulk-results__th,
 .bulk-results__td{
-  padding: 9px 10px;
+  padding: 10px 10px;
   border-bottom: 1px solid var(--border);
+  background: var(--surface);
   font-size: 13px;
 }
 
+.bulk-results__th{
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: color-mix(in oklab, var(--surface) 92%, var(--border));
+  color: color-mix(in oklab, var(--muted) 70%, var(--ink));
+  border-bottom: 1px solid var(--border-strong);
+  font-size: 12px;
+}
+
 .bulk-results__tr:hover .bulk-results__td{
-  background: color-mix(in oklab, var(--surface) 94%, var(--border));
+  background: color-mix(in oklab, var(--surface) 92%, var(--border));
 }
 
-/* Responsive */
-@media (max-width: 1100px){
-  .bulk-main{ grid-template-columns: 1fr; }
+/* Mejor lectura para ids largos */
+.bulk-results__td:nth-child(2){
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12.5px;
 }
 
-@media (max-width: 900px){
+/* =========================================================
+   Pequeños fixes si tus botones globales no tienen gap
+   ========================================================= */
+.bulk-send .btn{
+  border-radius: 12px;
+}
+
+/* Reduce “saltos” en pantallas pequeñas */
+@media (max-width: 560px){
   .bulk-toolbar{
-    flex-direction: column;
     align-items: stretch;
   }
   .bulk-toolbar__right{
     justify-content: flex-start;
   }
-  .bulk-panel{
-    padding: 18px 14px;
+  .bulk-grid__cell{
+    min-width: 140px;
   }
   .bulk-grid__table{
-    min-width: 860px;
-  }
-  .bulk-grid__cell{
-    min-width: 160px;
-  }
-  .bulk-grid__th.sticky-left-2,
-  .bulk-grid__td.sticky-left-2{
-    left: 160px;
+    min-width: 760px;
   }
 }

@@ -353,7 +353,7 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
 
       await mail.sendEmail(mailPayload);
 
-      const formPayload: any = {
+     /* const formPayload: any = {
         message: {
           subject: `Encuesta de retiro Estudio de Moda`,
           body: { contentType: "HTML", content:`
@@ -375,7 +375,9 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
       };
 
       //7) Enviar form
-      await mail.sendEmail(formPayload)
+      await mail.sendEmail(formPayload)*/
+
+      console.log(correo + " ", link)
 
       alert("Se ha creado el registro con éxito y se enviaron las notificaciones.");
       cleanState();

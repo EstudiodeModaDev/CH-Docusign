@@ -16,8 +16,29 @@ function toRecipients(addresses: string[]) {
   return addresses.map((address) => ({ emailAddress: { address } }));
 }
 
+function normalizeSpaces(s: string) {
+  return (s ?? "").trim().replace(/\s+/g, " ");
+}
+
+function sanitizeFileName(name: string) {
+  // caracteres no permitidos en OneDrive/SharePoint
+  const bad = /["*:<>\?\/\\|]/g;
+  let n = (name ?? "").replace(bad, "-").trim();
+  // evitar terminar en punto/espacio
+  n = n.replace(/[\. ]+$/g, "");
+  // evitar dobles espacios
+  n = n.replace(/\s+/g, " ");
+  return n || "Evidencia";
+}
+
+function withSuffix(name: string, i: number) {
+  const dot = name.lastIndexOf(".");
+  if (dot <= 0) return `${name} (${i})`;
+  return `${name.slice(0, dot)} (${i})${name.slice(dot)}`;
+}
+
 export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDetalles, errorDetalles, loadDetalles, titulo, selectedCesacion, onClose, loadingPasos, errorPasos, pasosById, decisiones, motivos, setMotivos, setDecisiones, handleCompleteStep, proceso,}) => {
-  const {ColaboradoresDH, ColaboradoresEDM, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta, mail,}: any = useGraphServices();
+  const {ColaboradoresDH,  ColaboradoresEDM, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta, mail,}: any = useGraphServices();
 
   const vm = React.useMemo(() => {
     return toUnifyVM(proceso as Proceso, selectedCesacion as any);
@@ -48,7 +69,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
       const prev = detallesRows[i - 1];
 
       const unlocked = i === 0 || isEstadoDone(prev?.EstadoPaso);
-      const isPending = !isEstadoDone(d?.EstadoPaso); // ✅ Completado u Omitido ya cuentan como "hecho"
+      const isPending = !isEstadoDone(d?.EstadoPaso);
 
       if (unlocked && isPending) return d;
     }
@@ -70,7 +91,6 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
       fecha_ingreso: spDateToDDMMYYYY(vm?.fechaIngreso ?? ""),
       tipo_trabajo: vm?.tipoTel ?? "",
     }),
-    // ojo: vm es objeto; pero aquí dependemos de campos estables
     [vm?.nombre, vm?.numeroDoc, vm?.empresa, vm?.cargo, vm?.fechaIngreso, vm?.tipoTel]
   );
 
@@ -93,28 +113,33 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
   /** ======= Completar u Omitir ======= */
   const handleSubmit = async (detalle: DetallesPasos, estado: EstadoFinal) => {
-    const e = estado;
-    await handleCompleteStep(detalle, e);
+    await handleCompleteStep(detalle, estado);
     await loadDetalles();
   };
 
   const handleSkipStep = async (detalle: DetallesPasos) => {
-    const isDone = isEstadoDone(detalle?.EstadoPaso);
-    if (isDone) return;
+    if (isEstadoDone(detalle?.EstadoPaso)) return;
     await handleSubmit(detalle, "Omitido");
   };
 
   /** ======= Subida de documento ======= */
+  const uploadingRef = React.useRef(false);
+
   const handleUploadAndComplete = async (detalle: DetallesPasos, paso: any) => {
+    // ✅ (1) Lock real anti doble ejecución
+    if (uploadingRef.current) return;
+    uploadingRef.current = true;
+
     const idDetalle = detalle.Id ?? "";
     const file = files[idDetalle];
 
     if (!file) {
+      uploadingRef.current = false;
       alert("Debes seleccionar un archivo antes de subirlo");
       return;
     }
 
-    const empresa = vm?.empresa?.toLocaleLowerCase().trim() ?? "";
+    const empresa = normalizeSpaces(vm?.empresa?.toLocaleLowerCase() ?? "");
     const servicioColaboradores =
       empresa === "dh retail"
         ? ColaboradoresDH
@@ -128,24 +153,76 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
         ? ColaboradoresMeta
         : ColaboradoresEDM;
 
-    const ext = file.name.split(".").pop() ?? "pdf";
-    const nombreBase = vm.numeroDoc + " - " + (paso?.NombreEvidencia ?? paso?.NombrePaso ?? "Evidencia").toString().trim();
-    const fileName = `${nombreBase}.${ext}`;
-    const renamedFile = new File([file], fileName, { type: file.type, lastModified: file.lastModified });
+    const ext = (file.name.split(".").pop() ?? "pdf").trim();
+    const evidenciaRaw = (paso?.NombreEvidencia ?? paso?.NombrePaso ?? "Evidencia").toString();
+    const nombreBaseRaw = `${normalizeSpaces(vm?.numeroDoc ?? "")} - ${normalizeSpaces(evidenciaRaw)}`;
+    const baseSafe = sanitizeFileName(nombreBaseRaw);
+
+    // ✅ carpeta también normalizada (evita espacios raros que a veces generan comportamientos raros)
+    const carpeta = `Colaboradores Activos/${normalizeSpaces(vm?.numeroDoc ?? "")} - ${normalizeSpaces(vm?.nombre ?? "")}`;
 
     setUploading(true);
-    try {
-      const carpeta = `Colaboradores Activos/${vm?.numeroDoc ?? ""} - ${vm?.nombre ?? ""}`;
-      await servicioColaboradores.uploadFile(carpeta, renamedFile);
 
-      await handleSubmit(detalle, "Completado");
+    // ✅ (2) Separamos: (A) upload por un lado, (B) completar paso por otro
+    try {
+      console.log("[UPLOAD] carpeta:", carpeta);
+
+      // ✅ (3) Si hay 409, renombramos automáticamente (evita “sube y luego error” por duplicado)
+      let uploadedName: string | null = null;
+      let lastErr: any = null;
+
+      for (let i = 0; i <= 15; i++) {
+        const candidate = i === 0 ? `${baseSafe}.${ext}` : `${withSuffix(baseSafe, i)}.${ext}`;
+        const renamedFile = new File([file], candidate, { type: file.type, lastModified: file.lastModified });
+
+        try {
+          console.log("[UPLOAD] intentando:", candidate);
+          await servicioColaboradores.uploadFile(carpeta, renamedFile);
+          uploadedName = candidate;
+          lastErr = null;
+          console.log("[UPLOAD] OK:", candidate);
+          break;
+        } catch (e: any) {
+          const msg = (e?.message ?? String(e)).toLowerCase();
+          const status = e?.status ?? e?.response?.status;
+
+          if (status === 409 || msg.includes("incompatible with a similar name") || msg.includes("409")) {
+            lastErr = e;
+            continue; // probamos otro nombre
+          }
+
+          // otro error real
+          throw e;
+        }
+      }
+
+      if (!uploadedName) {
+        // no encontramos nombre libre
+        throw lastErr;
+      }
+
+      // ✅ (4) Completar paso: si falla, NO decimos “falló la subida”
+      try {
+        console.log("[STEP] completando paso...");
+        await handleSubmit(detalle, "Completado");
+        console.log("[STEP] OK");
+      } catch (e: any) {
+        console.error("[STEP] Subió OK pero falló completar:", e);
+        alert(
+          `El archivo se subió (${uploadedName}), pero falló completar el paso. ` +
+            `Reintenta completar el paso (no necesitas volver a subir).`
+        );
+        return;
+      }
+
       setFiles((prev) => ({ ...prev, [idDetalle]: null }));
-      alert("Archivo subido correctamente");
+      alert("Archivo subido y paso completado correctamente");
     } catch (e: any) {
-      console.error(e);
-      alert("Error subiendo archivo: " + (e?.message ?? e));
+      console.error("[UPLOAD] error:", e);
+      alert("Error subiendo archivo: " + (e?.message ?? String(e)));
     } finally {
       setUploading(false);
+      uploadingRef.current = false;
     }
   };
 
@@ -162,8 +239,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
   };
 
   const handleSendAndComplete = async (detalle: DetallesPasos) => {
-    const isDone = isEstadoDone(detalle.EstadoPaso);
-    if (isDone) return;
+    if (isEstadoDone(detalle.EstadoPaso)) return;
 
     const destinos = parseEmails(destinatario);
 
@@ -266,7 +342,6 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
                     {detalle.EstadoPaso}
                   </span>
 
-                  {/* ✅ BOTÓN OMITIR (solo si no es obligatorio y no está hecho) */}
                   {canSkip && (
                     <button type="button" className="btn btn-xs" onClick={() => handleSkipStep(detalle)} title="Omitir este paso">
                       Omitir
@@ -276,7 +351,6 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
               </div>
 
               <div className="step-card__body">
-                {/* Si está omitido, no muestres formularios */}
                 {isOmitted ? (
                   <div className="step-card__notes">
                     <p className="step-card__note">{detalle.Notas || "Paso omitido."}</p>
@@ -325,7 +399,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
                               <div className="mail__title">Nuevo mensaje</div>
 
                               <div className="mail__actions">
-                                <button type="button" className="mail__send btn btn-xs" disabled={busySend} onClick={() => handleSendAndComplete(detalle)} title="Enviar notificación y completar">
+                                <button type="button" className="mail__send btn btn-xs"  disabled={busySend} onClick={() => handleSendAndComplete(detalle)} title="Enviar notificación y completar">
                                   {busySend ? "Enviando…" : "Enviar"}
                                 </button>
                               </div>
@@ -346,9 +420,10 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
                               <div className="mail__editor">
                                 <RichTextBase64 value={cuerpo} placeholder="Redacta tu mensaje… (HTML permitido)" readOnly={busySend} className="mail__rte-inner" imageSize={{ width: 240, fit: "contain" }} onChange={(html) => {
-                                                                                                                                                                                                                setIsCustomBody(true);
-                                                                                                                                                                                                                setBody(html);
-                                                                                                                                                                                                              }}/>
+                                    setIsCustomBody(true);
+                                    setBody(html);
+                                  }}
+                                />
                               </div>
                             </div>
                           </div>
@@ -366,10 +441,17 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
                         {!isDone ? (
                           <>
                             <div className="step-card__upload-wrapper">
-                              <input id={`file-${idDetalle}`} type="file" disabled={busyUpload} accept={safeString(paso?.AceptaTipos ?? ".pdf,.jpg,.jpeg,.png")} className="step-card__file-input" onChange={(e) => {
-                                                                                                                                                                                                    const f = e.target.files?.[0] ?? null;
-                                                                                                                                                                                                    setFiles((prev) => ({ ...prev, [idDetalle]: f }));
-                                                                                                                                                                                                  }}/>
+                              <input
+                                id={`file-${idDetalle}`}
+                                type="file"
+                                disabled={busyUpload}
+                                accept={safeString(paso?.AceptaTipos ?? ".pdf,.jpg,.jpeg,.png")}
+                                className="step-card__file-input"
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0] ?? null;
+                                  setFiles((prev) => ({ ...prev, [idDetalle]: f }));
+                                }}
+                              />
 
                               <label htmlFor={`file-${idDetalle}`} className="step-card__upload-btn">
                                 Seleccionar archivo
@@ -380,7 +462,13 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
                               )}
                             </div>
 
-                            <button type="button" className="btn btn-xs" disabled={busyUpload || !files[idDetalle]} onClick={() => handleUploadAndComplete(detalle, paso)} title="Subir y completar">
+                            <button
+                              type="button"
+                              className="btn btn-xs"
+                              disabled={busyUpload || !files[idDetalle]}
+                              onClick={() => handleUploadAndComplete(detalle, paso)}
+                              title="Subir y completar"
+                            >
                               {busyUpload ? "Subiendo…" : "Subir ✓"}
                             </button>
                           </>

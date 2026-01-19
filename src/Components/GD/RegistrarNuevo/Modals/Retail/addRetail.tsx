@@ -236,7 +236,7 @@ export default function FormRetail({onClose, state, setField, handleSubmit, erro
       await loadPasosPromocion()
       await handleCreateAllSteps(rows, created.created ?? "")
       const body = createBody(account?.name ?? "", "Retail", state.Nombre, state.Title, state.Cargo, state.FechaIngreso ?? "")
-      await notifyTeam(mail, "Nuevo registro en Habeas Data - Gestor documental CH", body)
+      await notifyTeam(mail, "Nuevo registro en el modulo de Retail - Gestor documental CH", body)
       await onClose()
     }
   };

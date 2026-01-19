@@ -30,7 +30,7 @@ const CATALOGO_CATS: Cat[] = [
   { ID: "C2", Title: "Envío de documentos" },
   { ID: "C3", Title: "Consulta de documentos" },
   { ID: "C4", Title: "Reportes y exportaciones" },
-  { ID: "C5", Title: "Solicitudes y mejoras" },
+  { ID: "C5", Title: "Nuevos modulos" },
   { ID: "C6", Title: "Parámetros y desplegables" },
   { ID: "C7", Title: "Explorador de documentos" },
   { ID: "C8", Title: "Paz y salvo" },

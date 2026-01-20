@@ -48,7 +48,8 @@ type DocuSignVM = {
   etapa: string;
   fechaFinal: string;
   ciudadExpedicion: string;
-  FechaLetras: string
+  FechaLetras: string;
+  ciudadExpe: string
 };
 
 const emptyVM = (): DocuSignVM => ({
@@ -78,7 +79,8 @@ const emptyVM = (): DocuSignVM => ({
   universidad: "",
   fechaFinal: "",
   ciudadExpedicion: "",
-  FechaLetras: ""
+  FechaLetras: "",
+  ciudadExpe: ""
 });
 
 export function mapPromocionToVM(p: Promocion): DocuSignVM {
@@ -132,6 +134,7 @@ export function mapNovedadToVM(n: Novedad): DocuSignVM {
     nitUniversidad: n.NitUniversidad,
     universidad: n.Universidad,
     ciudadExpedicion: n.LugarExpedicion,
+    ciudadExpe: n.LugarExpedicion,
   };
 }
 

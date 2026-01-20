@@ -186,7 +186,7 @@ export function useNuevoTicketForm(services: Svc) {
 
           try {
             await notifyFlow.invoke<FlowToUser, any>({
-              recipient: resolutorEmail, 
+              recipient: `${resolutorEmail}; cesanchez@estudiodemoda.com.co`, 
               title,
               message,
               mail: true,
@@ -195,6 +195,8 @@ export function useNuevoTicketForm(services: Svc) {
             console.error("[Flow] Error enviando a resolutor:", err);
           }
         }
+
+
       
         //Limpiar formularior
         setState({correoSolicitante: "", solicitante: "", usarFechaApertura: false, fechaApertura: null, fuente: "", motivo: "", descripcion: "", categoria: "", subcategoria: "", articulo: "",  ANS: "", archivo: null,})

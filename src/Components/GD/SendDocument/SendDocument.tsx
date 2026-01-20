@@ -18,6 +18,7 @@ import {spDateToSpanishLong, toISODateFlex } from "../../../utils/Date";
 import type { Retail } from "../../../models/Retail";
 import { useRetail } from "../../../Funcionalidades/GD/Retail";
 import type { DocGenUpdateDocPayload, DocusignRecipient, UpdatePrefillTextTabPayload } from "../../../models/Docusign";
+import { formatNIT } from "../../../utils/mail";
 
 export type Proceso = "Promocion" | "Habeas" | "Nuevo" | "Cesacion" | "Retail";
 
@@ -131,7 +132,7 @@ export function mapNovedadToVM(n: Novedad): DocuSignVM {
     fechaNac: toISODateFlex(n.FechaNac),
     fechaFinal: toISODateFlex(n.FECHA_x0020_REQUERIDA_x0020_PARA),
     FechaLetras: spDateToSpanishLong(n.FECHA_x0020_REQUERIDA_x0020_PARA0),
-    nitUniversidad: n.NitUniversidad,
+    nitUniversidad: formatNIT(n.NitUniversidad),
     universidad: n.Universidad,
     ciudadExpedicion: n.LugarExpedicion,
     ciudadExpe: n.LugarExpedicion,

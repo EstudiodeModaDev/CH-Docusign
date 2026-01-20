@@ -95,3 +95,20 @@ export function buildRecipients(emails: string[]): GraphRecipient[] {
 
   return unique.map(address => ({ emailAddress: { address } }));
 }
+
+export function formatNIT(value?: string | number | null): string {
+  if (!value) return "";
+
+  // Deja solo números
+  const digits = String(value).replace(/\D/g, "");
+
+  if (digits.length < 2) return digits;
+
+  const cuerpo = digits.slice(0, -1);
+  const dv = digits.slice(-1);
+
+  // separa miles con puntos
+  const cuerpoFormateado = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+  return `${cuerpoFormateado}-${dv}`;
+}

@@ -14,7 +14,7 @@ import type { Novedad } from "../../../models/Novedades";
 import type { HabeasData } from "../../../models/HabeasData";
 import type { Cesacion } from "../../../models/Cesaciones";
 import { useCesaciones } from "../../../Funcionalidades/GD/Cesaciones";
-import { spDateToDDMMYYYY, spDateToSpanishLong } from "../../../utils/Date";
+import {spDateToSpanishLong, toISODateFlex } from "../../../utils/Date";
 import type { Retail } from "../../../models/Retail";
 import { useRetail } from "../../../Funcionalidades/GD/Retail";
 import type { DocGenUpdateDocPayload, DocusignRecipient, UpdatePrefillTextTabPayload } from "../../../models/Docusign";
@@ -122,12 +122,12 @@ export function mapNovedadToVM(n: Novedad): DocuSignVM {
     coordinador: n.Coordinadordepracticas,
     especialidad: n.Especialidad,
     etapa: n.Etapa,
-    fechaFinalLectiva: spDateToDDMMYYYY(n.FechaFinalLectiva),
-    fechaFinalProductiva: spDateToDDMMYYYY(n.FechaFinalProductiva),
-    fechaInicioLectiva: spDateToDDMMYYYY(n.FechaInicioLectiva),
-    fechaInicioProductiva: spDateToDDMMYYYY(n.FechaInicioProductiva),
-    fechaNac: spDateToDDMMYYYY(n.FechaNac),
-    fechaFinal: spDateToDDMMYYYY(n.FECHA_x0020_REQUERIDA_x0020_PARA0),
+    fechaFinalLectiva: toISODateFlex(n.FechaFinalLectiva),
+    fechaFinalProductiva: toISODateFlex(n.FechaFinalProductiva),
+    fechaInicioLectiva: toISODateFlex(n.FechaInicioLectiva),
+    fechaInicioProductiva: toISODateFlex(n.FechaInicioProductiva),
+    fechaNac: toISODateFlex(n.FechaNac),
+    fechaFinal: toISODateFlex(n.FECHA_x0020_REQUERIDA_x0020_PARA0),
     FechaLetras: spDateToSpanishLong(n.FECHA_x0020_REQUERIDA_x0020_PARA0),
     nitUniversidad: n.NitUniversidad,
     universidad: n.Universidad,

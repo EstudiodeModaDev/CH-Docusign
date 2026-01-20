@@ -179,7 +179,11 @@ async function readExcelFile(file: File): Promise<{ headers: string[]; rows: Row
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: "array" });
 
-  const sheetName = wb.SheetNames[0];
+  const sheetName = wb.SheetNames.find((name) => {
+                      const ws = wb.Sheets[name];
+                      const matrix = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, blankrows: false });
+                      return matrix.length > 1 && (matrix[1] ?? []).some((c) => `${c ?? ""}`.trim().length > 0);
+                    }) ?? wb.SheetNames[0];
   if (!sheetName) return { headers: [], rows: [] };
 
   const ws = wb.Sheets[sheetName];

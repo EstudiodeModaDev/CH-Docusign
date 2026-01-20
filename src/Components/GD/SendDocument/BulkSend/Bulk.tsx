@@ -1,9 +1,9 @@
 import * as React from "react";
+import * as XLSX from "xlsx";
 import "./Bulk.css";
 
 import { useDocusignTemplates } from "../../../../Funcionalidades/GD/Docusign";
 import { generateCsvForTemplate } from "../../../../Funcionalidades/GD/Bulk";
-import { exportRowsToCsv } from "../../../../utils/csv";
 import { createEnvelopeFromTemplateDraft, getEnvelopeDocumentTabs, getEnvelopeDocGenFormFields, updateEnvelopePrefillTextTabs, updateEnvelopeDocGenFormFields, sendEnvelope,} from "../../../../Services/DocusignAPI.service";
 import type { DocGenUpdateDocPayload, UpdatePrefillTextTabPayload } from "../../../../models/Docusign";
 import { useGraphServices } from "../../../../graph/graphContext";
@@ -22,10 +22,17 @@ type BulkResultRow = {
   error?: string;
 };
 
-const COMPANY_COL_KEY = "empresa"; 
+const COMPANY_COL_KEY = "empresa";
 
 function normKey(s: string) {
   return (s ?? "").trim().toLowerCase();
+}
+
+function headerAliasKey(s: string) {
+  const nk = normKey(s);
+  // aliases para que Excel con "Compañía" sirva igual
+  if (nk === "compañía" || nk === "compania" || nk === "company") return normKey(COMPANY_COL_KEY);
+  return nk;
 }
 
 function getCell(row: Row, key: string) {
@@ -58,7 +65,11 @@ function makeFirstRow(columns: string[]) {
   return r;
 }
 
-async function runWithConcurrency<T, R>(items: T[], worker: (item: T, index: number) => Promise<R>, concurrency = 2): Promise<R[]> {
+async function runWithConcurrency<T, R>(
+  items: T[],
+  worker: (item: T, index: number) => Promise<R>,
+  concurrency = 2
+): Promise<R[]> {
   const results: R[] = new Array(items.length);
   let i = 0;
 
@@ -86,18 +97,13 @@ async function sendSingleFromRow(params: {templateId: string; templateName: stri
   const referenceId = safeRef(row, index);
 
   try {
-    // ✅ columnas mínimas para destinatario
     const signerName = must(row, "COLABORADOR_Name");
     const signerEmail = must(row, "COLABORADOR_Email");
 
-    // 1) Crear draft desde plantilla (rol debe coincidir con tu plantilla)
-    const draft = await createEnvelopeFromTemplateDraft({
-      templateId,
-      emailSubject: `Firma de documento - ${templateName}`,
-      emailBlurb: "Por favor revisa y firma.",
+    const draft = await createEnvelopeFromTemplateDraft({templateId, emailSubject: `Firma de documento - ${templateName}`, emailBlurb: "Por favor revisa y firma.",
       roles: [
         {
-          roleName: "COLABORADOR", // ⚠️ debe coincidir con tu template
+          roleName: "COLABORADOR",
           name: signerName,
           email: signerEmail,
         },
@@ -106,7 +112,6 @@ async function sendSingleFromRow(params: {templateId: string; templateName: stri
 
     const envelopeId = draft.envelopeId;
 
-    // 2) Prefill tabs (documentId "1")
     const docTabs = await getEnvelopeDocumentTabs(envelopeId, "1");
     const prefillTextTabs = docTabs.prefillTabs?.textTabs ?? [];
 
@@ -115,10 +120,8 @@ async function sendSingleFromRow(params: {templateId: string; templateName: stri
     const prefillUpdates: UpdatePrefillTextTabPayload[] = prefillTextTabs
       .map((t) => {
         if (!t.tabId) return null;
-
         const match = pairs.find((p) => normKey(p.tabLabel) === normKey(t.tabLabel ?? ""));
         if (!match) return null;
-
         return { tabId: t.tabId, value: match.value };
       })
       .filter(Boolean) as UpdatePrefillTextTabPayload[];
@@ -127,7 +130,6 @@ async function sendSingleFromRow(params: {templateId: string; templateName: stri
       await updateEnvelopePrefillTextTabs(envelopeId, "1", prefillUpdates);
     }
 
-    // 3) DocGen fields (si aplica)
     const docGen = await getEnvelopeDocGenFormFields(envelopeId);
     const firstDoc = docGen.docGenFormFields?.[0];
 
@@ -144,7 +146,6 @@ async function sendSingleFromRow(params: {templateId: string; templateName: stri
       await updateEnvelopeDocGenFormFields(envelopeId, docGenPayload);
     }
 
-    // 4) Enviar
     await sendEnvelope(envelopeId);
 
     return { referenceId, envelopeId, status: "SENT" };
@@ -154,14 +155,217 @@ async function sendSingleFromRow(params: {templateId: string; templateName: stri
 }
 
 /** =========================
+ * Excel: Export / Import
+ * ========================= */
+function exportRowsToXlsx(columns: string[], rows: Row[], fileName: string) {
+  const data = rows.map((r) => {
+    const obj: Record<string, any> = {};
+    for (const c of columns) obj[c] = r[c] ?? "";
+    return obj;
+  });
+
+  const ws = XLSX.utils.json_to_sheet(data, { header: columns });
+  (ws as any)["!freeze"] = { xSplit: 0, ySplit: 1 };
+  (ws as any)["!cols"] = columns.map((c) => ({ wch: Math.max(12, c.length + 2) }));
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Bulk");
+
+  const safe = fileName.toLowerCase().endsWith(".xlsx") ? fileName : `${fileName}.xlsx`;
+  XLSX.writeFile(wb, safe);
+}
+
+async function readExcelFile(file: File): Promise<{ headers: string[]; rows: Row[] }> {
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type: "array" });
+
+  const sheetName = wb.SheetNames[0];
+  if (!sheetName) return { headers: [], rows: [] };
+
+  const ws = wb.Sheets[sheetName];
+  if (!ws) return { headers: [], rows: [] };
+
+  const matrix = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, blankrows: false });
+  if (!matrix.length) return { headers: [], rows: [] };
+
+  const headers = (matrix[0] as any[])
+    .map((h) => (h ?? "").toString().trim())
+    .filter((h) => h.length > 0);
+
+  const rows: Row[] = [];
+  for (let r = 1; r < matrix.length; r++) {
+    const cells = matrix[r] as any[];
+    const hasAny = cells?.some((c) => (c ?? "").toString().trim().length > 0);
+    if (!hasAny) continue;
+
+    const obj: Row = {};
+    for (let c = 0; c < headers.length; c++) {
+      obj[headers[c]] = (cells?.[c] ?? "").toString().trim();
+    }
+    rows.push(obj);
+  }
+
+  return { headers, rows };
+}
+
+function alignImportedToGrid(
+  importedHeaders: string[],
+  importedRows: Row[],
+  desiredColumns: string[]
+): { columns: string[]; rows: Row[]; warnings: string[] } {
+  const warnings: string[] = [];
+
+  // Mapa headerImport(normalizado/alias) -> header real
+  const importHeaderMap = new Map<string, string>();
+  for (const h of importedHeaders) importHeaderMap.set(headerAliasKey(h), h);
+
+  // Si ya hay tabla generada por plantilla => usar esas columnas
+  const finalColumns = desiredColumns.length ? [...desiredColumns] : [...importedHeaders];
+
+  // Forzar empresa siempre en columnas finales
+  if (!finalColumns.some((h) => normKey(h) === normKey(COMPANY_COL_KEY))) {
+    finalColumns.push(COMPANY_COL_KEY);
+  }
+
+  // Asegura ReferenceId si venía en la plantilla
+  if (!finalColumns.some((h) => normKey(h) === normKey("ReferenceId"))) {
+    finalColumns.unshift("ReferenceId");
+  }
+
+  const finalRows: Row[] = importedRows.map((r, idx) => {
+    const row: Row = {};
+
+    for (const col of finalColumns) {
+      const matchHeader = importHeaderMap.get(headerAliasKey(col));
+      row[col] = matchHeader ? (r[matchHeader] ?? "") : "";
+    }
+
+    // ReferenceId consistente
+    row["ReferenceId"] = row["ReferenceId"] || safeRef(row, idx);
+    return row;
+  });
+
+  const required = ["COLABORADOR_Name", "COLABORADOR_Email", COMPANY_COL_KEY];
+  for (const req of required) {
+    const has = finalColumns.some((c) => headerAliasKey(c) === headerAliasKey(req));
+    if (!has) warnings.push(`Falta columna requerida en Excel: ${req}`);
+  }
+
+  return { columns: finalColumns, rows: finalRows, warnings };
+}
+
+/** =========================
+ * Modal genérico
+ * ========================= */
+function Modal(props: {
+  open: boolean;
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+  disabledClose?: boolean;
+}) {
+  const { open, title, onClose, children, footer, disabledClose } = props;
+
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !disabledClose) onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose, disabledClose]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="bulk-modal__backdrop"
+      role="dialog"
+      aria-modal="true"
+      onMouseDown={(e) => {
+        if (disabledClose) return;
+        if (e.target === e.currentTarget) onClose();
+      }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(2,6,23,.55)",
+        display: "grid",
+        placeItems: "center",
+        zIndex: 9999,
+        padding: 16,
+      }}
+    >
+      <div
+        className="bulk-modal__card"
+        style={{
+          width: "min(760px, 100%)",
+          background: "var(--surface, #fff)",
+          border: "1px solid var(--border, #e5e7eb)",
+          borderRadius: 16,
+          boxShadow: "0 18px 50px rgba(2,6,23,.18)",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          className="bulk-modal__header"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "14px 16px",
+            borderBottom: "1px solid var(--border, #e5e7eb)",
+          }}
+        >
+          <div style={{ fontWeight: 700 }}>{title}</div>
+          <button
+            type="button"
+            className="btn btn-secondary btn-xs"
+            onClick={onClose}
+            disabled={disabledClose}
+          >
+            Cerrar
+          </button>
+        </div>
+
+        <div className="bulk-modal__body" style={{ padding: 16 }}>
+          {children}
+        </div>
+
+        {footer && (
+          <div
+            className="bulk-modal__footer"
+            style={{
+              padding: 16,
+              borderTop: "1px solid var(--border, #e5e7eb)",
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 10,
+              flexWrap: "wrap",
+            }}
+          >
+            {footer}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** =========================
  * GRID editable (tipo Excel)
  * ========================= */
-export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (rows: Row[]) => void; companyOptions: maestro[];}) {
+export function BulkGrid(props: {
+  columns: string[];
+  rows: Row[];
+  onRowsChange: (rows: Row[]) => void;
+  companyOptions: maestro[];
+}) {
   const { columns, rows, onRowsChange, companyOptions } = props;
 
   const addRow = () => {
     const next = [...rows, makeEmptyRow(columns, rows.length + 1)];
-    // fuerza key en blanco para que el usuario seleccione
     const idx = next.length - 1;
     const compKey = columns.find((c) => normKey(c) === normKey(COMPANY_COL_KEY));
     if (compKey) next[idx][compKey] = "";
@@ -209,13 +413,17 @@ export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (
               <tr className="bulk-grid__tr" key={idx}>
                 {columns.map((col) => {
                   const isRef = normKey(col) === normKey("ReferenceId");
-                  const isCompany = normKey(col) === normKey(COMPANY_COL_KEY);
+                  const isCompany = headerAliasKey(col) === headerAliasKey(COMPANY_COL_KEY);
                   const value = row[col] ?? "";
 
                   return (
                     <td key={col} className="bulk-grid__td">
                       {isCompany ? (
-                        <select className="bulk-grid__cell bulk-grid__select" value={value} onChange={(e) => setCell(idx, col, e.target.value)}>
+                        <select
+                          className="bulk-grid__cell bulk-grid__select"
+                          value={value}
+                          onChange={(e) => setCell(idx, col, e.target.value)}
+                        >
                           <option value="">Selecciona compañía</option>
                           {companyOptions.map((c) => (
                             <option key={c.T_x00ed_tulo1} value={c.T_x00ed_tulo1}>
@@ -224,7 +432,13 @@ export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (
                           ))}
                         </select>
                       ) : (
-                        <input className="bulk-grid__cell" value={value} onChange={(e) => setCell(idx, col, e.target.value)} disabled={isRef} placeholder={isRef ? "" : col}/>
+                        <input
+                          className="bulk-grid__cell"
+                          value={value}
+                          onChange={(e) => setCell(idx, col, e.target.value)}
+                          disabled={isRef}
+                          placeholder={isRef ? "" : col}
+                        />
                       )}
                     </td>
                   );
@@ -232,7 +446,11 @@ export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (
 
                 <td className="bulk-grid__td">
                   <div className="bulk-grid__actions">
-                    <button type="button" className="bulk-grid__btn bulk-grid__btn--danger" onClick={() => removeRow(idx)}>
+                    <button
+                      type="button"
+                      className="bulk-grid__btn bulk-grid__btn--danger"
+                      onClick={() => removeRow(idx)}
+                    >
                       Quitar
                     </button>
                   </div>
@@ -255,13 +473,13 @@ export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (
 }
 
 /** =========================
- * UI principal (Opción B)
+ * UI principal
  * ========================= */
 export const EnvioMasivoUI: React.FC = () => {
   const { templatesOptions, createdraft, getRecipients } = useDocusignTemplates();
-  const { account, } = useAuth();
+  const { account } = useAuth();
   const { Envios, Maestro } = useGraphServices();
-  const {items , reload} = useEmpresasSelect(Maestro)
+  const { items, reload } = useEmpresasSelect(Maestro);
 
   const [templateId, setTemplateId] = React.useState("");
   const [columns, setColumns] = React.useState<string[]>([]);
@@ -270,6 +488,12 @@ export const EnvioMasivoUI: React.FC = () => {
 
   const [sending, setSending] = React.useState(false);
   const [bulkResults, setBulkResults] = React.useState<BulkResultRow[]>([]);
+
+  // Modal Upload Excel
+  const [uploadOpen, setUploadOpen] = React.useState(false);
+  const [uploadFile, setUploadFile] = React.useState<File | null>(null);
+  const [uploadBusy, setUploadBusy] = React.useState(false);
+  const [uploadInfo, setUploadInfo] = React.useState<string>("");
 
   const plantillaSelected = templatesOptions.find((o) => o.value === templateId) ?? null;
   const gridReady = columns.length > 0;
@@ -290,21 +514,22 @@ export const EnvioMasivoUI: React.FC = () => {
         getRecipients,
       });
 
-      // 1) Headers base
       const headers = [...build.headers];
 
-      // 2) Forzar columna obligatoria "compania"
       if (!headers.some((h) => normKey(h) === normKey(COMPANY_COL_KEY))) {
         headers.push(COMPANY_COL_KEY);
       }
+      if (!headers.some((h) => normKey(h) === normKey("ReferenceId"))) {
+        headers.unshift("ReferenceId");
+      }
 
-      // 3) Primera fila (compania vacía para obligar selección)
       const firstRow: Row = makeFirstRow(headers);
       firstRow[headers.find((h) => normKey(h) === normKey(COMPANY_COL_KEY)) ?? COMPANY_COL_KEY] = "";
 
       setColumns(headers);
       setRows([firstRow]);
       setBulkResults([]);
+      setUploadInfo("");
     } catch (e) {
       console.error(e);
       alert(e instanceof Error ? e.message : "Error generando tabla");
@@ -313,12 +538,12 @@ export const EnvioMasivoUI: React.FC = () => {
     }
   };
 
-  const handleDownloadCsv = () => {
+  const handleDownloadExcel = () => {
     if (!columns.length) return alert("Primero genera la tabla");
     const safeName = (plantillaSelected?.label ?? "Template")
       .replace(/[^\w\- ]/g, "")
       .replace(/\s+/g, "_");
-    exportRowsToCsv(columns, rows, `Bulk_${safeName}.csv`);
+    exportRowsToXlsx(columns, rows, `Bulk_${safeName}.xlsx`);
   };
 
   const handleReset = () => {
@@ -326,11 +551,13 @@ export const EnvioMasivoUI: React.FC = () => {
     setColumns([]);
     setRows([]);
     setBulkResults([]);
+    setUploadInfo("");
+    setUploadFile(null);
+    setUploadOpen(false);
   };
 
-  // Validación previa: obliga compañía en TODAS las filas
   const validateRowsBeforeSend = (rowsToValidate: Row[], headers: string[]) => {
-    const compHeader = headers.find((h) => normKey(h) === normKey(COMPANY_COL_KEY)) ?? COMPANY_COL_KEY;
+    const compHeader = headers.find((h) => headerAliasKey(h) === headerAliasKey(COMPANY_COL_KEY)) ?? COMPANY_COL_KEY;
 
     for (let i = 0; i < rowsToValidate.length; i++) {
       const ref = safeRef(rowsToValidate[i], i);
@@ -343,10 +570,55 @@ export const EnvioMasivoUI: React.FC = () => {
     return true;
   };
 
+  const applyImportedExcel = async (file: File) => {
+    setUploadBusy(true);
+    setUploadInfo("");
+
+    try {
+      const { headers: importedHeaders, rows: importedRows } = await readExcelFile(file);
+
+      if (!importedHeaders.length) {
+        setUploadInfo("El Excel no tiene encabezados en la primera fila.");
+        return;
+      }
+      if (!importedRows.length) {
+        setUploadInfo("El Excel no tiene filas con datos.");
+        return;
+      }
+
+      // Si YA generaste tabla por plantilla, usamos esas columnas como contrato
+      // Si NO, usamos las del excel
+      const desired = columns.length ? columns : [];
+
+      const aligned = alignImportedToGrid(importedHeaders, importedRows, desired);
+
+      if (aligned.warnings.length) {
+        console.warn(aligned.warnings);
+      }
+
+      setColumns(aligned.columns);
+      setRows(aligned.rows);
+      setBulkResults([]);
+
+      setUploadInfo(
+        `Cargado: ${aligned.rows.length} filas • ${aligned.columns.length} columnas${
+          aligned.warnings.length ? ` • Avisos: ${aligned.warnings.join(" | ")}` : ""
+        }`
+      );
+
+      setUploadOpen(false);
+      setUploadFile(null);
+    } catch (e: any) {
+      console.error(e);
+      setUploadInfo(e?.message ?? "Error leyendo el Excel");
+    } finally {
+      setUploadBusy(false);
+    }
+  };
+
   const handleSendMasivoOpcionB = async (envios: EnviosService, account: AccountInfo | null) => {
     if (!templateId) return alert("Selecciona una plantilla.");
     if (!rows.length || !columns.length) return alert("Primero genera la tabla y agrega filas.");
-
     if (!validateRowsBeforeSend(rows, columns)) return;
 
     setSending(true);
@@ -360,7 +632,7 @@ export const EnvioMasivoUI: React.FC = () => {
       setRows(normalizedRows);
 
       const templateName = plantillaSelected?.label ?? "Template";
-      const compHeader = columns.find((h) => normKey(h) === normKey(COMPANY_COL_KEY)) ?? COMPANY_COL_KEY;
+      const compHeader = columns.find((h) => headerAliasKey(h) === headerAliasKey(COMPANY_COL_KEY)) ?? COMPANY_COL_KEY;
 
       await runWithConcurrency(
         normalizedRows,
@@ -373,18 +645,13 @@ export const EnvioMasivoUI: React.FC = () => {
             index: idx,
           });
 
-          // Actualiza resultados en tiempo real
           setBulkResults((prev) => {
             const next = prev.filter((p) => p.referenceId !== res.referenceId);
             next.push(res);
             return next;
           });
 
-          // Guardar en SharePoint si se envió
           if (res.status === "SENT" && res.envelopeId) {
-            // Reglas tuyas:
-            // - nombre siempre "nombre"
-            // - cedula siempre "numeroDoc"
             const nombre = must(row, "nombre");
             const cedula = must(row, "numeroDoc");
             const compania = must(row, compHeader);
@@ -423,7 +690,85 @@ export const EnvioMasivoUI: React.FC = () => {
 
   return (
     <div className="ef-page bulk-send">
-      {/* PANEL inicial (se esconde cuando hay grid) */}
+      {/* MODAL: Cargar Excel */}
+      <Modal
+        open={uploadOpen}
+        title="Cargar Excel (.xlsx)"
+        onClose={() => {
+          if (uploadBusy) return;
+          setUploadOpen(false);
+          setUploadFile(null);
+          setUploadInfo("");
+        }}
+        disabledClose={uploadBusy}
+        footer={
+          <>
+            <button
+              type="button"
+              className="btn btn-secondary btn-xs"
+              disabled={uploadBusy}
+              onClick={() => {
+                setUploadOpen(false);
+                setUploadFile(null);
+                setUploadInfo("");
+              }}
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-primary-final btn-xs"
+              disabled={!uploadFile || uploadBusy}
+              onClick={() => {
+                if (uploadFile) void applyImportedExcel(uploadFile);
+              }}
+            >
+              {uploadBusy ? "Leyendo..." : "Cargar"}
+            </button>
+          </>
+        }
+      >
+        <div style={{ display: "grid", gap: 12 }}>
+          <div style={{ color: "var(--muted, #64748b)", fontSize: 13 }}>
+            Tip: lo ideal es que uses el Excel descargado desde la app para que las columnas coincidan.
+          </div>
+
+          <input
+            type="file"
+            accept=".xlsx,.xls"
+            disabled={uploadBusy || sending || loading}
+            onChange={(e) => {
+              const f = e.target.files?.[0] ?? null;
+              setUploadFile(f);
+              setUploadInfo("");
+              e.currentTarget.value = "";
+            }}
+          />
+
+          {uploadFile && (
+            <div style={{ fontSize: 13 }}>
+              Archivo: <b>{uploadFile.name}</b> • {(uploadFile.size / 1024).toFixed(1)} KB
+            </div>
+          )}
+
+          {uploadInfo && (
+            <div
+              style={{
+                fontSize: 13,
+                padding: 10,
+                borderRadius: 12,
+                border: "1px solid var(--border, #e5e7eb)",
+                background: "rgba(2,6,23,.03)",
+              }}
+            >
+              {uploadInfo}
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* PANEL inicial */}
       {!gridReady && (
         <div className="ef-card bulk-panel">
           <div className="bulk-panel__field">
@@ -431,7 +776,13 @@ export const EnvioMasivoUI: React.FC = () => {
               Plantilla
             </label>
 
-            <select id="bulk-template" className="ef-input" value={templateId} onChange={(e) => setTemplateId(e.target.value)} disabled={loading || sending}>
+            <select
+              id="bulk-template"
+              className="ef-input"
+              value={templateId}
+              onChange={(e) => setTemplateId(e.target.value)}
+              disabled={loading || sending}
+            >
               <option value="">Selecciona una plantilla</option>
               {templatesOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -441,11 +792,30 @@ export const EnvioMasivoUI: React.FC = () => {
             </select>
           </div>
 
-          <div className="bulk-panel__actions">
-            <button type="button" className="btn btn-primary-final btn-xs" disabled={!templateId || loading || sending} onClick={handleGenerateGrid}>
+          <div className="bulk-panel__actions" style={{ gap: 10, display: "flex", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className="btn btn-primary-final btn-xs"
+              disabled={!templateId || loading || sending}
+              onClick={handleGenerateGrid}
+            >
               {loading ? "Generando..." : "Generar tabla"}
             </button>
+
+            <button
+              type="button"
+              className="btn btn-secondary btn-xs"
+              disabled={loading || sending}
+              onClick={() => setUploadOpen(true)}
+              title="Cargar Excel para generar las filas automáticamente"
+            >
+              Cargar Excel
+            </button>
           </div>
+
+          {uploadInfo && (
+            <div style={{ marginTop: 10, fontSize: 13, color: "var(--muted, #64748b)" }}>{uploadInfo}</div>
+          )}
         </div>
       )}
 
@@ -461,15 +831,39 @@ export const EnvioMasivoUI: React.FC = () => {
             </div>
 
             <div className="bulk-toolbar__right">
-              <button type="button" className="btn btn-secondary btn-xs" onClick={handleReset} disabled={loading || sending}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-xs"
+                onClick={handleReset}
+                disabled={loading || sending}
+              >
                 Cambiar plantilla
               </button>
 
-              <button type="button" className="btn btn-secondary btn-xs" onClick={handleDownloadCsv} disabled={loading || sending || !rows.length}>
-                Descargar CSV
+              <button
+                type="button"
+                className="btn btn-secondary btn-xs"
+                onClick={() => setUploadOpen(true)}
+                disabled={loading || sending}
+              >
+                Cargar Excel
               </button>
 
-              <button type="button" className="btn btn-primary-final btn-xs" onClick={() => handleSendMasivoOpcionB(Envios, account)} disabled={loading || sending || !rows.length}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-xs"
+                onClick={handleDownloadExcel}
+                disabled={loading || sending || !rows.length}
+              >
+                Descargar Excel
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-primary-final btn-xs"
+                onClick={() => handleSendMasivoOpcionB(Envios, account)}
+                disabled={loading || sending || !rows.length}
+              >
                 {sending ? "Enviando..." : "Enviar masivo"}
               </button>
             </div>

@@ -4,7 +4,14 @@ import "./Bulk.css";
 
 import { useDocusignTemplates } from "../../../../Funcionalidades/GD/Docusign";
 import { generateCsvForTemplate } from "../../../../Funcionalidades/GD/Bulk";
-import { createEnvelopeFromTemplateDraft, getEnvelopeDocumentTabs, getEnvelopeDocGenFormFields, updateEnvelopePrefillTextTabs, updateEnvelopeDocGenFormFields, sendEnvelope,} from "../../../../Services/DocusignAPI.service";
+import {
+  createEnvelopeFromTemplateDraft,
+  getEnvelopeDocumentTabs,
+  getEnvelopeDocGenFormFields,
+  updateEnvelopePrefillTextTabs,
+  updateEnvelopeDocGenFormFields,
+  sendEnvelope,
+} from "../../../../Services/DocusignAPI.service";
 import type { DocGenUpdateDocPayload, UpdatePrefillTextTabPayload } from "../../../../models/Docusign";
 import { useGraphServices } from "../../../../graph/graphContext";
 import type { EnviosService } from "../../../../Services/Envios.service";
@@ -30,7 +37,7 @@ function normKey(s: string) {
 
 function headerAliasKey(s: string) {
   const nk = normKey(s);
-  // aliases para que Excel con "Compañía" sirva igual
+  // aliases para empresa
   if (nk === "compañía" || nk === "compania" || nk === "company") return normKey(COMPANY_COL_KEY);
   return nk;
 }
@@ -92,7 +99,13 @@ function buildTextTabPairsFromRow(columns: string[], row: Row) {
     .filter((x) => (x.value ?? "").toString().trim().length > 0);
 }
 
-async function sendSingleFromRow(params: {templateId: string; templateName: string; columns: string[]; row: Row; index: number;}): Promise<BulkResultRow> {
+async function sendSingleFromRow(params: {
+  templateId: string;
+  templateName: string;
+  columns: string[];
+  row: Row;
+  index: number;
+}): Promise<BulkResultRow> {
   const { templateId, templateName, columns, row, index } = params;
   const referenceId = safeRef(row, index);
 
@@ -100,7 +113,10 @@ async function sendSingleFromRow(params: {templateId: string; templateName: stri
     const signerName = must(row, "COLABORADOR_Name");
     const signerEmail = must(row, "COLABORADOR_Email");
 
-    const draft = await createEnvelopeFromTemplateDraft({templateId, emailSubject: `Firma de documento - ${templateName}`, emailBlurb: "Por favor revisa y firma.",
+    const draft = await createEnvelopeFromTemplateDraft({
+      templateId,
+      emailSubject: `Firma de documento - ${templateName}`,
+      emailBlurb: "Por favor revisa y firma.",
       roles: [
         {
           roleName: "COLABORADOR",
@@ -179,17 +195,26 @@ async function readExcelFile(file: File): Promise<{ headers: string[]; rows: Row
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: "array" });
 
-  const sheetName = wb.SheetNames.find((name) => {
-                      const ws = wb.Sheets[name];
-                      const matrix = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, blankrows: false });
-                      return matrix.length > 1 && (matrix[1] ?? []).some((c) => `${c ?? ""}`.trim().length > 0);
-                    }) ?? wb.SheetNames[0];
-  if (!sheetName) return { headers: [], rows: [] };
+  // ✅ elige la primera hoja que tenga data real
+  const pickedSheet =
+    wb.SheetNames.find((name) => {
+      const ws = wb.Sheets[name];
+      const matrix = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, blankrows: false, defval: "", raw: false });
+      return matrix.length > 1 && (matrix[1] ?? []).some((c) => `${c ?? ""}`.trim().length > 0);
+    }) ?? wb.SheetNames[0];
 
-  const ws = wb.Sheets[sheetName];
+  if (!pickedSheet) return { headers: [], rows: [] };
+
+  const ws = wb.Sheets[pickedSheet];
   if (!ws) return { headers: [], rows: [] };
 
-  const matrix = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, blankrows: false });
+  const matrix = XLSX.utils.sheet_to_json<any[]>(ws, {
+    header: 1,
+    blankrows: false,
+    defval: "",
+    raw: false,
+  });
+
   if (!matrix.length) return { headers: [], rows: [] };
 
   const headers = (matrix[0] as any[])
@@ -223,28 +248,25 @@ function alignImportedToGrid(
   const importHeaderMap = new Map<string, string>();
   for (const h of importedHeaders) importHeaderMap.set(headerAliasKey(h), h);
 
-  // Si ya hay tabla generada por plantilla => usar esas columnas
-  const finalColumns = desiredColumns.length ? [...desiredColumns] : [...importedHeaders];
+  // ✅ Si desiredColumns está vacío => el Excel manda
+  const finalColumns = desiredColumns.length > 0 ? [...desiredColumns] : [...importedHeaders];
 
-  // Forzar empresa siempre en columnas finales
-  if (!finalColumns.some((h) => normKey(h) === normKey(COMPANY_COL_KEY))) {
+  // Forzar empresa siempre
+  if (!finalColumns.some((h) => headerAliasKey(h) === headerAliasKey(COMPANY_COL_KEY))) {
     finalColumns.push(COMPANY_COL_KEY);
   }
 
-  // Asegura ReferenceId si venía en la plantilla
-  if (!finalColumns.some((h) => normKey(h) === normKey("ReferenceId"))) {
+  // ReferenceId siempre existe
+  if (!finalColumns.some((h) => headerAliasKey(h) === headerAliasKey("ReferenceId"))) {
     finalColumns.unshift("ReferenceId");
   }
 
   const finalRows: Row[] = importedRows.map((r, idx) => {
     const row: Row = {};
-
     for (const col of finalColumns) {
       const matchHeader = importHeaderMap.get(headerAliasKey(col));
       row[col] = matchHeader ? (r[matchHeader] ?? "") : "";
     }
-
-    // ReferenceId consistente
     row["ReferenceId"] = row["ReferenceId"] || safeRef(row, idx);
     return row;
   });
@@ -284,7 +306,6 @@ function Modal(props: {
 
   return (
     <div
-      className="bulk-modal__backdrop"
       role="dialog"
       aria-modal="true"
       onMouseDown={(e) => {
@@ -302,9 +323,8 @@ function Modal(props: {
       }}
     >
       <div
-        className="bulk-modal__card"
         style={{
-          width: "min(760px, 100%)",
+          width: "min(980px, 100%)",
           background: "var(--surface, #fff)",
           border: "1px solid var(--border, #e5e7eb)",
           borderRadius: 16,
@@ -313,7 +333,6 @@ function Modal(props: {
         }}
       >
         <div
-          className="bulk-modal__header"
           style={{
             display: "flex",
             alignItems: "center",
@@ -323,23 +342,15 @@ function Modal(props: {
           }}
         >
           <div style={{ fontWeight: 700 }}>{title}</div>
-          <button
-            type="button"
-            className="btn btn-secondary btn-xs"
-            onClick={onClose}
-            disabled={disabledClose}
-          >
+          <button type="button" className="btn btn-secondary btn-xs" onClick={onClose} disabled={disabledClose}>
             Cerrar
           </button>
         </div>
 
-        <div className="bulk-modal__body" style={{ padding: 16 }}>
-          {children}
-        </div>
+        <div style={{ padding: 16 }}>{children}</div>
 
         {footer && (
           <div
-            className="bulk-modal__footer"
             style={{
               padding: 16,
               borderTop: "1px solid var(--border, #e5e7eb)",
@@ -371,7 +382,7 @@ export function BulkGrid(props: {
   const addRow = () => {
     const next = [...rows, makeEmptyRow(columns, rows.length + 1)];
     const idx = next.length - 1;
-    const compKey = columns.find((c) => normKey(c) === normKey(COMPANY_COL_KEY));
+    const compKey = columns.find((c) => headerAliasKey(c) === headerAliasKey(COMPANY_COL_KEY));
     if (compKey) next[idx][compKey] = "";
     onRowsChange(next);
   };
@@ -405,7 +416,7 @@ export function BulkGrid(props: {
             <tr>
               {columns.map((c) => (
                 <th key={c} className="bulk-grid__th">
-                  {normKey(c) === normKey(COMPANY_COL_KEY) ? "Compañía" : c}
+                  {headerAliasKey(c) === headerAliasKey(COMPANY_COL_KEY) ? "Compañía" : c}
                 </th>
               ))}
               <th className="bulk-grid__th">Acciones</th>
@@ -416,7 +427,7 @@ export function BulkGrid(props: {
             {rows.map((row, idx) => (
               <tr className="bulk-grid__tr" key={idx}>
                 {columns.map((col) => {
-                  const isRef = normKey(col) === normKey("ReferenceId");
+                  const isRef = headerAliasKey(col) === headerAliasKey("ReferenceId");
                   const isCompany = headerAliasKey(col) === headerAliasKey(COMPANY_COL_KEY);
                   const value = row[col] ?? "";
 
@@ -450,11 +461,7 @@ export function BulkGrid(props: {
 
                 <td className="bulk-grid__td">
                   <div className="bulk-grid__actions">
-                    <button
-                      type="button"
-                      className="bulk-grid__btn bulk-grid__btn--danger"
-                      onClick={() => removeRow(idx)}
-                    >
+                    <button type="button" className="bulk-grid__btn bulk-grid__btn--danger" onClick={() => removeRow(idx)}>
                       Quitar
                     </button>
                   </div>
@@ -477,7 +484,7 @@ export function BulkGrid(props: {
 }
 
 /** =========================
- * UI principal
+ * UI principal (con preview)
  * ========================= */
 export const EnvioMasivoUI: React.FC = () => {
   const { templatesOptions, createdraft, getRecipients } = useDocusignTemplates();
@@ -493,11 +500,14 @@ export const EnvioMasivoUI: React.FC = () => {
   const [sending, setSending] = React.useState(false);
   const [bulkResults, setBulkResults] = React.useState<BulkResultRow[]>([]);
 
-  // Modal Upload Excel
+  // ✅ Modal + Preview
   const [uploadOpen, setUploadOpen] = React.useState(false);
   const [uploadFile, setUploadFile] = React.useState<File | null>(null);
   const [uploadBusy, setUploadBusy] = React.useState(false);
   const [uploadInfo, setUploadInfo] = React.useState<string>("");
+
+  const [previewCols, setPreviewCols] = React.useState<string[]>([]);
+  const [previewRows, setPreviewRows] = React.useState<Row[]>([]);
 
   const plantillaSelected = templatesOptions.find((o) => o.value === templateId) ?? null;
   const gridReady = columns.length > 0;
@@ -505,6 +515,24 @@ export const EnvioMasivoUI: React.FC = () => {
   React.useEffect(() => {
     void reload();
   }, [reload]);
+
+  const openUpload = () => {
+    setUploadOpen(true);
+    setUploadFile(null);
+    setUploadBusy(false);
+    setUploadInfo("");
+    setPreviewCols([]);
+    setPreviewRows([]);
+  };
+
+  const closeUpload = () => {
+    if (uploadBusy) return;
+    setUploadOpen(false);
+    setUploadFile(null);
+    setUploadInfo("");
+    setPreviewCols([]);
+    setPreviewRows([]);
+  };
 
   const handleGenerateGrid = async () => {
     if (!templateId) return alert("Selecciona una plantilla");
@@ -520,20 +548,16 @@ export const EnvioMasivoUI: React.FC = () => {
 
       const headers = [...build.headers];
 
-      if (!headers.some((h) => normKey(h) === normKey(COMPANY_COL_KEY))) {
-        headers.push(COMPANY_COL_KEY);
-      }
-      if (!headers.some((h) => normKey(h) === normKey("ReferenceId"))) {
-        headers.unshift("ReferenceId");
-      }
+      if (!headers.some((h) => headerAliasKey(h) === headerAliasKey(COMPANY_COL_KEY))) headers.push(COMPANY_COL_KEY);
+      if (!headers.some((h) => headerAliasKey(h) === headerAliasKey("ReferenceId"))) headers.unshift("ReferenceId");
 
       const firstRow: Row = makeFirstRow(headers);
-      firstRow[headers.find((h) => normKey(h) === normKey(COMPANY_COL_KEY)) ?? COMPANY_COL_KEY] = "";
+      const compKey = headers.find((h) => headerAliasKey(h) === headerAliasKey(COMPANY_COL_KEY)) ?? COMPANY_COL_KEY;
+      firstRow[compKey] = "";
 
       setColumns(headers);
       setRows([firstRow]);
       setBulkResults([]);
-      setUploadInfo("");
     } catch (e) {
       console.error(e);
       alert(e instanceof Error ? e.message : "Error generando tabla");
@@ -544,9 +568,7 @@ export const EnvioMasivoUI: React.FC = () => {
 
   const handleDownloadExcel = () => {
     if (!columns.length) return alert("Primero genera la tabla");
-    const safeName = (plantillaSelected?.label ?? "Template")
-      .replace(/[^\w\- ]/g, "")
-      .replace(/\s+/g, "_");
+    const safeName = (plantillaSelected?.label ?? "Template").replace(/[^\w\- ]/g, "").replace(/\s+/g, "_");
     exportRowsToXlsx(columns, rows, `Bulk_${safeName}.xlsx`);
   };
 
@@ -555,9 +577,7 @@ export const EnvioMasivoUI: React.FC = () => {
     setColumns([]);
     setRows([]);
     setBulkResults([]);
-    setUploadInfo("");
-    setUploadFile(null);
-    setUploadOpen(false);
+    closeUpload();
   };
 
   const validateRowsBeforeSend = (rowsToValidate: Row[], headers: string[]) => {
@@ -574,9 +594,12 @@ export const EnvioMasivoUI: React.FC = () => {
     return true;
   };
 
-  const applyImportedExcel = async (file: File) => {
+  // ✅ Lee el excel y SOLO genera preview (no toca el grid)
+  const buildPreviewFromExcel = async (file: File) => {
     setUploadBusy(true);
     setUploadInfo("");
+    setPreviewCols([]);
+    setPreviewRows([]);
 
     try {
       const { headers: importedHeaders, rows: importedRows } = await readExcelFile(file);
@@ -590,34 +613,28 @@ export const EnvioMasivoUI: React.FC = () => {
         return;
       }
 
-      // Si YA generaste tabla por plantilla, usamos esas columnas como contrato
-      // Si NO, usamos las del excel
-      const desired = columns.length ? columns : [];
+      // ✅ Preview: el Excel manda
+      const aligned = alignImportedToGrid(importedHeaders, importedRows, []);
+      setPreviewCols(aligned.columns);
+      setPreviewRows(aligned.rows);
 
-      const aligned = alignImportedToGrid(importedHeaders, importedRows, desired);
-
-      if (aligned.warnings.length) {
-        console.warn(aligned.warnings);
-      }
-
-      setColumns(aligned.columns);
-      setRows(aligned.rows);
-      setBulkResults([]);
-
-      setUploadInfo(
-        `Cargado: ${aligned.rows.length} filas • ${aligned.columns.length} columnas${
-          aligned.warnings.length ? ` • Avisos: ${aligned.warnings.join(" | ")}` : ""
-        }`
-      );
-
-      setUploadOpen(false);
-      setUploadFile(null);
+      const warnTxt = aligned.warnings.length ? ` • Avisos: ${aligned.warnings.join(" | ")}` : "";
+      setUploadInfo(`Cargado: ${aligned.rows.length} filas • ${aligned.columns.length} columnas${warnTxt}`);
     } catch (e: any) {
       console.error(e);
       setUploadInfo(e?.message ?? "Error leyendo el Excel");
     } finally {
       setUploadBusy(false);
     }
+  };
+
+  // ✅ Aplica lo previsualizado al grid real
+  const applyPreviewToGrid = () => {
+    if (!previewCols.length || !previewRows.length) return;
+    setColumns(previewCols);
+    setRows(previewRows);
+    setBulkResults([]);
+    closeUpload();
   };
 
   const handleSendMasivoOpcionB = async (envios: EnviosService, account: AccountInfo | null) => {
@@ -694,59 +711,48 @@ export const EnvioMasivoUI: React.FC = () => {
 
   return (
     <div className="ef-page bulk-send">
-      {/* MODAL: Cargar Excel */}
+      {/* MODAL: Cargar Excel (con preview) */}
       <Modal
         open={uploadOpen}
-        title="Cargar Excel (.xlsx)"
-        onClose={() => {
-          if (uploadBusy) return;
-          setUploadOpen(false);
-          setUploadFile(null);
-          setUploadInfo("");
-        }}
+        title="Cargar Excel (.xlsx) - Previsualización"
+        onClose={closeUpload}
         disabledClose={uploadBusy}
         footer={
           <>
-            <button
-              type="button"
-              className="btn btn-secondary btn-xs"
-              disabled={uploadBusy}
-              onClick={() => {
-                setUploadOpen(false);
-                setUploadFile(null);
-                setUploadInfo("");
-              }}
-            >
+            <button type="button" className="btn btn-secondary btn-xs" disabled={uploadBusy} onClick={closeUpload}>
               Cancelar
             </button>
 
             <button
               type="button"
               className="btn btn-primary-final btn-xs"
-              disabled={!uploadFile || uploadBusy}
-              onClick={() => {
-                if (uploadFile) void applyImportedExcel(uploadFile);
-              }}
+              disabled={uploadBusy || previewRows.length === 0}
+              onClick={applyPreviewToGrid}
             >
-              {uploadBusy ? "Leyendo..." : "Cargar"}
+              Aplicar al grid
             </button>
           </>
         }
       >
         <div style={{ display: "grid", gap: 12 }}>
           <div style={{ color: "var(--muted, #64748b)", fontSize: 13 }}>
-            Tip: lo ideal es que uses el Excel descargado desde la app para que las columnas coincidan.
+            Tip: usa el Excel descargado desde la app para que las columnas coincidan.
           </div>
 
           <input
             type="file"
             accept=".xlsx,.xls"
             disabled={uploadBusy || sending || loading}
-            onChange={(e) => {
+            onChange={async (e) => {
               const f = e.target.files?.[0] ?? null;
+              e.currentTarget.value = "";
               setUploadFile(f);
               setUploadInfo("");
-              e.currentTarget.value = "";
+              setPreviewCols([]);
+              setPreviewRows([]);
+
+              if (!f) return;
+              await buildPreviewFromExcel(f);
             }}
           />
 
@@ -767,6 +773,61 @@ export const EnvioMasivoUI: React.FC = () => {
               }}
             >
               {uploadInfo}
+            </div>
+          )}
+
+          {/* ✅ PREVIEW TABLE */}
+          {previewRows.length > 0 && (
+            <div style={{ marginTop: 6 }}>
+              <div style={{ fontSize: 13, marginBottom: 8, color: "var(--muted, #64748b)" }}>
+                Previsualización (primeras {Math.min(10, previewRows.length)} filas)
+              </div>
+
+              <div style={{ overflow: "auto", border: "1px solid var(--border, #e5e7eb)", borderRadius: 12 }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                  <thead>
+                    <tr>
+                      {previewCols.map((c) => (
+                        <th
+                          key={c}
+                          style={{
+                            textAlign: "left",
+                            padding: "10px 10px",
+                            borderBottom: "1px solid var(--border, #e5e7eb)",
+                            background: "rgba(2,6,23,.03)",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {headerAliasKey(c) === headerAliasKey(COMPANY_COL_KEY) ? "Compañía" : c}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {previewRows.slice(0, 10).map((r, idx) => (
+                      <tr key={idx}>
+                        {previewCols.map((c) => (
+                          <td
+                            key={c}
+                            style={{
+                              padding: "8px 10px",
+                              borderBottom: "1px solid var(--border, #e5e7eb)",
+                              whiteSpace: "nowrap",
+                              maxWidth: 260,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                            title={r[c] ?? ""}
+                          >
+                            {r[c] ?? ""}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
@@ -806,20 +867,10 @@ export const EnvioMasivoUI: React.FC = () => {
               {loading ? "Generando..." : "Generar tabla"}
             </button>
 
-            <button
-              type="button"
-              className="btn btn-secondary btn-xs"
-              disabled={loading || sending}
-              onClick={() => setUploadOpen(true)}
-              title="Cargar Excel para generar las filas automáticamente"
-            >
+            <button type="button" className="btn btn-secondary btn-xs" disabled={loading || sending} onClick={openUpload}>
               Cargar Excel
             </button>
           </div>
-
-          {uploadInfo && (
-            <div style={{ marginTop: 10, fontSize: 13, color: "var(--muted, #64748b)" }}>{uploadInfo}</div>
-          )}
         </div>
       )}
 
@@ -835,21 +886,11 @@ export const EnvioMasivoUI: React.FC = () => {
             </div>
 
             <div className="bulk-toolbar__right">
-              <button
-                type="button"
-                className="btn btn-secondary btn-xs"
-                onClick={handleReset}
-                disabled={loading || sending}
-              >
+              <button type="button" className="btn btn-secondary btn-xs" onClick={handleReset} disabled={loading || sending}>
                 Cambiar plantilla
               </button>
 
-              <button
-                type="button"
-                className="btn btn-secondary btn-xs"
-                onClick={() => setUploadOpen(true)}
-                disabled={loading || sending}
-              >
+              <button type="button" className="btn btn-secondary btn-xs" onClick={openUpload} disabled={loading || sending}>
                 Cargar Excel
               </button>
 

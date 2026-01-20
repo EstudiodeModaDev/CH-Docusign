@@ -128,7 +128,7 @@ export function mapNovedadToVM(n: Novedad): DocuSignVM {
     fechaInicioProductiva: toISODateFlex(n.FechaInicioProductiva),
     fechaNac: toISODateFlex(n.FechaNac),
     fechaFinal: toISODateFlex(n.FECHA_x0020_REQUERIDA_x0020_PARA0),
-    FechaLetras: spDateToSpanishLong(n.FECHA_x0020_REQUERIDA_x0020_PARA0),
+    FechaLetras: spDateToSpanishLong(n.FECHA_x0020_REQUERIDA_x0020_PARA),
     nitUniversidad: n.NitUniversidad,
     universidad: n.Universidad,
     ciudadExpedicion: n.LugarExpedicion,

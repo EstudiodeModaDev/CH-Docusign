@@ -175,7 +175,7 @@ export function useEnvios(EnviosSvc: EnviosService) {
       }
   };
 
-  const loadToReport = React.useCallback(async (from: string, to: string, EnviadoPor?: string, destinatario?: string) => {
+  const loadToReport = React.useCallback(async (from: string, to: string, EnviadoPor?: string, destinatario?: string, plantilla?: string) => {
     setLoading(true); setError(null);
     const filters: string[] = [];
 
@@ -184,11 +184,15 @@ export function useEnvios(EnviosSvc: EnviosService) {
     filters.push(`fields/Created ge '${from}T00:00:00Z' and fields/Created le '${to}T23:59:59Z'`)
 
     if(EnviadoPor){
-      filters.push(`fields/EnviadoPor ge ${EnviadoPor}`)
+      filters.push(`fields/EnviadoPor ge '${EnviadoPor}'`)
     }
 
     if(destinatario){
-      filters.push(`fields/Receptor ge ${destinatario}`)
+      filters.push(`fields/Receptor ge '${destinatario}'`)
+    }
+
+    if(plantilla){
+      filters.push(`fields/Title ge '${plantilla}'`)
     }
 
    const buildedFilter = filters.join(" and ")

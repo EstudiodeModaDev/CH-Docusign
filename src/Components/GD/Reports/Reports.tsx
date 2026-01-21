@@ -19,6 +19,7 @@ export const ReporteFiltros: React.FC = () => {
   const [tipo, setTipo] = React.useState<string>("Envios");
   const [enviadoPor, setEnviadoPor] = React.useState<string>("");
   const [destinatario, setDestinatario] = React.useState<string>("");
+  const [plantilla, setPlantilla] = React.useState<string>("");
   const [ciudad, setCiudad] = React.useState<string>("");
   const [cargo, setCargo] = React.useState<string>("");
   const [empresa, setEmpresa] = React.useState<string>("");
@@ -33,7 +34,7 @@ export const ReporteFiltros: React.FC = () => {
 
   React.useEffect(() => {
     if(tipo === "Envios"){
-        loadEnviosToReport(range.from, range.to, enviadoPor, destinatario);
+        loadEnviosToReport(range.from, range.to, enviadoPor, destinatario, plantilla);
     } else if(tipo === "novedad"){
         loadContratosToReport(range.from, range.to, enviadoPor, cargo, empresa, ciudad)
     } else if(tipo === "Promociones"){
@@ -47,7 +48,7 @@ export const ReporteFiltros: React.FC = () => {
     }else if(tipo === "retail"){
         loadRetailToReport(range.from, range.to, enviadoPor, cargo, empresa)
     }
-  }, [loadEnviosToReport, range, enviadoPor, destinatario, cargo, ciudad, empresa,]);
+  }, [loadEnviosToReport, range, enviadoPor, destinatario, cargo, ciudad, empresa, plantilla]);
 
   const handleGenerar = () => {
     if(!range.from || !range.to){
@@ -89,6 +90,9 @@ export const ReporteFiltros: React.FC = () => {
     tipo === "Promociones" ? rowsPromociones.map((e) => e.InformacionEnviadaPor ?? "") :
     tipo === "Habeas" ? rowsHabeas.map((e) => e.Informacionreportadapor ?? "") : [];
 
+  const baseValuesPlantilla: string[] =
+    tipo === "Envios" ? rowsEnvios.map((e) => e.Title ?? "") : []
+
   const baseValuesCiudad: string[] =
     tipo === "Promociones" ? rowsPromociones.map((e) => e.Ciudad ?? "") : 
     tipo === "novedad" ? rowsNovedades.map((e) => e.CIUDAD ?? "") :
@@ -103,6 +107,7 @@ export const ReporteFiltros: React.FC = () => {
     tipo === "novedad" ? rowsNovedades.map((e) => e.Empresa_x0020_que_x0020_solicita ?? "") : [];
 
   const enviadoPorOptions: rsOption[] = Array.from(new Set(baseValuesEnviadoPor.map((v) => v.trim()).filter((v) => v !== ""))).map((v) => ({ value: v, label: v }));
+  const plantillasOption: rsOption[] = Array.from(new Set(baseValuesPlantilla.map((v) => v.trim()).filter((v) => v !== ""))).map((v) => ({ value: v, label: v }));
   const empresaSolicitante: rsOption[] = Array.from(new Set(baseValuesEmpresaSolicitante.map((v) => v.trim()).filter((v) => v !== ""))).map((v) => ({ value: v, label: v }));
   const destinatariosOptions: rsOption[] = Array.from(new Set(rowsEnvios.map((e) => (e.Receptor ?? "").trim()).filter((v) => v !== ""))).map((v) => ({ value: v, label: v }));
   const ciudadesOption: rsOption[] = Array.from(new Set(baseValuesCiudad.map((v) => v.trim()).filter((v) => v !== ""))).map((v) => ({ value: v, label: v }));
@@ -156,17 +161,31 @@ export const ReporteFiltros: React.FC = () => {
 
             {/* Solo envíos */}
             {tipo === "Envios" && (
-            <div className="rep-field">
-                <label>Destinatario:</label>
-                <select value={destinatario} disabled={disabled} onChange={(e) => setDestinatario(e.target.value)}>
-                    <option value="">Seleccione</option>
-                    {destinatariosOptions.map((o) => (
-                        <option key={o.value} value={o.value}>
-                        {o.label}
-                        </option>
-                    ))}
-                </select>
-            </div>
+            <>
+                <div className="rep-field">
+                    <label>Destinatario:</label>
+                    <select value={destinatario} disabled={disabled} onChange={(e) => setDestinatario(e.target.value)}>
+                        <option value="">Seleccione</option>
+                        {destinatariosOptions.map((o) => (
+                            <option key={o.value} value={o.value}>
+                            {o.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+   
+                <div className="rep-field">
+                    <label>Plantilla usada:</label>
+                    <select value={plantilla} disabled={disabled} onChange={(e) => setPlantilla(e.target.value)}>
+                        <option value="">Seleccione</option>
+                        {plantillasOption.map((o) => (
+                            <option key={o.value} value={o.value}>
+                            {o.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            </>
             )}
 
             {(tipo === "novedad" || tipo === "Promociones" || tipo=== "Habeas" || tipo === "cesacion" || tipo === "retail") && (

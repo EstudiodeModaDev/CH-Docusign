@@ -48,9 +48,9 @@ const CATALOGO_SUBS: Sub[] = [
   // C2 - Envío de documentos
   { ID: "S201", Title: "Plantillas (no aparecen o no cargan)", Id_categoria: "C2" },
   { ID: "S202", Title: "Envío fallido (no se completa el envío)", Id_categoria: "C2" },
-  { ID: "S203", Title: "Plantilla incompleta o con campos faltantes", Id_categoria: "C2" },
+  { ID: "S203", Title: "Problemas con plantilla", Id_categoria: "C2" },
   { ID: "S204", Title: "Carpetas automáticas (no se crean o quedan mal)", Id_categoria: "C2" },
-  { ID: "S205", Title: "Otro (envío de documentos)", Id_categoria: "C2" },
+  { ID: "S205", Title: "Otro", Id_categoria: "C2" },
 
   // C3 - Consulta de documentos
   { ID: "S301", Title: "No se muestra información o resultados", Id_categoria: "C3" },
@@ -80,7 +80,7 @@ const CATALOGO_SUBS: Sub[] = [
   { ID: "S802", Title: "Respuesta del paz y salvo (no permite responder)", Id_categoria: "C8" },
   { ID: "S803", Title: "Flujo del proceso (no sigue el orden esperado)", Id_categoria: "C8" },
   { ID: "S804", Title: "Documento final (no se guarda en la carpeta)", Id_categoria: "C8" },
-  { ID: "S805", Title: "Encuesta (no se envía)", Id_categoria: "C8" },
+  { ID: "S805", Title: "Envio de notificaciones", Id_categoria: "C8" },
   { ID: "S806", Title: "Otro", Id_categoria: "C8" },
 ];
 
@@ -105,7 +105,6 @@ const CATALOGO_ARTS: Art[] = [
   // C2 - Envío de documentos
   { ID: "A201-01", Title: "No aparece una plantilla", Id_subCategoria: "S201" },
   { ID: "A201-02", Title: "Plantilla no carga / se queda en blanco", Id_subCategoria: "S201" },
-  { ID: "A201-03", Title: "Plantilla incorrecta o desactualizada", Id_subCategoria: "S201" },
 
   { ID: "A202-01", Title: "El envío falla (error al enviar)", Id_subCategoria: "S202" },
   { ID: "A202-02", Title: "El envío queda en proceso y no termina", Id_subCategoria: "S202" },
@@ -139,12 +138,9 @@ const CATALOGO_ARTS: Art[] = [
   { ID: "A501-02", Title: "Optimizar flujo / reducir pasos", Id_subCategoria: "S501" },
   { ID: "A501-03", Title: "Mejorar rendimiento", Id_subCategoria: "S501" },
 
-  { ID: "A502-01", Title: "Nueva funcionalidad (describir requerimiento)", Id_subCategoria: "S502" },
-  { ID: "A502-02", Title: "Nueva integración (sistema/servicio)", Id_subCategoria: "S502" },
-
   // C6 - Parámetros y desplegables
   { ID: "A601-01", Title: "Crear un nuevo desplegable (lista)", Id_subCategoria: "S601" },
-  { ID: "A601-02", Title: "Agregar valores iniciales al desplegable", Id_subCategoria: "S601" },
+  { ID: "A601-02", Title: "Agregar nuevos valores al desplegable", Id_subCategoria: "S601" },
 
   { ID: "A602-01", Title: "No deja agregar opción", Id_subCategoria: "S602" },
   { ID: "A602-02", Title: "No deja editar/eliminar opción", Id_subCategoria: "S602" },
@@ -170,6 +166,7 @@ const CATALOGO_ARTS: Art[] = [
 
   { ID: "A805-01", Title: "No envía la encuesta", Id_subCategoria: "S805" },
   { ID: "A805-02", Title: "Envía encuesta a destinatario incorrecto", Id_subCategoria: "S805" },
+  { ID: "A805-02", Title: "Envía notificaciones indebidamente", Id_subCategoria: "S805" },
 ];
 
 export default function NuevoTicketForm() {

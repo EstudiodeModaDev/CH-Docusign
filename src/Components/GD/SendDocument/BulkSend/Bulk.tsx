@@ -275,90 +275,29 @@ function Modal(props: {open: boolean; title: string; onClose: () => void; childr
 
   if (!open) return null;
 
-return (
-  <div role="dialog" aria-modal="true" onMouseDown={(e) => {
-                                          if (disabledClose) return;
-                                          if (e.target === e.currentTarget) onClose();
-                                        }}
-    style={{
-      position: "fixed",
-      inset: 0,
-      background: "rgba(2,6,23,.55)",
-      display: "grid",
-      placeItems: "center",
-      zIndex: 9999,
-      padding: 16,
-    }}>
-    <div
-      style={{
-        width: "min(980px, 100%)",
-        background: "var(--surface, #fff)",
-        border: "1px solid var(--border, #e5e7eb)",
-        borderRadius: 16,
-        boxShadow: "0 18px 50px rgba(2,6,23,.18)",
-        overflow: "hidden",
+  return (
+    <div className="m-overlay" role="dialog" aria-modal="true" onMouseDown={(e) => {
+                                                                  if (disabledClose) return;
+                                                                  if (e.target === e.currentTarget) onClose();
+                                                                }}>
+      <div className="m-card">
+        <div className="m-header">
+          <div className="m-title">{title}</div>
 
-        // ✅ layout para que el body pueda scrollear
-        display: "flex",
-        flexDirection: "column",
-        maxHeight: "90vh",
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "14px 16px",
-          borderBottom: "1px solid var(--border, #e5e7eb)",
-          flex: "0 0 auto",
-        }}
-      >
-        <div style={{ fontWeight: 700 }}>{title}</div>
-        <button
-          type="button"
-          className="btn btn-secondary btn-xs"
-          onClick={onClose}
-          disabled={disabledClose}
-        >
-          Cerrar
-        </button>
-      </div>
-
-      {/* ✅ Body scrolleable (horizontal + vertical) */}
-      <div
-        style={{
-          padding: 16,
-          flex: "1 1 auto",
-          minHeight: 0, // ✅ clave para overflow dentro de flex
-          overflow: "auto",
-          maxWidth: "100%",
-        }}
-      >
-        {children}
-      </div>
-
-      {/* Footer */}
-      {footer && (
-        <div
-          style={{
-            padding: 16,
-            borderTop: "1px solid var(--border, #e5e7eb)",
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: 10,
-            flexWrap: "wrap",
-            flex: "0 0 auto",
-          }}
-        >
-          {footer}
+          <button type="button" className="btn btn-secondary btn-xs" onClick={onClose} disabled={disabledClose}>
+            Cerrar
+          </button>
         </div>
-      )}
-    </div>
-  </div>
-);
 
+        {/* Body scrolleable */}
+        <div className="m-body m-scroll" tabIndex={0} onWheel={(e) => e.stopPropagation()}>
+          <div className="m-body-inner">{children}</div>
+        </div>
+
+        {footer && <div className="m-footer">{footer}</div>}
+      </div>
+    </div>
+  );
 }
 
 /** =========================

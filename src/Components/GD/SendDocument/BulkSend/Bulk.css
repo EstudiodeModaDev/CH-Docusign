@@ -428,3 +428,108 @@
     scrollbar-color: rgba(148, 163, 184, 0.95) rgba(148, 163, 184, 0.18);
   }
 }
+
+/* ===========================
+   Modal.css
+   - Body con scroll en ambas direcciones
+   - Scrollbar grueso y gris
+=========================== */
+
+.m-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(2,6,23,.55);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.m-card{
+  width: min(980px, 100%);
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 16px;
+  box-shadow: 0 18px 50px rgba(2,6,23,.18);
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh; /* clave para que el body pueda scrollear */
+}
+
+.m-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  flex: 0 0 auto;
+}
+
+.m-title{
+  font-weight: 700;
+}
+
+.m-body{
+  padding: 16px;
+  flex: 1 1 auto;
+  min-height: 0;       /* ✅ clave en flex para overflow */
+  max-width: 100%;
+}
+
+.m-body-inner{
+  width: max-content;  /* ✅ fuerza overflow horizontal si el contenido es ancho */
+  min-width: 100%;
+}
+
+.m-footer{
+  padding: 16px;
+  border-top: 1px solid var(--border, #e5e7eb);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+}
+
+/* ===========================
+   Scroll (gris + grueso)
+=========================== */
+
+.m-scroll{
+  overflow: auto; /* ✅ scroll vertical y horizontal */
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable both-edges;
+}
+
+/* Firefox */
+.m-scroll{
+  scrollbar-width: auto;
+  scrollbar-color: rgba(148,163,184,.95) rgba(148,163,184,.20);
+}
+
+/* Chrome / Edge / Safari */
+.m-scroll::-webkit-scrollbar{
+  width: 14px;
+  height: 14px;
+}
+
+.m-scroll::-webkit-scrollbar-track{
+  background: rgba(148,163,184,.20);
+  border-radius: 999px;
+}
+
+.m-scroll::-webkit-scrollbar-thumb{
+  background: rgba(148,163,184,.90);
+  border-radius: 999px;
+  border: 3px solid rgba(255,255,255,.70);
+}
+
+.m-scroll::-webkit-scrollbar-thumb:hover{
+  background: rgba(100,116,139,.95);
+}
+
+.m-scroll::-webkit-scrollbar-corner{
+  background: transparent;
+}

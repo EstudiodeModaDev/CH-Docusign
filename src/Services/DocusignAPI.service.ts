@@ -116,14 +116,12 @@ export async function listTemplates(params?: { searchText?: string; includeAdvan
 /** =========================
  * Crear sobre draft desde plantilla
  * ========================= */
-export async function createEnvelopeFromTemplateDraft(input: CreateDraftFromTemplateInput): Promise<EnvelopeBasic> {
+export async function createEnvelopeFromTemplateDraft( input: CreateDraftFromTemplateInput): Promise<EnvelopeBasic> {
   const auth = await getAuthOrThrow();
   const ctx = await getDocusignContext();
 
-  const body = {
+  const body: any = {
     templateId: input.templateId,
-    emailSubject: input.emailSubject,
-    emailBlurb: input.emailBlurb,
     templateRoles: input.roles.map((r) => ({
       email: r.email,
       name: r.name,
@@ -131,6 +129,10 @@ export async function createEnvelopeFromTemplateDraft(input: CreateDraftFromTemp
     })),
     status: "created", // draft
   };
+
+  // ✅ Solo sobrescribe si realmente te mandan un valor
+  if (input.emailSubject?.trim()) body.emailSubject = input.emailSubject.trim();
+  if (input.emailBlurb?.trim()) body.emailBlurb = input.emailBlurb.trim();
 
   const resp = await fetch(`${ctx.baseUrl}/v2.1/accounts/${ctx.accountId}/envelopes`, {
     method: "POST",

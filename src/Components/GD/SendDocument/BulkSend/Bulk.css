@@ -246,6 +246,7 @@
 /* rows/cells */
 .bulk-send .bulk-grid__td{
   padding: 8px 10px;
+  margin: 5px;
   border-bottom: 1px solid var(--line);
   background: #fff;
   white-space: nowrap;
@@ -257,8 +258,8 @@
 
 /* inputs */
 .bulk-send .bulk-grid__cell{
-  min-width: 220px;
-  max-width: 380px;
+  min-width: 100px;
+  max-width: 180px;
   width: 100%;
 
   border: 1px solid var(--line2);
@@ -375,4 +376,55 @@
   outline: none;
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--brand) 18%, transparent);
   border-color: color-mix(in oklab, var(--brand) 40%, var(--line2));
+}
+
+/* =========================================================
+   SCROLLBAR (gris + grueso)
+   - WebKit: Chrome / Edge / Safari
+   - Firefox: scrollbar-width / scrollbar-color
+========================================================= */
+
+/* Aplica a los contenedores que tienen overflow */
+.bulk-send .bulk-grid__wrap,
+.bulk-send .bulk-results__wrap{
+  scrollbar-gutter: stable both-edges; /* evita saltos de layout */
+}
+
+/* ---------- Chrome/Edge/Safari ---------- */
+.bulk-send .bulk-grid__wrap::-webkit-scrollbar,
+.bulk-send .bulk-results__wrap::-webkit-scrollbar{
+  width: 14px;   /* vertical */
+  height: 14px;  /* horizontal */
+}
+
+.bulk-send .bulk-grid__wrap::-webkit-scrollbar-track,
+.bulk-send .bulk-results__wrap::-webkit-scrollbar-track{
+  background: rgba(148, 163, 184, 0.18); /* gris claro */
+  border-radius: 999px;
+}
+
+.bulk-send .bulk-grid__wrap::-webkit-scrollbar-thumb,
+.bulk-send .bulk-results__wrap::-webkit-scrollbar-thumb{
+  background: rgba(148, 163, 184, 0.85); /* gris */
+  border-radius: 999px;
+  border: 3px solid rgba(255, 255, 255, 0.65); /* “padding” alrededor */
+}
+
+.bulk-send .bulk-grid__wrap::-webkit-scrollbar-thumb:hover,
+.bulk-send .bulk-results__wrap::-webkit-scrollbar-thumb:hover{
+  background: rgba(100, 116, 139, 0.95); /* gris más oscuro al hover */
+}
+
+.bulk-send .bulk-grid__wrap::-webkit-scrollbar-corner,
+.bulk-send .bulk-results__wrap::-webkit-scrollbar-corner{
+  background: transparent;
+}
+
+/* ---------- Firefox ---------- */
+@supports (scrollbar-color: auto) {
+  .bulk-send .bulk-grid__wrap,
+  .bulk-send .bulk-results__wrap{
+    scrollbar-width: auto; /* "thin" es muy delgado; auto se ve más grueso */
+    scrollbar-color: rgba(148, 163, 184, 0.95) rgba(148, 163, 184, 0.18);
+  }
 }

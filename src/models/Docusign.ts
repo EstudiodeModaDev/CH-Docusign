@@ -27,7 +27,7 @@ export interface DsTemplateRoleInput {
 
 export interface CreateDraftFromTemplateInput {
   templateId: string;
-  emailSubject: string;
+  emailSubject?: string;
   emailBlurb?: string;
   roles: DsTemplateRoleInput[];
 }

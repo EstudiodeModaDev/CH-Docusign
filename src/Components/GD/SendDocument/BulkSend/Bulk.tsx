@@ -309,7 +309,7 @@ function Modal(props: {open: boolean; title: string; onClose: () => void; childr
           </button>
         </div>
 
-        <div style={{ padding: 16 }}>{children}</div>
+        <div style={{padding: 16, overflowX: "auto", overflowY: "visible", maxWidth: "100%",}}>{children}</div>
 
         {footer && (
           <div style={{

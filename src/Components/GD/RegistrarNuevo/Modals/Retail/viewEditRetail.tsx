@@ -3,7 +3,7 @@ import "../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
 import { useGraphServices } from "../../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../../models/Desplegables";
-import {useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useTemporales, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../../Funcionalidades/Desplegables";
+import {useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../../Funcionalidades/Desplegables";
 import { formatPesosEsCO, numeroATexto,  } from "../../../../../utils/Number";
 import { useSalarios } from "../../../../../Funcionalidades/GD/Salario";
 import type { DetallesPasos } from "../../../../../models/Cesaciones";
@@ -53,7 +53,6 @@ export default function EditRetail({onClose, selectedRetail, tipo}: Props){
     const { options: CentroCostosOptions, loading: loadingCC, reload: reloadCC} = useCentroCostos(Maestro);
     const { options: COOptions, loading: loadingCO, reload: reloadCO} = useCentroOperativo(Maestro);
     const { options: UNOptions, loading: loadingUN, reload: reloadUN} = useUnidadNegocio(Maestro);
-    const { options: tiemposOptions, loading: loadingTiempos, reload: reloadTiempos} = useTemporales(Maestro);
 
     const showCargos = React.useMemo(() => new Set<string>(["31", "42", "9", "33"]), []);
         const filteredCargoOptions = React.useMemo(
@@ -70,7 +69,6 @@ export default function EditRetail({onClose, selectedRetail, tipo}: Props){
         reloadCC();
         reloadCO();
         reloadUN();
-        reloadTiempos()
     }, []);
 
     React.useEffect(() => {
@@ -119,8 +117,6 @@ export default function EditRetail({onClose, selectedRetail, tipo}: Props){
   const selectedCentroCostos = CentroCostosOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoCentroCostos.toLocaleLowerCase()) ?? null;
   const selectedCentroOperativo = COOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoCentroOperativo.toLocaleLowerCase()) ?? null;
   const selectedUnidadNegocio = UNOptions.find((o) => o.value.toLocaleLowerCase() === state.CodigoUnidadNegocio.toLocaleLowerCase()) ?? null;
-  const selectedTemporal = tiemposOptions.find((o) => o.label.toLocaleLowerCase() === state.Temporal.toLocaleLowerCase()) ?? null;
-
 
   /* ================== Display local para campos monetarios ================== */
   const [conectividad, setConectividad] = React.useState<Number>(0);
@@ -326,7 +322,7 @@ export default function EditRetail({onClose, selectedRetail, tipo}: Props){
                     loadDetalles={() => loadDetallesPromocion()} 
                     proceso={"Cesacion"}/>: 
         <>
-        <h2 id="ft_title" className="ft-title">Nueva Cesación</h2>
+        <h2 id="ft_title" className="ft-title">Novedad Retail</h2>
 
         <form className="ft-form" noValidate>
           {/* ================= Empresa ================= */}
@@ -538,26 +534,6 @@ export default function EditRetail({onClose, selectedRetail, tipo}: Props){
               isClearable
             />
             <small>{errors.Ciudad}</small>
-          </div>
-
-          {/* Temporal */}
-          <div className="ft-field">
-            <label className="ft-label" htmlFor="numeroIdent">Temporal *</label>
-            <Select<desplegablesOption, false>
-              inputId="temporal"
-              options={tiemposOptions}
-              placeholder={loadingTiempos ? "Cargando opciones…" : "Buscar temporal..."}
-              value={selectedTemporal}
-              onChange={(opt) => {setField("Temporal", opt?.label ?? "");}}
-              classNamePrefix="rs"
-              isDisabled={loadingTiempos}
-              isLoading={loadingTiempos}
-              getOptionValue={(o) => String(o.value)}
-              getOptionLabel={(o) => o.label}
-              components={{ Option }}
-              isClearable
-            />
-            <small>{errors.Temporal}</small>
           </div>
 
           {/* ================= Centro de costos ================= */ }

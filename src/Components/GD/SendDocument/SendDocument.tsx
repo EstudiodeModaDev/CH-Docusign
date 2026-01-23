@@ -109,7 +109,7 @@ export function mapNovedadToVM(n: Novedad): DocuSignVM {
   return {
     ...emptyVM(),
     nombre: n.NombreSeleccionado ?? "",
-    fechaIngreso: toISODateFlex(n.FECHA_x0020_REQUERIDA_x0020_PARA0) ?? "",
+    fechaIngreso: spDateToSpanishLong(n.FECHA_x0020_REQUERIDA_x0020_PARA0) ?? "",
     cargo: n.CARGO ?? "",
     ciudad: n.CIUDAD ?? "",
     conectividadLetras: n.auxconectividadtexto ?? "",

@@ -5,7 +5,7 @@ import { useGraphServices } from "../../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../../models/Desplegables";
 import {useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useNivelCargo, useTemporales, useTipoDocumentoSelect, useUnidadNegocio,} from "../../../../../Funcionalidades/Desplegables";
 import { useAuth } from "../../../../../auth/authProvider";
-import { formatPesosEsCO, numeroATexto,  } from "../../../../../utils/Number";
+import { formatPesosEsCO, numeroATexto, toNumberFromEsCO,  } from "../../../../../utils/Number";
 import { useSalarios } from "../../../../../Funcionalidades/GD/Salario";
 import { useDetallesPasosCesacion, usePasosCesacion } from "../../../../../Funcionalidades/GD/PasosCesacion";
 import { lookOtherInfo } from "../../../../../utils/lookFor";
@@ -414,7 +414,24 @@ export default function FormCesacion({onClose, state, setField, handleSubmit, er
           {/* Salario */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="abreviacionDoc"> Salario *</label>
-            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={displaySalario} onChange={(e) => setField("Salario", e.target.value)}/>
+            <input id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} required maxLength={300} onChange={(e) => {
+                                                                                                                                                                const raw = e.target.value;
+
+                                                                                                                                                                if (raw === "") {
+                                                                                                                                                                  setDisplaySalario("");
+                                                                                                                                                                  setField("Salario", "" as any);
+                                                                                                                                                                  setField("SalarioTexto", "");
+                                                                                                                                                                  return;
+                                                                                                                                                                }
+
+                                                                                                                                                                const numeric = toNumberFromEsCO(raw);
+                                                                                                                                                                const formatted = formatPesosEsCO(String(numeric));
+
+                                                                                                                                                                setDisplaySalario(formatted);
+                                                                                                                                                                setField("Salario", numeric as any);
+                                                                                                                                                                setField("SalarioTexto", numeroATexto(numeric).toUpperCase());
+                                                                                                                                                              }}
+                                                                                                                                                            />
             <small>{errors.Salario}</small>
           </div>
 

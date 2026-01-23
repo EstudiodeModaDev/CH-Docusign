@@ -404,24 +404,27 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
   };
 
   const visibleRows = React.useMemo(() => {
+    if (rows.length === 0) return [];
 
-    if(rows.length === 0) return [];
-    // 1) Si es admin, ve todo
+    // 1) Admin ve todo
     if (isAdmin) return rows;
-    // 2) Si no tenemos account o username, no filtramos (o podrías devolver [])
+
+    // 2) Email actual
     const email = account?.username?.trim().toLowerCase();
     if (!email) return rows;
 
-    // 3) Filtrar por solicitados
-    return rows.filter(row => {
-      if (!Array.isArray(row.Solicitados) || row.Solicitados.length === 0) {
-        return false;
-      }
+    return rows.filter((row) => {
+      // ✅ A) Coincide con Solicitante
+      const solicitanteOk =
+        (row.Solicitante ?? "").trim().toLowerCase() === email;
 
-      return row.Solicitados.some((s) => {
-        if (!s.correo) return false;
-        return s.correo.trim().toLowerCase() === email;
-      });
+      // ✅ B) Está dentro de Solicitados
+      const solicitadosOk =
+        Array.isArray(row.Solicitados) &&
+        row.Solicitados.some((s: any) => (s?.correo ?? "").trim().toLowerCase() === email);
+
+      // ✅ OR: si cumple cualquiera, se ve
+      return solicitanteOk || solicitadosOk;
     });
   }, [rows, account?.username, isAdmin, estado, search, year]);
 

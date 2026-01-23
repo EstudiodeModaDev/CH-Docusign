@@ -106,8 +106,8 @@ export function useRetail(RetailSvc: RetailService, retailCanceladosSvc?: Retail
     const filters: string[] = [];
 
     if (range.from && range.to && range.from < range.to) {
-      filters.push(`fields/Created ge '${range.from}T00:00:00Z'`);
-      filters.push(`fields/Created le '${range.to}T23:59:59Z'`);
+      filters.push(`fields/FechaIngreso ge '${range.from}T00:00:00Z'`);
+      filters.push(`fields/FechaIngreso le '${range.to}T23:59:59Z'`);
     }
 
     return {

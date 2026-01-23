@@ -162,8 +162,8 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
     if (estado === "finalizado") filters.push(`fields/Estado eq 'Completado'`);
 
     if (range.from && range.to && range.from < range.to) {
-      filters.push(`fields/Created ge '${range.from}T00:00:00Z'`);
-      filters.push(`fields/Created le '${range.to}T23:59:59Z'`);
+      filters.push(`fields/FECHA_x0020_REQUERIDA_x0020_PARA0 ge '${range.from}T00:00:00Z'`);
+      filters.push(`fields/FECHA_x0020_REQUERIDA_x0020_PARA0 le '${range.to}T23:59:59Z'`);
     }
 
     return {

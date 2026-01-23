@@ -114,8 +114,8 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
     if (estado === "finalizado") filters.push(`fields/Estado eq 'Completado'`);
 
     if (range.from && range.to && range.from < range.to) {
-      filters.push(`fields/Created ge '${range.from}T00:00:00Z'`);
-      filters.push(`fields/Created le '${range.to}T23:59:59Z'`);
+      filters.push(`fields/FechaIngreso ge '${range.from}T00:00:00Z'`);
+      filters.push(`fields/FechaIngreso le '${range.to}T23:59:59Z'`);
     }
 
     return {
@@ -125,7 +125,7 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
     };
   }, [estado, range.from, range.to]);
 
-  const loadBase = React.useCallback(async () => {
+  const loadBase = React.useCallback(async () => { 
     if (!account?.username) return;
 
     setLoading(true);

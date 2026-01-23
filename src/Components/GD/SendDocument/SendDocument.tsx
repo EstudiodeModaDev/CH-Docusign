@@ -154,7 +154,7 @@ export function mapCesacionToVM(p: Cesacion): DocuSignVM {
   return {
     ...emptyVM(),
     nombre: p.Nombre ?? "",
-    fechaIngreso: p.FechaIngreso ?? "",
+    fechaIngreso: spDateToSpanishLong(p.FechaIngreso)?? "",
     cargo: p.Cargo ?? "",
     ciudad: p.Ciudad ?? "",
     conectividadLetras: p.auxConectividadTexto ?? "",
@@ -171,7 +171,7 @@ export function mapRetailToVM(r: Retail): DocuSignVM {
   return {
     ...emptyVM(),
     nombre: r.Nombre ?? "",
-    fechaIngreso: r.FechaIngreso ?? "",
+    fechaIngreso: spDateToSpanishLong(r.FechaIngreso) ?? "",
     cargo: r.Cargo ?? "",
     ciudad: r.Ciudad ?? "",
     conectividadLetras: r.Auxiliotransporteletras ?? "",

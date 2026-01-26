@@ -37,7 +37,8 @@ export type Cesacion = {
     ImpactoCliente: string;
     contribucionEstrategia: string;
     Promedio: string;
-    Estado: string
+    Estado: string;
+    direccionResidencia: string;
 }
 
 export type CesacionErrors = Partial<Record<keyof Cesacion, string>>;

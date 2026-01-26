@@ -109,7 +109,8 @@ export class CesacionesService {
       ImpactoCliente: f.ImpactoCliente,
       contribucionEstrategia: f.contribucionEstrategia,
       Promedio: f.Promedio,
-      Estado: f.Estado
+      Estado: f.Estado,
+      direccionResidencia: f.direccionResidencia
     };
   }
 

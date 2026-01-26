@@ -644,6 +644,13 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
             <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoUN} readOnly/>
           </div>
 
+          {/* Direccion */}
+          <div className="ft-field">
+            <label className="ft-label" htmlFor="Nombre"> Dirección de residencia *</label>
+            <input id="Nombre" name="Nombre" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.direccionResidencia ?? ""} onChange={(e) => setField("direccionResidencia", e.target.value.toUpperCase())} required/>
+            <small>{errors.direccionResidencia}</small>
+          </div>
+
           {/* Informacion enviada por */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="enviadaPor"> Información enviada por *</label>

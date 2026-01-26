@@ -99,7 +99,8 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
     ImpactoCliente: "",
     contribucionEstrategia: "",
     Promedio: "",
-    Estado: "En proceso"
+    Estado: "En proceso",
+    direccionResidencia: ""
   });
   const [estado, setEstado] = React.useState<string>("proceso");
   const [errors, setErrors] = React.useState<CesacionErrors>({});
@@ -305,7 +306,8 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
       ImpactoCliente: "",
       contribucionEstrategia: "",
       Promedio: "",
-      Estado: "En proceso"
+      Estado: "En proceso",
+      direccionResidencia: ""
     })
   };
 
@@ -359,7 +361,8 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
         ImpactoCliente: state.ImpactoCliente,
         contribucionEstrategia: state.contribucionEstrategia,
         Promedio: state.Promedio,
-        Estado: "En proceso"
+        Estado: "En proceso",
+        direccionResidencia: state.direccionResidencia
       };
       const creado = await CesacionesSvc.create(payload);
       alert("Se ha creado el registro con éxito")
@@ -421,6 +424,7 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
         contribucionEstrategia: CesacionSeleccionada.contribucionEstrategia !== state.contribucionEstrategia ? state.contribucionEstrategia : CesacionSeleccionada.contribucionEstrategia,
         Promedio: CesacionSeleccionada.Promedio !== state.Promedio ? state.Promedio : CesacionSeleccionada.Promedio,
         Estado: CesacionSeleccionada.Estado !== state.Estado ? state.Estado : CesacionSeleccionada.Estado,
+        direccionResidencia: CesacionSeleccionada.direccionResidencia !== state.direccionResidencia ? state.direccionResidencia : CesacionSeleccionada.direccionResidencia,
       };
       await CesacionesSvc.update(CesacionSeleccionada.Id!, payload);
       alert("Se ha actualizado el registro con éxito")

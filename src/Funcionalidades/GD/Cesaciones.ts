@@ -113,7 +113,7 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
     if (estado === "proceso") filters.push(`fields/Estado eq 'En proceso'`);
     if (estado === "finalizado") filters.push(`fields/Estado eq 'Completado'`);
 
-    if (range.from && range.to && range.from < range.to) {
+    if (range.from && range.to && range.from <= range.to) {
       filters.push(`fields/FechaIngreso ge '${range.from}T00:00:00Z'`);
       filters.push(`fields/FechaIngreso le '${range.to}T23:59:59Z'`);
     }

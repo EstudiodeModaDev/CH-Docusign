@@ -22,20 +22,43 @@ function includesSearch(row: Cesacion, q: string) {
 function compareRows(a: Cesacion, b: Cesacion, field: SortField, dir: SortDir) {
   const mul = dir === "asc" ? 1 : -1;
 
+  const toTime = (v: any) => {
+    if (!v) return 0;
+
+    // Caso: ya viene ISO (2026-01-23T00:00:00Z) o Date
+    const d1 = new Date(v);
+    if (!Number.isNaN(d1.getTime())) return d1.getTime();
+
+    // Caso: viene como "YYYY-MM-DD" sin hora
+    const s = String(v).trim();
+    const isoTry = new Date(`${s}T00:00:00Z`);
+    if (!Number.isNaN(isoTry.getTime())) return isoTry.getTime();
+
+    // Caso: viene como "DD/MM/YYYY"
+    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) {
+      const dd = Number(m[1]);
+      const mm = Number(m[2]);
+      const yyyy = Number(m[3]);
+      const d = new Date(Date.UTC(yyyy, mm - 1, dd));
+      return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+    }
+
+    return 0;
+  };
+
   const get = (r: Cesacion) => {
     switch (field) {
       case "Cedula":
         return norm(r.Title);
       case "Nombre":
         return norm(r.Nombre);
-      case "Salario":
-        return Number(r.Salario ?? 0);
-      case "inicio":
-        return norm(r.FechaIngreso ?? "");
-      case "id":
-      default:
-        // tu tabla usa id como Created (según sortFieldToOData anterior)
-        return norm(r.Fechaenlaquesereporta ?? r.Title ?? "");
+      case "Temporal":
+        return norm(r.Temporal);
+      case "Tienda":
+        return norm(r.Tienda);
+      case "ingreso":
+        return toTime(r.FechaIngreso);
     }
   };
 

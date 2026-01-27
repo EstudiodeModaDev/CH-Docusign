@@ -7,7 +7,6 @@ import { useAuth } from "../../auth/authProvider";
 import { NovedadCanceladaService } from "../../Services/NovedadCancelada.service";
 import { norm } from "../../utils/text";
 
-
 export function useDebouncedValue<T>(value: T, delay = 250) {
   const [deb, setDeb] = React.useState(value);
   React.useEffect(() => {
@@ -31,6 +30,31 @@ function includesSearch(row: Novedad, q: string) {
 function compareRows(a: Novedad, b: Novedad, field: SortField, dir: SortDir) {
   const mul = dir === "asc" ? 1 : -1;
 
+  const toTime = (v: any) => {
+    if (!v) return 0;
+
+    // Caso: ya viene ISO (2026-01-23T00:00:00Z) o Date
+    const d1 = new Date(v);
+    if (!Number.isNaN(d1.getTime())) return d1.getTime();
+
+    // Caso: viene como "YYYY-MM-DD" sin hora
+    const s = String(v).trim();
+    const isoTry = new Date(`${s}T00:00:00Z`);
+    if (!Number.isNaN(isoTry.getTime())) return isoTry.getTime();
+
+    // Caso: viene como "DD/MM/YYYY"
+    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) {
+      const dd = Number(m[1]);
+      const mm = Number(m[2]);
+      const yyyy = Number(m[3]);
+      const d = new Date(Date.UTC(yyyy, mm - 1, dd));
+      return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+    }
+
+    return 0;
+  };
+
   const get = (r: Novedad) => {
     switch (field) {
       case "Cedula":
@@ -40,10 +64,9 @@ function compareRows(a: Novedad, b: Novedad, field: SortField, dir: SortDir) {
       case "Salario":
         return Number(r.SALARIO ?? 0);
       case "inicio":
-        return norm(r.FECHA_x0020_REQUERIDA_x0020_PARA0 ?? "");
+        return toTime(r.FECHA_x0020_REQUERIDA_x0020_PARA0);
       case "id":
       default:
-        // tu tabla usa id como Created (según sortFieldToOData anterior)
         return norm(r.FechaReporte ?? r.Title ?? "");
     }
   };
@@ -54,7 +77,6 @@ function compareRows(a: Novedad, b: Novedad, field: SortField, dir: SortDir) {
   if (typeof av === "number" && typeof bv === "number") return (av - bv) * mul;
   return String(av).localeCompare(String(bv), "es", { numeric: true }) * mul;
 }
-
 
 export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc?: NovedadCanceladaService) {
   const [rows, setRows] = React.useState<Novedad[]>([]);

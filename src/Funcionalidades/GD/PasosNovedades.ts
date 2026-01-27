@@ -46,7 +46,7 @@ export function usePasosNoveades() {
     React.useEffect(() => {
         loadPasosNovedad();
     }, [loadPasosNovedad]);
-
+ 
   
   const handleCompleteStep = async (detalle: DetallesPasos, estado: string) => {
     const idDetalle = detalle.Id;

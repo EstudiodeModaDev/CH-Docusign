@@ -20,8 +20,34 @@ function includesSearch(row: Retail, q: string) {
   );
 }
 
+
 function compareRows(a: Retail, b: Retail, field: SortField, dir: SortDir) {
   const mul = dir === "asc" ? 1 : -1;
+
+  const toTime = (v: any) => {
+    if (!v) return 0;
+
+    // Caso: ya viene ISO (2026-01-23T00:00:00Z) o Date
+    const d1 = new Date(v);
+    if (!Number.isNaN(d1.getTime())) return d1.getTime();
+
+    // Caso: viene como "YYYY-MM-DD" sin hora
+    const s = String(v).trim();
+    const isoTry = new Date(`${s}T00:00:00Z`);
+    if (!Number.isNaN(isoTry.getTime())) return isoTry.getTime();
+
+    // Caso: viene como "DD/MM/YYYY"
+    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) {
+      const dd = Number(m[1]);
+      const mm = Number(m[2]);
+      const yyyy = Number(m[3]);
+      const d = new Date(Date.UTC(yyyy, mm - 1, dd));
+      return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+    }
+
+    return 0;
+  };
 
   const get = (r: Retail) => {
     switch (field) {
@@ -30,7 +56,7 @@ function compareRows(a: Retail, b: Retail, field: SortField, dir: SortDir) {
       case "Nombre":
         return norm(r.Nombre);
       case "inicio":
-        return norm(r.FechaIngreso ?? "");
+        return toTime(r.FechaIngreso ?? "");
       case "salario":
         return norm(r.Salario ?? "");
       case "id":

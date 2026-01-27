@@ -156,19 +156,19 @@ export default function TablaPromociones({rows, loading: loadingPromociones, err
       <table>
         <thead>
           <tr>
-            <th role="button" tabIndex={0} onClick={(e) => toggleSort('Cedula', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Cedula', e.shiftKey); }} aria-label="Ordenar por Cedula" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort('Cedula', e.shiftKey)} aria-label="Ordenar por Cedula" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
               Cedula {renderSortIndicator('Cedula', sorts)}
             </th>
 
-            <th role="button" tabIndex={0} onClick={(e) => toggleSort('Nombre', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Nombre', e.shiftKey); }} aria-label="Ordenar por Nombre" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort('Nombre', e.shiftKey)} aria-label="Ordenar por Nombre" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
               Nombre {renderSortIndicator('Nombre', sorts)}
             </th>
 
-            <th role="button" tabIndex={0} onClick={(e) => toggleSort('Salario', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Salario', e.shiftKey); }} aria-label="Ordenar por Salario" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort('Salario', e.shiftKey)} aria-label="Ordenar por Salario" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
               Salario {renderSortIndicator('Salario', sorts)}
             </th>
 
-            <th role="button" tabIndex={0} onClick={(e) => toggleSort('promocion', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('reporta', e.shiftKey); }} aria-label="Ordenar por fecha de promocion" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort('promocion', e.shiftKey)} aria-label="Ordenar por fecha de promocion" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
               Fecha de la promoción {renderSortIndicator('promocion', sorts)}
             </th>
 

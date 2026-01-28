@@ -272,7 +272,7 @@ const EnviarFormatoCard: React.FC = () => {
       case "identificaci_n":
       case "identificación":
       case "numerodoc":
-        return vm.identificacion;
+        return formatPesosEsCO(vm.identificacion);
 
       case "salario_en_letras":
       case "salarioletras":

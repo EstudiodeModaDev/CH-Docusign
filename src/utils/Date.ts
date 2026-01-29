@@ -132,6 +132,19 @@ export function spDateToDDMMYYYY(spDate: string | null | undefined): string {
   return `${dd}/${mm}/${yyyy}`;
 }
 
+export function DDMMYYYY(spDate: string | null | undefined): string {
+  if (!spDate) return "";
+
+  const d = new Date(spDate);
+  if (Number.isNaN(d.getTime())) return "";
+
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const yyyy = String(d.getUTCFullYear());
+
+  return `${yyyy}/${mm}/${dd}`;
+}
+
 export function spDateToSpanishLong(
   input: string | Date | null | undefined,
   opts?: { withYearWord?: boolean; monthStyle?: "long" | "short" }

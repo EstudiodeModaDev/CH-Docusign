@@ -51,6 +51,7 @@ type DocuSignVM = {
   ciudadExpedicion: string;
   FechaLetras: string;
   ciudadExpe: string
+  departamento: string;
 };
 
 const emptyVM = (): DocuSignVM => ({
@@ -81,7 +82,8 @@ const emptyVM = (): DocuSignVM => ({
   fechaFinal: "",
   ciudadExpedicion: "",
   FechaLetras: "",
-  ciudadExpe: ""
+  ciudadExpe: "",
+  departamento: ""
 });
 
 export function mapPromocionToVM(p: Promocion): DocuSignVM {
@@ -102,6 +104,7 @@ export function mapPromocionToVM(p: Promocion): DocuSignVM {
     tipoDocCorto: p.AbreviacionTipoDoc ?? "",
     tipoTel: p.ModalidadTeletrabajo ?? "",
     FechaLetras: spDateToSpanishLong(p.FechaIngreso),
+    departamento: p.Departamento
   };  
 }
 
@@ -181,6 +184,7 @@ export function mapRetailToVM(r: Retail): DocuSignVM {
     salarioValor: r.Salario ?? "",
     tipoDoc: r.TipoDoc ?? "",
     FechaLetras: spDateToSpanishLong(r.FechaIngreso),
+    departamento: r.Departamento
   };
 }
 
@@ -331,6 +335,9 @@ const EnviarFormatoCard: React.FC = () => {
 
       case "fechaletras":
         return vm.FechaLetras;
+      
+      case "departamento":
+        return vm.departamento
 
       default:
         return "";

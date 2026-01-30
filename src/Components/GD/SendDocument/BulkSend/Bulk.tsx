@@ -639,9 +639,8 @@ export const EnvioMasivoUI: React.FC = () => {
           </>
         }>
         <div style={{ display: "grid", gap: 12 }}>
-          <div style={{ color: "var(--muted, #64748b)", fontSize: 13 }}>
-            Tip: usa el Excel descargado desde la app para que las columnas coincidan.
-          </div>
+          <div style={{ color: "var(--muted, #64748b)", fontSize: 13 }}>Tip: usa el Excel descargado desde la app para que las columnas coincidan.</div>
+          <div style={{ color: "var(--muted, #64748b)", fontSize: 13 }}>Tip: Para un mejor funcionamiento por favor limita tus excels a 200 registros.</div>
 
           <input type="file" accept=".xlsx,.xls" disabled={uploadBusy || sending || loading} onChange={async (e) => {
                                                                                                         const f = e.target.files?.[0] ?? null;

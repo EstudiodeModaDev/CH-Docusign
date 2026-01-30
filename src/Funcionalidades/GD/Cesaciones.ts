@@ -340,7 +340,7 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
       alert("Hay campos sin rellenar")
       return {
         ok: false,
-        created: null
+        created: null 
       }
     };
     console.log(state)

@@ -1,6 +1,6 @@
 import React from "react";
 import type { DateRange, GetAllOpts, rsOption, SortDir, SortField, } from "../../models/Commons";
-import { toISODateFlex, toISODateTimeFlex } from "../../utils/Date";
+import { toGraphDateTime, toISODateFlex, toISODateTimeFlex } from "../../utils/Date";
 import type { CesacionesService } from "../../Services/Cesaciones.service";
 import type { Cesacion, CesacionCancelada, CesacionErrors } from "../../models/Cesaciones";
 import { useAuth } from "../../auth/authProvider";
@@ -350,9 +350,9 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
         Cargo: state.Cargo,
         Celular: state.Celular,
         Correoelectronico: state.Correoelectronico,
-        FechaIngreso: toISODateFlex(state.FechaIngreso) ?? null,
-        FechaLimiteDocumentos: toISODateFlex(state.FechaLimiteDocumentos) ?? null,
-        FechaSalidaCesacion: toISODateFlex(state.FechaSalidaCesacion) ?? null,
+        FechaIngreso: toGraphDateTime(state.FechaIngreso) ?? null,
+        FechaLimiteDocumentos: toGraphDateTime(state.FechaLimiteDocumentos) ?? null,
+        FechaSalidaCesacion: toGraphDateTime(state.FechaSalidaCesacion) ?? null,
         Jefedezona: state.Jefedezona,
         Nombre: state.Nombre,
         Temporal: state.Temporal,

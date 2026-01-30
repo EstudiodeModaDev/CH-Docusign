@@ -13,7 +13,7 @@ export type Cesacion = {
     Jefedezona: string;
     Reportadopor: string;
     Empresaalaquepertenece: string;
-    Fechaenlaquesereporta: string;
+    Fechaenlaquesereporta: string | null;
     TipoDoc: string;
     Departamento: string;
     Ciudad: string;

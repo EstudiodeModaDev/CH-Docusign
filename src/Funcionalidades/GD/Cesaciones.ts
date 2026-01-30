@@ -360,7 +360,7 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
         Title: state.Title,
         Reportadopor: state.Reportadopor,
         Empresaalaquepertenece: state.Empresaalaquepertenece,
-        Fechaenlaquesereporta: state.Fechaenlaquesereporta,
+        Fechaenlaquesereporta: toGraphDateTime(state.Fechaenlaquesereporta) ?? null,
         TipoDoc: state.TipoDoc,
         Departamento: state.Departamento,
         Ciudad: state.Ciudad,

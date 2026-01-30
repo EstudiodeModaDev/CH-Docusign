@@ -373,7 +373,7 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
         DescripcionCO: state.DescripcionCO,
         CodigoUN: state.CodigoUN,
         DescripcionUN: state.DescripcionUN,
-        Salario: state.Salario,
+        Salario: String(state.Salario),
         SalarioTexto: state.SalarioTexto,
         auxConectividadTexto: state.auxConectividadTexto,
         auxConectividadValor: state.auxConectividadValor,

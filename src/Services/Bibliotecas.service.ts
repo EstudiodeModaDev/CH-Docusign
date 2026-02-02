@@ -1,6 +1,34 @@
 import type { GraphRest } from "../graph/graphRest";
 import type { Archivo } from "../models/archivos";
 
+type GraphPaged<T> = {
+  value: T[];
+  "@odata.nextLink"?: string;
+};
+
+function toRelativePath(nextLink: string): string {
+  const u = new URL(nextLink);
+
+  // u.pathname normalmente es "/v1.0/drives/..."
+  // tu wrapper ya tiene base ".../v1.0/", así que quitamos ese prefijo
+  const p = u.pathname.replace(/^\/v1\.0/i, "");
+
+  return p + u.search; // queda "/drives/...?$skiptoken=..."
+}
+
+function mapToArchivo(item: any): Archivo {
+  return {
+    id: item.id,
+    name: item.name,
+    webUrl: item.webUrl,
+    isFolder: !!item.folder,
+    size: item.size,
+    lastModified: item.lastModifiedDateTime,
+    childCount: item.folder?.childCount ?? undefined,
+    created: item.createdDateTime,
+  };
+}
+
 class BibliotecaBaseService {
   protected graph: GraphRest;
   protected hostname: string;
@@ -73,101 +101,110 @@ class BibliotecaBaseService {
     }
   }
 
-  // Listar archivos de una carpeta (por si lo necesitas)
+  private encodePath(p: string) {
+    const clean = (p ?? "").replace(/^\/|\/$/g, "");
+    if (!clean) return "";
+    return clean
+      .split("/")
+      .map((s) => encodeURIComponent(s))
+      .join("/");
+  }
+
+  // =========================
+  // LISTAR / PAGINAR
+  // =========================
+
+  // Listar archivos de una carpeta (por ruta)
   async getFilesInFolder(folderPath: string): Promise<Archivo[]> {
     await this.ensureIds();
 
-    const cleanFolder = folderPath.replace(/^\/|\/$/g, "");
-    let url: string;
+    const encodedPath = this.encodePath(folderPath);
+    let url =
+      encodedPath.length > 0
+        ? `/drives/${this.driveId}/root:/${encodedPath}:/children?$top=200`
+        : `/drives/${this.driveId}/root/children?$top=200`;
 
-    if (cleanFolder.length > 0) {
-      const segments = cleanFolder.split("/").map((s) => encodeURIComponent(s));
-      const encodedPath = segments.join("/");
+    const all: any[] = [];
 
-      url = `/drives/${this.driveId}/root:/${encodedPath}:/children`;
-    } else {
-      url = `/drives/${this.driveId}/root/children`;
+    while (url) {
+      const res = await this.graph.get<GraphPaged<any>>(url);
+      all.push(...(res.value ?? []));
+      const next = res["@odata.nextLink"];
+      url = next ? toRelativePath(next) : "";
     }
 
-    const res = await this.graph.get<any>(url);
-
-    return (res.value ?? []).map((item: any) => ({
-      id: item.id,
-      name: item.name,
-      webUrl: item.webUrl,
-      isFolder: !!item.folder,
-      size: item.size,
-      lastModified: item.lastModifiedDateTime,
-      childCount: item.folder?.childCount ?? undefined,
-      created: item.createdDateTime, 
-    }));
-  }
-  async findFolderByDocNumber(docNumber: string): Promise<Archivo | null> {
-    await this.ensureIds();
-
-    const baseFolder = "Colaboradores Activos"; // O el nombre EXACTO de esa carpeta
-    const cleanFolder = baseFolder.replace(/^\/|\/$/g, "");
-    const segments = cleanFolder.split("/").map((s) => encodeURIComponent(s));
-    const encodedPath = segments.join("/");
-
-    // Traemos los hijos directos de "Colaboradores Activos"
-    const res = await this.graph.get<any>(
-      `/drives/${this.driveId}/root:/${encodedPath}:/children`
-    );
-
-    const items: any[] = res.value ?? [];
-
-    const folder = items.find((item) => {
-      const isFolder = !!item.folder;
-      const name: string = item.name ?? "";
-      return isFolder && name.startsWith(`${docNumber} -`);
-    });
-
-    if (!folder) return null;
-
-    return {
-      id: folder.id,
-      name: folder.name,
-      webUrl: folder.webUrl,
-      isFolder: !!folder.folder,
-      size: folder.size,
-      lastModified: folder.lastModified
-      
-    };
+    return all.map(mapToArchivo);
   }
 
+  // Listar archivos de una carpeta (por ID) - con paginación
   async getFilesByFolderId(folderId: string): Promise<Archivo[]> {
     await this.ensureIds();
 
-    const res = await this.graph.get<any>(
-      `/drives/${this.driveId}/items/${folderId}/children`
-    );
+    let url = `/drives/${this.driveId}/items/${folderId}/children?$top=200`;
+    const all: any[] = [];
 
-    return (res.value ?? []).map((item: any) => ({
-      id: item.id,
-      name: item.name,
-      webUrl: item.webUrl,
-      isFolder: !!item.folder,
-      size: item.size,
-      lastModified: item.lastModifiedDateTime,
-      childCount: item.folder?.childCount ?? undefined,
-      created: item.createdDateTime, 
-    }));
+    while (url) {
+      const res = await this.graph.get<GraphPaged<any>>(url);
+      all.push(...(res.value ?? []));
+      const next = res["@odata.nextLink"];
+      url = next ? toRelativePath(next) : "";
+    }
+
+    return all.map(mapToArchivo);
   }
 
-
-  async uploadFile(
-    folderPath: string,
-    file: File
-  ): Promise<Archivo> {
+  // Buscar carpeta por número de documento dentro de "Colaboradores Activos"
+  // (OJO: ahora pagina también, por si hay miles de carpetas)
+  async findFolderByDocNumber(docNumber: string): Promise<Archivo | null> {
     await this.ensureIds();
 
-    const cleanFolder = folderPath.replace(/^\/|\/$/g, "");
+    const baseFolder = "Colaboradores Activos";
+    const encodedBase = this.encodePath(baseFolder);
+
+    let url = `/drives/${this.driveId}/root:/${encodedBase}:/children?$top=200`;
+
+    while (url) {
+      const res = await this.graph.get<GraphPaged<any>>(url);
+      const items: any[] = res.value ?? [];
+
+      const folder = items.find((item) => {
+        const isFolder = !!item.folder;
+        const name: string = item.name ?? "";
+        return isFolder && name.startsWith(`${docNumber} -`);
+      });
+
+      if (folder) {
+        // Importante: aquí usas lastModifiedDateTime (no lastModified)
+        return {
+          id: folder.id,
+          name: folder.name,
+          webUrl: folder.webUrl,
+          isFolder: !!folder.folder,
+          size: folder.size,
+          lastModified: folder.lastModifiedDateTime,
+          childCount: folder.folder?.childCount ?? undefined,
+          created: folder.createdDateTime,
+        };
+      }
+
+      const next = res["@odata.nextLink"];
+      url = next ? toRelativePath(next) : "";
+    }
+
+    return null;
+  }
+
+  // =========================
+  // UPLOAD / RENOMBRE / MOVER
+  // =========================
+
+  async uploadFile(folderPath: string, file: File): Promise<Archivo> {
+    await this.ensureIds();
+
+    const cleanFolder = (folderPath ?? "").replace(/^\/|\/$/g, "");
     const fileName = file.name;
-    const serverPath =
-      cleanFolder.length > 0
-        ? `${cleanFolder}/${fileName}`
-        : fileName; // raíz de la biblioteca
+
+    const serverPath = cleanFolder.length > 0 ? `${cleanFolder}/${fileName}` : fileName;
 
     const driveItem = await this.graph.putBinary<any>(
       `/drives/${this.driveId}/root:/${encodeURI(serverPath)}:/content`,
@@ -182,26 +219,22 @@ class BibliotecaBaseService {
       isFolder: !!driveItem.folder,
       size: driveItem.size,
       lastModified: driveItem.lastModifiedDateTime,
+      childCount: driveItem.folder?.childCount ?? undefined,
+      created: driveItem.createdDateTime,
     };
   }
 
-  // Renombrar archivo
-  async renameArchivo(archivo: Archivo,
-    nuevoNombreSinExtension: string
-  ): Promise<Archivo> {
+  async renameArchivo(archivo: Archivo, nuevoNombreSinExtension: string): Promise<Archivo> {
     await this.ensureIds();
 
-    // Mantener extensión original si NO es carpeta
     let ext = "";
     if (!archivo.isFolder) {
       const dot = archivo.name.lastIndexOf(".");
-      if (dot > 0) {
-        ext = archivo.name.slice(dot); // incluye el punto, ej: ".pdf"
-      }
+      if (dot > 0) ext = archivo.name.slice(dot);
     }
 
     const newName = `${nuevoNombreSinExtension}${ext}`;
-    // PATCH al driveItem
+
     const item = await this.graph.patch<any>(
       `/drives/${this.driveId}/items/${archivo.id}`,
       { name: newName }
@@ -214,15 +247,21 @@ class BibliotecaBaseService {
       isFolder: !!item.folder,
       size: item.size,
       lastModified: item.lastModifiedDateTime,
+      childCount: item.folder?.childCount ?? undefined,
+      created: item.createdDateTime,
     };
   }
 
-  //Mover carpeta completa
-  async moveFolderByPath(sourceFolderPath: string, destParentFolderPath: string, opts?: { newName?: string }): Promise<Archivo> {
+  async moveFolderByPath(
+    sourceFolderPath: string,
+    destParentFolderPath: string,
+    opts?: { newName?: string }
+  ): Promise<Archivo> {
     await this.ensureIds();
 
     const enc = (p: string) =>
-      p.replace(/^\/|\/$/g, "")
+      (p ?? "")
+        .replace(/^\/|\/$/g, "")
         .split("/")
         .map(encodeURIComponent)
         .join("/");
@@ -230,23 +269,16 @@ class BibliotecaBaseService {
     const srcPath = enc(sourceFolderPath);
     const dstPath = enc(destParentFolderPath);
 
-    // 1) Resolver item origen (carpeta a mover)
-    const src = await this.graph.get<any>(
-      `/drives/${this.driveId}/root:/${srcPath}`
-    );
+    const src = await this.graph.get<any>(`/drives/${this.driveId}/root:/${srcPath}`);
     if (!src?.id || !src?.folder) {
       throw new Error("La ruta origen no es una carpeta válida o no existe.");
     }
 
-    // 2) Resolver item destino (carpeta PADRE)
-    const dst = await this.graph.get<any>(
-      `/drives/${this.driveId}/root:/${dstPath}`
-    );
+    const dst = await this.graph.get<any>(`/drives/${this.driveId}/root:/${dstPath}`);
     if (!dst?.id || !dst?.folder) {
       throw new Error("La ruta destino no es una carpeta válida o no existe.");
     }
 
-    // 3) Mover (Forma A)
     const body: any = { parentReference: { id: dst.id } };
     const newName = opts?.newName?.trim();
     if (newName) body.name = newName;
@@ -263,13 +295,16 @@ class BibliotecaBaseService {
       isFolder: !!moved.folder,
       size: moved.size,
       lastModified: moved.lastModifiedDateTime,
+      childCount: moved.folder?.childCount ?? undefined,
+      created: moved.createdDateTime,
     };
   }
-
-
 }
 
-// Específicos para cada biblioteca (por si luego quieres métodos extra)
+// =========================
+// Subclases por biblioteca
+// =========================
+
 export class ColaboradoresEDMService extends BibliotecaBaseService {
   constructor(graph: GraphRest, hostname: string, sitePath: string, name: string) {
     super(graph, hostname, sitePath, name);
@@ -294,17 +329,14 @@ export class ColaboradoresDenimService extends BibliotecaBaseService {
   }
 }
 
-
 export class ColaboradoresVisualService extends BibliotecaBaseService {
   constructor(graph: GraphRest, hostname: string, sitePath: string, name: string) {
     super(graph, hostname, sitePath, name);
   }
 }
 
-
 export class ColaboradoresMetaService extends BibliotecaBaseService {
   constructor(graph: GraphRest, hostname: string, sitePath: string, name: string) {
     super(graph, hostname, sitePath, name);
   }
 }
-

@@ -158,8 +158,8 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
     const nombreBaseRaw = `${normalizeSpaces(vm?.numeroDoc ?? "")} - ${normalizeSpaces(evidenciaRaw)}`;
     const baseSafe = sanitizeFileName(nombreBaseRaw);
 
-    // ✅ carpeta también normalizada (evita espacios raros que a veces generan comportamientos raros)
-    const carpeta = `Colaboradores Activos/${normalizeSpaces(vm?.numeroDoc ?? "")} - ${normalizeSpaces(vm?.nombre ?? "")}`;
+    const look = `Colaboradores Activos/${(await servicioColaboradores.findFolderByDocNumber(vm.numeroDoc)).name}`
+    const carpeta = `Colaboradores Activos/${normalizeSpaces(vm?.numeroDoc  ?? "")} - ${normalizeSpaces(vm?.nombre ?? "")}`;
 
     setUploading(true);
 
@@ -177,7 +177,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
         try {
           console.log("[UPLOAD] intentando:", candidate);
-          await servicioColaboradores.uploadFile(carpeta, renamedFile);
+          await servicioColaboradores.uploadFile(look ? look : carpeta, renamedFile);
           uploadedName = candidate;
           lastErr = null;
           console.log("[UPLOAD] OK:", candidate);

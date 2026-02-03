@@ -163,7 +163,6 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
     setUploading(true);
 
-    // ✅ (2) Separamos: (A) upload por un lado, (B) completar paso por otro
     try {
       console.log("[UPLOAD] carpeta:", carpeta);
 

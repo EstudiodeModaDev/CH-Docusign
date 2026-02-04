@@ -233,6 +233,7 @@ export function useHabeasData(HabeasDataSvc: HabeasDataService) {
     if(!state.NumeroDocumento) e.NumeroDocumento = "Ingrese el numero de identificación"
     if(!state.Title) e.Title = "Ingrese el nombre del seleccionado"
     if(!state.Correo) e.Correo = "Ingrese el correo del seleccionado"
+    if(!state.Empresa) e.Empresa = "Ingrese la empresa del seleccionado"
     setErrors(e);
     return Object.keys(e).length === 0;
   };

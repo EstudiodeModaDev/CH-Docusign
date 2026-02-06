@@ -44,7 +44,7 @@ export async function computePctById(
 
     const pct =
       items.length > 0
-        ? (items.filter((i) => i.EstadoPaso === "Completado").length / items.length) * 100
+        ? (items.filter((i) => i.EstadoPaso === "Completado" || i.EstadoPaso?.toLocaleLowerCase() === "omitido").length / items.length) * 100
         : 0;
 
     return [id, Math.round(pct * 100) / 100] as const;

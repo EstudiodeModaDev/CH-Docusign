@@ -97,7 +97,7 @@ export default function TablaContratos({rows, loading: loadingContratos, error, 
 
       const pct =
         items.length > 0
-          ? (items.filter((i) => i.EstadoPaso === "Completado").length / items.length) *
+          ? (items.filter((i) => i.EstadoPaso === "Completado" || i.EstadoPaso?.toLocaleLowerCase() === "omitido").length / items.length) *
             100
           : 0;
 

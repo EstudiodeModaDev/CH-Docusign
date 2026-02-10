@@ -126,7 +126,6 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
   const uploadingRef = React.useRef(false);
 
   const handleUploadAndComplete = async (detalle: DetallesPasos, paso: any) => {
-    // ✅ (1) Lock real anti doble ejecución
     if (uploadingRef.current) return;
     uploadingRef.current = true;
 
@@ -158,15 +157,29 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
     const nombreBaseRaw = `${normalizeSpaces(vm?.numeroDoc ?? "")} - ${normalizeSpaces(evidenciaRaw)}`;
     const baseSafe = sanitizeFileName(nombreBaseRaw);
 
-    const look = `Colaboradores Activos/${(await servicioColaboradores.findFolderByDocNumber(vm.numeroDoc)).name}`
-    const carpeta = `Colaboradores Activos/${normalizeSpaces(vm?.numeroDoc  ?? "")} - ${normalizeSpaces(vm?.nombre ?? "")}`;
+    const carpeta = `Colaboradores Activos/${normalizeSpaces(vm?.numeroDoc ?? "")} - ${normalizeSpaces(vm?.nombre ?? "")}`;
 
     setUploading(true);
 
     try {
-      console.log("[UPLOAD] carpeta:", carpeta);
+      // ✅ Resolver carpeta objetivo de forma segura
+      let look: string | null = null;
 
-      // ✅ (3) Si hay 409, renombramos automáticamente (evita “sube y luego error” por duplicado)
+      try {
+        const found = await servicioColaboradores.findFolderByDocNumber(vm.numeroDoc);
+        const name = normalizeSpaces(found?.name ?? "");
+        if (name) look = `Colaboradores Activos/${name}`;
+      } catch {
+        // No existe o no se pudo buscar: caemos a "carpeta"
+        look = null;
+      }
+
+      const targetFolder = look ?? carpeta;
+      console.log("[UPLOAD] targetFolder:", targetFolder);
+
+      // (Opcional) si tu servicio soporta crear carpeta:
+      // await servicioColaboradores.ensureFolder(targetFolder);
+
       let uploadedName: string | null = null;
       let lastErr: any = null;
 
@@ -176,7 +189,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
         try {
           console.log("[UPLOAD] intentando:", candidate);
-          await servicioColaboradores.uploadFile(look ? look : carpeta, renamedFile);
+          await servicioColaboradores.uploadFile(targetFolder, renamedFile);
           uploadedName = candidate;
           lastErr = null;
           console.log("[UPLOAD] OK:", candidate);
@@ -187,26 +200,18 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
           if (status === 409 || msg.includes("incompatible with a similar name") || msg.includes("409")) {
             lastErr = e;
-            continue; // probamos otro nombre
+            continue;
           }
 
-          // otro error real
           throw e;
         }
       }
 
-      if (!uploadedName) {
-        // no encontramos nombre libre
-        throw lastErr;
-      }
+      if (!uploadedName) throw lastErr;
 
-      // ✅ (4) Completar paso: si falla, NO decimos “falló la subida”
       try {
-        console.log("[STEP] completando paso...");
         await handleSubmit(detalle, "Completado");
-        console.log("[STEP] OK");
       } catch (e: any) {
-        console.error("[STEP] Subió OK pero falló completar:", e);
         alert(
           `El archivo se subió (${uploadedName}), pero falló completar el paso. ` +
             `Reintenta completar el paso (no necesitas volver a subir).`

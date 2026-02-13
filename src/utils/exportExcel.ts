@@ -9,7 +9,7 @@ import type { Cesacion } from "../models/Cesaciones";
 import type { Retail } from "../models/Retail";
 
 import { toISODateFlex } from "./Date";
-import { toNumberFromEsCO } from "./Number";
+import { formatPesosEsCO, } from "./Number";
 import { computePctById, type GetAllSvc, type PasoLike } from "./completation";
 
 /* ============================================================================
@@ -124,10 +124,10 @@ export async function exportNovedadesToExcel(
       "Fecha de ajuste académico": toISODateFlex(row.FECHA_x0020_DE_x0020_AJUSTE_x002) ?? "N/A",
       "Fecha de entrega de valoración de potencial":
         toISODateFlex(row.FECHA_x0020_DE_x0020_ENTREGA_x00) ?? "N/A",
-      Salario: row.SALARIO ? toNumberFromEsCO(row.SALARIO) : "N/A",
+      Salario: row.SALARIO ? formatPesosEsCO(row.SALARIO) : "N/A",
       "Salario en letras": row.salariotexto ?? "N/A",
       "Tiene garantizado": row.GARANTIZADO_x0020__x0020__x00bf_ ?? "N/A",
-      "Valor garantizado": row.VALOR_x0020_GARANTIZADO ? toNumberFromEsCO(row.VALOR_x0020_GARANTIZADO) : "N/A",
+      "Valor garantizado": row.VALOR_x0020_GARANTIZADO ? formatPesosEsCO(row.VALOR_x0020_GARANTIZADO) : "N/A",
       "Garantizado en letras": row.Garantizado_x0020_en_x0020_letra ?? "N/A",
       "Auxilio de conectividad": row.auxconectividadvalor ?? "N/A",
       "Auxilio de conectividad en letras": row.auxconectividadtexto ?? "N/A",
@@ -189,10 +189,10 @@ export async function exportPromocionesToExcel(
       "Tipo de contrato": row.TipoContrato ?? "N/A",
       "Fecha de ajuste académico": toISODateFlex(row.FechaAjusteAcademico) ?? "N/A",
       "Fecha de entrega de valoración de potencial": toISODateFlex(row.FechaValoracionPotencial) ?? "N/A",
-      Salario: row.Salario ? toNumberFromEsCO(row.Salario) : "N/A",
+      Salario: row.Salario ? formatPesosEsCO(row.Salario) : "N/A",
       "Salario en letras": row.SalarioTexto ?? "N/A",
       "Tiene garantizado": row.Garantizado_x00bf_SiNo_x003f_ ?? "N/A",
-      "Valor garantizado": row.ValorGarantizado ? toNumberFromEsCO(row.ValorGarantizado) : "N/A",
+      "Valor garantizado": row.ValorGarantizado ? formatPesosEsCO(row.ValorGarantizado) : "N/A",
       "Garantizado en letras": row.GarantizadoLetras ?? "N/A",
       "Auxilio de conectividad": row.AuxilioValor ?? "N/A",
       "Auxilio de conectividad en letras": row.AuxilioTexto ?? "N/A",
@@ -232,14 +232,26 @@ export async function exportCesacionesToExcel(
 
     return {
       "Información enviada por": row.Reportadopor ?? "N/A",
-      "Fecha en la que se reportó": toISODateFlex(row.Fechaenlaquesereporta) ?? "N/A",
       "Tipo de documento": row.TipoDoc ?? "N/A",
       "Número de documento": row.Title ?? "N/A",
       "Nombre del seleccionado": row.Nombre ?? "N/A",
       "Correo electrónico del seleccionado": row.Correoelectronico ?? "N/A",
+      "Fecha en la que se reportó": toISODateFlex(row.Fechaenlaquesereporta) ?? "N/A",
+      "Fecha de ingreso": toISODateFlex(row.FechaIngreso),
+      "Empresa solicitante": row.Empresaalaquepertenece ?? "N/A",      
       Ciudad: row.Ciudad ?? "N/A",
+      Cargo: row.Cargo ?? "N/A",
+      "Nivel de cargo": row.Niveldecargo ?? "N/A",
+      "¿Cargo crítico?": row.CargoCritico ?? "N/A",
+      Dependencia: row.Dependencia ?? "N/A",
+      "Centro de costos": (row.CodigoCC ?? "Sin código") + " - " + (row.DescripcionCC ?? "Desconocido"),
+      "Centro operativo": (row.CodigoCO ?? "Sin código") + " - " + (row.DescripcionCO ?? "Desconocido"),
+      "Unidad de negocio": (row.CodigoUN ?? "Sin código") + " - " + (row.DescripcionUN ?? "Desconocido"),
+      Salario: row.Salario ? formatPesosEsCO(row.Salario) : "N/A",
+      "Salario en letras": row.SalarioTexto ?? "N/A",
+      "Auxilio de conectividad": formatPesosEsCO(row.auxConectividadValor) ?? "N/A",
+      "Auxilio de conectividad en letras": row.auxConectividadTexto ?? "N/A",
       "% Completación": pct === undefined ? "N/A" : `${pct.toFixed(2)}%`,
-      "Fecha de ingreso": toISODateFlex(row.FechaIngreso)
     };
   });
 

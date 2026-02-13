@@ -488,13 +488,13 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
   const loadToReport = React.useCallback(async (from: string, to: string, EnviadoPor?: string, cargo?: string, empresa?: string, ciudad?: string) => {
     setLoading(true); setError(null);
     const filters: string[] = [];
-    filters.push(`fields/Created ge '${from}T00:00:00Z' and fields/Created le '${to}T23:59:59Z'`)
+    filters.push(`fields/FechaIngreso ge '${from}T00:00:00Z' and fields/FechaIngreso le '${to}T23:59:59Z'`)
 
     if(EnviadoPor){
       filters.push(`fields/Reportadopor ge '${EnviadoPor}'`)
     }
 
-    if(cargo){
+    if(cargo){ 
       filters.push(`fields/Cargo ge '${cargo}'`)
     }
 

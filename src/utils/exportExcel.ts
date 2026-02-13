@@ -239,6 +239,7 @@ export async function exportCesacionesToExcel(
       "Correo electrónico del seleccionado": row.Correoelectronico ?? "N/A",
       Ciudad: row.Ciudad ?? "N/A",
       "% Completación": pct === undefined ? "N/A" : `${pct.toFixed(2)}%`,
+      "Fecha de ingreso": toISODateFlex(row.FechaIngreso)
     };
   });
 

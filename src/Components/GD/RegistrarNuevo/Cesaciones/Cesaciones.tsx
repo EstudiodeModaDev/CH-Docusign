@@ -157,16 +157,16 @@ export default function CesacionesTabla({rows, loading: loadingCesacion, error, 
               Nombre {renderSortIndicator('Nombre', sorts)}
             </th>
 
-            <th role="button" tabIndex={0} onClick={(e) => toggleSort('Temporal', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Temporal', e.shiftKey); }} aria-label="Ordenar por Temporal" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-              Temporal {renderSortIndicator('Temporal', sorts)}
-            </th>
-
             <th role="button" tabIndex={0} onClick={(e) => toggleSort('Tienda', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Tienda', e.shiftKey); }} aria-label="Ordenar por Tienda" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
               Tienda {renderSortIndicator('Tienda', sorts)}
             </th>
 
             <th role="button" tabIndex={0} onClick={(e) => toggleSort('ingreso', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('ingreso', e.shiftKey); }} aria-label="Ordenar por ingreso" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
               Fecha ingreso {renderSortIndicator('ingreso', sorts)}
+            </th>
+
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort('reporta', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('reporta', e.shiftKey); }} aria-label="Ordenar por quien reporta" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              Información reportada por {renderSortIndicator('Temporal', sorts)}
             </th>
 
             <th style={{ textAlign: "center" }}>%</th>
@@ -178,9 +178,9 @@ export default function CesacionesTabla({rows, loading: loadingCesacion, error, 
             <tr key={n.Id} tabIndex={0} onClick={() => openRow(n)} onKeyDown={(e) => onRowKeyDown(e, n)}>
               <td>{n.Title}</td>
               <td><span title={n.Nombre}>{n.Nombre}</span></td>
-              <td><span title={n.Temporal}>{n.Temporal}</span></td>
               <td><span title={n.DescripcionCO}>{n.DescripcionCO}</span></td>
               <td>{toISODateFlex(n.FechaIngreso) || "–"}</td>
+              <td><span title={n.Reportadopor}>{n.Reportadopor}</span></td>
               <td style={{ textAlign: "center" }}>
                 {(() => {
                   const id = String(n.Id ?? "");

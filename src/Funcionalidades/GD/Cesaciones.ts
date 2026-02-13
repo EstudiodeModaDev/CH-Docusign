@@ -53,8 +53,8 @@ function compareRows(a: Cesacion, b: Cesacion, field: SortField, dir: SortDir) {
         return norm(r.Title);
       case "Nombre":
         return norm(r.Nombre);
-      case "Temporal":
-        return norm(r.Temporal);
+      case "reporta":
+        return norm(r.Reportadopor);
       case "Tienda":
         return norm(r.Tienda);
       case "ingreso":

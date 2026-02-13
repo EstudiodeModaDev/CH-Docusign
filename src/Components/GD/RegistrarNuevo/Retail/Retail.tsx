@@ -170,8 +170,8 @@ export default function RetailTabla({rows, loading: loadingRetail, error, pageSi
               Tienda {renderSortIndicator('Tienda', sorts)}
             </th>
 
-            <th role="button" tabIndex={0} onClick={(e) => toggleSort('ingreso', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('ingreso', e.shiftKey); }} aria-label="Ordenar por ingreso" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-              Fecha Ingreso {renderSortIndicator('ingreso', sorts)}
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort('inicio', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('inicio', e.shiftKey); }} aria-label="Ordenar por ingreso" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              Fecha Ingreso {renderSortIndicator('inicio', sorts)}
             </th>
 
             <th style={{ textAlign: "center" }}>%</th>

@@ -184,8 +184,6 @@ class BibliotecaBaseService {
       });
 
       if (folder) {
-        alert("Folder encontrado")
-        console.table(folder)
         return {
           id: folder.id,
           name: folder.name,

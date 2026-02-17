@@ -197,10 +197,8 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
         try {
           if (targetFolderId) {
-            alert("Subiendo por ID")
             await servicioColaboradores.uploadFileByFolderId(targetFolderId, renamedFile);
           } else {
-            alert("Subiendo por ruta")
             await servicioColaboradores.uploadFile(carpetaFallback, renamedFile);
           }
 

@@ -158,23 +158,34 @@ class BibliotecaBaseService {
   async findFolderByDocNumber(docNumber: string): Promise<Archivo | null> {
     await this.ensureIds();
 
+    const canon = (s: string) =>
+      (s ?? "")
+        .toString()
+        .replace(/\u00a0/g, " ") // NBSP -> espacio normal
+        .replace(/\s+/g, " ")
+        .trim();
+
     const baseFolder = "Colaboradores Activos";
     const encodedBase = this.encodePath(baseFolder);
 
     let url = `/drives/${this.driveId}/root:/${encodedBase}:/children?$top=200`;
+
+    const doc = canon(docNumber);
+    const prefix = `${doc} -`;
 
     while (url) {
       const res = await this.graph.get<GraphPaged<any>>(url);
       const items: any[] = res.value ?? [];
 
       const folder = items.find((item) => {
-        const isFolder = !!item.folder;
-        const name: string = item.name ?? "";
-        return isFolder && name.startsWith(`${docNumber} -`);
+        if (!item?.folder) return false;
+        const name = canon(item?.name ?? "");
+        return name.startsWith(prefix);
       });
 
       if (folder) {
-        // Importante: aquí usas lastModifiedDateTime (no lastModified)
+        alert("Folder encontrado")
+        console.table(folder)
         return {
           id: folder.id,
           name: folder.name,
@@ -193,6 +204,36 @@ class BibliotecaBaseService {
 
     return null;
   }
+
+  async uploadFileByFolderId(folderId: string, file: File): Promise<Archivo> {
+    await this.ensureIds();
+
+    if (!folderId) throw new Error("folderId es requerido");
+    if (!file?.name) throw new Error("Archivo inválido");
+
+    // IMPORTANTE:
+    // - Para el nombre del archivo usa encodeURIComponent (no encodeURI),
+    //   porque encodeURI NO escapa bien caracteres como # ? % etc.
+    const fileName = file.name;
+    const encodedName = encodeURIComponent(fileName);
+
+    const driveItem = await this.graph.putBinary<any>(
+      `/drives/${this.driveId}/items/${folderId}:/${encodedName}:/content`,
+      file,
+      file.type || "application/octet-stream"
+    );
+    
+    return {
+      id: driveItem.id,
+      name: driveItem.name,
+      webUrl: driveItem.webUrl,
+      isFolder: !!driveItem.folder,
+      size: driveItem.size,
+      lastModified: driveItem.lastModifiedDateTime,
+      childCount: driveItem.folder?.childCount ?? undefined,
+      created: driveItem.createdDateTime,
+    };
+}
 
   // =========================
   // UPLOAD / RENOMBRE / MOVER

@@ -16,10 +16,6 @@ function toRecipients(addresses: string[]) {
   return addresses.map((address) => ({ emailAddress: { address } }));
 }
 
-function normalizeSpaces(s: string) {
-  return (s ?? "").trim().replace(/\s+/g, " ");
-}
-
 function sanitizeFileName(name: string) {
   // caracteres no permitidos en OneDrive/SharePoint
   const bad = /["*:<>\?\/\\|]/g;
@@ -138,7 +134,17 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
       return;
     }
 
-    const empresa = normalizeSpaces(vm?.empresa?.toLocaleLowerCase() ?? "");
+    const canon = (s: string) =>
+      (s ?? "")
+        .toString()
+        .normalize("NFKC")
+        .replace(/\u00a0/g, " ")
+        .replace(/[‐-‒–—―]/g, "-")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    const empresa = canon(vm?.empresa?.toLowerCase() ?? "");
+
     const servicioColaboradores =
       empresa === "dh retail"
         ? ColaboradoresDH
@@ -153,52 +159,63 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
         : ColaboradoresEDM;
 
     const ext = (file.name.split(".").pop() ?? "pdf").trim();
-    const evidenciaRaw = (paso?.NombreEvidencia ?? paso?.NombrePaso ?? "Evidencia").toString();
-    const nombreBaseRaw = `${normalizeSpaces(vm?.numeroDoc ?? "")} - ${normalizeSpaces(evidenciaRaw)}`;
+
+    const evidenciaRaw = canon(paso?.NombreEvidencia ?? paso?.NombrePaso ?? "Evidencia");
+    const nombreBaseRaw = canon(`${vm?.numeroDoc ?? ""} - ${evidenciaRaw}`);
     const baseSafe = sanitizeFileName(nombreBaseRaw);
 
-    const carpeta = `Colaboradores Activos/${normalizeSpaces(vm?.numeroDoc ?? "")} - ${normalizeSpaces(vm?.nombre ?? "")}`;
+    const folderName = canon(`${vm?.numeroDoc ?? ""} - ${vm?.nombre ?? ""}`);
+    const carpetaFallback = `Colaboradores Activos/${folderName}`;
 
     setUploading(true);
 
     try {
-      // ✅ Resolver carpeta objetivo de forma segura
-      let look: string | null = null;
+      let targetFolderId: string | null = null;
 
       try {
         const found = await servicioColaboradores.findFolderByDocNumber(vm.numeroDoc);
-        const name = normalizeSpaces(found?.name ?? "");
-        if (name) look = `Colaboradores Activos/${name}`;
+
+        if (found?.id) targetFolderId = found.id;
+
       } catch {
-        // No existe o no se pudo buscar: caemos a "carpeta"
-        look = null;
+        // no existe o falló la búsqueda → usamos fallback por ruta
+        targetFolderId = null;
       }
 
-      const targetFolder = look ?? carpeta;
-      console.log("[UPLOAD] targetFolder:", targetFolder);
-
-      // (Opcional) si tu servicio soporta crear carpeta:
-      // await servicioColaboradores.ensureFolder(targetFolder);
+      console.log("[UPLOAD] folderId:", targetFolderId, "path:", carpetaFallback);
 
       let uploadedName: string | null = null;
       let lastErr: any = null;
 
       for (let i = 0; i <= 15; i++) {
         const candidate = i === 0 ? `${baseSafe}.${ext}` : `${withSuffix(baseSafe, i)}.${ext}`;
-        const renamedFile = new File([file], candidate, { type: file.type, lastModified: file.lastModified });
+
+        const renamedFile = new File([file], candidate, {
+          type: file.type,
+          lastModified: file.lastModified,
+        });
 
         try {
-          console.log("[UPLOAD] intentando:", candidate);
-          await servicioColaboradores.uploadFile(targetFolder, renamedFile);
+          if (targetFolderId) {
+            alert("Subiendo por ID")
+            await servicioColaboradores.uploadFileByFolderId(targetFolderId, renamedFile);
+          } else {
+            alert("Subiendo por ruta")
+            await servicioColaboradores.uploadFile(carpetaFallback, renamedFile);
+          }
+
           uploadedName = candidate;
           lastErr = null;
-          console.log("[UPLOAD] OK:", candidate);
           break;
         } catch (e: any) {
-          const msg = (e?.message ?? String(e)).toLowerCase();
+          const msg = (e?.message ?? "").toLowerCase();
           const status = e?.status ?? e?.response?.status;
 
-          if (status === 409 || msg.includes("incompatible with a similar name") || msg.includes("409")) {
+          if (
+            status === 409 ||
+            msg.includes("incompatible with a similar name") ||
+            msg.includes("409")
+          ) {
             lastErr = e;
             continue;
           }
@@ -211,7 +228,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
       try {
         await handleSubmit(detalle, "Completado");
-      } catch (e: any) {
+      } catch {
         alert(
           `El archivo se subió (${uploadedName}), pero falló completar el paso. ` +
             `Reintenta completar el paso (no necesitas volver a subir).`

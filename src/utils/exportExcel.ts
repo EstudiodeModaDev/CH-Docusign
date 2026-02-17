@@ -276,12 +276,24 @@ export async function exportRetailToExcel(
 
     return {
       "Información enviada por": row.InformacionEnviadaPor ?? "N/A",
-      "Fecha en la que se reportó": toISODateFlex(row.FechaReporte) ?? "N/A",
       "Tipo de documento": row.TipoDoc ?? "N/A",
       "Número de documento": row.Title ?? "N/A",
       "Nombre del seleccionado": row.Nombre ?? "N/A",
       "Correo electrónico del seleccionado": row.CorreoElectronico ?? "N/A",
+      "Fecha en la que se reportó": toISODateFlex(row.FechaReporte) ?? "N/A",
+      "Fecha de ingreso": toISODateFlex(row.FechaIngreso),
+      "Empresa solicitante": row.Empresaalaquepertenece ?? "N/A",    
       Ciudad: row.Ciudad ?? "N/A",
+      Cargo: row.Cargo ?? "N/A",
+      "Nivel de cargo": row.NivelCargo ?? "N/A",
+      Dependencia: row.Depedencia ?? "N/A",
+      "Centro de costos": (row.CodigoCentroCostos ?? "Sin código") + " - " + (row.CentroCostos ?? "Desconocido"),
+      "Centro operativo": (row.CodigoCentroOperativo ?? "Sin código") + " - " + (row.CentroOperativo ?? "Desconocido"),
+      "Unidad de negocio": (row.CodigoUnidadNegocio ?? "Sin código") + " - " + (row.UnidadNegocio ?? "Desconocido"),
+      Salario: row.Salario ? formatPesosEsCO(row.Salario) : "N/A",
+      "Salario en letras": row.SalarioLetras ?? "N/A",
+      "Auxilio de conectividad": formatPesosEsCO(row.Auxiliodetransporte) ?? "N/A",
+      "Auxilio de conectividad en letras": row.Auxiliotransporteletras ?? "N/A",
       "% Completación": pct === undefined ? "N/A" : `${pct.toFixed(2)}%`,
     };
   });

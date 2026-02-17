@@ -95,7 +95,7 @@ export async function exportNovedadesToExcel(
       "Celular del seleccionado": row.CELULAR_x0020_ ?? "N/A",
       Dirección: row.DIRECCION_x0020_DE_x0020_DOMICIL ?? "N/A",
       Barrio: row.BARRIO_x0020_ ?? "N/A",
-      "Fecha requerida para el ingreso": row.FECHA_x0020_REQUERIDA_x0020_PARA0 ?? "N/A",
+      "Fecha requerida para el ingreso": toISODateFlex(row.FECHA_x0020_REQUERIDA_x0020_PARA0) ?? "N/A",
       "Empresa solicitante": row.Empresa_x0020_que_x0020_solicita ?? "N/A",
       Ciudad: row.CIUDAD ?? "N/A",
       Cargo: row.CARGO ?? "N/A",

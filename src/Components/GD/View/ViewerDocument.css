@@ -1,115 +1,542 @@
-.colab-explorer {
+.ce2{
   display: grid;
-  grid-template-columns: 160px minmax(0, 1fr);
-  height: 100%;
-  background: #ffffff;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  grid-template-columns: 250px 1fr;
+  gap: 8px;
+  padding: var(--page-pad);
+  color: var(--ink);
+  min-height: 100vh;
 }
 
-/* Sidebar */
-.colab-explorer__sidebar {
-  background: #e2e8f0;
-  padding: 20px 16px;
+/* =========================
+   Sidebar 
+========================= */
+.ce2-sb{
+  border-radius: var(--radius-3xl);
+  border: 1px solid var(--bd);
+  background: color-mix(in oklab, var(--surface) 96%, var(--field-bg));
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 16px;;
 }
 
-.colab-explorer__sidebar-title {
-  font-size: 13px;
+.ce2-sb__brand{
+  padding: 18px 18px 12px;
+  border-bottom: 1px solid var(--bd);
+  background: color-mix(in oklab, var(--surface) 98%, var(--field-bg));
+}
+
+.ce2-sb__kicker{
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: .14em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #475569;
-  margin: 0 0 8px;
 }
 
-.colab-explorer__empresa-btn {
-  border: none;
-  background: transparent;
-  padding: 6px 4px;
-  text-align: left;
-  font-size: 14px;
-  color: #111827;
+.ce2-sb__title{
+  margin-top: 6px;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: .01em;
+}
+
+.ce2-sb__seg{
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.ce2-sb__segBtn{
+  height: 35px;
+  border-radius: 16px;
+  border: 1px solid var(--bd);
+  background: var(--field-bg);
+  color: var(--ink);
   cursor: pointer;
-  border-radius: 8px;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.colab-explorer__empresa-btn:hover {
-  background: rgba(15, 23, 42, 0.06);
-}
-
-.colab-explorer__empresa-btn--active {
   font-weight: 600;
-  color: #0f172a;
+  letter-spacing: .02em;
+  text-align: left;
+  padding: 0 14px;
+  transition: transform .08s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
 }
 
-/* Panel derecho */
-.colab-explorer__main {
-  padding: 18px 32px;
+.ce2-sb__segBtn:hover{
+  background: color-mix(in oklab, var(--field-bg) 82%, transparent);
 }
 
-/* Toolbar + búsqueda */
-.colab-explorer__toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;  /* centra verticalmente ambos lados */
-  gap: 12px;
+.ce2-sb__segBtn:active{
+  transform: translateY(1px);
 }
 
-.colab-explorer__search {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid #000000;
-  border-radius: 2px;
-  padding: 4px 8px;
-  min-width: 260px;
+.ce2-sb__segBtn.is-active{
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--bd));
+  box-shadow: 0 0 0 4px var(--ring);
+  background: color-mix(in oklab, var(--primary) 18%, var(--field-bg));
 }
 
-.colab-explorer__search-icon {
-  font-size: 16px;
-  margin-right: 6px;
+.ce2-sb__hint{
+  margin: 10px 12px 12px;
+  border: 1px solid var(--bd);
+  border-radius: 18px;
+  padding: 12px 12px;
+  background: color-mix(in oklab, var(--surface) 92%, transparent);
 }
 
-.colab-explorer__search-input {
-  border: none;
-  outline: none;
-  font-size: 14px;
-  flex: 1;
+.ce2-sb__hintTitle{
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
-/* Lista de carpetas */
-.colab-explorer__list {
+.ce2-sb__hintText{
+  margin-top: 6px;
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/* =========================
+   Main
+========================= */
+.ce2-main{
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+  min-width: 0;
 }
 
-.colab-explorer__row {
-  width: 100%;
-  border: none;
-  background: transparent;
-  padding: 8px 0;
+/* Header card */
+.ce2-head{
+  border-radius: var(--radius-3xl);
+  padding: 5px;
+  display: grid;
+  gap: 6px;
+}
+
+.ce2-head__top{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.ce2-bc{
   display: flex;
-  grid-template-columns: minmax(0, 1fr) auto;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background 0.12s ease;
-  gap: 5px;
-}
-
-.colab-explorer__row:hover {
-  background: #f9fafb;
-}
-
-.colab-explorer__row-left {
-  display: inline-flex;
+  align-items: center;
   gap: 8px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--bd);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--field-bg) 92%, transparent);
 }
 
-.colab-explorer__folder-icon {
+.ce2-bc__root{
+  color: var(--muted);
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.ce2-bc__sep{
+  color: color-mix(in oklab, var(--muted) 65%, transparent);
+  user-select: none;
+}
+
+.ce2-bc__crumb{
+  color: var(--ink);
+  font-weight: 800;
+  opacity: .92;
+  min-width: 0;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ce2-bc__crumb.is-current{
+  opacity: 1;
+  font-weight: 950;
+}
+
+.ce2-kpis{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.ce2-kpi{
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--bd);
+  background: color-mix(in oklab, var(--field-bg) 92%, transparent);
+  color: var(--muted);
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.ce2-head__ctl{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.ce2-actions{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.ce2-filters{
+  display: flex;
+  gap: 12px;
+  align-items: end;
+}
+
+.ce2-field{
+  display: grid;
+  gap: 6px;
+}
+
+.ce2-label{
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.ce2-select{
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid var(--bd);
+  background: var(--field-bg);
+  color: var(--ink);
+  padding: 0 12px;
+  outline: none;
+  font-weight: 800;
+}
+
+.ce2-select:focus{
+  box-shadow: 0 0 0 4px var(--ring);
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--bd));
+}
+
+.ce2-search{
+  width: 340px;
+  max-width: 45vw;
+}
+
+.ce2-search__input{
+  width: 100%;
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid var(--bd);
+  background: var(--field-bg);
+  color: var(--ink);
+  padding: 0 12px;
+  outline: none;
+  font-weight: 800;
+}
+
+.ce2-search__input:focus{
+  box-shadow: 0 0 0 4px var(--ring);
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--bd));
+}
+
+/* Buttons */
+.ce2-btn{
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 14px;
+  border: 1px solid var(--bd);
+  background: var(--field-bg);
+  color: var(--ink);
+  font-weight: 950;
+  cursor: pointer;
+  transition: transform .08s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+.ce2-btn:hover{
+  background: color-mix(in oklab, var(--field-bg) 82%, transparent);
+}
+
+.ce2-btn:active{
+  transform: translateY(1px);
+}
+
+.ce2-btn:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 4px var(--ring);
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--bd));
+}
+
+.ce2-btn--ghost{
+  background: transparent;
+}
+
+.ce2-btn--primary{
+  background: var(--primary);
+  color: var(--primary-ink);
+  border-color: color-mix(in oklab, var(--primary) 60%, var(--bd));
+}
+
+.ce2-btn--primary:hover{
+  background: color-mix(in oklab, var(--primary) 88%, white);
+}
+
+.ce2-btn--danger{
+  background: transparent;
+  color: color-mix(in oklab, #ff4d4d 70%, var(--ink));
+  border-color: color-mix(in oklab, #ff4d4d 45%, var(--bd));
+}
+
+/* =========================
+   Table panel
+========================= */
+.ce2-panel{
+  border-radius: var(--radius-3xl);
+  border: 1px solid var(--bd);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.ce2-table{
+  display: grid;
+}
+
+.ce2-thead{
+  border-bottom: 1px solid var(--bd);
+  background: color-mix(in oklab, var(--surface) 96%, var(--field-bg));
+}
+
+.ce2-tr{
+  display: grid;
+  grid-template-columns: 70px 1fr 140px 110px;
+  align-items: center;
+  min-width: 0;
+}
+
+.ce2-tr--head{
+  padding: 10px 12px;
+}
+
+.ce2-th{
+  color: var(--muted);
+  font-weight: 950;
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.ce2-th--seq{ text-align: right; padding-right: 10px; }
+.ce2-th--date{ text-align: right; }
+.ce2-th--act{ text-align: right; }
+
+.ce2-tbody{
+  display: grid;
+}
+
+.ce2-state{
+  padding: 16px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.ce2-state--error{
+  color: color-mix(in oklab, #ff4d4d 70%, var(--ink));
+}
+
+/* Row button */
+.ce2-rowBtn{
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 12px;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  border-top: 1px solid var(--bd);
+}
+
+.ce2-rowBtn:first-child{
+  border-top: 0;
+}
+
+.ce2-rowBtn:hover{
+  background: color-mix(in oklab, var(--field-bg) 84%, transparent);
+}
+
+.ce2-rowBtn:focus-visible{
+  outline: none;
+  box-shadow: inset 0 0 0 4px var(--ring);
+}
+
+.ce2-td{
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ce2-td--seq{
+  justify-content: flex-end;
+  padding-right: 10px;
+}
+
+.ce2-seq{
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-weight: 950;
+}
+.ce2-seq.is-ghost{ opacity: .35; }
+
+.ce2-td--name{
+  gap: 10px;
+  min-width: 0;
+}
+
+.ce2-ico{
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  border: 1px solid var(--bd);
+  background: color-mix(in oklab, var(--muted) 18%, transparent);
+}
+
+.ce2-name{
+  font-weight: 950;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ce2-pill{
+  flex: none;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--bd);
+  background: color-mix(in oklab, var(--field-bg) 92%, transparent);
+  color: var(--muted);
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.ce2-td--date{
+  justify-content: flex-end;
+}
+
+.ce2-date{
+  color: var(--muted);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Actions: solo al hover (menos ruido visual) */
+.ce2-td--act{
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.ce2-iconBtn{
+  opacity: 0;
+  pointer-events: none;
+  height: 34px;
+  width: 34px;
+  border-radius: 12px;
+  border: 1px solid var(--bd);
+  background: var(--field-bg);
+  color: var(--ink);
+  font-weight: 950;
+  cursor: pointer;
+  transition: opacity .15s ease, transform .08s ease, background .15s ease;
+}
+
+.ce2-rowBtn:hover .ce2-iconBtn{
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ce2-iconBtn:hover{
+  background: color-mix(in oklab, var(--field-bg) 82%, transparent);
+}
+
+.ce2-iconBtn:active{
+  transform: translateY(1px);
+}
+
+.ce2-chev{
+  color: color-mix(in oklab, var(--muted) 70%, transparent);
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* =========================
+   Responsive
+========================= */
+@media (max-width: 1200px){
+  .ce2{
+    grid-template-columns: 280px 1fr;
+  }
+  .ce2-search{
+    width: 280px;
+  }
+  .ce2-tr{
+    grid-template-columns: 60px 1fr 120px 90px;
+  }
+}
+
+@media (max-width: 980px){
+  .ce2{
+    grid-template-columns: 1fr;
+  }
+  .ce2-sb{
+    order: 2;
+  }
+  .ce2-main{
+    order: 1;
+  }
+  .ce2-head__ctl{
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .ce2-filters{
+    justify-content: space-between;
+  }
+  .ce2-search{
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* Base del icono */
+.ce2-ico{
+  position: relative;
+  width: 18px;
+  height: 16px;
+  flex: none;
+}
+
+/* ===== Folder ===== */
+.ce2-ico.is-folder{
+  content:"";
+  position:absolute;
+  left: 2px;
+  top: 1px;
+  width: 9px;
+  height: 6px;
+  border-radius: 3px 3px 2px 2px;
+  background: color-mix(in oklab, var(--primary) 26%, var(--field-bg));
+  border: 1px solid color-mix(in oklab, var(--primary) 45%, var(--bd));
+}
+
+.ce2-ico.is-folder {
   width: 22px;
   height: 16px;
   border-radius: 2px 2px 2px 2px;
@@ -118,7 +545,7 @@
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.18);
 }
 
-.colab-explorer__folder-icon::before {
+.ce2-ico.is-folder::before {
   content: "";
   position: absolute;
   left: 2px;
@@ -129,24 +556,7 @@
   background: #facc15;
 }
 
-.colab-explorer__row-name {
-  font-size: 15px;
-  color: #111827;
-}
-
-.colab-explorer__row-date {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.colab-explorer__empty {
-  margin-top: 16px;
-  font-size: 13px;
-  color: #6b7280;
-}
-
-/* Icono de archivo (hojita) */
-.colab-explorer__file-icon {
+.ce2-ico.is-file{
   width: 18px;
   height: 22px;
   border-radius: 3px;
@@ -157,7 +567,7 @@
 }
 
 /* Esquina doblada */
-.colab-explorer__file-icon::before {
+.ce2-ico.is-file::before{
   content: "";
   position: absolute;
   top: 0;
@@ -169,7 +579,7 @@
 }
 
 /* Rayitas simulando texto */
-.colab-explorer__file-icon::after {
+.ce2-ico.is-file::after {
   content: "";
   position: absolute;
   left: 3px;
@@ -183,318 +593,206 @@
     0 -8px 0 0 #e5e7eb;
 }
 
-/* Panel derecho */
-.colab-explorer__main {
-  padding: 18px 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+
+/* ========= Header limpio, no saturado ========= */
+.ce3-head{
+  border-radius: var(--radius-3xl);
+  border: 1px solid var(--bd);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
 }
 
-/* Toolbar */
-.colab-explorer__toolbar {
-  display: flex;
-  flex-wrap: wrap;            /* para que baje a segunda línea si no cabe */
-  justify-content: space-between;
+/* Top bar */
+.ce3-top{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
   align-items: center;
-  gap: 12px;
 }
 
-/* Breadcrumb */
-.colab-explorer__breadcrumb {
+/* Breadcrumb más discreto (no cápsula gigante) */
+.ce3-bc{
+  min-width: 0;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-  font-size: 13px;
-  color: #374151;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--bd);
+  background: color-mix(in oklab, var(--field-bg) 92%, transparent);
 }
 
-.colab-explorer__breadcrumb-root {
-  font-weight: 600;
-  color: #111827;
-}
-
-.colab-explorer__breadcrumb-sep {
-  color: #9ca3af;
-}
-
-.colab-explorer__breadcrumb-path {
-  color: #6b7280;
-  max-width: 260px;           /* por si el path es largo */
+.ce3-bc__root{
+  color: var(--muted);
+  font-weight: 900;
   white-space: nowrap;
+}
+
+.ce3-bc__sep{
+  color: color-mix(in oklab, var(--muted) 60%, transparent);
+  user-select: none;
+}
+
+.ce3-bc__crumb{
+  color: var(--ink);
+  font-weight: 800;
+  opacity: .9;
+  min-width: 0;
+  max-width: 240px;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-/* Lado derecho (buscador) */
-.colab-explorer__toolbar-right {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex: 1;
-  gap: 10px
-}
-
-/* Lado izquierdo inferior (botón subir nivel) */
-.colab-explorer__toolbar-left {
-  align-items: center;
-  margin-top: 4px;
-  display: inline-flex;
-  gap: 12px;
-  min-width: 0;
-  /* sin margin-top, sin width:100% */
-}
-
-/* Botón subir nivel */
-.colab-explorer__up-btn {
-  border-radius: 999px;
-  border: 1px solid #d1d5db;
-  background: #f9fafb;
-  font-size: 12px;
-  padding: 4px 10px;
-  cursor: pointer;
-  color: #111827;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.colab-explorer__up-btn:hover {
-  background: #f3f4f6;
-}
-
-/* Buscador */
-.colab-explorer__search {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid #000000;
-  border-radius: 2px;
-  padding: 4px 8px;
-  min-width: 220px;
-}
-
-.colab-explorer__search-icon {
-  font-size: 16px;
-  margin-right: 6px;
-}
-
-.colab-explorer__search-input {
-  border: none;
-  outline: none;
-  font-size: 14px;
-  flex: 1;
-}
-
-/* Ajustes responsive */
-@media (max-width: 768px) {
-  .colab-explorer__main {
-    padding: 14px 16px;
-  }
-
-  .colab-explorer__toolbar {
-    align-items: flex-start;
-  }
-
-  .colab-explorer__toolbar-right {
-    justify-content: flex-start;
-  }
-
-  .colab-explorer__search {
-    width: 100%;
-  }
-
-  .colab-explorer__breadcrumb-path {
-    max-width: 180px;
-  }
-}
-
-.colab-explorer__row {
-  width: 100%;
-  border: none;
-  background: transparent;
-  padding: 8px 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between; /* empuja el edit al extremo derecho */
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background 0.12s ease;
-  gap: 8px;
-}
-
-.colab-explorer__row-left {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1; /* ocupa todo el espacio disponible */
-}
-
-/* nombre ocupa el ancho y deja que la fecha se vaya a la derecha del bloque izquierdo */
-.colab-explorer__row-name {
-  font-size: 15px;
-  color: #111827;
-  flex: 1;
-}
-
-/* fecha pegada al borde derecho del bloque izquierdo */
-.colab-explorer__row-date {
-  font-size: 12px;
-  color: #6b7280;
-  margin-left: auto;
-}
-
-.colab-explorer__row-right {
-  margin-left: 12px;
-  display: flex;
-  align-items: center;
-}
-
-/* botón de lápiz */
-.colab-explorer__edit-btn {
-  border: none;
-  background: transparent;
-  padding: 4px;
-  border-radius: 999px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.colab-explorer__edit-btn:hover {
-  background: #e5e7eb;
-}
-
-/* icono de lápiz simple con CSS */
-.colab-explorer__edit-icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  border: 1px solid #9ca3af;
-  position: relative;
-}
-
-.colab-explorer__edit-icon::before {
-  content: "";
-  position: absolute;
-  width: 9px;
-  height: 9px;
-  border-bottom: 2px solid #111827;
-  border-right: 2px solid #111827;
-  transform: rotate(-45deg);
-  bottom: 4px;
-  left: 4px;
-}
-
-/* Contenedor opcional (si quieres alinearlo con label) */
-.select-wrap{
-  display: inline-grid;
-  gap: 6px;
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-}
-
-/* Select base */
-#orden{
-  appearance: none;        /* quita estilo nativo */
-  -webkit-appearance: none;
-  -moz-appearance: none;
-
-  width: 100%;
-  min-width: 0px;
-  max-width: 200px;
-  height: 30px;
-
-  padding: 0px 38px 0px 12px;
-  border: 1px solid rgba(0,0,0,.14);
-  border-radius: 12px;
-
-  background: #fff;
-  color: #111827;
-  font-size: 14px;
-  line-height: 30px;
-
-  cursor: pointer;
-  outline: none;
-
-  transition: border-color .15s ease, box-shadow .15s ease, transform .02s ease;
-}
-
-/* Hover */
-#orden:hover{
-  border-color: rgba(0,0,0,.28);
-}
-
-/* Focus accesible */
-#orden:focus{
-  border-color: rgba(59,130,246,.75);
-  box-shadow: 0 0 0 4px rgba(59,130,246,.18);
-}
-
-/* Disabled */
-#orden:disabled{
-  background: #f3f4f6;
-  color: #6b7280;
-  cursor: not-allowed;
-}
-
-/* Flecha custom con background (sin pseudo-elementos) */
-#orden{
-  background-image:
-    linear-gradient(45deg, transparent 50%, #6b7280 50%),
-    linear-gradient(135deg, #6b7280 50%, transparent 50%);
-  background-position:
-    calc(100% - 18px) 50%,
-    calc(100% - 12px) 50%;
-  background-size: 6px 6px, 6px 6px;
-  background-repeat: no-repeat;
-}
-
-/* Opcional: cuando haces click */
-#orden:active{
-  transform: translateY(1px);
-}
-
-.colab-explorer__counter{
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
-  font-size: 12px;
-  opacity: .85;
   white-space: nowrap;
 }
 
-.colab-explorer__counter-sep{
-  opacity: .6;
+.ce3-bc__crumb.is-current{
+  opacity: 1;
+  font-weight: 950;
 }
 
-.colab-explorer__row-meta{
-  margin-left: 10px;
+/* KPIs pequeños (chip light) */
+.ce3-kpis{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.ce3-kpi{
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--bd);
+  background: color-mix(in oklab, var(--field-bg) 92%, transparent);
+  color: var(--muted);
+  font-weight: 900;
   font-size: 12px;
-  opacity: .75;
 }
 
-.colab-explorer__row-left{
-  display:flex;
-  align-items:center;
-  gap:10px;
+/* Controls bar */
+.ce3-ctl{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
 }
 
-.colab-explorer__name-wrap{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  min-width: 0; /* permite ellipsis si lo usas */
+.ce3-actions{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.colab-explorer__file-seq{
-  width: 32px;              /* columna fija */
-  text-align: left;         /* ✅ no centrado */
-  font-variant-numeric: tabular-nums;
-  opacity: .75;
-  flex: 0 0 32px;           /* no crece, no se centra */
+.ce3-filters{
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
-.colab-explorer__row-name{
-  flex: 1 1 auto;
+/* Botones compactos (menos “caja grande”) */
+.ce3-btn{
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--bd);
+  background: var(--field-bg);
+  color: var(--ink);
+  font-weight: 950;
+  cursor: pointer;
+  transition: transform .08s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+.ce3-btn:hover{ background: color-mix(in oklab, var(--field-bg) 84%, transparent); }
+.ce3-btn:active{ transform: translateY(1px); }
+.ce3-btn:focus-visible{ outline: none; box-shadow: 0 0 0 4px var(--ring); }
+
+.ce3-btn--ghost{ background: transparent; }
+
+.ce3-btn--primary{
+  background: var(--primary);
+  color: var(--primary-ink);
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--bd));
+}
+
+/* Inputs compactos */
+.ce3-select{
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid var(--bd);
+  background: var(--field-bg);
+  color: var(--ink);
+  padding: 0 10px;
+  font-weight: 900;
+  outline: none;
+}
+
+.ce3-select:focus{ box-shadow: 0 0 0 4px var(--ring); border-color: color-mix(in oklab, var(--primary) 55%, var(--bd)); }
+
+.ce3-search{
+  width: 340px;
+  max-width: 46vw;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid var(--bd);
+  background: var(--field-bg);
+  color: var(--ink);
+  padding: 0 12px;
+  font-weight: 800;
+  outline: none;
+}
+
+.ce3-search:focus{ box-shadow: 0 0 0 4px var(--ring); border-color: color-mix(in oklab, var(--primary) 55%, var(--bd)); }
+
+/* Menú “Más” nativo, sin librerías */
+.ce3-more{ position: relative; }
+.ce3-more__sum{ list-style: none; }
+.ce3-more__sum::-webkit-details-marker{ display:none; }
+
+.ce3-more[open] .ce3-more__sum{
+  box-shadow: 0 0 0 4px var(--ring);
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--bd));
+}
+
+.ce3-more__menu{
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 220px;
+  background: var(--surface-elev);
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  z-index: 20;
+  display: grid;
+  gap: 6px;
+}
+
+.ce3-menuItem{
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid var(--bd);
+  background: var(--field-bg);
+  color: var(--ink);
+  font-weight: 700;
+  text-align: left;
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+.ce3-menuItem:hover{
+  background: color-mix(in oklab, var(--field-bg) 80%, transparent);
+}
+
+.ce3-menuItem--danger{
+  border-color: color-mix(in oklab, #ff4d4d 45%, var(--bd));
+  color: color-mix(in oklab, #ff4d4d 70%, var(--ink));
+}
+
+/* Responsive */
+@media (max-width: 980px){
+  .ce3-top{ grid-template-columns: 1fr; }
+  .ce3-ctl{ grid-template-columns: 1fr; }
+  .ce3-search{ width: 100%; max-width: none; }
 }

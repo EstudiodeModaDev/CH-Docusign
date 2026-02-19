@@ -38,7 +38,7 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormContratacion({onClose, selectedNovedad, tipo}: Props){
-  const { Maestro, DeptosYMunicipios, Contratos, DetallesPasosNovedades, categorias, NovedadCancelada, configuraciones} = useGraphServices();
+  const { Maestro, DeptosYMunicipios, Contratos, DetallesPasosNovedades, categorias, configuraciones} = useGraphServices();
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
   const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
   const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
@@ -212,7 +212,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
 
     const lower = (v: any) => (v ?? "").toString().toLocaleLowerCase();
 
-    const { state, setField, errors, handleEdit, handleCancelProcessbyId } = useContratos(Contratos, NovedadCancelada);
+    const { state, setField, errors, handleEdit, handleCancelProcessbyId } = useContratos(Contratos,);
 
     const selectedEmpresa = empresaOptions.find((o) => o.label.toLocaleLowerCase() === state.Empresa_x0020_que_x0020_solicita.toLocaleLowerCase()) ?? null;
     const selectedTipoDocumento = tipoDocOptions.find((o) => o.label === state.tipodoc.trim()) ?? null; 

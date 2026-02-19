@@ -147,7 +147,8 @@ export class ContratosService {
         Programa: f.Programa,
         Estado: f.Estado,
         LugarExpedicion: f.LugarExpedicion,
-        RazonCancelacion: f.RazonCancelacion
+        RazonCancelacion: f.RazonCancelacion,
+        CanceladoPor: f.CanceladoPor
     };
   }
 

@@ -7,7 +7,6 @@ import { toISODateFlex } from "../../../../utils/Date";
 import { formatPesosEsCO } from "../../../../utils/Number";
 import ViewContracts from "../Modals/Contrato/viewEditContrato";
 import { useEnvios } from "../../../../Funcionalidades/GD/Envios";
-import { useContratosCancelados } from "../../../../Funcionalidades/GD/Contratos";
 
 function renderSortIndicator(
   field: SortField,
@@ -62,10 +61,10 @@ export type PropsPagination = {
 };
 
 export default function TablaContratos({rows, loading: loadingContratos, error, pageSize: pageSizeContratos, pageIndex: pageIndexContratos, hasNext: hasNextContratos, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageContratos, reloadAll: reloadAllContratos, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
-  const { Envios, DetallesPasosNovedades, NovedadCancelada } = useGraphServices();
+  const { Envios, DetallesPasosNovedades, } = useGraphServices();
   const { canEdit } = useEnvios(Envios);
 
-  const {rows: rowsCanceladas, reloadAll: reloadAllCancelados, loading: loadingCancelados,  pageSize: pageSizeCancelados, pageIndex: pageIndexCancelados, hasNext: hasNextCancelados, nextPage: nextPageCancelados, } = useContratosCancelados(NovedadCancelada);   const [visible, setVisible] = React.useState(false);
+  const [visible, setVisible] = React.useState(false);
   const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Novedad | null>(null);
   const [tipoFormulario, setTipoFormulario] = React.useState<string>("");
   const [pctById, setPctById] = React.useState<Record<string, number>>({});
@@ -111,17 +110,15 @@ export default function TablaContratos({rows, loading: loadingContratos, error, 
   );
 
   const isCanceladas = estado === "cancelado";
-  const activeRows: any[] = isCanceladas ? (rowsCanceladas ?? []) : (rows ?? []);
-  const activeLoading = isCanceladas ? loadingCancelados : loadingContratos;
 
   React.useEffect(() => {
-    for (const c of activeRows) {
+    for (const c of rows) {
       const id = String(c?.Id ?? "");
       if (!id) continue;
       if (pctById[id] !== undefined) continue;
       fetchPctForNovedad(id);
     }
-  }, [activeRows, pctById, fetchPctForNovedad]);
+  }, [rows, pctById, fetchPctForNovedad]);
 
   const onRowKeyDown = (e: React.KeyboardEvent<HTMLTableRowElement>, n: Novedad) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -220,23 +217,35 @@ export default function TablaContratos({rows, loading: loadingContratos, error, 
       <table>
         <thead>
           <tr>
-            <th style={{ whiteSpace: "nowrap" }}>Cedula</th>
-            <th style={{ whiteSpace: "nowrap" }}>Nombre</th>
-            <th style={{ whiteSpace: "nowrap" }}>Fecha cancelación</th>
-            <th>Motivo cancelación</th>
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort("Cedula", (e as any).shiftKey)} style={{ cursor: "pointer", whiteSpace: "nowrap" }}>
+              Cedula {renderSortIndicator("Cedula", sorts)}
+            </th>
+
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort("Nombre", (e as any).shiftKey)} style={{ cursor: "pointer", whiteSpace: "nowrap" }}>
+              Nombre {renderSortIndicator("Nombre", sorts)}
+            </th>
+
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort("Salario", (e as any).shiftKey)} style={{ cursor: "pointer", whiteSpace: "nowrap" }}>
+              Salario {renderSortIndicator("Salario", sorts)}
+            </th>
+
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort("inicio", (e as any).shiftKey)} style={{ cursor: "pointer", whiteSpace: "nowrap" }}>
+              Fecha de inicio {renderSortIndicator("inicio", sorts)}
+            </th>
+
             <th>Cancelado por</th>
             <th style={{ textAlign: "center" }}>%</th>
           </tr>
         </thead>
 
         <tbody>
-          {(rowsCanceladas ?? []).map((n: any) => (
-            <tr key={n.Id} tabIndex={0}>
-              <td>{n.Numeroidentificacion}</td>
-              <td><span title={n.Nombre}>{n.Nombre}</span></td>
-              <td>{toISODateFlex(n.Created) || "–"}</td>
-              <td><span title={n.RazonCancelacion}>{n.RazonCancelacion || "–"}</span></td>
-              <td><span title={n.Procesocanceladopor}>{n.Procesocanceladopor || "–"}</span></td>
+          {rows.map((n) => (
+            <tr key={n.Id} tabIndex={0} onClick={() => openRow(n)} onKeyDown={(e) => onRowKeyDown(e, n)}>
+              <td>{n.Numero_x0020_identificaci_x00f3_}</td>
+              <td><span title={n.NombreSeleccionado}>{n.NombreSeleccionado}</span></td>
+              <td><span title={n.SALARIO}>{formatPesosEsCO(n.SALARIO)}</span></td>
+              <td>{toISODateFlex(n.FECHA_x0020_REQUERIDA_x0020_PARA0) || "–"}</td>
+              <td><span title={n.Informaci_x00f3_n_x0020_enviada_}>{n.Informaci_x00f3_n_x0020_enviada_}</span></td>
               <td style={{ textAlign: "center" }}>
                 {(() => {
                   const id = String(n.Id ?? "");
@@ -249,7 +258,15 @@ export default function TablaContratos({rows, loading: loadingContratos, error, 
         </tbody>
       </table>
 
-      <Paginacion reloadAll={reloadAllCancelados} nextPage={nextPageCancelados} pageIndex={pageIndexCancelados} hasNext={hasNextCancelados} loading={loadingCancelados} pageSize={pageSizeCancelados} totalRows={(rowsCanceladas ?? []).length}/>
+      <Paginacion
+        reloadAll={reloadAllContratos}
+        nextPage={nextPageContratos}
+        pageIndex={pageIndexContratos}
+        hasNext={hasNextContratos}
+        loading={loadingContratos}
+        pageSize={pageSizeContratos}
+        totalRows={rows.length}
+      />
     </>
   );
 
@@ -271,9 +288,9 @@ export default function TablaContratos({rows, loading: loadingContratos, error, 
         </div>
       </div>
 
-      {activeLoading && <p>Cargando registros...</p>}
+      {loadingContratos && <p>Cargando registros...</p>}
       {error && <p style={{ color: "#b91c1c" }}>{error}</p>}
-      {!activeLoading && !error && activeRows.length === 0 && (
+      {!loadingContratos && !error && rows.length === 0 && (
         <p>No hay registros para los filtros seleccionados.</p>
       )}
 

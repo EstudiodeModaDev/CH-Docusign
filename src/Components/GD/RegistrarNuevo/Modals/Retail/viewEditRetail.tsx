@@ -221,7 +221,7 @@ export default function EditRetail({onClose, selectedRetail, tipo}: Props){
     setConectividadTexto(nextTexto);
 
     console.log(conectividad, conectividadTexto)
-  }, [state.Salario, state.Cargo, state.Auxiliodetransporte, state.Auxiliotransporteletras, setField,]);
+  }, [state.Salario, state.Cargo,]);
 
   React.useEffect(() => {
     const nextPromedio = (Number(state.Autonomia || 0) * 0.2) + (Number(state.Impacto || 0) * 0.2) + (Number(state.Contribucion || 0) * 0.3) + (Number(state.Presupuesto || 0) * 0.3);

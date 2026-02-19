@@ -151,7 +151,7 @@ export default function ViewPromociones({ onClose, selectedPromocion, tipo }: Pr
     setConectividadTexto(nextTexto);
 
     console.log(conectividad, conectividadTexto)
-  }, [state.Salario, state.Cargo, state.AuxilioValor, state.AuxilioValor, setField,]);
+  }, [state.Salario, state.Cargo, ]);
 
   React.useEffect(() => {
     if (!touchedPct) return; 

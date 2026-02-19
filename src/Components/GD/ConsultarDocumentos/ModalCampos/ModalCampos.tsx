@@ -76,7 +76,7 @@ export const PreviewEnvioModal: React.FC<PreviewEnvioModalProps> = ({open, onClo
             } finally {
             setLoading(false);
         }
-    }, [envelopeId]);
+    }, [envelopeId, destinatarios]);
 
     React.useEffect(() => {-
         loadTemplates()

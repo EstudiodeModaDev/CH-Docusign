@@ -7,7 +7,7 @@ import {useCargo, useCentroCostos, useCentroOperativo, useDeptosMunicipios, useE
 import { useAuth } from "../../../../../auth/authProvider";
 import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones";
 import { useDependencias } from "../../../../../Funcionalidades/Dependencias";
-import { formatPesosEsCO, numeroATexto,  } from "../../../../../utils/Number";
+import { formatPesosEsCO, numeroATexto, toNumberFromEsCO,  } from "../../../../../utils/Number";
 import { useSalarios } from "../../../../../Funcionalidades/GD/Salario";
 import type { Cesacion, DetallesPasos } from "../../../../../models/Cesaciones";
 import { toISODateFlex } from "../../../../../utils/Date";
@@ -205,7 +205,7 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
       nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();
     } else if (valor > dosSalarios || cargo.includes("aprendiz") || cargo.includes("practicante")) {
       nextValor = 46150;
-      nextTexto = "Cuarenta y seis mil ciento noventa pesos";
+      nextTexto = "CUARENTA Y SEIS MIL CIENTO NOVENTA PESOS";
     }
 
     // Solo actualiza si cambia (evita loops)
@@ -456,13 +456,29 @@ export default function EditCesacion({onClose, selectedCesacion, tipo}: Props){
           {/* Salario */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="abreviacionDoc"> Salario *</label>
-            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" disabled={isView} value={displaySalario} onChange={(e) => setField("Salario", e.target.value)}/>
+            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" disabled={isView} value={displaySalario} onChange={(e) => {
+                                                                                                                                                                            const raw = e.target.value;
+            
+                                                                                                                                                                            if (raw === "") {
+                                                                                                                                                                              setDisplaySalario("");
+                                                                                                                                                                              setField("Salario", "" as any);
+                                                                                                                                                                              setField("SalarioTexto", "");
+                                                                                                                                                                              return;
+                                                                                                                                                                            }
+            
+                                                                                                                                                                            const numeric = toNumberFromEsCO(raw);
+                                                                                                                                                                            const formatted = formatPesosEsCO(String(numeric));
+            
+                                                                                                                                                                            setDisplaySalario(formatted);
+                                                                                                                                                                            setField("Salario", numeric as any);
+                                                                                                                                                                            setField("SalarioTexto", numeroATexto(numeric).toUpperCase());
+                                                                                                                                                                          }}/>
           </div>
 
           {/* Salario */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="abreviacionDoc"> Salario en letras *</label>
-            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={numeroATexto(Number(state.Salario))} readOnly/>
+            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={numeroATexto(Number(state.Salario)).toUpperCase()} readOnly/>
           </div>
 
           {/* Auxilio de conectividad */}

@@ -91,7 +91,7 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
   const [nextLink, setNextLink] = React.useState<string | null>(null);
   const [sorts, setSorts] = React.useState<Array<{field: SortField; dir: SortDir}>>([{ field: 'id', dir: 'desc' }]);
   const [search, setSearch] = React.useState<string>("");
-  const [estado, setEstado] = React.useState<string>("proceso");
+  const [estado, setEstado] = React.useState<string>("todos");
   const {account} = useAuth()
   const [state, setState] = React.useState<Novedad>(
     {
@@ -169,7 +169,8 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
     Universidad: "",
     Aprendiz: false,
     Programa: "",
-    Estado: "En proceso"
+    Estado: "En proceso",
+    RazonCancelacion: ""
   });
   const [errors, setErrors] = React.useState<NovedadErrors>({});
   const setField = React.useCallback(<K extends keyof Novedad>(k: K, v: Novedad[K]) => { setState((s) => ({ ...s, [k]: v }));},
@@ -181,7 +182,8 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
     const filters: string[] = [];
 
     if (estado === "proceso") filters.push(`fields/Estado eq 'En proceso'`);
-    if (estado === "finalizado") filters.push(`fields/Estado eq 'Completado'`);
+    if (estado === "finalizado") filters.push(`fields/Estado eq 'Finalizado'`);
+    if (estado === "cancelado") filters.push(`fields/Estado eq 'Cancelado'`);
 
     if (range.from && range.to && range.from <= range.to) {
       filters.push(`fields/FECHA_x0020_REQUERIDA_x0020_PARA0 ge '${range.from}T00:00:00Z'`);
@@ -431,7 +433,8 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
       Aprendiz: false,
       Programa: "",
       Estado: "En proceso",
-      LugarExpedicion: ""
+      LugarExpedicion: "",
+      RazonCancelacion: ""
     })
   };
 
@@ -522,7 +525,8 @@ export function useContratos(ContratosSvc: ContratosService, novedadCanceladaSvc
         Aprendiz: state.Aprendiz,
         Programa: state.Programa,
         Estado: state.Estado,
-        LugarExpedicion: state.LugarExpedicion
+        LugarExpedicion: state.LugarExpedicion,
+        RazonCancelacion: state.RazonCancelacion
       }; 
       const created = await ContratosSvc.create(payload);
       alert("Se ha creado el registro con éxito")

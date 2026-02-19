@@ -146,7 +146,8 @@ export class ContratosService {
         Aprendiz: f.Aprendiz,
         Programa: f.Programa,
         Estado: f.Estado,
-        LugarExpedicion: f.LugarExpedicion
+        LugarExpedicion: f.LugarExpedicion,
+        RazonCancelacion: f.RazonCancelacion
     };
   }
 

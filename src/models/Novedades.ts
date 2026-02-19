@@ -75,6 +75,7 @@ export type Novedad = {
     Programa: string;
     Estado: string;
     LugarExpedicion: string;
+    RazonCancelacion: string;
 }
 
 export type NovedadCancelada = {

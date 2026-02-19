@@ -282,10 +282,10 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
       nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();;
     } else if (valor > dosSalarios || cargo.includes("aprendiz") || cargo.includes("practicante")) {
       nextValor = 46150;
-      nextTexto = "Cuarenta y seis mil ciento noventa pesos";
+      nextTexto = "CUARENTA Y SEIS MIL CIENTO NOVENTA PESOS";
     } else if(valor > dosSalarios || state.CARGO.toLocaleLowerCase().includes("aprendiz") || state.CARGO.toLocaleLowerCase().includes("practicante")){
       setConectividad(46150)
-      setConectividadTexto("Cuarenta y seis mil ciento noventa pesos")
+      setConectividadTexto("CUARENTA Y SEIS MIL CIENTO NOVENTA PESOS")
     }
  
     // Solo actualiza si cambia (evita loops)
@@ -315,7 +315,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
 
     setValorGarantizado(valor);
     setField("VALOR_x0020_GARANTIZADO", String(valor));
-    setField("Garantizado_x0020_en_x0020_letra", valor > 0 ? numeroATexto(valor) : "");
+    setField("Garantizado_x0020_en_x0020_letra", valor > 0 ? numeroATexto(valor).toUpperCase() : "");
   }, [touchedPct, porcentajeValor, state.SALARIO]);
 
   React.useEffect(() => {
@@ -354,7 +354,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
     setField("PROMEDIO_x0020_", String(promedio));
     setField("GRUPO_x0020_CVE_x0020_", grupoCVE)
 
-  }, [state]);
+  }, [state.AUTONOM_x00cd_A_x0020_, state.IMPACTO_x0020_CLIENTE_x0020_EXTE, state.PRESUPUESTO_x0020_VENTAS_x002f_M, state.PRESUPUESTO_x0020_VENTAS_x002f_M]);
 
   React.useEffect(() => {
     (async () => {
@@ -745,7 +745,7 @@ export default function FormContratacion({onClose, selectedNovedad, tipo}: Props
 
                   setDisplaySalario(formatted);
                   setField("SALARIO", numeric as any);
-                  setField("salariotexto", numeroATexto(numeric));
+                  setField("salariotexto", numeroATexto(numeric).toUpperCase());
                 }}
               />
               <small>{errors.SALARIO}</small>

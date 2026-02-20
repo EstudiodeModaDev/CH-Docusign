@@ -27,3 +27,15 @@ export function parseEmails(raw: string): string[] {
     .map((s) => s.trim())
     .filter(Boolean);
 }
+
+export const emailsArray = (emailsStr: string): string[] =>
+  emailsStr
+    .split(";")
+    .map(s => s.trim())
+    .filter(Boolean);
+
+export function isEmail(v: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+}
+
+export const safeLower = (v: unknown) => String(v ?? "").toLocaleLowerCase().trim();

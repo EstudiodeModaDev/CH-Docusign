@@ -1,12 +1,14 @@
 import * as React from "react";
 import "./Contratos.css";
 import type { DateRange, SortDir, SortField } from "../../../../models/Commons";
-import type { Novedad } from "../../../../models/Novedades";
+import type { Novedad, NovedadErrors } from "../../../../models/Novedades";
 import { useGraphServices } from "../../../../graph/graphContext";
 import { toISODateFlex } from "../../../../utils/Date";
 import { formatPesosEsCO } from "../../../../utils/Number";
-import ViewContracts from "../Modals/Contrato/viewEditContrato";
 import { useEnvios } from "../../../../Funcionalidades/GD/Envios";
+import type { desplegablesOption } from "../../../../models/Desplegables";
+import type { SetField } from "../Modals/Contrato/addContrato";
+import FormContratacion from "../Modals/Contrato/addContrato";
 
 function renderSortIndicator(
   field: SortField,
@@ -44,10 +46,51 @@ export type Props = {
 
   setSearch: React.Dispatch<React.SetStateAction<string>>;
   search: string;
-  loadFirstPage: () => void;
+  loadFirstPage: () => Promise<void>;
 
   setEstado: React.Dispatch<React.SetStateAction<string>>;
   estado: string;
+
+  state: Novedad
+  setField: SetField<Novedad>;
+  handleSubmit: () => Promise<{ok: boolean; created: string | null;}>;
+  handleEdit: (e: React.FormEvent, NovedadSeleccionada: Novedad) => void;
+  errors: NovedadErrors
+  searchRegister: (cedula: string) => Promise<Novedad | null>
+  setState: (n: Novedad) => void
+  handleCancelProcessbyId: (id: string, r: string) => void
+
+  //Desplegables
+  empresaOptions: desplegablesOption[]
+  loadingEmp: boolean
+  tipoDocOptions: desplegablesOption[], 
+  loadingTipo: boolean
+  cargoOptions: desplegablesOption[], 
+  loadingCargo: boolean, 
+  modalidadOptions: desplegablesOption[], 
+  loadingModalidad: boolean,
+  especificidadOptions: desplegablesOption[], 
+  loadingEspecificdad: boolean, 
+  etapasOptions: desplegablesOption[], 
+  loadingEtapas: boolean, 
+  nivelCargoOptions: desplegablesOption[], 
+  loadinNivelCargo: boolean, 
+  CentroCostosOptions: desplegablesOption[]
+  loadingCC: boolean
+  COOptions: desplegablesOption[]
+  loadingCO: boolean, 
+  UNOptions: desplegablesOption[]
+  loadingUN: boolean,
+  origenOptions: desplegablesOption[], 
+  loadingOrigen: boolean
+  tipoContratoOptions: desplegablesOption[], 
+  loadingTipoContrato: boolean, 
+  tipoVacanteOptions: desplegablesOption[], 
+  loadingTipoVacante: boolean, 
+  deptoOptions: desplegablesOption[], 
+  loadingDepto: boolean, 
+  dependenciaOptions: desplegablesOption[], 
+  loadingDependencias: boolean
 };
 
 export type PropsPagination = {
@@ -60,13 +103,13 @@ export type PropsPagination = {
   totalRows: number;
 };
 
-export default function TablaContratos({rows, loading: loadingContratos, error, pageSize: pageSizeContratos, pageIndex: pageIndexContratos, hasNext: hasNextContratos, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageContratos, reloadAll: reloadAllContratos, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
+export default function TablaContratos({tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias,CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, origenOptions, loadingOrigen, tipoContratoOptions, loadingTipoContrato, errors, searchRegister, setState, loadingModalidad, especificidadOptions, loadingEspecificdad, etapasOptions, loadingEtapas, nivelCargoOptions, loadinNivelCargo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, state, setField, handleSubmit, handleCancelProcessbyId, handleEdit,  rows, loading: loadingContratos, error, pageSize: pageSizeContratos, pageIndex: pageIndexContratos, hasNext: hasNextContratos, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageContratos, reloadAll: reloadAllContratos, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
   const { Envios, DetallesPasosNovedades, } = useGraphServices();
   const { canEdit } = useEnvios(Envios);
 
   const [visible, setVisible] = React.useState(false);
   const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Novedad | null>(null);
-  const [tipoFormulario, setTipoFormulario] = React.useState<string>("");
+  const [tipoFormulario, setTipoFormulario] = React.useState<"new" | "edit" | "view">("view");
   const [pctById, setPctById] = React.useState<Record<string, number>>({});
 
   const openRow = React.useCallback(
@@ -299,11 +342,50 @@ export default function TablaContratos({rows, loading: loadingContratos, error, 
       </div>
 
       {visible && novedadSeleccionada ? (
-        <ViewContracts
-          selectedNovedad={novedadSeleccionada}
-          tipo={tipoFormulario}
+        <FormContratacion 
+          state={state}
+          setField={setField}
           onClose={onClose}
-        />
+          handleSubmit={() => handleSubmit()}
+          errors={errors}
+          searchRegister={(cedula: string) => searchRegister(cedula)}
+          loadFirstPage={loadFirstPage}
+          empresaOptions={empresaOptions}
+          loadingEmp={loadingEmp}
+          tipoDocOptions={tipoDocOptions}
+          loadingTipo={loadingTipo}
+          cargoOptions={cargoOptions}
+          loadingCargo={loadingCargo}
+          modalidadOptions={modalidadOptions}
+          loadingModalidad={loadingModalidad}
+          especificidadOptions={especificidadOptions}
+          loadingEspecificdad={loadingEspecificdad}
+          etapasOptions={etapasOptions}
+          loadingEtapas={loadingEtapas}
+          nivelCargoOptions={nivelCargoOptions}
+          loadinNivelCargo={loadinNivelCargo}
+          CentroCostosOptions={CentroCostosOptions}
+          loadingCC={loadingCC}
+          COOptions={COOptions}
+          loadingCO={loadingCO}
+          UNOptions={UNOptions}
+          loadingUN={loadingUN}
+          origenOptions={origenOptions}
+          loadingOrigen={loadingOrigen}
+          tipoContratoOptions={tipoContratoOptions}
+          loadingTipoContrato={loadingTipoContrato}
+          tipoVacanteOptions={tipoVacanteOptions}
+          loadingTipoVacante={loadingTipoVacante}
+          deptoOptions={deptoOptions}
+          loadingDepto={loadingDepto}
+          dependenciaOptions={dependenciaOptions}
+          loadingDependencias={loadingDependencias}
+          handleEdit={handleEdit}
+          tipo={tipoFormulario}
+          setState={setState}
+          selectedNovedad={novedadSeleccionada}
+          handleCancelProcessbyId={handleCancelProcessbyId} 
+          title={"Editar contratación de: " + novedadSeleccionada.NombreSeleccionado}/>
       ) : null}
     </div>
   );

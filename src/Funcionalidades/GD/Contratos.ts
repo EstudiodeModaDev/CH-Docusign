@@ -691,7 +691,6 @@ export function useContratos(ContratosSvc: ContratosService,) {
 
       if(proceso){
         await ContratosSvc.update(Id, {CanceladoPor: account?.name, Estado: "Cancelado", RazonCancelacion})
-        await ContratosSvc.delete(proceso.Id ?? "")
         alert("Se ha cancelado este proceso con éxito")
       }
     } catch {
@@ -712,7 +711,7 @@ export function useContratos(ContratosSvc: ContratosService,) {
 
   return {
     rows, loading, error, pageSize, pageIndex, hasNext, range, search, errors, sorts, state, workers, workersOptions, estado,
-    handleCancelProcessbyId, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, searchRegister, setEstado
+    handleCancelProcessbyId, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, setState, handleSubmit, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, searchRegister, setEstado
   };
 }
 

@@ -1,6 +1,6 @@
 import React from "react";
 import type { DateRange, GetAllOpts, rsOption, SortDir, SortField, } from "../../models/Commons";
-import { toGraphDateTime, toISODateFlex, toISODateTimeFlex } from "../../utils/Date";
+import { normalize, normalizeDate, toGraphDateTime, toISODateFlex, toISODateTimeFlex } from "../../utils/Date";
 import type { CesacionesService } from "../../Services/Cesaciones.service";
 import type { Cesacion, CesacionErrors } from "../../models/Cesaciones";
 import { useAuth } from "../../auth/authProvider";
@@ -409,10 +409,6 @@ export function useCesaciones(CesacionesSvc: CesacionesService,) {
         setLoading(false);
       }
   };
-
-  const normalize = (v: any) => (v === "" ? null : v);
-
-  const normalizeDate = (v: any) => toISODateFlex(v) ?? null;
 
   const fields: (keyof Cesacion)[] = [
     "Title", "Nombre", "Cargo", "Temporal", "Tienda", "Celular", "Correoelectronico", "Jefedezona", "Reportadopor", "Empresaalaquepertenece", "TipoDoc", "Departamento", "Ciudad", 

@@ -1,6 +1,6 @@
 import React from "react";
 import type { DateRange, GetAllOpts, rsOption, SortDir, SortField, } from "../../models/Commons";
-import { toGraphDateTime, toISODateFlex } from "../../utils/Date";
+import { normalize, toGraphDateTime, toISODateFlex } from "../../utils/Date";
 import type { HabeasDataService } from "../../Services/HabeasData.service";
 import type { HabeasData, HabeasErrors } from "../../models/HabeasData";
 import { useAuth } from "../../auth/authProvider";
@@ -256,6 +256,7 @@ export function useHabeasData(HabeasDataSvc: HabeasDataService) {
         Empresa: state.Empresa
       };
       await HabeasDataSvc.create(payload);
+      cleanState()
       alert("Se ha creado el registro con éxito");
       loadFirstPage()
     } finally {
@@ -263,27 +264,43 @@ export function useHabeasData(HabeasDataSvc: HabeasDataService) {
       }
   };
 
-  const handleEdit = async (NovedadSeleccionada: HabeasData) => {
-    if (!validate()) { return};
+  const fields: (keyof HabeasData)[] = [
+    "Title", "Tipodoc", "AbreviacionTipoDoc", "Ciudad", "NumeroDocumento", "Correo", "Empresa",];
+
+  const buildPatch = (original: HabeasData, next: HabeasData) => {
+    const patch: Record<string, any> = {};
+
+    for (const k of fields) {
+      const a = normalize(original[k]);
+      const b = normalize(next[k]);
+      if (a !== b) patch[k] = b;
+    }
+
+    return patch;
+  };
+
+  const handleEdit = async (e: React.FormEvent, CesacionSeleccionada: HabeasData) => {
+    e.preventDefault();
+    if (!validate()) return;
+    if (!CesacionSeleccionada.Id) { alert("Registro sin Id"); return; }
+
     setLoading(true);
-    try {  
-      const payload: HabeasData = {
-        AbreviacionTipoDoc: NovedadSeleccionada.AbreviacionTipoDoc !== state.AbreviacionTipoDoc ? state.AbreviacionTipoDoc : NovedadSeleccionada.AbreviacionTipoDoc,
-        Ciudad: NovedadSeleccionada.Ciudad !== state.Ciudad ? state.Ciudad : NovedadSeleccionada.Ciudad,
-        Correo: NovedadSeleccionada.Correo !== state.Correo ? state.Correo : NovedadSeleccionada.Correo,
-        NumeroDocumento: NovedadSeleccionada.NumeroDocumento !== state.NumeroDocumento ? state.NumeroDocumento : NovedadSeleccionada.NumeroDocumento,
-        Tipodoc: NovedadSeleccionada.Tipodoc !== state.Tipodoc ? state.Tipodoc : NovedadSeleccionada.Tipodoc,
-        Title: NovedadSeleccionada.Title !== state.Title ? state.Title : NovedadSeleccionada.Title,
-        Fechaenlaquesereporta: state.Fechaenlaquesereporta,
-        Informacionreportadapor: state.Informacionreportadapor,
-        Empresa: state.Empresa
-      };
-      await HabeasDataSvc.update(NovedadSeleccionada.Id!, payload);
-      alert("Se ha actualizado el registro con éxito");
-      loadFirstPage()
-    } finally {
-        setLoading(false);
+    try {
+      const payload = buildPatch(CesacionSeleccionada, state);
+
+      // opcional: si no hay cambios, no pegues al servidor
+      if (Object.keys(payload).length === 0) {
+        alert("No hay cambios para guardar");
+        return;
       }
+
+      await HabeasDataSvc.update(CesacionSeleccionada.Id, payload);
+      alert("Se ha actualizado el registro con éxito");
+    } catch {
+      alert("Ha ocurrido un error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const searchWorker = async (query: string): Promise<HabeasData[]> => {
@@ -372,7 +389,7 @@ export function useHabeasData(HabeasDataSvc: HabeasDataService) {
 
   return {
     rows, loading, error, pageSize, pageIndex, hasNext, range, search, sorts, state, errors, workers, workersOptions,
-    nextPage, applyRange, reloadAll, searchRegister, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage
+    setState, nextPage, applyRange, reloadAll, searchRegister, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage
   };
 }
 

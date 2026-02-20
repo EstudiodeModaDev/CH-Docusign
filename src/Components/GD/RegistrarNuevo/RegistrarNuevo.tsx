@@ -21,7 +21,7 @@ import { useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, u
 export default function RegistrarNuevoPage() {
   const { Contratos, HabeasData, Cesaciones,Promociones, Retail, Maestro, DeptosYMunicipios} = useGraphServices();
   const { handleReactivateProcessById, handleCancelProcessbyId, setState, rows, loading, error, state, pageSize, handleSubmit, pageIndex, hasNext, sorts, setField, setEstado, estado, setRange, setPageSize, nextPage, reloadAll,  toggleSort, range, setSearch, search, loadFirstPage, errors, searchRegister, handleEdit} = useContratos(Contratos,);
-  const {rows: rowsHabeas, loading: loadingHabeas, error: errorHabeas, pageSize: pageSizeHabeas, pageIndex: pageIndexHabeas, state: stateHabeas, hasNext: hasNextHabeas, sorts: sortsHabeas, setRange: setRangeHabeas, setPageSize: setPageSizeHabeas, handleSubmit: handleSubmitHabeas, setField: setFieldHabeas, errors: errorsHabeas, loadFirstPage: loadFirstPageHabeas, cleanState, nextPage: nextPageHabeas, reloadAll: reloadAllHabeas, toggleSort: toggleSortHabeas, range: rangeHabeas, setSearch: setSearchHabeas, search: searchHabeas} = useHabeasData(HabeasData)
+  const { setState: setStateHabeas, handleEdit: editHabeas, rows: rowsHabeas, loading: loadingHabeas, error: errorHabeas, pageSize: pageSizeHabeas, pageIndex: pageIndexHabeas, state: stateHabeas, hasNext: hasNextHabeas, sorts: sortsHabeas, setRange: setRangeHabeas, setPageSize: setPageSizeHabeas, handleSubmit: handleSubmitHabeas, setField: setFieldHabeas, errors: errorsHabeas, loadFirstPage: loadFirstPageHabeas, nextPage: nextPageHabeas, reloadAll: reloadAllHabeas, toggleSort: toggleSortHabeas, range: rangeHabeas, setSearch: setSearchHabeas, search: searchHabeas} = useHabeasData(HabeasData)
   const {handleReactivateProcessById: reactivateCesacion,loading: loadingCesacion, setState: setCesacionState, handleEdit: handleEditCesaciones, rows: rowsCesaciones, loading: loadingCesaciones, error: errorCesaciones, pageSize: pageSizeCesaciones, pageIndex: pageIndexCesaciones, state: stateCesaciones, hasNext: hasNextCesaciones, sorts: sortsCesaciones, setRange: setRangeCesaciones, setPageSize: setPageSizeCesaciones, handleSubmit: handleSubmitCesaciones, setField: setFieldsCesaciones, errors: errorsCesaciones, loadFirstPage: loadFirstPageCesaciones, nextPage: nextPageCesaciones, reloadAll: reloadAllCesaciones, toggleSort: toggleSortCesaciones, range: rangeCesaciones, setSearch: setSearchCesaciones, search: searchCesaciones, estado: estadoCesaciones, setEstado: setEstadoCesaciones, searchRegister: searchCesacion, handleCancelProcessbyId: cancelCesacion} = useCesaciones(Cesaciones)
   const {rows: rowsPromociones, loading: loadingPromociones, error: errorPromociones, pageSize: pageSizePromociones, pageIndex: pageIndexPromociones, state: statePromociones, hasNext: hasNextPromociones, sorts: sortsPromociones, setRange: setRangePromociones, setPageSize: setPageSizePromociones, handleSubmit: handleSumbitPromociones, setField: setFieldsPromociones, errors: errorsPromociones, loadFirstPage: loadFirstPagePromociones, nextPage: nextPagePromociones, reloadAll: reloadAllPromociones, toggleSort: toggleSortPromociones, range: rangePromociones, setSearch: setSearchPromociones, search: searchPromociones, estado: estadoPromociones, setEstado: setEstadoPromociones, searchRegister: searchRegisterPromociones} = usePromocion(Promociones)
  
@@ -142,7 +142,36 @@ export default function RegistrarNuevoPage() {
             dependenciaOptions={dependenciaOptions}
             loadingDependencias={loadingDependencias} 
             handleReactivatProcessbyId={handleReactivateProcessById} /> ) :  
-        orden === "habeas" ? (<TablaHabeas rows={rowsHabeas} loading={loadingHabeas} error={errorHabeas} pageSize={pageSizeHabeas} pageIndex={pageIndexHabeas} hasNext={hasNextHabeas} sorts={sortsHabeas} setRange={setRangeHabeas} setPageSize={setPageSizeHabeas} nextPage={nextPageHabeas} reloadAll={reloadAllHabeas} toggleSort={toggleSortHabeas} range={rangeHabeas} setSearch={setSearchHabeas} search={searchHabeas} loadFirstPage={loadFirstPageHabeas}/>) : 
+        orden === "habeas" ? (
+          <TablaHabeas 
+            rows={rowsHabeas} 
+            loading={loadingHabeas} 
+            error={errorHabeas} 
+            pageSize={pageSizeHabeas} 
+            pageIndex={pageIndexHabeas} 
+            hasNext={hasNextHabeas} 
+            sorts={sortsHabeas} 
+            setRange={setRangeHabeas} 
+            setPageSize={setPageSizeHabeas} 
+            nextPage={nextPageHabeas} 
+            reloadAll={reloadAllHabeas} 
+            toggleSort={toggleSortHabeas} 
+            range={rangeHabeas} 
+            setSearch={setSearchHabeas} 
+            search={searchHabeas} 
+            loadFirstPage={loadFirstPageHabeas} 
+            state={stateHabeas} 
+            setField={setFieldHabeas} 
+            handleSubmit={handleSubmitHabeas} 
+            handleEdit={editHabeas} 
+            errors={errorsHabeas} 
+            setState={setStateHabeas} 
+            empresaOptions={empresaOptions} 
+            loadingEmp={loadingEmp} 
+            tipoDocOptions={tipoDocOptions} 
+            loadingTipo={loadingTipo} 
+            deptoOptions={deptoOptions} 
+            loadingDepto={loadingDepto}/>) : 
         orden === "promociones" ? (<TablaPromociones rows={rowsPromociones} loading={loadingPromociones} error={errorPromociones} pageSize={pageSizePromociones} pageIndex={pageIndexPromociones} hasNext={hasNextPromociones} sorts={sortsPromociones} setRange={setRangePromociones} setPageSize={setPageSizePromociones} nextPage={nextPagePromociones} reloadAll={reloadAllPromociones} toggleSort={toggleSortPromociones} range={rangePromociones} setSearch={setSearchPromociones} search={searchPromociones} loadFirstPage={loadFirstPagePromociones} estado={estadoPromociones} setEstado={setEstadoPromociones} />) : 
         orden === "cesaciones" ? (
           <CesacionesTabla 
@@ -244,7 +273,23 @@ export default function RegistrarNuevoPage() {
           handleCancelProcessbyId={handleCancelProcessbyId}
           title={"Nueva Contratación"} 
           handleReactivateProcessById={handleReactivateProcessById}/> : null}
-      {orden === "habeas" && modal ? <FormHabeas onClose={() => setModal(false)} state={stateHabeas} setField={setFieldHabeas} handleSubmit={handleSubmitHabeas} errors={errorsHabeas} loadFirstPage={loadFirstPageHabeas} cleanState={cleanState}/> : null}
+      {orden === "habeas" && modal ? 
+        <FormHabeas 
+          onClose={() => setModal(false)}
+          state={stateHabeas} setField={setFieldHabeas}
+          handleSubmit={handleSubmitHabeas}
+          errors={errorsHabeas}
+          loadFirstPage={loadFirstPageHabeas}
+          handleEdit={editHabeas}
+          tipo={"new"}
+          setState={setStateHabeas}
+          title={"Nuevo Habeas Data"}
+          empresaOptions={empresaOptions}
+          loadingEmp={loadingHabeas}
+          tipoDocOptions={tipoDocOptions}
+          loadingTipo={loadingTipo}
+          deptoOptions={deptoOptions}
+          loadingDepto={loadingDepto} sending={loadingHabeas}        /> : null}
       {orden === "promociones" && modal ? <FormPromociones onClose={() => setModal(false)} state={statePromociones} setField={setFieldsPromociones} handleSubmit={handleSumbitPromociones} errors={errorsPromociones} searchPromocion={searchRegisterPromociones} loadFirstPage={loadFirstPagePromociones}/> : null}
       {orden === "cesaciones" && modal ? 
         <FormCesacion 

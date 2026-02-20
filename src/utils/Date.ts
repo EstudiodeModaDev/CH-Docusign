@@ -181,3 +181,29 @@ export function spDateToSpanishLong(
     ? `${day} de ${monthName} del año ${year}`
     : `${day} de ${monthName} de ${year}`;
 }
+
+export function toDateSafe(raw: any): Date | null {
+  if (!raw) return null;
+  const s = String(raw).trim();
+  if (!s) return null;
+
+  // ISO / Date-string común
+  const d1 = new Date(s);
+  if (!Number.isNaN(d1.getTime())) return d1;
+
+  // dd/mm/yyyy
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) {
+    const dd = Number(m[1]);
+    const mm = Number(m[2]);
+    const yyyy = Number(m[3]);
+    const d2 = new Date(yyyy, mm - 1, dd);
+    if (!Number.isNaN(d2.getTime())) return d2;
+  }
+
+  return null;
+}
+
+export const normalize = (v: any) => (v === "" ? null : v);
+
+export const normalizeDate = (v: any) => toISODateFlex(v) ?? null;

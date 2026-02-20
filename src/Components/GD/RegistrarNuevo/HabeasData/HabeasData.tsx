@@ -2,10 +2,12 @@ import * as React from "react";
 import "../Contratos/Contratos.css";
 import type { DateRange, SortDir, SortField } from "../../../../models/Commons";
 import { useGraphServices } from "../../../../graph/graphContext";
-import type { HabeasData } from "../../../../models/HabeasData";
+import type { HabeasData, HabeasErrors } from "../../../../models/HabeasData";
 import { toISODateFlex } from "../../../../utils/Date";
-import ViewHabeas from "../Modals/HabeasData/viewEditHabeas";
 import { useEnvios } from "../../../../Funcionalidades/GD/Envios";
+import FormHabeas from "../Modals/HabeasData/addHabeasData";
+import type { SetField } from "../Modals/Contrato/addContrato";
+import type { desplegablesOption } from "../../../../models/Desplegables";
 
 function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; dir: SortDir}>) {
   const idx = sorts.findIndex(s => s.field === field);
@@ -30,15 +32,31 @@ type Props = {
   range: DateRange;
   setSearch: React.Dispatch<React.SetStateAction<string>>;
   search: string;
-  loadFirstPage: () => void;
+  loadFirstPage: () => Promise<void>;
+
+  state: HabeasData
+  setField: SetField<HabeasData>;
+  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  handleEdit: (e: React.FormEvent, NovedadSeleccionada: HabeasData) => void;
+  errors: HabeasErrors
+  setState: (n: HabeasData) => void
+
+  //Desplegables
+  empresaOptions: desplegablesOption[]
+  loadingEmp: boolean
+  tipoDocOptions: desplegablesOption[], 
+  loadingTipo: boolean 
+
+  deptoOptions: desplegablesOption[], 
+  loadingDepto: boolean, 
 }
 
-export default function TablaHabeas({rows, loading, error, pageSize, pageIndex, hasNext, sorts, setRange, setPageSize, nextPage, reloadAll, toggleSort, range, setSearch, search, loadFirstPage}: Props) {
+export default function TablaHabeas({empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, deptoOptions, loadingDepto, setState, errors, handleSubmit, handleEdit, setField, state, rows, loading, error, pageSize, pageIndex, hasNext, sorts, setRange, setPageSize, nextPage, reloadAll, toggleSort, range, setSearch, search, loadFirstPage}: Props) {
   const { Envios } = useGraphServices();
   const {canEdit} = useEnvios(Envios);
   const [habeasSeleccionado, setHabeasSeleccionado] = React.useState<HabeasData | null>(null);
   const [visible, setVisible] = React.useState<boolean>(false);
-  const [tipoFormulario, setTipoFormulario] = React.useState<string>("");
+  const [tipoFormulario, setTipoFormulario] = React.useState<"new" | "edit" | "view">("edit");
 
   const handleRowClick = async (habeas: HabeasData) => {
     setHabeasSeleccionado(habeas);
@@ -121,8 +139,24 @@ export default function TablaHabeas({rows, loading, error, pageSize, pageIndex, 
             </div>
           )}
         </div>
-      {visible ? <ViewHabeas onClose={() => {loadFirstPage();
-                                            setVisible(false)}} selectedHabeas={habeasSeleccionado!} tipo={tipoFormulario}/> : null}
+      {visible ? 
+        <FormHabeas 
+          onClose={() => setVisible(false)}
+          state={state}
+          setField={setField}
+          handleSubmit={handleSubmit}
+          handleEdit={handleEdit}
+          errors={errors}
+          loadFirstPage={loadFirstPage}
+          tipo={tipoFormulario}
+          setState={setState}
+          title={"Editar contratación de: " + habeasSeleccionado?.Title}
+          empresaOptions={empresaOptions}
+          loadingEmp={loadingEmp}
+          tipoDocOptions={tipoDocOptions}
+          loadingTipo={loadingTipo}
+          deptoOptions={deptoOptions}
+          loadingDepto={loadingDepto} sending={loading} selectedHabeasData={habeasSeleccionado!}/> : null}
     </div>
   );
 }

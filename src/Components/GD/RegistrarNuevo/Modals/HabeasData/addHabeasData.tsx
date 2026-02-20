@@ -2,13 +2,12 @@
 import * as React from "react";
 import "../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
-import { useGraphServices } from "../../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../../models/Desplegables";
-import {useCargo, useDeptosMunicipios, useEmpresasSelect, useTipoDocumentoSelect,} from "../../../../../Funcionalidades/Desplegables";
 import { useAuth } from "../../../../../auth/authProvider";
 import { getTodayLocalISO } from "../../../../../utils/Date";
 import type { HabeasData, HabeasErrors } from "../../../../../models/HabeasData";
 import type { SetField } from "../Contrato/addContrato";
+import { safeLower } from "../../../../../utils/text";
 
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -29,30 +28,38 @@ type Props = {
   onClose: () => void;
   state: HabeasData
   setField: SetField<HabeasData>;
-  handleSubmit: (e: React.FormEvent) => void;
-  errors: HabeasErrors;
-  loadFirstPage: () => void; 
-  cleanState: () => void;
+  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  handleEdit: (e: React.FormEvent, NovedadSeleccionada: HabeasData) => void;
+  errors: HabeasErrors
+  loadFirstPage: () => Promise<void>
+  tipo: "new" | "edit" | "view"
+  selectedHabeasData?: HabeasData
+  setState: (n: HabeasData) => void
+  title: string
+
+  //Desplegables
+  empresaOptions: desplegablesOption[]
+  loadingEmp: boolean
+  tipoDocOptions: desplegablesOption[], 
+  loadingTipo: boolean 
+
+  deptoOptions: desplegablesOption[], 
+  loadingDepto: boolean, 
+  sending: boolean
 };
 
 /* ================== Formulario ================== */
-export default function FormHabeas({onClose, state, setField, handleSubmit, errors, loadFirstPage, cleanState, }: Props){
-  const { Maestro, DeptosYMunicipios, } = useGraphServices();
-  const {options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc} = useTipoDocumentoSelect(Maestro);
-  const { loading: loadingCargo, reload: reloadCargo} = useCargo(Maestro);
-  const { options: deptoOptions, loading: loadingDepto, reload: reloadDeptos} = useDeptosMunicipios(DeptosYMunicipios);
-  const { options: empresaOptions, loading: loadingEmpresas, reload: reloadEmpresas} = useEmpresasSelect(Maestro);
+export default function FormHabeas({sending, title, setState, selectedHabeasData, handleEdit, tipo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, deptoOptions, loadingDepto, onClose, state, setField, handleSubmit, errors, loadFirstPage }: Props) {
+  const isView = tipo === "view"
+
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
 
-  React.useEffect(() => {
-      reloadTipoDoc();
-      reloadCargo();
-      reloadDeptos()
-      reloadEmpresas()
-  }, [reloadDeptos, reloadTipoDoc, reloadCargo, reloadEmpresas]);
+  const { account } = useAuth();
+  const today = getTodayLocalISO();
 
-  const deptos = React.useMemo(() => {
+  /* ================== Deptos/Municipios ================== */
+   const deptos = React.useMemo(() => {
     const set = new Set<string>();
     deptoOptions.forEach((i) => set.add(i.label));
     return Array.from(set).sort(); // array de deptos únicos
@@ -82,24 +89,46 @@ export default function FormHabeas({onClose, state, setField, handleSubmit, erro
     [municipiosFiltrados]
   );
 
-  const handleCreateHabeas = async (e: React.FormEvent) => {
-    await handleSubmit(e);
-    await cleanState();
-    await loadFirstPage()
-    onClose()
+
+  React.useEffect(() => {
+    if (!selectedHabeasData) return;
+
+    setState(selectedHabeasData)
+  }, [selectedHabeasData, setField]);
+
+  React.useEffect(() => {
+    if (!state.Ciudad) return;
+    if (!deptoOptions.length) return;
+
+    const match = deptoOptions.find(
+      (o) => String(o.value).trim() === state.Ciudad.trim()
+    );
+
+    if (match) {
+      setSelectedDepto(match.label); // Departamento
+      setSelectedMunicipio(String(match.value)); // Municipio (Ciudad)
+    }
+  }, [state.Ciudad, deptoOptions]);
+
+  /* ================== Selected values ================== */
+  const selectedTipoDocumento = tipoDocOptions.find((o) => safeLower(o.value) === safeLower(state.AbreviacionTipoDoc)) ?? null; 
+  const selectedEmpresa = empresaOptions.find((o) => safeLower(o.label)=== safeLower(state.Empresa)) ?? null;
+
+  const handleCreateNovedad = async (e: React.FormEvent) => {
+    if(tipo=== "new"){
+      await handleSubmit(e);
+      await loadFirstPage()
+      onClose()
+    } else if(tipo=== "edit") {
+      handleEdit(e, selectedHabeasData!)
+    }
   };
+
   
-  const selectedTipoDocumento = tipoDocOptions.find((o) => o.value === state.AbreviacionTipoDoc) ?? null; 
-  const selectedEmpresa = empresaOptions.find((o) => o.label.toLocaleLowerCase() === state.Empresa.toLocaleLowerCase()) ?? null;
-
-  /* ================== Display local para campos monetarios ================== */
-  const {account} = useAuth()
-  const today = getTodayLocalISO()
-
   return (
     <div className="ft-modal-backdrop">
       <section className="ft-scope ft-card" role="region" aria-labelledby="ft_title">
-        <h2 id="ft_title" className="ft-title">Nuevo Habeas data</h2>
+        <h2 id="ft_title" className="ft-title">{title}</h2>
 
         <form className="ft-form" noValidate>
 
@@ -109,12 +138,12 @@ export default function FormHabeas({onClose, state, setField, handleSubmit, erro
             <Select<desplegablesOption, false>
               inputId="solicitante"
               options={empresaOptions}
-              placeholder={loadingEmpresas ? "Cargando opciones…" : "Buscar empresa..."}
+              placeholder={loadingEmp ? "Cargando opciones…" : "Buscar empresa..."}
               value={selectedEmpresa}
               onChange={(opt) => setField("Empresa", opt?.label ?? "")}
               classNamePrefix="rs"
-              isDisabled={loadingEmpresas}
-              isLoading={loadingEmpresas}
+              isDisabled={loadingEmp || isView}
+              isLoading={loadingEmp}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
               components={{ Option }}
@@ -125,7 +154,7 @@ export default function FormHabeas({onClose, state, setField, handleSubmit, erro
 
           <div className="ft-field">
             <label className="ft-label" htmlFor="nombreSeleccionado"> Nombre del seleccionado *</label>
-            <input id="nombreSeleccionado" name="NombreSeleccionado" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
+            <input disabled={isView} id="nombreSeleccionado" name="NombreSeleccionado" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.Title}</small>
           </div>
 
@@ -139,7 +168,7 @@ export default function FormHabeas({onClose, state, setField, handleSubmit, erro
               value={selectedTipoDocumento}
               onChange={(opt) => {setField("AbreviacionTipoDoc", opt?.value ?? ""); setField("Tipodoc", opt?.label ?? "");}}
               classNamePrefix="rs"
-              isDisabled={loadingTipo}
+              isDisabled={loadingTipo || isView}
               isLoading={loadingTipo}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -155,13 +184,13 @@ export default function FormHabeas({onClose, state, setField, handleSubmit, erro
           {/* Abreviación tipo documento (solo lectura con la abreviación seleccionada) */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="abreviacionDoc"> Abreviación tipo de documento *</label>
-            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo de documento" value={state.AbreviacionTipoDoc ?? ""} readOnly/>
+            <input disabled={isView} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo de documento" value={state.AbreviacionTipoDoc ?? ""} readOnly/>
           </div>
 
           {/* Número documento */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="numeroIdent">Número de identificación *</label>
-            <input id="numeroIdent" name="Numero_x0020_identificaci_x00f3_" type="number" placeholder="Ingrese el número de documento" value={state.NumeroDocumento ?? ""} onChange={(e) => setField("NumeroDocumento", e.target.value)}
+            <input  disabled={isView} id="numeroIdent" name="Numero_x0020_identificaci_x00f3_" type="number" placeholder="Ingrese el número de documento" value={state.NumeroDocumento ?? ""} onChange={(e) => setField("NumeroDocumento", e.target.value)}
               autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.NumeroDocumento}</small>
           </div>
@@ -169,7 +198,7 @@ export default function FormHabeas({onClose, state, setField, handleSubmit, erro
           {/* Correo */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="correo">Correo electrónico *</label>
-            <input id="correo" name="CORREO_x0020_ELECTRONICO_x0020_" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.Correo ?? ""} onChange={(e) => setField("Correo", e.target.value.toLocaleLowerCase())}
+            <input  disabled={isView} id="correo" name="CORREO_x0020_ELECTRONICO_x0020_" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.Correo ?? ""} onChange={(e) => setField("Correo", e.target.value.toLocaleLowerCase())}
               autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.Correo}</small>
           </div>
@@ -215,8 +244,8 @@ export default function FormHabeas({onClose, state, setField, handleSubmit, erro
                 setField("Ciudad", value.toUpperCase());          
               }}
               classNamePrefix="rs"
-              isDisabled={!selectedDepto  || loadingCargo}
-              isLoading={loadingCargo}
+              isDisabled={!selectedDepto  || loadingDepto}
+              isLoading={loadingDepto}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
               components={{ Option }}
@@ -231,21 +260,26 @@ export default function FormHabeas({onClose, state, setField, handleSubmit, erro
           {/* Fecha reporte ingreso */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="FechaReporte"> Fecha reporte ingreso *</label>
-            <input id="FechaReporte" name="FechaReporte" type="date" value={today} readOnly/>
+            <input  disabled={isView} id="FechaReporte" name="FechaReporte" type="date" value={today} readOnly/>
           </div>
 
           {/* Informacion enviada por */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="enviadaPor"> Información enviada por *</label>
-            <input id="enviadaPor" name="enviadaPor" type="text" value={account?.name} readOnly/>
+            <input  disabled={isView} id="enviadaPor" name="enviadaPor" type="text" value={account?.name} readOnly/>
           </div>
         </form>
+
         {/* Acciones */}
         <div className="ft-actions">
-          <button type="submit" className="btn btn-primary btn-xs" onClick={(e) => {handleCreateHabeas(e);}}>Guardar Registro</button>
-          <button type="submit" className="btn btn-xs" onClick={() => onClose()}>Cancelar</button>
+          <button disabled={isView || sending} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreateNovedad(e)}>
+            {isView ? "No se puede editar este registro ya que fue usado" : sending ? "Guardando..." : "Guardar"}
+          </button> 
+          <button type="button" className="btn btn-xs" onClick={onClose}>Cancelar</button>
         </div>
+
       </section>
     </div>
   );
-};
+}
+

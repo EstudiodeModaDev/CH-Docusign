@@ -51,6 +51,7 @@ type Props = {
   selectedNovedad?: Novedad
   setState: (n: Novedad) => void
   handleCancelProcessbyId: (id: string, r: string) => void
+  handleReactivateProcessById: (id: string) => void
   title: string
 
   //Desplegables
@@ -87,7 +88,7 @@ type Props = {
 };
 
 /* ================== Formulario ================== */
-export default function FormContratacion({title, handleCancelProcessbyId, setState, selectedNovedad, handleEdit, tipo, tipoContratoOptions, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, loadingModalidad, especificidadOptions, loadingEspecificdad, etapasOptions, loadingEtapas, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, origenOptions, loadingOrigen, loadingTipoContrato, tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, onClose, state, setField, handleSubmit, errors, searchRegister: searchNovedad, loadFirstPage }: Props) {
+export default function FormContratacion({handleReactivateProcessById, title, handleCancelProcessbyId, setState, selectedNovedad, handleEdit, tipo, tipoContratoOptions, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, loadingModalidad, especificidadOptions, loadingEspecificdad, etapasOptions, loadingEtapas, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, origenOptions, loadingOrigen, loadingTipoContrato, tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, onClose, state, setField, handleSubmit, errors, searchRegister: searchNovedad, loadFirstPage }: Props) {
   const { Contratos, DetallesPasosNovedades, salarios, HabeasData, Promociones, Cesaciones, categorias, Retail, configuraciones, mail} = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
   const { searchRegister: searchPromocion } = usePromocion(Promociones);
@@ -413,6 +414,7 @@ export default function FormContratacion({title, handleCancelProcessbyId, setSta
     await handleCancelProcessbyId(selectedNovedad!.Id ?? "", razon)
     setCancelProcess(false)
   };
+
 
   return (
     <div className="ft-modal-backdrop">
@@ -1343,8 +1345,14 @@ export default function FormContratacion({title, handleCancelProcessbyId, setSta
             { isView || tipo === "edit" ?
               <button type="submit" className="btn btn-xs" onClick={() => setFlow(true)}>Detalles</button> : null
             }
-            { (isView || tipo === "edit") && selectedNovedad?.Estado !== "Cancelado" ?
-              <button type="submit" className="btn btn-xs btn-danger" onClick={() => setCancelProcess(true)}>Cancelar Proceso</button> : null
+            { (isView || tipo === "edit") ?
+              <button type="submit" className="btn btn-xs btn-danger" onClick={() => {
+                                                                        selectedNovedad?.Estado === "Cancelado" ? 
+                                                                          handleReactivateProcessById(selectedNovedad.Id ?? "") : 
+                                                                          setCancelProcess(true)}}
+                                                                        >
+                {selectedNovedad?.Estado !== "Cancelado" ? "Cancelar proceso" : "Reactivar proceso"}
+              </button> : null
             }
           <button type="button" className="btn btn-xs" onClick={onClose}>Cancelar</button>
         </div>

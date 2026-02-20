@@ -59,6 +59,7 @@ export type Props = {
   searchRegister: (cedula: string) => Promise<Novedad | null>
   setState: (n: Novedad) => void
   handleCancelProcessbyId: (id: string, r: string) => void
+  handleReactivatProcessbyId: (id: string,) => void
 
   //Desplegables
   empresaOptions: desplegablesOption[]
@@ -103,7 +104,7 @@ export type PropsPagination = {
   totalRows: number;
 };
 
-export default function TablaContratos({tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias,CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, origenOptions, loadingOrigen, tipoContratoOptions, loadingTipoContrato, errors, searchRegister, setState, loadingModalidad, especificidadOptions, loadingEspecificdad, etapasOptions, loadingEtapas, nivelCargoOptions, loadinNivelCargo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, state, setField, handleSubmit, handleCancelProcessbyId, handleEdit,  rows, loading: loadingContratos, error, pageSize: pageSizeContratos, pageIndex: pageIndexContratos, hasNext: hasNextContratos, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageContratos, reloadAll: reloadAllContratos, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
+export default function TablaContratos({handleReactivatProcessbyId, tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias,CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, origenOptions, loadingOrigen, tipoContratoOptions, loadingTipoContrato, errors, searchRegister, setState, loadingModalidad, especificidadOptions, loadingEspecificdad, etapasOptions, loadingEtapas, nivelCargoOptions, loadinNivelCargo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, state, setField, handleSubmit, handleCancelProcessbyId, handleEdit,  rows, loading: loadingContratos, error, pageSize: pageSizeContratos, pageIndex: pageIndexContratos, hasNext: hasNextContratos, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageContratos, reloadAll: reloadAllContratos, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
   const { Envios, DetallesPasosNovedades, } = useGraphServices();
   const { canEdit } = useEnvios(Envios);
 
@@ -276,6 +277,7 @@ export default function TablaContratos({tipoVacanteOptions, loadingTipoVacante, 
               Fecha de inicio {renderSortIndicator("inicio", sorts)}
             </th>
 
+            <th>Razón de cancelación</th>
             <th>Cancelado por</th>
             <th style={{ textAlign: "center" }}>%</th>
           </tr>
@@ -288,6 +290,7 @@ export default function TablaContratos({tipoVacanteOptions, loadingTipoVacante, 
               <td><span title={n.NombreSeleccionado}>{n.NombreSeleccionado}</span></td>
               <td><span title={n.SALARIO}>{formatPesosEsCO(n.SALARIO)}</span></td>
               <td>{toISODateFlex(n.FECHA_x0020_REQUERIDA_x0020_PARA0) || "–"}</td>
+              <td>{n.RazonCancelacion || "–"}</td>
               <td><span title={n.Informaci_x00f3_n_x0020_enviada_}>{n.Informaci_x00f3_n_x0020_enviada_}</span></td>
               <td style={{ textAlign: "center" }}>
                 {(() => {
@@ -384,8 +387,9 @@ export default function TablaContratos({tipoVacanteOptions, loadingTipoVacante, 
           tipo={tipoFormulario}
           setState={setState}
           selectedNovedad={novedadSeleccionada}
-          handleCancelProcessbyId={handleCancelProcessbyId} 
-          title={"Editar contratación de: " + novedadSeleccionada.NombreSeleccionado}/>
+          handleCancelProcessbyId={handleCancelProcessbyId}
+          title={"Editar contratación de: " + novedadSeleccionada.NombreSeleccionado} 
+          handleReactivateProcessById={handleReactivatProcessbyId}/>
       ) : null}
     </div>
   );

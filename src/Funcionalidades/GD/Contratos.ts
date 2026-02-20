@@ -698,6 +698,21 @@ export function useContratos(ContratosSvc: ContratosService,) {
     }
 }, [ContratosSvc]);
 
+  const handleReactivateProcessById = React.useCallback(async (Id: string) => {
+
+    try{
+      const proceso = await ContratosSvc.get(Id)
+
+      if(proceso){
+        await ContratosSvc.update(Id, {Estado: "En proceso",})
+        alert("Se ha reactivado este proceso con éxito")
+        reloadAll()
+      }
+    } catch {
+      throw new Error("Ha ocurrido un error cancelando el proceso");
+    }
+}, [ContratosSvc]);
+
   const searchRegister = async (query: string): Promise<Novedad | null> => {
     const resp = await ContratosSvc.getAll({filter: `fields/Numero_x0020_identificaci_x00f3_ eq '${query}'`, top: 1, orderby: "fields/Created desc"});
 
@@ -711,7 +726,7 @@ export function useContratos(ContratosSvc: ContratosService,) {
 
   return {
     rows, loading, error, pageSize, pageIndex, hasNext, range, search, errors, sorts, state, workers, workersOptions, estado,
-    handleCancelProcessbyId, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, setState, handleSubmit, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, searchRegister, setEstado
+    handleReactivateProcessById, handleCancelProcessbyId, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, setState, handleSubmit, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, searchRegister, setEstado
   };
 }
 

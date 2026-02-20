@@ -3,10 +3,11 @@ import "../Contratos/Contratos.css";
 import type { DateRange, SortDir, SortField } from "../../../../models/Commons";
 import { useGraphServices } from "../../../../graph/graphContext";
 import { useEnvios } from "../../../../Funcionalidades/GD/Envios";
-import type { Cesacion } from "../../../../models/Cesaciones";
+import type { Cesacion, CesacionErrors } from "../../../../models/Cesaciones";
 import { toISODateFlex } from "../../../../utils/Date";
-import EditCesacion from "../Modals/Cesaciones/viewEditCesacion";
-import { useCesacionesCanceladas } from "../../../../Funcionalidades/GD/Cesaciones";
+import FormCesacion from "../Modals/Cesaciones/addCesacion";
+import type { SetField } from "../Modals/Contrato/addContrato";
+import type { desplegablesOption } from "../../../../models/Desplegables";
 
 function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; dir: SortDir}>) {
   const idx = sorts.findIndex(s => s.field === field);
@@ -34,6 +35,40 @@ export type Props = {
   loadFirstPage: () => void;
   setEstado: React.Dispatch<React.SetStateAction<string>>;
   estado: string
+
+  state: Cesacion
+  setField: SetField<Cesacion>;
+  handleSubmit: () => Promise<{ok: boolean; created: string | null;}>;
+  handleEdit: (e: React.FormEvent, NovedadSeleccionada: Cesacion) => void;
+  errors: CesacionErrors
+  searchRegister: (cedula: string) => Promise<Cesacion | null>
+  selectedCesacion?: Cesacion
+  setState: (n: Cesacion) => void
+  handleCancelProcessbyId: (id: string, r: string) => void
+  handleReactivateProcessById: (id: string) => void
+  sending: boolean
+
+  //Desplegables
+  empresaOptions: desplegablesOption[]
+  loadingEmp: boolean
+  cargoOptions: desplegablesOption[], 
+  loadingCargo: boolean,   
+  tipoDocOptions: desplegablesOption[], 
+  loadingTipo: boolean
+  nivelCargoOptions: desplegablesOption[], 
+  loadinNivelCargo: boolean, 
+  dependenciaOptions: desplegablesOption[], 
+  loadingDependencias: boolean
+  CentroCostosOptions: desplegablesOption[]
+  loadingCC: boolean
+  COOptions: desplegablesOption[]
+  loadingCO: boolean, 
+  UNOptions: desplegablesOption[]
+  loadingUN: boolean,
+  temporalOption: desplegablesOption[]
+  temporalLoading: boolean
+  deptoOptions: desplegablesOption[]
+  loadingDeptos: boolean
 };
 
 
@@ -48,13 +83,12 @@ export type PropsPagination = {
   totalRows: number;
 };
 
-export default function CesacionesTabla({rows, loading: loadingCesacion, error, pageSize: pageSizeCesacion, pageIndex: pageIndexCesacion, hasNext: hasNextCesacion, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageCesacion, reloadAll: reloadAllCesacion, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
-  const { Envios, DetallesPasosCesacion, CesacionCancelada } = useGraphServices();
+export default function CesacionesTabla({deptoOptions, loadingDeptos, temporalLoading, temporalOption, UNOptions, loadingUN, COOptions, loadingCO, CentroCostosOptions, loadingCC, dependenciaOptions, loadingDependencias, nivelCargoOptions, loadinNivelCargo, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, empresaOptions, loadingEmp, sending, handleReactivateProcessById, handleCancelProcessbyId, setState, searchRegister, errors, handleEdit, handleSubmit, setField, state, rows, loading: loadingCesacion, error, pageSize: pageSizeCesacion, pageIndex: pageIndexCesacion, hasNext: hasNextCesacion, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageCesacion, reloadAll: reloadAllCesacion, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
+  const { Envios, DetallesPasosCesacion, } = useGraphServices();
   const { canEdit } = useEnvios(Envios);
-  const {setPageSize: setPageSizeCesaciones, rows: rowsCanceladas, reloadAll: reloadAllCancelados, loading: loadingCancelados,  pageSize: pageSizeCancelados, pageIndex: pageIndexCancelados, hasNext: hasNextCancelados, nextPage: nextPageCancelados, } = useCesacionesCanceladas(CesacionCancelada);   
   const [visible, setVisible] = React.useState(false);
   const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Cesacion | null>(null);
-  const [tipoFormulario, setTipoFormulario] = React.useState<string>("");
+  const [tipoFormulario, setTipoFormulario] = React.useState<"new" | "edit" | "view">("edit");
   const [pctById, setPctById] = React.useState<Record<string, number>>({});
 
   const openRow = React.useCallback(
@@ -98,17 +132,15 @@ export default function CesacionesTabla({rows, loading: loadingCesacion, error, 
   );
 
   const isCanceladas = estado === "cancelado";
-  const activeRows: any[] = isCanceladas ? (rowsCanceladas ?? []) : (rows ?? []);
-  const activeLoading = isCanceladas ? loadingCancelados : loadingCesacion;
 
   React.useEffect(() => {
-    for (const c of activeRows) {
+    for (const c of rows) {
       const id = String(c?.Id ?? "");
       if (!id) continue;
       if (pctById[id] !== undefined) continue;
       fetchPctForNovedad(id);
     }
-  }, [activeRows, pctById, fetchPctForNovedad]);
+  }, [rows, pctById, fetchPctForNovedad]);
 
   const onRowKeyDown = (e: React.KeyboardEvent<HTMLTableRowElement>, n: Cesacion) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -204,7 +236,7 @@ export default function CesacionesTabla({rows, loading: loadingCesacion, error, 
           <tr>
             <th style={{ whiteSpace: "nowrap" }}>Cedula</th>
             <th style={{ whiteSpace: "nowrap" }}>Nombre</th>
-            <th style={{ whiteSpace: "nowrap" }}>Fecha cancelación</th>
+            <th style={{ whiteSpace: "nowrap" }}>Fecha inicio</th>
             <th>Motivo cancelación</th>
             <th>Cancelado por</th>
             <th style={{ textAlign: "center" }}>%</th>
@@ -212,13 +244,13 @@ export default function CesacionesTabla({rows, loading: loadingCesacion, error, 
         </thead>
 
         <tbody>
-          {(rowsCanceladas ?? []).map((n: any) => (
-            <tr key={n.Id} tabIndex={0}>
-              <td>{n.Numeroidentificacion}</td>
+          {(rows ?? []).map((n: Cesacion) => (
+            <tr key={n.Id} tabIndex={0} onClick={() => openRow(n)}>
+              <td>{n.Title}</td>
               <td><span title={n.Nombre}>{n.Nombre}</span></td>
-              <td>{toISODateFlex(n.Created) || "–"}</td>
+              <td>{toISODateFlex(n.FechaIngreso) || "–"}</td>
               <td><span title={n.RazonCancelacion}>{n.RazonCancelacion || "–"}</span></td>
-              <td><span title={n.Procesocanceladopor}>{n.Procesocanceladopor || "–"}</span></td>
+              <td><span title={n.CanceladoPor}>{n.CanceladoPor || "–"}</span></td>
               <td style={{ textAlign: "center" }}>
                 {(() => {
                   const id = String(n.Id ?? "");
@@ -231,7 +263,7 @@ export default function CesacionesTabla({rows, loading: loadingCesacion, error, 
         </tbody>
       </table>
 
-      <Paginacion reloadAll={reloadAllCancelados} nextPage={nextPageCancelados} pageIndex={pageIndexCancelados} hasNext={hasNextCancelados} loading={loadingCancelados} pageSize={pageSizeCancelados} totalRows={(rowsCanceladas ?? []).length} setPageSize={setPageSizeCesaciones}/>
+      <Paginacion reloadAll={reloadAllCesacion} nextPage={nextPageCesacion} pageIndex={pageIndexCesacion} hasNext={hasNextCesacion} loading={loadingCesacion} pageSize={pageSizeCesacion} totalRows={(rows ?? []).length} setPageSize={setPageSize}/>
     </>
   );
 
@@ -253,9 +285,9 @@ export default function CesacionesTabla({rows, loading: loadingCesacion, error, 
         </div>
       </div>
 
-      {activeLoading && <p>Cargando registros...</p>}
+      {loadingCesacion && <p>Cargando registros...</p>}
       {error && <p style={{ color: "#b91c1c" }}>{error}</p>}
-      {!activeLoading && !error && activeRows.length === 0 && (
+      {!loadingCesacion && !error && rows.length === 0 && (
         <p>No hay registros para los filtros seleccionados.</p>
       )}
 
@@ -264,7 +296,41 @@ export default function CesacionesTabla({rows, loading: loadingCesacion, error, 
       </div>
 
       {visible && novedadSeleccionada ? (
-        <EditCesacion selectedCesacion={novedadSeleccionada} tipo={tipoFormulario} onClose={onClose}/>
+        <FormCesacion 
+          onClose={() => onClose()} 
+          state={state} 
+          setField={setField} 
+          handleSubmit={handleSubmit} 
+          handleEdit={handleEdit} 
+          errors={errors} 
+          selectedCesacion={novedadSeleccionada}
+          searchRegister={searchRegister} 
+          tipo={tipoFormulario} 
+          setState={setState} 
+          handleCancelProcessbyId={handleCancelProcessbyId} 
+          handleReactivateProcessById={handleReactivateProcessById} 
+          title={"Editar cesación de: " + novedadSeleccionada.Nombre} 
+          sending={sending} 
+          empresaOptions={empresaOptions} 
+          loadingEmp={loadingEmp} 
+          cargoOptions={cargoOptions} 
+          loadingCargo={loadingCargo} 
+          tipoDocOptions={tipoDocOptions} 
+          loadingTipo={loadingTipo} 
+          nivelCargoOptions={nivelCargoOptions} 
+          loadinNivelCargo={loadinNivelCargo} 
+          dependenciaOptions={dependenciaOptions} 
+          loadingDependencias={loadingDependencias} 
+          CentroCostosOptions={CentroCostosOptions} 
+          loadingCC={loadingCC} 
+          COOptions={COOptions} 
+          loadingCO={loadingCO} 
+          UNOptions={UNOptions} 
+          loadingUN={loadingUN} 
+          temporalOption={temporalOption} 
+          temporalLoading={temporalLoading} 
+          deptoOptions={deptoOptions} 
+          loadingDeptos={loadingDeptos}/>
       ) : null}
     </div>
   );

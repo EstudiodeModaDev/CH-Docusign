@@ -110,7 +110,9 @@ export class CesacionesService {
       contribucionEstrategia: f.contribucionEstrategia,
       Promedio: f.Promedio,
       Estado: f.Estado,
-      direccionResidencia: f.direccionResidencia
+      direccionResidencia: f.direccionResidencia,
+      CanceladoPor: f.CanceladoPor,
+      RazonCancelacion: f.RazonCancelacion
     };
   }
 

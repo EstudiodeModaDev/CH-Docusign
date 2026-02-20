@@ -2,9 +2,8 @@ import React from "react";
 import type { DateRange, GetAllOpts, rsOption, SortDir, SortField, } from "../../models/Commons";
 import { toGraphDateTime, toISODateFlex, toISODateTimeFlex } from "../../utils/Date";
 import type { CesacionesService } from "../../Services/Cesaciones.service";
-import type { Cesacion, CesacionCancelada, CesacionErrors } from "../../models/Cesaciones";
+import type { Cesacion, CesacionErrors } from "../../models/Cesaciones";
 import { useAuth } from "../../auth/authProvider";
-import type { CesacionCanceladaService } from "../../Services/CesacionCancelada.service";
 import { useDebouncedValue } from "./Contratos";
 import { norm } from "../../utils/text";
 
@@ -70,7 +69,7 @@ function compareRows(a: Cesacion, b: Cesacion, field: SortField, dir: SortDir) {
 }
 
 
-export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCanceladaSvc?: CesacionCanceladaService) {
+export function useCesaciones(CesacionesSvc: CesacionesService,) {
   const [baseRows, setBaseRows] = React.useState<Cesacion[]>([]);
   const [rows, setRows] = React.useState<Cesacion[]>([]);
   const [workers, setWorkers] = React.useState<Cesacion[]>([]);
@@ -123,7 +122,9 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
     contribucionEstrategia: "",
     Promedio: "",
     Estado: "En proceso",
-    direccionResidencia: ""
+    direccionResidencia: "",
+    CanceladoPor: "",
+    RazonCancelacion: ""
   });
   const [estado, setEstado] = React.useState<string>("proceso");
   const [errors, setErrors] = React.useState<CesacionErrors>({});
@@ -136,6 +137,7 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
 
     if (estado === "proceso") filters.push(`fields/Estado eq 'En proceso'`);
     if (estado === "finalizado") filters.push(`fields/Estado eq 'Completado'`);
+    if (estado === "cancelado") filters.push(`fields/Estado eq 'Cancelado'`);
 
     if (range.from && range.to && range.from <= range.to) {
       filters.push(`fields/FechaIngreso ge '${range.from}T00:00:00Z'`);
@@ -330,7 +332,9 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
       contribucionEstrategia: "",
       Promedio: "",
       Estado: "En proceso",
-      direccionResidencia: ""
+      direccionResidencia: "",
+      CanceladoPor: "",
+      RazonCancelacion: ""
     })
   };
 
@@ -385,9 +389,12 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
         contribucionEstrategia: state.contribucionEstrategia,
         Promedio: state.Promedio,
         Estado: "En proceso",
-        direccionResidencia: state.direccionResidencia
+        direccionResidencia: state.direccionResidencia,
+        CanceladoPor: state.CanceladoPor,
+        RazonCancelacion: state.RazonCancelacion
       };
       const creado = await CesacionesSvc.create(payload);
+      reloadAll()
       alert("Se ha creado el registro con éxito")
       return {
         ok: true,
@@ -403,58 +410,63 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
       }
   };
 
+  const normalize = (v: any) => (v === "" ? null : v);
+
+  const normalizeDate = (v: any) => toISODateFlex(v) ?? null;
+
+  const fields: (keyof Cesacion)[] = [
+    "Title", "Nombre", "Cargo", "Temporal", "Tienda", "Celular", "Correoelectronico", "Jefedezona", "Reportadopor", "Empresaalaquepertenece", "TipoDoc", "Departamento", "Ciudad", 
+    "Niveldecargo", "CargoCritico", "Dependencia", "CodigoCC", "DescripcionCC", "CodigoCO", "DescripcionCO", "CodigoUN", "DescripcionUN", "Salario", "SalarioTexto", 
+    "auxConectividadTexto", "auxConectividadValor", "Pertenecealmodelo", "GrupoCVE", "PresupuestaVentas", "Autonomia", "ImpactoCliente", "contribucionEstrategia", "Promedio", 
+    "direccionResidencia",
+  ];
+
+  const dateFields: (keyof Cesacion)[] = [
+    "FechaIngreso","FechaLimiteDocumentos","FechaSalidaCesacion",
+  ];
+
+  const buildPatch = (original: Cesacion, next: Cesacion) => {
+    const patch: Record<string, any> = {};
+
+    for (const k of fields) {
+      const a = normalize(original[k]);
+      const b = normalize(next[k]);
+      if (a !== b) patch[k] = b;
+    }
+
+    for (const k of dateFields) {
+      const a = normalizeDate(original[k]);
+      const b = normalizeDate(next[k]);
+      if (a !== b) patch[k] = b;
+    }
+
+    return patch;
+  };
+
   const handleEdit = async (e: React.FormEvent, CesacionSeleccionada: Cesacion) => {
     e.preventDefault();
-    if (!validate()) { return};
+    if (!validate()) return;
+    if (!CesacionSeleccionada.Id) { alert("Registro sin Id"); return; }
+
     setLoading(true);
-    try {  
-      const payload:Cesacion = {
-        Cargo: CesacionSeleccionada.Cargo !== state.Cargo ? state.Cargo : CesacionSeleccionada.Cargo,
-        Celular: CesacionSeleccionada.Celular !== state.Celular ? state.Celular : CesacionSeleccionada.Celular,
-        Correoelectronico: CesacionSeleccionada.Correoelectronico !== state.Correoelectronico ? state.Correoelectronico : CesacionSeleccionada.Correoelectronico,
-        FechaIngreso: toISODateFlex(CesacionSeleccionada.FechaIngreso) !== toISODateFlex(state.FechaIngreso) ? toISODateFlex(state.FechaIngreso) ?? null : toISODateFlex(CesacionSeleccionada.FechaIngreso) ?? null,
-        FechaLimiteDocumentos: toISODateFlex(CesacionSeleccionada.FechaLimiteDocumentos) !== toISODateFlex(state.FechaLimiteDocumentos) ? toISODateFlex(state.FechaLimiteDocumentos) ?? null : toISODateFlex(CesacionSeleccionada.FechaLimiteDocumentos) ?? null,
-        FechaSalidaCesacion: toISODateFlex(CesacionSeleccionada.FechaSalidaCesacion) !== toISODateFlex(state.FechaSalidaCesacion) ? toISODateFlex(state.FechaSalidaCesacion) ?? null : toISODateFlex(CesacionSeleccionada.FechaSalidaCesacion) ?? null,
-        Jefedezona: CesacionSeleccionada.Jefedezona !== state.Jefedezona ? state.Jefedezona : CesacionSeleccionada.Jefedezona,
-        Nombre: CesacionSeleccionada.Nombre !== state.Nombre ? state.Nombre : CesacionSeleccionada.Nombre,
-        Temporal: CesacionSeleccionada.Temporal !== state.Temporal ? state.Temporal : CesacionSeleccionada.Temporal,
-        Tienda: CesacionSeleccionada.Tienda !== state.Tienda ? state.Tienda : CesacionSeleccionada.Tienda,
-        Title: CesacionSeleccionada.Title !== state.Title ? state.Title : CesacionSeleccionada.Title,
-        Reportadopor: CesacionSeleccionada.Reportadopor !== state.Reportadopor ? state.Reportadopor : CesacionSeleccionada.Reportadopor,
-        Empresaalaquepertenece: CesacionSeleccionada.Empresaalaquepertenece !== state.Empresaalaquepertenece ? state.Empresaalaquepertenece : CesacionSeleccionada.Empresaalaquepertenece,
-        Fechaenlaquesereporta: CesacionSeleccionada.Fechaenlaquesereporta !== state.Fechaenlaquesereporta ? state.Fechaenlaquesereporta : CesacionSeleccionada.Fechaenlaquesereporta,
-        TipoDoc: CesacionSeleccionada.TipoDoc !== state.TipoDoc ? state.TipoDoc : CesacionSeleccionada.TipoDoc,
-        Departamento: CesacionSeleccionada.Departamento !== state.Departamento ? state.Departamento : CesacionSeleccionada.Departamento,
-        Ciudad: CesacionSeleccionada.Ciudad !== state.Ciudad ? state.Ciudad : CesacionSeleccionada.Ciudad,
-        Niveldecargo: CesacionSeleccionada.Niveldecargo !== state.Niveldecargo ? state.Niveldecargo : CesacionSeleccionada.Niveldecargo,
-        CargoCritico: CesacionSeleccionada.CargoCritico !== state.CargoCritico ? state.CargoCritico : CesacionSeleccionada.CargoCritico,
-        Dependencia: CesacionSeleccionada.Dependencia !== state.Dependencia ? state.Dependencia : CesacionSeleccionada.Dependencia,
-        CodigoCC: CesacionSeleccionada.CodigoCC !== state.CodigoCC ? state.CodigoCC : CesacionSeleccionada.CodigoCC,
-        DescripcionCC: CesacionSeleccionada.DescripcionCC !== state.DescripcionCC ? state.DescripcionCC : CesacionSeleccionada.DescripcionCC, 
-        CodigoCO: CesacionSeleccionada.CodigoCO !== state.CodigoCO ? state.CodigoCO : CesacionSeleccionada.CodigoCO, 
-        DescripcionCO: CesacionSeleccionada.DescripcionCO !== state.DescripcionCO ? state.DescripcionCO : CesacionSeleccionada.DescripcionCO, 
-        CodigoUN: CesacionSeleccionada.CodigoUN !== state.CodigoUN ? state.CodigoUN : CesacionSeleccionada.CodigoUN, 
-        DescripcionUN: CesacionSeleccionada.DescripcionUN !== state.DescripcionUN ? state.DescripcionUN : CesacionSeleccionada.DescripcionUN, 
-        Salario: CesacionSeleccionada.Salario !== state.Salario ? state.Salario : CesacionSeleccionada.Salario, 
-        SalarioTexto: CesacionSeleccionada.SalarioTexto !== state.SalarioTexto ? state.SalarioTexto : CesacionSeleccionada.SalarioTexto, 
-        auxConectividadTexto: CesacionSeleccionada.auxConectividadTexto !== state.auxConectividadTexto ? state.auxConectividadTexto : CesacionSeleccionada.auxConectividadTexto, 
-        auxConectividadValor: CesacionSeleccionada.auxConectividadValor !== state.auxConectividadValor ? state.auxConectividadValor : CesacionSeleccionada.auxConectividadValor, 
-        Pertenecealmodelo: CesacionSeleccionada.Pertenecealmodelo !== state.Pertenecealmodelo ? state.Pertenecealmodelo : CesacionSeleccionada.Pertenecealmodelo, 
-        GrupoCVE: CesacionSeleccionada.GrupoCVE !== state.GrupoCVE ? state.GrupoCVE : CesacionSeleccionada.GrupoCVE,
-        PresupuestaVentas: CesacionSeleccionada.PresupuestaVentas !== state.PresupuestaVentas ? state.PresupuestaVentas : CesacionSeleccionada.PresupuestaVentas,
-        Autonomia: CesacionSeleccionada.Autonomia !== state.Autonomia ? state.Autonomia : CesacionSeleccionada.Autonomia,
-        ImpactoCliente: CesacionSeleccionada.ImpactoCliente !== state.ImpactoCliente ? state.ImpactoCliente : CesacionSeleccionada.ImpactoCliente,
-        contribucionEstrategia: CesacionSeleccionada.contribucionEstrategia !== state.contribucionEstrategia ? state.contribucionEstrategia : CesacionSeleccionada.contribucionEstrategia,
-        Promedio: CesacionSeleccionada.Promedio !== state.Promedio ? state.Promedio : CesacionSeleccionada.Promedio,
-        Estado: CesacionSeleccionada.Estado !== state.Estado ? state.Estado : CesacionSeleccionada.Estado,
-        direccionResidencia: CesacionSeleccionada.direccionResidencia !== state.direccionResidencia ? state.direccionResidencia : CesacionSeleccionada.direccionResidencia,
-      };
-      await CesacionesSvc.update(CesacionSeleccionada.Id!, payload);
-      alert("Se ha actualizado el registro con éxito")
-    } finally {
-        setLoading(false);
+    try {
+      const payload = buildPatch(CesacionSeleccionada, state);
+
+      // opcional: si no hay cambios, no pegues al servidor
+      if (Object.keys(payload).length === 0) {
+        alert("No hay cambios para guardar");
+        return;
       }
+
+      await CesacionesSvc.update(CesacionSeleccionada.Id, payload);
+      alert("Se ha actualizado el registro con éxito");
+    } catch {
+      alert("Ha ocurrido un error");
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   const searchWorker = async (query: string): Promise<Cesacion[]> => {
     const resp = await CesacionesSvc.getAll({
@@ -534,162 +546,41 @@ export function useCesaciones(CesacionesSvc: CesacionesService, CesacionCancelad
   }
 
   const handleCancelProcessbyId = React.useCallback(async (Id: string, RazonCancelacion: string) => {
-    if(!CesacionCanceladaSvc) return
 
     try{
       const proceso = await CesacionesSvc.get(Id)
 
       if(proceso){
-        const paylod: CesacionCancelada = {
-          Celular: proceso.Celular,
-          Ciudad: proceso.Ciudad,
-          Correo: proceso.Correoelectronico,
-          Empresaquesolicito: proceso.Empresaalaquepertenece,
-          Informacionenviadapor: proceso.Reportadopor,
-          Nombre: proceso.Nombre,
-          Numeroidentificacion: proceso.Title,
-          Procesocanceladopor: account?.name ?? "",
-          RazonCancelacion:  RazonCancelacion,
-          TipoDocumento: proceso.TipoDoc,
-          Title: proceso.Title
-        }
-        await CesacionCanceladaSvc.create(paylod)
-        await CesacionesSvc.delete(proceso.Id ?? "")
+        await CesacionesSvc.update(Id, {CanceladoPor: account?.name, Estado: "Cancelado", RazonCancelacion})
         alert("Se ha cancelado este proceso con éxito")
+        reloadAll()
       }
     } catch {
       throw new Error("Ha ocurrido un error cancelando el proceso");
     }
-  }, [CesacionesSvc]);
+}, [CesacionesSvc]);
+
+  const handleReactivateProcessById = React.useCallback(async (Id: string) => {
+
+    try{
+      const proceso = await CesacionesSvc.get(Id)
+
+      if(proceso){
+        await CesacionesSvc.update(Id, {Estado: "En proceso",})
+        alert("Se ha reactivado este proceso con éxito")
+        reloadAll()
+      }
+    } catch {
+      throw new Error("Ha ocurrido un error reactivando el proceso");
+    }
+}, [CesacionesSvc]);
+
 
 
   return {
     rows, loading, error, pageSize, pageIndex, hasNext, range, search, errors, sorts, state, workers, workersOptions, estado,
-    handleCancelProcessbyId, setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, searchRegister, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, 
+    setState, handleReactivateProcessById, handleCancelProcessbyId, setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, searchRegister, handleEdit, searchWorker, loadToReport, cleanState, loadFirstPage, 
   };
 }
 
-export function useCesacionesCanceladas(CesacionCanceladaSvc: CesacionCanceladaService) {
-  const [rows, setRows] = React.useState<CesacionCancelada[]>([]);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [range, setRange] = React.useState<DateRange>({ from: "", to: "" });
-  const [pageSize, setPageSize] = React.useState<number>(10); 
-  const [pageIndex, setPageIndex] = React.useState<number>(1);
-  const [nextLink, setNextLink] = React.useState<string | null>(null);
-  const [sorts, setSorts] = React.useState<Array<{field: SortField; dir: SortDir}>>([{ field: 'id', dir: 'desc' }]);
-  const [search, setSearch] = React.useState<string>("");
-  const [estado, setEstado] = React.useState<string>("proceso");
-  
-  // construir filtro OData
-  const buildFilter = React.useCallback((): GetAllOpts => {
-    const filters: string[] = [];
-
-    if(search){
-        filters.push(`(startswith(fields/Nombre, '${search}') or startswith(fields/Title, '${search}') or startswith(fields/Cargo, '${search}'))`)
-    }
-
-    if (range.from && range.to && (range.from < range.to)) {
-      if (range.from) filters.push(`fields/Created ge '${range.from}T00:00:00Z'`);
-      if (range.to)   filters.push(`fields/Created le '${range.to}T23:59:59Z'`);
-    }
-
-    const orderParts: string[] = sorts
-      .map(s => {
-        const col = sortFieldToOData[s.field];
-        return col ? `${col} ${s.dir}` : '';
-      })
-      .filter(Boolean);
-
-    // Estabilidad de orden: si no incluiste 'id', agrega 'id desc' como desempate.
-    if (!sorts.some(s => s.field === 'id')) {
-      orderParts.push('ID desc');
-    }
-    return {
-      filter: filters.join(" and "),
-      orderby: orderParts.join(","),
-      top: pageSize,
-    };
-  }, [range.from, range.to, pageSize, sorts, search, estado] ); 
- 
-  const loadFirstPage = React.useCallback(async () => {
-    setLoading(true); setError(null);
-    try {
-      const { items, nextLink } = await CesacionCanceladaSvc.getAll(buildFilter()); // debe devolver {items,nextLink}
-      setRows(items);
-      setNextLink(nextLink ?? null);
-      setPageIndex(1);
-    } catch (e: any) {
-      setError(e?.message ?? "Error cargando tickets");
-      setRows([]);
-      setNextLink(null);
-      setPageIndex(1);
-    } finally {
-      setLoading(false);
-    }
-  }, [CesacionCanceladaSvc, buildFilter, sorts]);
-
-  React.useEffect(() => {
-    loadFirstPage();
-  }, [loadFirstPage, range, search]);
-
-  // siguiente página: seguir el nextLink tal cual
-  const hasNext = !!nextLink;
-
-  const nextPage = React.useCallback(async () => {
-    if (!nextLink) return;
-    setLoading(true); setError(null);
-    try {
-      const { items, nextLink: n2 } = await CesacionCanceladaSvc.getByNextLink(nextLink);
-      setRows(items);              // 👈 reemplaza la página visible
-      setNextLink(n2 ?? null);     // null si no hay más
-      setPageIndex(i => i + 1);
-    } catch (e: any) {
-      setError(e?.message ?? "Error cargando más tickets");
-    } finally {
-      setLoading(false);
-    }
-  }, [nextLink, CesacionCanceladaSvc]);
-
-  // recargas por cambios externos
-  const applyRange = React.useCallback(() => { loadFirstPage(); }, [loadFirstPage]);
-  const reloadAll  = React.useCallback(() => { loadFirstPage(); }, [loadFirstPage, range, search]);
-
-  const sortFieldToOData: Record<SortField, string> = {
-    id: 'fields/Created',
-    Cedula: 'fields/Numero_x0020_identificaci_x00f3_',
-    Nombre: 'fields/NombreSeleccionado',
-    inicio: 'fields/FECHA_x0020_REQUERIDA_x0020_PARA0',
-  };
-
-  const toggleSort = React.useCallback((field: SortField, additive = false) => {
-    setSorts(prev => {
-      const idx = prev.findIndex(s => s.field === field);
-      if (!additive) {
-        // clic normal: solo esta columna; alterna asc/desc
-        if (idx >= 0) {
-          const dir: SortDir = prev[idx].dir === 'desc' ? 'asc' : 'desc';
-          return [{ field, dir }];
-        }
-        return [{ field, dir: 'asc' }];
-      }
-      // Shift+clic: multi-columna
-      if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = { field, dir: copy[idx].dir === 'desc' ? 'asc' : 'desc' };
-        return copy;
-      }
-      return [...prev, { field, dir: 'asc' }];
-    });
-  }, []);
-
-
-
-
-
-  return {
-    rows, loading, error, pageSize, pageIndex, hasNext, range, search, sorts, estado,
-    nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, loadFirstPage, setEstado
-  };
-}
  

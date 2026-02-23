@@ -413,7 +413,7 @@ export default function FormRetail({
             {/* Fecha requerida para el ingreso */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="fechaIngreso">Fecha de ingreso *</label>
-              <input disabled={isView} id="FechaIngreso" name="FechaIngreso" type="date" value={state.FechaReporte ? toISODateFlex(state.FechaReporte) : ""} onChange={(e) => setField("FechaIngreso", e.target.value)}
+              <input disabled={isView} id="FechaIngreso" name="FechaIngreso" type="date" value={state.FechaIngreso ? toISODateFlex(state.FechaIngreso) : ""} onChange={(e) => setField("FechaIngreso", e.target.value)}
                 autoComplete="off" required aria-required="true"/>
               <small>{errors.FechaIngreso}</small>
             </div>

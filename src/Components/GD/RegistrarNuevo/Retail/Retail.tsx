@@ -244,7 +244,7 @@ export default function RetailTabla({dependenciaOptions, loadingDependencias, de
 
         <tbody>
           {(rows ?? []).map((n: Retail) => (
-            <tr key={n.Id} tabIndex={0}>
+            <tr key={n.Id} tabIndex={0} onClick={() => openRow(n)} onKeyDown={(e) => onRowKeyDown(e, n)}>
               <td>{n.Title}</td>
               <td><span title={n.Nombre}>{n.Nombre}</span></td>
               <td>{toISODateFlex(n.FechaIngreso) || "–"}</td>

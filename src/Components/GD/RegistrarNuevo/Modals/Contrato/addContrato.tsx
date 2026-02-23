@@ -1338,24 +1338,26 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
       }
 
         {/* Acciones */}
-        <div className="ft-actions">
-            <button disabled={isView || selectedNovedad?.Estado === "Cancelado"} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreateNovedad(e)}>
-              {isView || selectedNovedad?.Estado === "Cancelado" ? "No se puede editar este registro ya que fue usado" : "Guardar"}
-            </button> 
-            { isView || tipo === "edit" ?
-              <button type="submit" className="btn btn-xs" onClick={() => setFlow(true)}>Detalles</button> : null
-            }
-            { (isView || tipo === "edit") ?
-              <button type="submit" className="btn btn-xs btn-danger" onClick={() => {
-                                                                        selectedNovedad?.Estado === "Cancelado" ? 
-                                                                          handleReactivateProcessById(selectedNovedad.Id ?? "") : 
-                                                                          setCancelProcess(true)}}
-                                                                        >
-                {selectedNovedad?.Estado !== "Cancelado" ? "Cancelar proceso" : "Reactivar proceso"}
-              </button> : null
-            }
-          <button type="button" className="btn btn-xs" onClick={onClose}>Cancelar</button>
-        </div>
+        {flow ? null : 
+          <div className="ft-actions">
+              <button disabled={isView || selectedNovedad?.Estado === "Cancelado"} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreateNovedad(e)}>
+                {isView || selectedNovedad?.Estado === "Cancelado" ? "No se puede editar este registro ya que fue usado" : "Guardar"}
+              </button> 
+              { isView || tipo === "edit" ?
+                <button type="submit" className="btn btn-xs" onClick={() => setFlow(true)}>Detalles</button> : null
+              }
+              { (isView || tipo === "edit") ?
+                <button type="submit" className="btn btn-xs btn-danger" onClick={() => {
+                                                                          selectedNovedad?.Estado === "Cancelado" ? 
+                                                                            handleReactivateProcessById(selectedNovedad.Id ?? "") : 
+                                                                            setCancelProcess(true)}}
+                                                                          >
+                  {selectedNovedad?.Estado !== "Cancelado" ? "Cancelar proceso" : "Reactivar proceso"}
+                </button> : null
+              }
+            <button type="button" className="btn btn-xs" onClick={onClose}>Cancelar</button>
+          </div>
+        }
         <CancelProcessModal open={cancelProcess} onClose={() => setCancelProcess(false) } onEliminar={handleCancel}/>
       </section>
     </div>

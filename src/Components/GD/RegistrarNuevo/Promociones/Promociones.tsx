@@ -291,7 +291,7 @@ export default function TablaPromociones({submmiting, origenOptions, nivelCargoO
 
           <select name="estado" id="estado" onChange={(e) => setEstado(e.target.value)} value={estado} className="rn-input">
             <option value="En proceso">En proceso</option>
-            <option value="Finalizado">Finalizados</option>
+            <option value="Completado">Finalizados</option>
             <option value="Cancelado">Cancelado</option>
             <option value="todos">Todos</option>
           </select>

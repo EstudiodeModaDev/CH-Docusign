@@ -404,7 +404,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
         const id = selectedNovedad?.Id;
         if (!id) return;
 
-        await Contratos.update(id, { Estado: "Completado" });
+        await Contratos.update(id, { Estado: "Finalizado" });
       }
     },
     [handleCompleteStep, calcPorcentaje, selectedNovedad?.Id, Contratos]

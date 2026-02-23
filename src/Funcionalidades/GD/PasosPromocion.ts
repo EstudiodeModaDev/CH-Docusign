@@ -199,7 +199,7 @@ export function useDetallesPasosPromocion(DetallesSvc: DetallesPasosPromocionSer
   const calcPorcentaje = async (): Promise<number> => {
     const items = await loadDetallesPromocion();
     if(items.length > 0){
-      const completados = items.filter(i => i.EstadoPaso === "Completado").length;
+      const completados = items.filter(i => i.EstadoPaso === "Completado" || i.EstadoPaso === "Omitido").length;
       return (completados / items.length) * 100;
     } else {
       return 0

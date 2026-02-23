@@ -5,7 +5,7 @@ import { useGraphServices } from "../../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../../models/Desplegables";
 import { formatPesosEsCO, numeroATexto, toNumberFromEsCO } from "../../../../../utils/Number";
 import { useAuth } from "../../../../../auth/authProvider";
-import { getTodayLocalISO } from "../../../../../utils/Date";
+import { getTodayLocalISO, toISODateFlex } from "../../../../../utils/Date";
 import { useDetallesPasosNovedades, usePasosNoveades } from "../../../../../Funcionalidades/GD/PasosNovedades";
 import { useSalarios } from "../../../../../Funcionalidades/GD/Salario";
 import { lookOtherInfo, } from "../../../../../utils/lookFor";
@@ -514,7 +514,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
             {/* Fecha requerida para el ingreso */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="fechaIngreso">Fecha requerida para el ingreso *</label>
-              <input disabled={isView} id="fechaIngreso" name="FECHA_x0020_REQUERIDA_x0020_PARA0" type="date" value={state.FECHA_x0020_REQUERIDA_x0020_PARA0 ?? ""} onChange={(e) => setField("FECHA_x0020_REQUERIDA_x0020_PARA0", e.target.value)} required aria-required="true"/>
+              <input disabled={isView} id="fechaIngreso" name="FECHA_x0020_REQUERIDA_x0020_PARA0" type="date" value={state.FECHA_x0020_REQUERIDA_x0020_PARA0 ? toISODateFlex(state.FECHA_x0020_REQUERIDA_x0020_PARA0) : ""} onChange={(e) => setField("FECHA_x0020_REQUERIDA_x0020_PARA0", e.target.value)} required aria-required="true"/>
               <small>{errors.FECHA_x0020_REQUERIDA_x0020_PARA0}</small>
             </div>
 
@@ -628,31 +628,31 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
 
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="FechaNac">Fecha de nacimiento *</label>
-                  <input disabled={isView} id="FechaNac" name="FechaNac" type="date" value={state.FechaNac ?? ""} required aria-required="true" maxLength={300} onChange={(e) => setField("FechaNac", e.target.value)} />
+                  <input disabled={isView} id="FechaNac" name="FechaNac" type="date" value={state.FechaNac ? toISODateFlex(state.FechaNac) : ""} required aria-required="true" maxLength={300} onChange={(e) => setField("FechaNac", e.target.value)} />
                   <small>{errors.FechaNac}</small>
                 </div>
 
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="FechaInicioLectiva">Fecha de inicio de etapa lectiva</label>
-                  <input disabled={isView} id="FechaInicioLectiva" name="FechaInicioLectiva" type="date" value={state.FechaInicioLectiva ?? ""} required aria-required="true" maxLength={300} onChange={(e) => setField("FechaInicioLectiva", e.target.value)}/>
+                  <input disabled={isView} id="FechaInicioLectiva" name="FechaInicioLectiva" type="date" value={state.FechaInicioLectiva ? toISODateFlex(state.FechaInicioLectiva) : ""} required aria-required="true" maxLength={300} onChange={(e) => setField("FechaInicioLectiva", e.target.value)}/>
                   <small>{errors.FechaInicioLectiva}</small>
                 </div>
 
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="FechaFinalLectiva">Fecha final de etapa lectiva</label>
-                  <input disabled={isView} id="FechaFinalLectiva" name="FechaFinalLectiva" type="date" value={state.FechaFinalLectiva ?? ""} required aria-required="true" maxLength={300} onChange={(e) => setField("FechaFinalLectiva", e.target.value)}/>
+                  <input disabled={isView} id="FechaFinalLectiva" name="FechaFinalLectiva" type="date" value={state.FechaFinalLectiva ? toISODateFlex(state.FechaInicioLectiva) : ""} required aria-required="true" maxLength={300} onChange={(e) => setField("FechaFinalLectiva", e.target.value)}/>
                   <small>{errors.FechaFinalLectiva}</small>
                 </div>
 
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="FechaInicioProductiva">Fecha de inicio de etapa productiva</label>
-                  <input disabled={isView} id="FechaInicioProductiva" name="FechaInicioProductiva" type="date" value={state.FechaInicioProductiva ?? ""} required maxLength={300} onChange={(e) => setField("FechaInicioProductiva", e.target.value)}/>
+                  <input disabled={isView} id="FechaInicioProductiva" name="FechaInicioProductiva" type="date" value={state.FechaInicioProductiva ? toISODateFlex(state.FechaInicioProductiva) : ""} required maxLength={300} onChange={(e) => setField("FechaInicioProductiva", e.target.value)}/>
                   <small>{errors.FechaInicioProductiva}</small>
                 </div>
 
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="FechaFinalProductiva">Fecha final de etapa productiva</label>
-                  <input disabled={isView} id="FechaFinalProductiva" name="FechaFinalProductiva" type="date" value={state.FechaFinalProductiva ?? ""}  maxLength={300} onChange={(e) => setField("FechaFinalProductiva", e.target.value)} />
+                  <input disabled={isView} id="FechaFinalProductiva" name="FechaFinalProductiva" type="date" value={state.FechaFinalProductiva ? toISODateFlex(state.FechaFinalProductiva) : ""}  maxLength={300} onChange={(e) => setField("FechaFinalProductiva", e.target.value)} />
                   <small>{errors.FechaFinalProductiva}</small>
                 </div>
 
@@ -906,7 +906,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
             {fechaFinalizacion && (
               <div className="ft-field">
                 <label className="ft-label" htmlFor="FECHA_x0020_REQUERIDA_x0020_PARA">Fecha de finalización *</label>
-                <input disabled={isView} id="FECHA_x0020_REQUERIDA_x0020_PARA" name="FECHA_x0020_REQUERIDA_x0020_PARA" type="date" value={state.FECHA_x0020_REQUERIDA_x0020_PARA ?? ""}  onChange={(e) => setField("FECHA_x0020_REQUERIDA_x0020_PARA", e.target.value)}/>
+                <input disabled={isView} id="FECHA_x0020_REQUERIDA_x0020_PARA" name="FECHA_x0020_REQUERIDA_x0020_PARA" type="date" value={state.FECHA_x0020_REQUERIDA_x0020_PARA ? toISODateFlex(state.FECHA_x0020_REQUERIDA_x0020_PARA) : ""}  onChange={(e) => setField("FECHA_x0020_REQUERIDA_x0020_PARA", e.target.value)}/>
               </div>
             )}
 
@@ -1195,13 +1195,13 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
             {/* Fecha ajuste academico */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="fechaAjuste">Fecha de ajuste academico</label>
-              <input disabled={isView} id="fechaAjuste" name="FECHA_x0020_DE_x0020_AJUSTE_x002" type="date" value={state.FECHA_x0020_DE_x0020_AJUSTE_x002 ?? ""} onChange={(e) => setField("FECHA_x0020_DE_x0020_AJUSTE_x002", e.target.value)} autoComplete="off"/>
+              <input disabled={isView} id="fechaAjuste" name="FECHA_x0020_DE_x0020_AJUSTE_x002" type="date" value={state.FECHA_x0020_DE_x0020_AJUSTE_x002 ? toISODateFlex(state.FECHA_x0020_DE_x0020_AJUSTE_x002) : ""} onChange={(e) => setField("FECHA_x0020_DE_x0020_AJUSTE_x002", e.target.value)} autoComplete="off"/>
             </div>
 
             {/* Fecha entrega valoración */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="fechaEntrega">Fecha de entrega de la valoración de potencial</label>
-              <input disabled={isView} id="fechaEntrega" name="FECHA_x0020_DE_x0020_ENTREGA_x00" type="date" value={state.FECHA_x0020_DE_x0020_ENTREGA_x00 ?? ""} onChange={(e) => setField("FECHA_x0020_DE_x0020_ENTREGA_x00", e.target.value)} autoComplete="off"/>
+              <input disabled={isView} id="fechaEntrega" name="FECHA_x0020_DE_x0020_ENTREGA_x00" type="date" value={state.FECHA_x0020_DE_x0020_ENTREGA_x00 ? toISODateFlex(state.FECHA_x0020_DE_x0020_ENTREGA_x00) : ""} onChange={(e) => setField("FECHA_x0020_DE_x0020_ENTREGA_x00", e.target.value)} autoComplete="off"/>
             </div>
 
             {/* ¿Pertenece al modelo? */}
@@ -1325,7 +1325,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
             {/* Fecha reporte ingreso */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="FechaReporte">Fecha reporte ingreso *</label>
-              <input id="FechaReporte" name="FechaReporte" type="date" value={today} readOnly />
+              <input id="FechaReporte" name="FechaReporte" type="date" value={state.FechaReporte ? toISODateFlex(state.FechaReporte) : today} readOnly />
             </div>
 
             {/* Información enviada por */}

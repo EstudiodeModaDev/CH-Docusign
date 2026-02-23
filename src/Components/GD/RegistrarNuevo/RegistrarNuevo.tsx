@@ -23,7 +23,7 @@ export default function RegistrarNuevoPage() {
   const { handleReactivateProcessById, handleCancelProcessbyId, setState, rows, loading, error, state, pageSize, handleSubmit, pageIndex, hasNext, sorts, setField, setEstado, estado, setRange, setPageSize, nextPage, reloadAll,  toggleSort, range, setSearch, search, loadFirstPage, errors, searchRegister, handleEdit} = useContratos(Contratos,);
   const { setState: setStateHabeas, handleEdit: editHabeas, rows: rowsHabeas, loading: loadingHabeas, error: errorHabeas, pageSize: pageSizeHabeas, pageIndex: pageIndexHabeas, state: stateHabeas, hasNext: hasNextHabeas, sorts: sortsHabeas, setRange: setRangeHabeas, setPageSize: setPageSizeHabeas, handleSubmit: handleSubmitHabeas, setField: setFieldHabeas, errors: errorsHabeas, loadFirstPage: loadFirstPageHabeas, nextPage: nextPageHabeas, reloadAll: reloadAllHabeas, toggleSort: toggleSortHabeas, range: rangeHabeas, setSearch: setSearchHabeas, search: searchHabeas} = useHabeasData(HabeasData)
   const {handleReactivateProcessById: reactivateCesacion,loading: loadingCesacion, setState: setCesacionState, handleEdit: handleEditCesaciones, rows: rowsCesaciones, loading: loadingCesaciones, error: errorCesaciones, pageSize: pageSizeCesaciones, pageIndex: pageIndexCesaciones, state: stateCesaciones, hasNext: hasNextCesaciones, sorts: sortsCesaciones, setRange: setRangeCesaciones, setPageSize: setPageSizeCesaciones, handleSubmit: handleSubmitCesaciones, setField: setFieldsCesaciones, errors: errorsCesaciones, loadFirstPage: loadFirstPageCesaciones, nextPage: nextPageCesaciones, reloadAll: reloadAllCesaciones, toggleSort: toggleSortCesaciones, range: rangeCesaciones, setSearch: setSearchCesaciones, search: searchCesaciones, estado: estadoCesaciones, setEstado: setEstadoCesaciones, searchRegister: searchCesacion, handleCancelProcessbyId: cancelCesacion} = useCesaciones(Cesaciones)
-  const {rows: rowsPromociones, loading: loadingPromociones, error: errorPromociones, pageSize: pageSizePromociones, pageIndex: pageIndexPromociones, state: statePromociones, hasNext: hasNextPromociones, sorts: sortsPromociones, setRange: setRangePromociones, setPageSize: setPageSizePromociones, handleSubmit: handleSumbitPromociones, setField: setFieldsPromociones, errors: errorsPromociones, loadFirstPage: loadFirstPagePromociones, nextPage: nextPagePromociones, reloadAll: reloadAllPromociones, toggleSort: toggleSortPromociones, range: rangePromociones, setSearch: setSearchPromociones, search: searchPromociones, estado: estadoPromociones, setEstado: setEstadoPromociones, searchRegister: searchRegisterPromociones} = usePromocion(Promociones)
+  const { handleReactivateProcessById: reactivatePromotion,handleCancelProcessbyId: cancelPromotion,setState: setStatePromociones, handleEdit: editPromociones, rows: rowsPromociones, loading: loadingPromociones, error: errorPromociones, pageSize: pageSizePromociones, pageIndex: pageIndexPromociones, state: statePromociones, hasNext: hasNextPromociones, sorts: sortsPromociones, setRange: setRangePromociones, setPageSize: setPageSizePromociones, handleSubmit: handleSumbitPromociones, setField: setFieldsPromociones, errors: errorsPromociones, loadFirstPage: loadFirstPagePromociones, nextPage: nextPagePromociones, reloadAll: reloadAllPromociones, toggleSort: toggleSortPromociones, range: rangePromociones, setSearch: setSearchPromociones, search: searchPromociones, estado: estadoPromociones, setEstado: setEstadoPromociones, searchRegister: searchRegisterPromociones} = usePromocion(Promociones)
  
   //Desplegables
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas } = useEmpresasSelect(Maestro);
@@ -172,7 +172,65 @@ export default function RegistrarNuevoPage() {
             loadingTipo={loadingTipo} 
             deptoOptions={deptoOptions} 
             loadingDepto={loadingDepto}/>) : 
-        orden === "promociones" ? (<TablaPromociones rows={rowsPromociones} loading={loadingPromociones} error={errorPromociones} pageSize={pageSizePromociones} pageIndex={pageIndexPromociones} hasNext={hasNextPromociones} sorts={sortsPromociones} setRange={setRangePromociones} setPageSize={setPageSizePromociones} nextPage={nextPagePromociones} reloadAll={reloadAllPromociones} toggleSort={toggleSortPromociones} range={rangePromociones} setSearch={setSearchPromociones} search={searchPromociones} loadFirstPage={loadFirstPagePromociones} estado={estadoPromociones} setEstado={setEstadoPromociones} />) : 
+        orden === "promociones" ? (
+          <TablaPromociones 
+                rows={rowsPromociones}
+                loading={loadingPromociones}
+                error={errorPromociones}
+                pageSize={pageSizePromociones}
+                pageIndex={pageIndexPromociones}
+                hasNext={hasNextPromociones}
+                sorts={sortsPromociones}
+                setRange={setRangePromociones}
+                setPageSize={setPageSizePromociones}
+                nextPage={nextPagePromociones}
+                reloadAll={reloadAllPromociones}
+                toggleSort={toggleSortPromociones}
+                range={rangePromociones}
+                setSearch={setSearchPromociones}
+                search={searchPromociones}
+                loadFirstPage={loadFirstPagePromociones}
+                estado={estadoPromociones}
+                setEstado={setEstadoPromociones}
+                state={statePromociones}
+                setField={setFieldsPromociones}
+                handleSubmit={handleSumbitPromociones}
+                handleEdit={editPromociones}
+                errors={errorsPromociones}
+                searchRegister={searchRegisterPromociones}
+                setState={setStatePromociones}
+                handleCancelProcessbyId={cancelPromotion}
+                handleReactivateProcessById={reactivatePromotion}
+                empresaOptions={empresaOptions}
+                loadingEmp={loadingEmp}
+                tipoDocOptions={tipoDocOptions}
+                loadingTipo={loadingTipo}
+                cargoOptions={cargoOptions}
+                loadingCargo={loadingCargo}
+                modalidadOptions={modalidadOptions}
+                loadingModalidad={loadingModalidad}
+                especificidadOptions={especificidadOptions}
+                loadingEspecificdad={loadingEspecificdad}
+                etapasOptions={etapasOptions}
+                loadingEtapas={loadingEtapas}
+                nivelCargoOptions={nivelCargoOptions}
+                loadinNivelCargo={loadinNivelCargo}
+                CentroCostosOptions={CentroCostosOptions}
+                loadingCC={loadingCC}
+                COOptions={COOptions}
+                loadingCO={loadingCO}
+                UNOptions={UNOptions}
+                loadingUN={loadingUN}
+                origenOptions={origenOptions}
+                loadingOrigen={loadingOrigen}
+                tipoContratoOptions={tipoContratoOptions}
+                loadingTipoContrato={loadingTipoContrato}
+                tipoVacanteOptions={tipoVacanteOptions}
+                loadingTipoVacante={loadingTipoVacante}
+                deptoOptions={deptoOptions}
+                loadingDepto={loadingDepto}
+                dependenciaOptions={dependenciaOptions}
+                loadingDependencias={loadingDependencias} submmiting={loadingPromociones}/>) : 
         orden === "cesaciones" ? (
           <CesacionesTabla 
             rows={rowsCesaciones} 
@@ -290,7 +348,51 @@ export default function RegistrarNuevoPage() {
           loadingTipo={loadingTipo}
           deptoOptions={deptoOptions}
           loadingDepto={loadingDepto} sending={loadingHabeas}        /> : null}
-      {orden === "promociones" && modal ? <FormPromociones onClose={() => setModal(false)} state={statePromociones} setField={setFieldsPromociones} handleSubmit={handleSumbitPromociones} errors={errorsPromociones} searchPromocion={searchRegisterPromociones} loadFirstPage={loadFirstPagePromociones}/> : null}
+      {orden === "promociones" && modal ? 
+        <FormPromociones 
+          onClose={() => setModal(false)}
+          state={statePromociones}
+          setField={setFieldsPromociones}
+          handleSubmit={handleSumbitPromociones}
+          errors={errorsPromociones}
+          loadFirstPage={loadFirstPagePromociones}
+          handleEdit={handleSumbitPromociones}
+          searchRegister={searchRegisterPromociones}
+          tipo={"new"}
+          setState={setStatePromociones}
+          handleCancelProcessbyId={cancelPromotion}
+          handleReactivateProcessById={reactivatePromotion}
+          title={"Nueva Promoción"}
+          empresaOptions={empresaOptions}
+          loadingEmp={loadingEmp}
+          tipoDocOptions={tipoDocOptions}
+          loadingTipo={loadingTipo}
+          cargoOptions={cargoOptions}
+          loadingCargo={loadingCargo}
+          modalidadOptions={modalidadOptions}
+          loadingModalidad={loadingModalidad}
+          especificidadOptions={especificidadOptions}
+          loadingEspecificdad={loadingEspecificdad}
+          etapasOptions={etapasOptions}
+          loadingEtapas={loadingEtapas}
+          nivelCargoOptions={nivelCargoOptions}
+          loadinNivelCargo={loadinNivelCargo}
+          CentroCostosOptions={CentroCostosOptions}
+          loadingCC={loadingCC}
+          COOptions={COOptions}
+          loadingCO={loadingCO}
+          UNOptions={UNOptions}
+          loadingUN={loadingUN}
+          origenOptions={origenOptions}
+          loadingOrigen={loadingOrigen}
+          tipoContratoOptions={tipoContratoOptions}
+          loadingTipoContrato={loadingTipoContrato}
+          tipoVacanteOptions={tipoVacanteOptions}
+          loadingTipoVacante={loadingTipoVacante}
+          deptoOptions={deptoOptions}
+          loadingDepto={loadingDepto}
+          dependenciaOptions={dependenciaOptions}
+          loadingDependencias={loadingDependencias} submitting={loadingPromociones}/> : null}
       {orden === "cesaciones" && modal ? 
         <FormCesacion 
           onClose={() => setModal(false)}

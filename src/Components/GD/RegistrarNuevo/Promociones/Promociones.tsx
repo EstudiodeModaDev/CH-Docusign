@@ -3,11 +3,12 @@ import "../Contratos/Contratos.css";
 import type { DateRange, SortDir, SortField } from "../../../../models/Commons";
 import { useGraphServices } from "../../../../graph/graphContext";
 import { toISODateFlex } from "../../../../utils/Date";
-import type { Promocion } from "../../../../models/Promociones";
+import type { Promocion, PromocionErrors } from "../../../../models/Promociones";
 import { formatPesosEsCO } from "../../../../utils/Number";
-import ViewPromociones from "../Modals/Promociones/viewEditPromociones";
 import { useEnvios } from "../../../../Funcionalidades/GD/Envios";
-import { usePromocionesCanceladas } from "../../../../Funcionalidades/GD/Promocion";
+import FormPromocion from "../Modals/Promociones/addPromociones";
+import type { SetField } from "../Modals/Contrato/addContrato";
+import type { desplegablesOption } from "../../../../models/Desplegables";
 
 function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; dir: SortDir}>) {
   const idx = sorts.findIndex(s => s.field === field);
@@ -32,9 +33,54 @@ type Props = {
   range: DateRange;
   setSearch: React.Dispatch<React.SetStateAction<string>>;
   search: string;
-  loadFirstPage: () => void;
+  loadFirstPage: () => Promise<void>
   estado: string,
   setEstado: React.Dispatch<React.SetStateAction<string>>;
+
+  state: Promocion
+  setField: SetField<Promocion>;
+  handleSubmit: () => Promise<{ok: boolean; created: string | null;}>;
+  handleEdit: (e: React.FormEvent, NovedadSeleccionada: Promocion) => void;
+  errors: PromocionErrors
+  searchRegister: (cedula: string) => Promise<Promocion | null>
+  
+  selectedPromocion?: Promocion
+  setState: (n: Promocion) => void
+  handleCancelProcessbyId: (id: string, r: string) => void
+  handleReactivateProcessById: (id: string) => void
+  submmiting: boolean
+
+  //Desplegables
+  empresaOptions: desplegablesOption[]
+  loadingEmp: boolean
+  tipoDocOptions: desplegablesOption[], 
+  loadingTipo: boolean
+  cargoOptions: desplegablesOption[], 
+  loadingCargo: boolean, 
+  modalidadOptions: desplegablesOption[], 
+  loadingModalidad: boolean,
+  especificidadOptions: desplegablesOption[], 
+  loadingEspecificdad: boolean, 
+  etapasOptions: desplegablesOption[], 
+  loadingEtapas: boolean, 
+  nivelCargoOptions: desplegablesOption[], 
+  loadinNivelCargo: boolean, 
+  CentroCostosOptions: desplegablesOption[]
+  loadingCC: boolean
+  COOptions: desplegablesOption[]
+  loadingCO: boolean, 
+  UNOptions: desplegablesOption[]
+  loadingUN: boolean,
+  origenOptions: desplegablesOption[], 
+  loadingOrigen: boolean
+  tipoContratoOptions: desplegablesOption[], 
+  loadingTipoContrato: boolean, 
+  tipoVacanteOptions: desplegablesOption[], 
+  loadingTipoVacante: boolean, 
+  deptoOptions: desplegablesOption[], 
+  loadingDepto: boolean, 
+  dependenciaOptions: desplegablesOption[], 
+  loadingDependencias: boolean
 }
 
 export type PropsPagination = {
@@ -47,20 +93,19 @@ export type PropsPagination = {
   totalRows: number;
 };
 
-export default function TablaPromociones({rows, loading: loadingPromociones, error, pageSize: pageSizePromociones, pageIndex: pageIndexPromociones, hasNext: hasNextPromociones, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPagePromociones, reloadAll: reloadAllPromociones, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
-  const { Envios, DetallesPasosPromocion, PromocionesCanceladas } = useGraphServices();
+export default function TablaPromociones({submmiting, origenOptions, nivelCargoOptions, tipoVacanteOptions, tipoContratoOptions, loadingEspecificdad, loadingCC, loadingCO, loadingDependencias, loadingDepto, loadingEtapas, loadingOrigen, loadingTipoContrato, loadingTipoVacante, loadingUN, loadingCargo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, modalidadOptions, loadingModalidad, deptoOptions, etapasOptions, COOptions, CentroCostosOptions, UNOptions, dependenciaOptions, loadinNivelCargo, especificidadOptions, errors, handleEdit, setState, handleCancelProcessbyId,searchRegister,  handleReactivateProcessById, setField, handleSubmit, state, rows, loading: loadingPromociones, error, pageSize: pageSizePromociones, pageIndex: pageIndexPromociones, hasNext: hasNextPromociones, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPagePromociones, reloadAll: reloadAllPromociones, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
+  const { Envios, DetallesPasosPromocion,} = useGraphServices();
   const { canEdit } = useEnvios(Envios);
-
-  const {rows: rowsCanceladas, reloadAll: reloadAllCancelados, loading: loadingCancelados,  pageSize: pageSizeCancelados, pageIndex: pageIndexCancelados, hasNext: hasNextCancelados, nextPage: nextPageCancelados, } = usePromocionesCanceladas(PromocionesCanceladas);   
+  
   const [visible, setVisible] = React.useState(false);
   const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Promocion | null>(null);
-  const [tipoFormulario, setTipoFormulario] = React.useState<string>("");
+  const [tipoFormulario, setTipoFormulario] = React.useState<"new" | "edit" | "view">("edit");
   const [pctById, setPctById] = React.useState<Record<string, number>>({});
 
   const openRow = React.useCallback(
     async (novedad: Promocion) => {
       setNovedadSeleccionada(novedad);
-      const modo = await canEdit(String(novedad.Id ?? ""), "Novedades");
+      const modo = await canEdit(String(novedad.Id ?? ""), "Promocion");
       setTipoFormulario(modo);
       setVisible(true);
     },
@@ -98,22 +143,20 @@ export default function TablaPromociones({rows, loading: loadingPromociones, err
   );
 
   const isCanceladas = estado === "cancelado";
-  const activeRows: any[] = isCanceladas ? (rowsCanceladas ?? []) : (rows ?? []);
-  const activeLoading = isCanceladas ? loadingCancelados : loadingPromociones;
 
   React.useEffect(() => {
-    for (const c of activeRows) {
+    for (const c of rows) {
       const id = String(c?.Id ?? "");
       if (!id) continue;
       if (pctById[id] !== undefined) continue;
       fetchPctForPromociones(id);
     }
-  }, [activeRows, pctById, fetchPctForPromociones]);
+  }, [rows, pctById, fetchPctForPromociones]);
 
   
   React.useEffect(() => {
     if(estado === "cancelado"){
-      reloadAllCancelados()
+      reloadAllPromociones()
     }
   }, [estado]);
 
@@ -217,7 +260,7 @@ export default function TablaPromociones({rows, loading: loadingPromociones, err
         </thead>
 
         <tbody>
-          {(rowsCanceladas ?? []).map((n: any) => (
+          {(rows ?? []).map((n: any) => (
             <tr key={n.Id} tabIndex={0}>
               <td>{n.Numeroidentificacion}</td>
               <td><span title={n.Nombre}>{n.Nombre}</span></td>
@@ -236,7 +279,7 @@ export default function TablaPromociones({rows, loading: loadingPromociones, err
         </tbody>
       </table>
 
-      <Paginacion reloadAll={reloadAllCancelados} nextPage={nextPageCancelados} pageIndex={pageIndexCancelados} hasNext={hasNextCancelados} loading={loadingCancelados} pageSize={pageSizeCancelados} totalRows={(rowsCanceladas ?? []).length}/>
+      <Paginacion reloadAll={reloadAllPromociones} nextPage={nextPagePromociones} pageIndex={pageIndexPromociones} hasNext={hasNextPromociones} loading={false} pageSize={pageSizePromociones} totalRows={(rows).length}/>
     </>
   );
 
@@ -247,9 +290,9 @@ export default function TablaPromociones({rows, loading: loadingPromociones, err
           <input className="rn-input" onChange={(e) => setSearch(e.target.value)} value={search} placeholder="Buscador..."/>
 
           <select name="estado" id="estado" onChange={(e) => setEstado(e.target.value)} value={estado} className="rn-input">
-            <option value="proceso">En proceso</option>
-            <option value="finalizado">Finalizados</option>
-            <option value="cancelado">Cancelado</option>
+            <option value="En proceso">En proceso</option>
+            <option value="Finalizado">Finalizados</option>
+            <option value="Cancelado">Cancelado</option>
             <option value="todos">Todos</option>
           </select>
 
@@ -258,9 +301,9 @@ export default function TablaPromociones({rows, loading: loadingPromociones, err
         </div>
       </div>
 
-      {activeLoading && <p>Cargando registros...</p>}
+      {loadingPromociones && <p>Cargando registros...</p>}
       {error && <p style={{ color: "#b91c1c" }}>{error}</p>}
-      {!activeLoading && !error && activeRows.length === 0 && (
+      {!loadingPromociones && !error && rows.length === 0 && (
         <p>No hay registros para los filtros seleccionados.</p>
       )}
 
@@ -269,7 +312,50 @@ export default function TablaPromociones({rows, loading: loadingPromociones, err
       </div>
 
       {visible && novedadSeleccionada ? (
-        <ViewPromociones selectedPromocion={novedadSeleccionada} tipo={tipoFormulario} onClose={onClose}/>
+        <FormPromocion 
+          onClose={onClose}
+          state={state}
+          setField={setField}
+          handleSubmit={handleSubmit}
+          handleEdit={handleEdit}
+          errors={errors}
+          searchRegister={searchRegister}
+          loadFirstPage={loadFirstPage}
+          tipo={tipoFormulario}
+          setState={setState}
+          handleCancelProcessbyId={handleCancelProcessbyId}
+          handleReactivateProcessById={handleReactivateProcessById}
+          title={"Editar promoción de: " + novedadSeleccionada.NombreSeleccionado}
+          empresaOptions={empresaOptions}
+          loadingEmp={loadingEmp}
+          tipoDocOptions={tipoDocOptions}
+          loadingTipo={loadingTipo}
+          cargoOptions={cargoOptions}
+          loadingCargo={loadingCargo}
+          modalidadOptions={modalidadOptions}
+          loadingModalidad={loadingModalidad}
+          especificidadOptions={especificidadOptions}
+          loadingEspecificdad={loadingEspecificdad}
+          etapasOptions={etapasOptions}
+          loadingEtapas={loadingEtapas}
+          nivelCargoOptions={nivelCargoOptions}
+          loadinNivelCargo={loadinNivelCargo}
+          CentroCostosOptions={CentroCostosOptions}
+          loadingCC={loadingCC}
+          COOptions={COOptions}
+          loadingCO={loadingCO}
+          UNOptions={UNOptions}
+          loadingUN={loadingUN}
+          origenOptions={origenOptions}
+          loadingOrigen={loadingOrigen}
+          tipoContratoOptions={tipoContratoOptions}
+          loadingTipoContrato={loadingTipoContrato}
+          tipoVacanteOptions={tipoVacanteOptions}
+          loadingTipoVacante={loadingTipoVacante}
+          deptoOptions={deptoOptions}
+          loadingDepto={loadingDepto}
+          dependenciaOptions={dependenciaOptions}
+          loadingDependencias={loadingDependencias} submitting={submmiting} selectedPromocion={novedadSeleccionada}/>
       ) : null}
     </div>
   );

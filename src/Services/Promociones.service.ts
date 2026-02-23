@@ -128,7 +128,9 @@ export class PromocionesService {
         AjusteSioNo: f.AjusteSioNo,
         AuxilioRodamientoSioNo: f.AuxilioRodamientoSioNo,
         PerteneceModelo: f.PerteneceModelo,
-        Estado: f.Estado
+        Estado: f.Estado,
+        CanceladoPor: f.CanceladoPor, 
+        razonCancelacion: f.razonCancelacion
     };
   }
 

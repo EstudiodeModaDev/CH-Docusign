@@ -4,9 +4,10 @@ import type { DateRange, SortDir, SortField } from "../../../../models/Commons";
 import { useGraphServices } from "../../../../graph/graphContext";
 import { useEnvios } from "../../../../Funcionalidades/GD/Envios";
 import { toISODateFlex } from "../../../../utils/Date";
-import type { Retail } from "../../../../models/Retail";
-import EditRetail from "../Modals/Retail/viewEditRetail";
-import { useRetailCancelados } from "../../../../Funcionalidades/GD/Retail";
+import type { Retail, RetailErrors } from "../../../../models/Retail";
+import FormRetail from "../Modals/Retail/addRetail";
+import type { SetField } from "../Modals/Contrato/addContrato";
+import type { desplegablesOption } from "../../../../models/Desplegables";
 
 function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; dir: SortDir}>) {
   const idx = sorts.findIndex(s => s.field === field);
@@ -31,9 +32,43 @@ export type Props = {
   range: DateRange;
   setSearch: React.Dispatch<React.SetStateAction<string>>;
   search: string;
-  loadFirstPage: () => void;
+  loadFirstPage: () => Promise<void>
   setEstado: React.Dispatch<React.SetStateAction<string>>;
   estado: string
+
+  state: Retail
+  setField: SetField<Retail>;
+  handleSubmit: () => Promise<{ok: boolean; created: string | null;}>;
+  handleEdit: (e: React.FormEvent, NovedadSeleccionada: Retail) => void;
+  errors: RetailErrors
+  searchRegister: (cedula: string) => Promise<Retail | null>
+  selectedRetail?: Retail
+  setState: (n: Retail) => void
+  handleCancelProcessbyId: (id: string, r: string) => void
+  handleReactivateProcessById: (id: string) => void
+  submitting: boolean
+
+  //Desplegables
+  empresaOptions: desplegablesOption[]
+  loadingEmp: boolean
+  tipoDocOptions: desplegablesOption[], 
+  loadingTipo: boolean
+  cargoOptions: desplegablesOption[], 
+  loadingCargo: boolean, 
+  nivelCargoOptions: desplegablesOption[], 
+  loadinNivelCargo: boolean, 
+  CentroCostosOptions: desplegablesOption[]
+  loadingCC: boolean
+  COOptions: desplegablesOption[]
+  loadingCO: boolean, 
+  UNOptions: desplegablesOption[]
+  loadingUN: boolean,
+  origenOptions: desplegablesOption[], 
+  loadingOrigen: boolean
+  deptoOptions: desplegablesOption[], 
+  loadingDepto: boolean, 
+  dependenciaOptions: desplegablesOption[], 
+  loadingDependencias: boolean
 };
 
 export type PropsPagination = {
@@ -46,13 +81,12 @@ export type PropsPagination = {
   totalRows: number;
 };
 
-export default function RetailTabla({rows, loading: loadingRetail, error, pageSize: pageSizeRetail, pageIndex: pageIndexRetail, hasNext: hasNextRetail, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageRetail, reloadAll: reloadAllRetail, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
-  const { Envios, detallesPasosRetail, retailCancelados } = useGraphServices();
+export default function RetailTabla({dependenciaOptions, loadingDependencias, deptoOptions, loadingDepto, origenOptions, loadingOrigen, CentroCostosOptions, loadingCC, UNOptions, loadingUN, COOptions, loadingCO, nivelCargoOptions, loadinNivelCargo, cargoOptions, loadingCargo, tipoDocOptions, loadingTipo, empresaOptions, loadingEmp, submitting, handleCancelProcessbyId, handleReactivateProcessById, setState, searchRegister, errors, handleSubmit, handleEdit, setField, state, rows, loading: loadingRetail, error, pageSize: pageSizeRetail, pageIndex: pageIndexRetail, hasNext: hasNextRetail, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageRetail, reloadAll: reloadAllRetail, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
+  const { Envios, detallesPasosRetail, } = useGraphServices();
   const { canEdit } = useEnvios(Envios);
-  const {rows: rowsCanceladas, reloadAll: reloadAllCancelados, loading: loadingCancelados,  pageSize: pageSizeCancelados, pageIndex: pageIndexCancelados, hasNext: hasNextCancelados, nextPage: nextPageCancelados, } = useRetailCancelados(retailCancelados);   
   const [visible, setVisible] = React.useState(false);
   const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Retail | null>(null);
-  const [tipoFormulario, setTipoFormulario] = React.useState<string>("");
+  const [tipoFormulario, setTipoFormulario] = React.useState<"edit" | "new" | "view">("edit");
   const [pctById, setPctById] = React.useState<Record<string, number>>({});
 
   const openRow = React.useCallback(
@@ -95,25 +129,17 @@ export default function RetailTabla({rows, loading: loadingRetail, error, pageSi
     [detallesPasosRetail]
   );
 
-  const isCanceladas = estado === "cancelado";
-  const activeRows: any[] = isCanceladas ? (rowsCanceladas ?? []) : (rows ?? []);
-  const activeLoading = isCanceladas ? loadingCancelados : loadingRetail;
+  const isCanceladas = estado === "Cancelado";
 
   React.useEffect(() => {
-    for (const c of activeRows) {
+    for (const c of rows) {
       const id = String(c?.Id ?? "");
       if (!id) continue;
       if (pctById[id] !== undefined) continue;
       fetchPctForRetail(id);
     }
-  }, [activeRows, pctById, fetchPctForRetail]);
+  }, [rows, pctById, fetchPctForRetail]);
 
-  
-  React.useEffect(() => {
-    if(estado === "cancelado"){
-      reloadAllCancelados()
-    }
-  }, [estado]);
 
   const onRowKeyDown = (e: React.KeyboardEvent<HTMLTableRowElement>, n: Retail) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -209,7 +235,7 @@ export default function RetailTabla({rows, loading: loadingRetail, error, pageSi
           <tr>
             <th style={{ whiteSpace: "nowrap" }}>Cedula</th>
             <th style={{ whiteSpace: "nowrap" }}>Nombre</th>
-            <th style={{ whiteSpace: "nowrap" }}>Fecha cancelación</th>
+            <th style={{ whiteSpace: "nowrap" }}>Fecha Inicio</th>
             <th>Motivo cancelación</th>
             <th>Cancelado por</th>
             <th style={{ textAlign: "center" }}>%</th>
@@ -217,13 +243,13 @@ export default function RetailTabla({rows, loading: loadingRetail, error, pageSi
         </thead>
 
         <tbody>
-          {(rowsCanceladas ?? []).map((n: any) => (
+          {(rows ?? []).map((n: Retail) => (
             <tr key={n.Id} tabIndex={0}>
-              <td>{n.Numeroidentificacion}</td>
+              <td>{n.Title}</td>
               <td><span title={n.Nombre}>{n.Nombre}</span></td>
-              <td>{toISODateFlex(n.Created) || "–"}</td>
-              <td><span title={n.RazonCancelacion}>{n.RazonCancelacion || "–"}</span></td>
-              <td><span title={n.Procesocanceladopor}>{n.Procesocanceladopor || "–"}</span></td>
+              <td>{toISODateFlex(n.FechaIngreso) || "–"}</td>
+              <td><span title={n.razonCancelacion}>{n.razonCancelacion || "–"}</span></td>
+              <td><span title={n.CanceladoPor}>{n.CanceladoPor || "–"}</span></td>
               <td style={{ textAlign: "center" }}>
                 {(() => {
                   const id = String(n.Id ?? "");
@@ -236,7 +262,7 @@ export default function RetailTabla({rows, loading: loadingRetail, error, pageSi
         </tbody>
       </table>
 
-      <Paginacion reloadAll={reloadAllCancelados} nextPage={nextPageCancelados} pageIndex={pageIndexCancelados} hasNext={hasNextCancelados} loading={loadingCancelados} pageSize={pageSizeCancelados} totalRows={(rowsCanceladas ?? []).length}/>
+      <Paginacion reloadAll={reloadAllRetail} nextPage={nextPageRetail} pageIndex={pageIndexRetail} hasNext={hasNextRetail} loading={loadingRetail} pageSize={pageSizeRetail} totalRows={(rows ?? []).length}/>
     </>
   );
 
@@ -247,9 +273,9 @@ export default function RetailTabla({rows, loading: loadingRetail, error, pageSi
           <input className="rn-input" onChange={(e) => setSearch(e.target.value)} value={search} placeholder="Buscador..."/>
 
           <select name="estado" id="estado" onChange={(e) => setEstado(e.target.value)} value={estado} className="rn-input">
-            <option value="proceso">En proceso</option>
-            <option value="finalizado">Finalizados</option>
-            <option value="cancelado">Cancelado</option>
+            <option value="En proceso">En proceso</option>
+            <option value="Finalizado">Finalizados</option>
+            <option value="Cancelado">Cancelado</option>
             <option value="todos">Todos</option>
           </select>
 
@@ -258,9 +284,9 @@ export default function RetailTabla({rows, loading: loadingRetail, error, pageSi
         </div>
       </div>
 
-      {activeLoading && <p>Cargando registros...</p>}
+      {loadingRetail && <p>Cargando registros...</p>}
       {error && <p style={{ color: "#b91c1c" }}>{error}</p>}
-      {!activeLoading && !error && activeRows.length === 0 && (
+      {!loadingRetail && !error && rows.length === 0 && (
         <p>No hay registros para los filtros seleccionados.</p>
       )}
 
@@ -269,7 +295,42 @@ export default function RetailTabla({rows, loading: loadingRetail, error, pageSi
       </div>
 
       {visible && novedadSeleccionada ? (
-        <EditRetail selectedRetail={novedadSeleccionada} tipo={tipoFormulario} onClose={onClose}/>
+        <FormRetail 
+          onClose={onClose} 
+          state={state} 
+          setField={setField} 
+          handleSubmit={handleSubmit} 
+          handleEdit={handleEdit} 
+          errors={errors} 
+          searchRegister={searchRegister} 
+          loadFirstPage={loadFirstPage} 
+          tipo={tipoFormulario} 
+          setState={setState} 
+          handleCancelProcessbyId={handleCancelProcessbyId} 
+          handleReactivateProcessById={handleReactivateProcessById} 
+          title={"Editar contratación de: " + novedadSeleccionada.Nombre} 
+          submitting={submitting} 
+          empresaOptions={empresaOptions} 
+          loadingEmp={loadingEmp} 
+          tipoDocOptions={tipoDocOptions} 
+          loadingTipo={loadingTipo} 
+          cargoOptions={cargoOptions} 
+          loadingCargo={loadingCargo} 
+          nivelCargoOptions={nivelCargoOptions} 
+          loadinNivelCargo={loadinNivelCargo} 
+          CentroCostosOptions={CentroCostosOptions} 
+          loadingCC={loadingCC} 
+          COOptions={COOptions} 
+          loadingCO={loadingCO} 
+          UNOptions={UNOptions} 
+          loadingUN={loadingUN} 
+          origenOptions={origenOptions} 
+          loadingOrigen={loadingOrigen} 
+          deptoOptions={deptoOptions} 
+          loadingDepto={loadingDepto} 
+          dependenciaOptions={dependenciaOptions} 
+          loadingDependencias={loadingDependencias}
+          selectedRetail={novedadSeleccionada}/>
       ) : null}
     </div>
   );

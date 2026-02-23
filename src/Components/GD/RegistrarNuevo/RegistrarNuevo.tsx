@@ -14,18 +14,19 @@ import { useHabeasData } from "../../../Funcionalidades/GD/HabeasData";
 import { useCesaciones } from "../../../Funcionalidades/GD/Cesaciones";
 import { usePromocion } from "../../../Funcionalidades/GD/Promocion";
 import RetailTabla from "./Retail/Retail";
-import { useRetail } from "../../../Funcionalidades/GD/Retail";
 import FormRetail from "./Modals/Retail/addRetail";
 import { useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useEspecificidadCargo, useEtapa, useModalidadTrabajo, useNivelCargo, useOrigenSeleccion, useTemporales, useTipoContrato, useTipoDocumentoSelect, useTipoVacante, useUnidadNegocio } from "../../../Funcionalidades/Desplegables";
+import { useRetail } from "../../../Funcionalidades/GD/Retail";
 
 export default function RegistrarNuevoPage() {
   const { Contratos, HabeasData, Cesaciones,Promociones, Retail, Maestro, DeptosYMunicipios} = useGraphServices();
   const { handleReactivateProcessById, handleCancelProcessbyId, setState, rows, loading, error, state, pageSize, handleSubmit, pageIndex, hasNext, sorts, setField, setEstado, estado, setRange, setPageSize, nextPage, reloadAll,  toggleSort, range, setSearch, search, loadFirstPage, errors, searchRegister, handleEdit} = useContratos(Contratos,);
   const { setState: setStateHabeas, handleEdit: editHabeas, rows: rowsHabeas, loading: loadingHabeas, error: errorHabeas, pageSize: pageSizeHabeas, pageIndex: pageIndexHabeas, state: stateHabeas, hasNext: hasNextHabeas, sorts: sortsHabeas, setRange: setRangeHabeas, setPageSize: setPageSizeHabeas, handleSubmit: handleSubmitHabeas, setField: setFieldHabeas, errors: errorsHabeas, loadFirstPage: loadFirstPageHabeas, nextPage: nextPageHabeas, reloadAll: reloadAllHabeas, toggleSort: toggleSortHabeas, range: rangeHabeas, setSearch: setSearchHabeas, search: searchHabeas} = useHabeasData(HabeasData)
-  const {handleReactivateProcessById: reactivateCesacion,loading: loadingCesacion, setState: setCesacionState, handleEdit: handleEditCesaciones, rows: rowsCesaciones, loading: loadingCesaciones, error: errorCesaciones, pageSize: pageSizeCesaciones, pageIndex: pageIndexCesaciones, state: stateCesaciones, hasNext: hasNextCesaciones, sorts: sortsCesaciones, setRange: setRangeCesaciones, setPageSize: setPageSizeCesaciones, handleSubmit: handleSubmitCesaciones, setField: setFieldsCesaciones, errors: errorsCesaciones, loadFirstPage: loadFirstPageCesaciones, nextPage: nextPageCesaciones, reloadAll: reloadAllCesaciones, toggleSort: toggleSortCesaciones, range: rangeCesaciones, setSearch: setSearchCesaciones, search: searchCesaciones, estado: estadoCesaciones, setEstado: setEstadoCesaciones, searchRegister: searchCesacion, handleCancelProcessbyId: cancelCesacion} = useCesaciones(Cesaciones)
-  const { handleReactivateProcessById: reactivatePromotion,handleCancelProcessbyId: cancelPromotion,setState: setStatePromociones, handleEdit: editPromociones, rows: rowsPromociones, loading: loadingPromociones, error: errorPromociones, pageSize: pageSizePromociones, pageIndex: pageIndexPromociones, state: statePromociones, hasNext: hasNextPromociones, sorts: sortsPromociones, setRange: setRangePromociones, setPageSize: setPageSizePromociones, handleSubmit: handleSumbitPromociones, setField: setFieldsPromociones, errors: errorsPromociones, loadFirstPage: loadFirstPagePromociones, nextPage: nextPagePromociones, reloadAll: reloadAllPromociones, toggleSort: toggleSortPromociones, range: rangePromociones, setSearch: setSearchPromociones, search: searchPromociones, estado: estadoPromociones, setEstado: setEstadoPromociones, searchRegister: searchRegisterPromociones} = usePromocion(Promociones)
- 
-  //Desplegables
+  const { handleReactivateProcessById: reactivateCesacion,loading: loadingCesacion, setState: setCesacionState, handleEdit: handleEditCesaciones, rows: rowsCesaciones, loading: loadingCesaciones, error: errorCesaciones, pageSize: pageSizeCesaciones, pageIndex: pageIndexCesaciones, state: stateCesaciones, hasNext: hasNextCesaciones, sorts: sortsCesaciones, setRange: setRangeCesaciones, setPageSize: setPageSizeCesaciones, handleSubmit: handleSubmitCesaciones, setField: setFieldsCesaciones, errors: errorsCesaciones, loadFirstPage: loadFirstPageCesaciones, nextPage: nextPageCesaciones, reloadAll: reloadAllCesaciones, toggleSort: toggleSortCesaciones, range: rangeCesaciones, setSearch: setSearchCesaciones, search: searchCesaciones, estado: estadoCesaciones, setEstado: setEstadoCesaciones, searchRegister: searchCesacion, handleCancelProcessbyId: cancelCesacion} = useCesaciones(Cesaciones)
+  const { handleReactivateProcessById: reactivatePromotion, handleCancelProcessbyId: cancelPromotion,setState: setStatePromociones, handleEdit: editPromociones, rows: rowsPromociones, loading: loadingPromociones, error: errorPromociones, pageSize: pageSizePromociones, pageIndex: pageIndexPromociones, state: statePromociones, hasNext: hasNextPromociones, sorts: sortsPromociones, setRange: setRangePromociones, setPageSize: setPageSizePromociones, handleSubmit: handleSumbitPromociones, setField: setFieldsPromociones, errors: errorsPromociones, loadFirstPage: loadFirstPagePromociones, nextPage: nextPagePromociones, reloadAll: reloadAllPromociones, toggleSort: toggleSortPromociones, range: rangePromociones, setSearch: setSearchPromociones, search: searchPromociones, estado: estadoPromociones, setEstado: setEstadoPromociones, searchRegister: searchRegisterPromociones} = usePromocion(Promociones)
+  const { handleReactivateProcessById: reactivateRetail, handleCancelProcessbyId: cancelRetail, setState: setStateRetail, handleEdit: editRetail, rows: rowsRetail, loading: loadingRetail, error: errorRetail, pageSize: pageSizeRetail, pageIndex: pageIndexRetail, state: stateRetail, hasNext: hasNextRetail, sorts: sortsRetail, setRange: setRangeRetail, setPageSize: setPageSizeRetail, handleSubmit: handleSubmitRetail, setField: setFieldRetail, errors: errorsRetail, loadFirstPage: loadFirstPageRetail, nextPage: nextPageRetail, reloadAll: reloadAllRetail, toggleSort: toggleSortRetail, range: rangeRetail, setSearch: setSearchRetail, search: searchRetail, estado: estadoRetail, setEstado: setEstadoRetail, searchRegister: searchRegisterRetail} = useRetail(Retail)
+  
+   //Desplegables
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas } = useEmpresasSelect(Maestro);
   const { options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc } = useTipoDocumentoSelect(Maestro);
   const { options: cargoOptions, loading: loadingCargo, reload: reloadCargo } = useCargo(Maestro);
@@ -43,7 +44,7 @@ export default function RegistrarNuevoPage() {
   const { options: dependenciaOptions, loading: loadingDependencias, } = useDependenciasMixtas(Maestro);
   const { options: temporalOptions, loading: loadingTemporal, reload: RealodTemporales } = useTemporales(Maestro);
  
-  const {rows: rowsRetail, loading: loadingRetail, error: errorRetail, pageSize: pageSizeRetail, pageIndex: pageIndexRetail, state: stateRetail, hasNext: hasNextRetail, sorts: sortsRetail, setRange: setRangeRetail, setPageSize: setPageSizeRetail, handleSubmit: handleSubmitRetail, setField: setFieldRetail, errors: errorsRetail, loadFirstPage: loadFirstPageRetail, nextPage: nextPageRetail, reloadAll: reloadAllRetail, toggleSort: toggleSortRetail, range: rangeRetail, setSearch: setSearchRetail, search: searchRetail, estado: estadoRetail, setEstado: setEstadoRetail, searchRegister: searchRegisterRetail} = useRetail(Retail)
+
   const [orden, setOrden] = React.useState("contrataciones");
   const [modal, setModal] = React.useState<boolean>(false)
 
@@ -281,7 +282,56 @@ export default function RegistrarNuevoPage() {
             temporalLoading={loadingTemporal} 
             deptoOptions={deptoOptions} 
             loadingDeptos={loadingDepto} />) :
-        orden === "retail" ? (<RetailTabla rows={rowsRetail} loading={loadingRetail} error={errorRetail} pageSize={pageSizeRetail} pageIndex={pageIndexRetail} hasNext={hasNextRetail} sorts={sortsRetail} setRange={setRangeRetail} setPageSize={setPageSizeRetail} nextPage={nextPageRetail} reloadAll={reloadAllRetail} toggleSort={toggleSortRetail} range={rangeRetail} setSearch={setSearchRetail} search={searchRetail} loadFirstPage={loadFirstPageRetail} setEstado={setEstadoRetail} estado={estadoRetail} />) : null
+        orden === "retail" ? (
+          <RetailTabla 
+            rows={rowsRetail} 
+            loading={loadingRetail} 
+            error={errorRetail} 
+            pageSize={pageSizeRetail} 
+            pageIndex={pageIndexRetail} 
+            hasNext={hasNextRetail} 
+            sorts={sortsRetail} 
+            setRange={setRangeRetail} 
+            setPageSize={setPageSizeRetail} 
+            nextPage={nextPageRetail} 
+            reloadAll={reloadAllRetail} 
+            toggleSort={toggleSortRetail} 
+            range={rangeRetail} 
+            setSearch={setSearchRetail} 
+            search={searchRetail} 
+            loadFirstPage={loadFirstPageRetail} 
+            setEstado={setEstadoRetail} 
+            estado={estadoRetail} 
+            state={stateRetail} 
+            setField={setFieldRetail} 
+            handleSubmit={handleSubmitRetail} 
+            handleEdit={editRetail} 
+            errors={errorsRetail} 
+            searchRegister={searchRegisterRetail} 
+            setState={setStateRetail} 
+            handleCancelProcessbyId={cancelRetail} 
+            handleReactivateProcessById={reactivateRetail} 
+            submitting={loadingRetail} 
+            empresaOptions={empresaOptions} 
+            loadingEmp={loadingEmp} 
+            tipoDocOptions={tipoDocOptions} 
+            loadingTipo={loadingTipo} 
+            cargoOptions={cargoOptions} 
+            loadingCargo={loadingCargo} 
+            nivelCargoOptions={nivelCargoOptions} 
+            loadinNivelCargo={loadinNivelCargo} 
+            CentroCostosOptions={CentroCostosOptions} 
+            loadingCC={loadingCC} 
+            COOptions={COOptions} 
+            loadingCO={loadingCO} 
+            UNOptions={UNOptions} 
+            loadingUN={loadingUN} 
+            origenOptions={origenOptions} 
+            loadingOrigen={loadingOrigen} 
+            deptoOptions={deptoOptions} 
+            loadingDepto={loadingDepto} 
+            dependenciaOptions={dependenciaOptions} 
+            loadingDependencias={loadingDependencias} />) : null
       }
       
 
@@ -428,7 +478,42 @@ export default function RegistrarNuevoPage() {
           tipo={"new"}
           setState={setCesacionState} 
           sending={loadingCesacion} /> : null}
-      {orden === "retail" && modal ? <FormRetail onClose={() => setModal(false)} state={stateRetail} setField={setFieldRetail} handleSubmit={handleSubmitRetail} errors={errorsRetail} searchRetail={searchRegisterRetail} loadFirstPage={loadFirstPageRetail}/> : null}
+      {orden === "retail" && modal ? 
+        <FormRetail 
+          onClose={() => setModal(false)}
+          state={stateRetail}
+          setField={setFieldRetail}
+          handleSubmit={handleSubmitRetail}
+          errors={errorsRetail}
+          loadFirstPage={loadFirstPageRetail} 
+          handleEdit={editRetail} 
+          searchRegister={searchRegisterRetail} 
+          tipo={"new"} 
+          setState={setStateRetail} 
+          handleCancelProcessbyId={cancelRetail} 
+          handleReactivateProcessById={reactivateRetail} 
+          title={"Nuevo retail"} 
+          submitting={loadingRetail} 
+          empresaOptions={empresaOptions} 
+          loadingEmp={loadingEmp} 
+          tipoDocOptions={tipoDocOptions} 
+          loadingTipo={loadingTipo} 
+          cargoOptions={cargoOptions} 
+          loadingCargo={loadingCargo}  
+          nivelCargoOptions={nivelCargoOptions} 
+          loadinNivelCargo={loadinNivelCargo} 
+          CentroCostosOptions={CentroCostosOptions} 
+          loadingCC={loadingCC} 
+          COOptions={COOptions} 
+          loadingCO={loadingCO} 
+          UNOptions={UNOptions} 
+          loadingUN={loadingUN} 
+          origenOptions={origenOptions} 
+          loadingOrigen={loadingOrigen}
+          deptoOptions={deptoOptions} 
+          loadingDepto={loadingDepto} 
+          dependenciaOptions={dependenciaOptions} 
+          loadingDependencias={loadingDependencias}/> : null}
     </div>
   );
 }

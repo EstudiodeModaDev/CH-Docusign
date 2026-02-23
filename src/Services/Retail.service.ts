@@ -106,6 +106,8 @@ export class RetailService {
         InformacionEnviadaPor: f.InformacionEnviadaPor,
         FechaReporte: f.FechaReporte,
         Estado: f.Estado,
+        razonCancelacion: f.razonCancelacion,
+        CanceladoPor: f.CanceladoPor
     };
   }
 

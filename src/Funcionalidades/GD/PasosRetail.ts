@@ -44,49 +44,63 @@ export function usePasosRetail() {
       loadPasosPromocion();
   }, [loadPasosPromocion]);
 
-  const handleCompleteStep = async (detalle: DetallesPasos) => {
+  const handleCompleteStep = async (detalle: DetallesPasos, estado: string) => {
     const idDetalle = detalle.Id;
     if (!idDetalle) return;
 
-    const paso: PasosProceso | null = byId[detalle.NumeroPaso] ?? null;
+    const paso: any = byId[detalle.NumeroPaso] ?? null;
     if (!paso) return;
 
     const estadoAnterior = detalle.EstadoPaso;
-    if (estadoAnterior === "Completado") return; 
 
-    const requiereEvidencia = paso.TipoPaso === "SubidaDocumento";
-    const requiereNotas = paso.TipoPaso === "Aprobacion";
-    const userName = account?.name ?? ""; 
+    // si ya está resuelto, no hagas nada
+    if (estadoAnterior === "Completado" || estadoAnterior === "Omitido") return;
 
-    // ========== 1) Caso: requiere evidencia ==========
-    if (requiereEvidencia) {
+    const userName = account?.name ?? "";
+    const tipoPaso: string = paso.TipoPaso as string;
 
+    // ✅ 0) OMITIR (no valida nada, solo marca y desbloquea)
+    if (estado === "Omitido") {
+      await detallesPasosRetail.update(idDetalle, {
+        EstadoPaso: "Omitido",
+        CompletadoPor: userName,
+        FechaCompletacion: todayISO(),
+        Notas: "Paso omitido",
+      });
+
+      alert("Paso omitido");
+      return;
+    }
+
+    // ========= 1) SUBIDA DOCUMENTO =========
+    if (tipoPaso === "SubidaDocumento") {
       await detallesPasosRetail.update(idDetalle, {
         EstadoPaso: "Completado",
         CompletadoPor: userName,
         FechaCompletacion: todayISO(),
+        Notas: "Archivo subido",
       });
-      alert("Se ha completado con éxito")
+
+      alert("Se ha completado con éxito");
       return;
     }
 
-    // ========== 2) Caso: requiere notas ==========
-    if (requiereNotas) {
-      const decision = decisiones[idDetalle] ?? ""; 
-      const motivo = motivos[idDetalle] ?? "";
+    // ========= 2) APROBACIÓN =========
+    if (tipoPaso === "Aprobacion") {
+      const decision = (decisiones[idDetalle] ?? "") as "" | "Aceptado" | "Rechazado";
+      const motivo = (motivos[idDetalle] ?? "").toString();
 
-      // Si es rechazado y no hay motivo → error
+      if (!decision) {
+        alert("Debe seleccionar un estado");
+        return;
+      }
+
       if (decision === "Rechazado" && !motivo.trim()) {
         alert("Debe indicar el motivo del rechazo");
         return;
       }
 
-      if(!decision){
-        alert("Debe seleccionar un estado")
-        return
-      }
-
-      const notas = decision === "Rechazado"  ? `${decision} con el motivo: ${motivo}` : decision || "";
+      const notas = decision === "Rechazado" ? `Rechazado con el motivo: ${motivo}` : "Aceptado";
 
       await detallesPasosRetail.update(idDetalle, {
         EstadoPaso: "Completado",
@@ -94,19 +108,32 @@ export function usePasosRetail() {
         FechaCompletacion: todayISO(),
         Notas: notas,
       });
-      alert("Se ha completado con éxito")
-      return ;
+
+      alert("Se ha completado con éxito");
+      return;
     }
 
-    // ========== 3) Caso: no requiere ni notas ni evidencia ==========
-    if (!requiereNotas && !requiereEvidencia) {
+    // ========= 3) NOTIFICACIÓN =========
+    if (tipoPaso === "Notificacion") {
       await detallesPasosRetail.update(idDetalle, {
         EstadoPaso: "Completado",
         CompletadoPor: userName,
         FechaCompletacion: todayISO(),
+        Notas: "Notificación enviada",
       });
-      alert("Se ha completado con éxito")
+
+      alert("Se ha completado con éxito");
+      return;
     }
+
+    // ========= 4) fallback =========
+    await detallesPasosRetail.update(idDetalle, {
+      EstadoPaso: "Completado",
+      CompletadoPor: userName,
+      FechaCompletacion: todayISO(),
+    });
+
+    alert("Se ha completado con éxito");
   };
 
   return {

@@ -34,6 +34,8 @@ export type Retail = {
     InformacionEnviadaPor: string;
     FechaReporte: string | null;
     Estado: string;
+    CanceladoPor?: string;
+    razonCancelacion?: string; 
 }
 
 export type RetailErrors = Partial<Record<keyof Retail, string>>;

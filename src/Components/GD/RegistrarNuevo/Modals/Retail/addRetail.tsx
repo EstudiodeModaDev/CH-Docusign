@@ -145,7 +145,7 @@ export default function FormRetail({
   const selectedCargo = cargoOptions.find((o) => safeLower(o.label) === safeLower(state.Cargo)) ?? null;
   const selectedNivelCargo = nivelCargoOptions.find((o) => safeLower(o.label) === safeLower(state.NivelCargo)) ?? null;
   const selectedCentroCostos = CentroCostosOptions.find((o) => safeLower(o.value) === safeLower(state.CodigoCentroCostos)) ?? null;
-  const selectedCentroOperativo = COOptions.find((o) => safeLower(o.value) === safeLower(state.CodigoUnidadNegocio)) ?? null;
+  const selectedCentroOperativo = COOptions.find((o) => safeLower(o.value) === safeLower(state.CodigoCentroOperativo)) ?? null;
   const selectedUnidadNegocio = UNOptions.find((o) => safeLower(o.value) === safeLower(state.CodigoUnidadNegocio)) ?? null;
   const selectedDependencia = dependenciaOptions.find((o) =>safeLower( o.label) === safeLower(state.Depedencia)) ?? null;
   const selectedOrigenSeleccion = origenOptions.find((o) => o.label.toLocaleLowerCase() === state.OrigenSeleccion.toLocaleLowerCase()) ?? null;

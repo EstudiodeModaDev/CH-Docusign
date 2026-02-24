@@ -207,6 +207,10 @@ export default function TablaPromociones({submmiting, origenOptions, nivelCargoO
               Nombre {renderSortIndicator('Nombre', sorts)}
             </th>
 
+            <th role="button">
+              Cargo Nuevo 
+            </th>
+
             <th role="button" tabIndex={0} onClick={(e) => toggleSort('Salario', e.shiftKey)} aria-label="Ordenar por Salario" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
               Salario {renderSortIndicator('Salario', sorts)}
             </th>
@@ -226,6 +230,7 @@ export default function TablaPromociones({submmiting, origenOptions, nivelCargoO
             <tr key={n.Id} tabIndex={0} onClick={() => openRow(n)} onKeyDown={(e) => onRowKeyDown(e, n)}>
               <td>{n.NumeroDoc}</td>
               <td><span title={n.NombreSeleccionado}>{n.NombreSeleccionado}</span></td>
+              <td><span title={n.Cargo}>{n.Cargo}</span></td>
               <td><span title={n.Salario}>{formatPesosEsCO(n.Salario)}</span></td>
               <td>{toISODateFlex(n.FechaIngreso) || "–"}</td>
               <td><span title={n.InformacionEnviadaPor}>{n.InformacionEnviadaPor}</span></td>

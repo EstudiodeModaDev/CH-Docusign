@@ -211,6 +211,10 @@ export default function TablaContratos({handleReactivatProcessbyId, tipoVacanteO
               Nombre {renderSortIndicator("Nombre", sorts)}
             </th>
 
+            <th role="button" tabIndex={0}>
+              Cargo
+            </th>
+
             <th role="button" tabIndex={0} onClick={(e) => toggleSort("Salario", (e as any).shiftKey)} style={{ cursor: "pointer", whiteSpace: "nowrap" }}>
               Salario {renderSortIndicator("Salario", sorts)}
             </th>
@@ -229,6 +233,7 @@ export default function TablaContratos({handleReactivatProcessbyId, tipoVacanteO
             <tr key={n.Id} tabIndex={0} onClick={() => openRow(n)} onKeyDown={(e) => onRowKeyDown(e, n)}>
               <td>{n.Numero_x0020_identificaci_x00f3_}</td>
               <td><span title={n.NombreSeleccionado}>{n.NombreSeleccionado}</span></td>
+              <td><span title={n.CARGO}>{n.CARGO}</span></td>
               <td><span title={n.SALARIO}>{formatPesosEsCO(n.SALARIO)}</span></td>
               <td>{toISODateFlex(n.FECHA_x0020_REQUERIDA_x0020_PARA0) || "–"}</td>
               <td><span title={n.Informaci_x00f3_n_x0020_enviada_}>{n.Informaci_x00f3_n_x0020_enviada_}</span></td>

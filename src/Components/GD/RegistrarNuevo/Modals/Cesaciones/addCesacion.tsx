@@ -19,6 +19,7 @@ import { ProcessDetail } from "./procesoCesacion";
 import { CancelProcessModal } from "../../../View/CancelProcess/CancelProcess";
 import { useAutomaticCargo } from "../../../../../Funcionalidades/GD/Niveles";
 import { safeLower } from "../../../../../utils/text";
+import { toISODateFlex } from "../../../../../utils/Date";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -403,7 +404,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             {/* Fecha requerida para el ingreso */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="fechaIngreso">Fecha de ingreso *</label>
-              <input disabled={isView} id="FechaIngreso" name="FechaIngreso" type="date" value={state.FechaIngreso ?? ""} onChange={(e) => setField("FechaIngreso", e.target.value)}
+              <input disabled={isView} id="FechaIngreso" name="FechaIngreso" type="date" value={state.FechaIngreso ? toISODateFlex(state.FechaIngreso) : ""} onChange={(e) => setField("FechaIngreso", e.target.value)}
                 autoComplete="off" required aria-required="true"/>
               <small>{errors.FechaIngreso}</small>
             </div>
@@ -411,7 +412,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             {/* Fecha salida cesacion */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="FechaSalidaCesacion">Fecha salida cesación *</label>
-              <input disabled={isView} id="FechaSalidaCesacion" name="FechaSalidaCesacion" type="date" value={state.FechaSalidaCesacion ?? ""} onChange={(e) => setField("FechaSalidaCesacion", e.target.value)}
+              <input disabled={isView} id="FechaSalidaCesacion" name="FechaSalidaCesacion" type="date" value={state.FechaSalidaCesacion ? toISODateFlex(state.FechaSalidaCesacion) : ""} onChange={(e) => setField("FechaSalidaCesacion", e.target.value)}
                 autoComplete="off" required aria-required="true"/>
               <small>{errors.FechaSalidaCesacion}</small>
             </div>
@@ -419,7 +420,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             {/* Fecha limite documentos */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="FechaLimiteDocumentos">Fecha limite documentos *</label>
-              <input disabled={isView} id="FechaLimiteDocumentos" name="FechaLimiteDocumentos" type="date" value={state.FechaLimiteDocumentos ?? ""} onChange={(e) => setField("FechaLimiteDocumentos", e.target.value)}
+              <input disabled={isView} id="FechaLimiteDocumentos" name="FechaLimiteDocumentos" type="date" value={state.FechaLimiteDocumentos ? toISODateFlex(state.FechaLimiteDocumentos) : ""} onChange={(e) => setField("FechaLimiteDocumentos", e.target.value)}
                 autoComplete="off" required aria-required="true"/>
               <small>{errors.FechaLimiteDocumentos}</small>
             </div>
@@ -709,7 +710,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             {/* Fecha salida cesacion */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="Fechaenlaquesereporta">Fecha en la que se reporta *</label>
-              <input id="Fechaenlaquesereporta" name="Fechaenlaquesereporta" type="date" value={state.Fechaenlaquesereporta ?? ""} autoComplete="off" required aria-required="true" readOnly/>
+              <input id="Fechaenlaquesereporta" name="Fechaenlaquesereporta" type="date" value={state.Fechaenlaquesereporta ? toISODateFlex(state.Fechaenlaquesereporta) : ""} autoComplete="off" required aria-required="true" readOnly/>
             </div>
           </form>
         </>

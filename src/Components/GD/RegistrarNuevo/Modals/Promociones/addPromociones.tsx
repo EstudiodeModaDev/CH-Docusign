@@ -965,7 +965,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
               <>
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="Autonomia">Autonomía *</label>
-                  <select name="Autonomia" onChange={(e) => setField("Autonomia", e.target.value)}>
+                  <select name="Autonomia" onChange={(e) => setField("Autonomia", e.target.value)} value={String(state.Autonomia)}>
                     <option value="0" selected>0</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
@@ -978,7 +978,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
 
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="presupuesto">Presupuesto ventas/magnitud económica *</label>
-                  <select name="presupuesto" onChange={(e) => setField("PresupuestoVentasMagnitudEconomi", e.target.value)}>
+                  <select name="presupuesto" onChange={(e) => setField("PresupuestoVentasMagnitudEconomi", e.target.value)} value={String(state.PresupuestoVentasMagnitudEconomi)}>
                     <option value="0" selected>0</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
@@ -1002,7 +1002,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
 
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="contribucion">Contribución a la estrategia *</label>
-                  <select name="contribucion" onChange={(e) => setField("ContribucionaLaEstrategia", e.target.value)}>
+                  <select name="contribucion" onChange={(e) => setField("ContribucionaLaEstrategia", e.target.value)} value={String(state.ContribucionaLaEstrategia)}>
                     <option value="0" selected>0</option>
                     <option value="1">1</option>
                     <option value="2">2</option>

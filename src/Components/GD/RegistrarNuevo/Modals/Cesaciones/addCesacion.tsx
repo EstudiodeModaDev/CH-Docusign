@@ -714,7 +714,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             </div>
           </form>
         </>
-      }
+      } 
 
         {/* Acciones */}
         <div className="ft-actions">

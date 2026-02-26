@@ -199,7 +199,7 @@ export function useNuevoTicketForm(services: Svc) {
 
       
         //Limpiar formularior
-        setState({correoSolicitante: "", solicitante: "", usarFechaApertura: false, fechaApertura: null, fuente: "", motivo: "", descripcion: "", categoria: "", subcategoria: "", articulo: "",  ANS: "", archivo: null,})
+        setState({correoSolicitante: account?.username ?? "", solicitante: account?.name ?? "", usarFechaApertura: false, fechaApertura: null, fuente: "", motivo: "", descripcion: "", categoria: "", subcategoria: "", articulo: "",  ANS: "", archivo: null,})
         setErrors({})
       }
       } finally {

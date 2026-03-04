@@ -364,7 +364,7 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
         Promedio: state.Promedio,
         ResultadoValoracion: String(state.ResultadoValoracion),
         Salario: String(state.Salario),
-        SalarioAjustado: state.SalarioAjustado,
+        SalarioAjustado: String(state.SalarioAjustado),
         SalarioTexto: state.SalarioTexto,
         StatusIngreso: state.StatusIngreso,
         TipoContrato: state.TipoContrato,
@@ -380,6 +380,7 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
         razonCancelacion: state.razonCancelacion
       };
       const created = await PromocionesSvc.create(payload);
+      console.log(created)
       alert("Se ha creado el registro con éxito")
       return {
         created: created.Id!,

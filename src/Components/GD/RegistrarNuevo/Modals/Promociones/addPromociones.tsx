@@ -195,6 +195,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
   }, [state.AuxilioRodamiento]);
 
   /* ================== Conectividad ================== */
+
   React.useEffect(() => {
     const dosSalarios = minimo*2;
     const valor = Number(state.Salario || 0);
@@ -205,7 +206,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
 
     if (valor <= dosSalarios) {
       nextValor = auxTransporte;
-      nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();
+      nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();;
     } else if (valor > dosSalarios || cargo.includes("aprendiz") || cargo.includes("practicante")) {
       nextValor = 46150;
       nextTexto = "Cuarenta y seis mil ciento noventa pesos";
@@ -218,8 +219,8 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
     if (String(state.AuxilioValor ?? "") !== String(nextValor)) {
       setField("AuxilioValor", String(nextValor));
     }
-    if (String(state.AuxilioValor ?? "") !== nextTexto) {
-      setField("AuxilioValor", nextTexto.toUpperCase());
+    if (String(state.AuxilioTexto ?? "") !== nextTexto) {
+      setField("AuxilioTexto", nextTexto.toUpperCase());
     } 
 
     // si igual quieres el display local:
@@ -227,7 +228,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
     setConectividadTexto(nextTexto);
 
     console.log(conectividad, conectividadTexto)
-  }, [state.Salario, state.Cargo,]);
+  }, [state.Salario, state.Cargo, setField,]);
 
   /* ================== Garantizado ================== */
   React.useEffect(() => {

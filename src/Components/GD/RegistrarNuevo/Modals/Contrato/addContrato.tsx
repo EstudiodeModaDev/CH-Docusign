@@ -240,8 +240,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
     setConectividad(nextValor);
     setConectividadTexto(nextTexto);
 
-    console.log(conectividad, conectividadTexto)
-  }, [state.SALARIO, state.CARGO, state.auxconectividadvalor, state.auxconectividadtexto, setField,]);
+  }, [state.SALARIO, state.CARGO, minimo,]);
 
   /* ================== Garantizado ================== */
   React.useEffect(() => {
@@ -837,6 +836,19 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                 <input id="VALOR_x0020_GARANTIZADO" name="VALOR_x0020_GARANTIZADO" type="text" placeholder="Total Garantizado" value={garantizadoValor ? formatPesosEsCO(String(garantizadoValor)) : ""} autoComplete="off" readOnly/>
               </div>
             )}
+
+            {/* ¿Auxilio de transporte? */}
+            <div className="ft-field">
+              <label className="ft-label" htmlFor="SALARIO">Auxilio de transporte *</label>
+              <input disabled={isView} id="SALARIO" name="SALARIO" type="text" placeholder="Auxilio de transporte" value={ formatPesosEsCO(conectividad)} readOnly />
+              <small>{errors.SALARIO}</small>
+            </div>
+
+            {/* Salario en letras */}
+            <div className="ft-field">
+              <label className="ft-label" htmlFor="salariotexto">Salario en letras *</label>
+              <input id="salariotexto" name="salariotexto" type="text" placeholder="Salario en letras" value={conectividadTexto} readOnly/>
+            </div>
 
             {/* ¿Tiene auxilio de rodamiento? */}
             <div className="ft-field">

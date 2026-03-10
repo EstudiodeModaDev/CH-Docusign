@@ -235,19 +235,14 @@ export default function FormRetail({
     const dosSalarios = Number(minimo)*2;
     const valor = Number(state.Salario || 0);
     const cargo = (state.Cargo || "").toLowerCase();
-
     let nextValor = 0;
     let nextTexto = "";
-
     if (valor <= dosSalarios) {
       nextValor = Number(auxTransporte);
       nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();
-    } else if (valor > dosSalarios || cargo.includes("aprendiz") || cargo.includes("practicante")) {
+    } else if (valor > dosSalarios || cargo.toLocaleLowerCase().includes("aprendiz") || cargo.toLocaleLowerCase().includes("practicante")) {
       nextValor = 46150;
       nextTexto = "Cuarenta y seis mil ciento noventa pesos";
-    } else if(valor > dosSalarios || state.Cargo.toLocaleLowerCase().includes("aprendiz") || state.Cargo.toLocaleLowerCase().includes("practicante")){
-      setConectividad(46150)
-      setConectividadTexto("Cuarenta y seis mil ciento noventa pesos")
     }
  
     // Solo actualiza si cambia (evita loops)
@@ -261,9 +256,7 @@ export default function FormRetail({
     // si igual quieres el display local:
     setConectividad(nextValor);
     setConectividadTexto(nextTexto);
-
-    console.log(conectividad, conectividadTexto)
-  }, [state.Salario, state.Cargo, ]);
+  }, [state.Salario, state.Cargo, minimo]);
 
 
   const handleCreateRetail = async (e: React.FormEvent) => {

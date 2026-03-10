@@ -20,15 +20,15 @@ export const RenameModal: React.FC<Props> = ({open, selectedFile, onClose, bibli
         if(!selectedFile) return
         try {
             if(biblioteca === "estudio"){
-                ColaboradoresEDM.renameArchivo(selectedFile, newName)
+                await ColaboradoresEDM.renameArchivo(selectedFile, newName)
             } else if(biblioteca === "dh"){
-                ColaboradoresDH.renameArchivo(selectedFile, newName)
+                await ColaboradoresDH.renameArchivo(selectedFile, newName)
             } else if(biblioteca === "denim"){
-                ColaboradoresDenim.renameArchivo(selectedFile, newName)
+                await  ColaboradoresDenim.renameArchivo(selectedFile, newName)
             } else if(biblioteca === "meta"){
-                ColaboradoresMeta.renameArchivo(selectedFile, newName)
+                await ColaboradoresMeta.renameArchivo(selectedFile, newName)
             } else if(biblioteca === "visual"){
-                ColaboradoresVisual.renameArchivo(selectedFile, newName)
+                await ColaboradoresVisual.renameArchivo(selectedFile, newName)
             } 
           await recargar()
         } catch (e: any) {
@@ -43,10 +43,12 @@ export const RenameModal: React.FC<Props> = ({open, selectedFile, onClose, bibli
 
   if (!open) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!value.trim()) return;
-    rename(value)
+    await rename(value)
+    onClose()
+    
   };
 
   return (

@@ -6,7 +6,7 @@ import { RenameModal } from "./ChangeName/ChangeName";
 import { CancelProcessModal } from "./CancelProcess/CancelProcess";
 import type { Archivo } from "../../../models/archivos";
 import { SimpleFileUpload } from "../../GD/AddFile/AddFile";
-import { usePermissions } from "../../../Funcionalidades/Permisos";
+//import { usePermissions } from "../../../Funcionalidades/Permisos";
 
 /* ================= Helpers ================= */
 function buildBreadcrumb(currentPath: string) {
@@ -30,7 +30,7 @@ const EMPRESAS = [
 
 export const ColaboradoresExplorer: React.FC = () => {
   const { handleUploadClick, empresa, currentPath, items, loading, error, search, setEmpresa, setSearch, depth, goUp, openItem, reload, handleCancelProcess, moveCarpeta, organizacion, setOrganizacion} = useColaboradoresExplorer();
-  const { engine } = usePermissions();
+ // const { engine } = usePermissions();
   const [agregar, setAgregar] = React.useState(false);
   const [edit, setEdit] = React.useState(false);
   const [selectedFile, setSelectedFile] = React.useState<Archivo | null>(null);
@@ -66,13 +66,13 @@ export const ColaboradoresExplorer: React.FC = () => {
     return map;
   }, [items]);
 
-  const canInactivateRegister = React.useMemo(() => {
+ /* const canInactivateRegister = React.useMemo(() => {
     const requiredPermission = "documents.retirement";
     if (!requiredPermission) return false;
     const permiso = engine.can(requiredPermission);
     console.log(permiso)
     return permiso
-  }, [engine]);
+  }, [engine]);*/
 
   const handleOpenRename = (item: any) => {
     setSelectedFile(item);
@@ -145,7 +145,7 @@ export const ColaboradoresExplorer: React.FC = () => {
                   <summary className="ce3-btn ce3-btn--ghost ce3-more__sum">Más ▾</summary>
 
                   <div className="ce3-more__menu">
-                    {canInactivateRegister && isActivosOrRetirados && (
+                    {/*canInactivateRegister &&*/ isActivosOrRetirados && (
                       <button type="button" className="ce3-menuItem" onClick={() =>
                                                                         currentPath.toLowerCase().includes("activos")
                                                                           ? moveCarpeta("Colaboradores Retirados")

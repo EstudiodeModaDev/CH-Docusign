@@ -1,22 +1,17 @@
 import * as React from "react";
-import { useColaboradoresExplorer } from "../../../Funcionalidades/GD/DocumentViewer";
 import "./AddFile.css"
 
 type SimpleFileUploadProps = {
-  /** Carpeta destino dentro de la biblioteca (ej: "Carpeta/Del/Colaborador") */
   folderPath: string;
-  /** Función que sube el archivo a la biblioteca */
   onClose: () => void;
-  /** Opcional: callback cuando termina correctamente */
   onUploaded?: (result: any) => void;
+  handleUploadClick: (path: string, file: File) => Promise<void> 
 };
 
-export const SimpleFileUpload: React.FC<SimpleFileUploadProps> = ({folderPath, onClose, onUploaded,}) => {
+export const SimpleFileUpload: React.FC<SimpleFileUploadProps> = ({handleUploadClick, folderPath, onClose, onUploaded,}) => {
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
     const [file, setFile] = React.useState<File | null>(null);
-    const {handleUploadClick} = useColaboradoresExplorer();
-    const { setSearch} = useColaboradoresExplorer();
 
   const handleConfirm = async () => {
     if (!file) {
@@ -26,7 +21,6 @@ export const SimpleFileUpload: React.FC<SimpleFileUploadProps> = ({folderPath, o
 
     setLoading(true);
     setError(null);
-
     try {
       const result = await handleUploadClick(folderPath, file);
       onUploaded?.(result);
@@ -39,10 +33,6 @@ export const SimpleFileUpload: React.FC<SimpleFileUploadProps> = ({folderPath, o
       setLoading(false);
     }
   };
-
-  React.useEffect(() => {
-    setSearch("")
-  }, []);
 
   return (
     <div className="sf-modal-backdrop" role="dialog" aria-modal="true">
@@ -58,7 +48,6 @@ export const SimpleFileUpload: React.FC<SimpleFileUploadProps> = ({folderPath, o
             ×
           </button>
         </header>
-
         <div className="sf-modal__body">
           <p className="sf-modal__hint">
             Carpeta destino:

@@ -18,7 +18,7 @@ import type { SetField } from "../Contrato/addContrato";
 import { useRetail } from "../../../../../Funcionalidades/GD/Retail";
 import { createBody, notifyTeam } from "../../../../../utils/mail";
 import { safeLower } from "../../../../../utils/text";
-import type { DetallesPasos } from "../../../../../models/Pasos";
+//import type { DetallesPasos } from "../../../../../models/Pasos";
 import { CancelProcessModal } from "../../../View/CancelProcess/CancelProcess";
 import { ProcessDetail } from "../Cesaciones/procesoCesacion";
 import { usePermissions } from "../../../../../Funcionalidades/Permisos";

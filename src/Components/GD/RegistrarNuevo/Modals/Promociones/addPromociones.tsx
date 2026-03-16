@@ -18,9 +18,10 @@ import type { SetField } from "../Contrato/addContrato";
 import { useRetail } from "../../../../../Funcionalidades/GD/Retail";
 import { createBody, notifyTeam } from "../../../../../utils/mail";
 import { safeLower } from "../../../../../utils/text";
-import type { DetallesPasos } from "../../../../../models/Cesaciones";
+import type { DetallesPasos } from "../../../../../models/Pasos";
 import { CancelProcessModal } from "../../../View/CancelProcess/CancelProcess";
 import { ProcessDetail } from "../Cesaciones/procesoCesacion";
+import { usePermissions } from "../../../../../Funcionalidades/Permisos";
 
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -41,7 +42,7 @@ type Props = {
   onClose: () => void;
   state: Promocion
   setField: SetField<Promocion>;
-  handleSubmit: () => Promise<{ok: boolean; created: string | null;}>;
+  handleSubmit: () => Promise<{ok: boolean; created: Promocion | null;}>;
   handleEdit: (e: React.FormEvent, NovedadSeleccionada: Promocion) => void;
   errors: PromocionErrors
   searchRegister: (cedula: string) => Promise<Promocion | null>
@@ -98,7 +99,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
   const { loadSpecificSalary } = useSalarios(salarios);
   const { loadPasosPromocion, rows, loading: loadinPasosPromocion, error: errorPasosPromocion, byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep} = usePasosPromocion()
   const { handleCreateAllSteps, calcPorcentaje, rows: rowsDetalles, loading: loadingDetalles, error: errorDetalles, loadDetallesPromocion,} = useDetallesPasosPromocion(DetallesPasosPromocion, selectedPromocion?.Id)
-
+  const { engine } = usePermissions();
 
   const opciones = [
     { value: "Escritorio", label: "Escritorio" },
@@ -160,6 +161,18 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
     [municipiosFiltrados]
   );
 
+  const canEditRegister = React.useMemo(() => {
+    const requiredPermission = "promociones.edit";
+    if (!requiredPermission) return false;
+    return engine.can(requiredPermission);
+  }, [engine]);
+
+  const canInactivateRegister = React.useMemo(() => {
+    const requiredPermission = "promociones.inactivate";
+    if (!requiredPermission) return false;
+    return engine.can(requiredPermission);
+  }, [engine]);
+
   /* ================== Selected values ================== */
   const selectedEmpresa = empresaOptions.find((o) => safeLower(o.label) === safeLower(state.EmpresaSolicitante)) ?? null;
   const selectedTipoDocumento = tipoDocOptions.find((o) => safeLower(o.label) === safeLower(state.TipoDoc)) ?? null;
@@ -168,7 +181,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
   const selectedEspecificidad = especificidadOptions.find((o) => safeLower(o.label) === safeLower(state.EspecificidadCargo)) ?? null;
   const selectedNivelCargo = nivelCargoOptions.find((o) => safeLower(o.label) === safeLower(state.NivelCargo)) ?? null;
   const selectedCentroCostos = CentroCostosOptions.find((o) => safeLower(o.value) === safeLower(state.CodigoCentroCostos)) ?? null;
-  const selectedCentroOperativo = COOptions.find((o) => safeLower(o.value) === safeLower(state.IDUnidadNegocio)) ?? null;
+  const selectedCentroOperativo = COOptions.find((o) => safeLower(o.value) === safeLower(state.CentroOperativo)) ?? null;
   const selectedUnidadNegocio = UNOptions.find((o) => safeLower(o.value) === safeLower(state.IDUnidadNegocio)) ?? null;
   const selectedTipoVacante = tipoVacanteOptions.find((o) => safeLower(o.label) === safeLower(state.TipoVacante)) ?? null;
   const selectedDependencia = dependenciaOptions.find((o) =>safeLower( o.label) === safeLower(state.Dependencia)) ?? null;
@@ -228,7 +241,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
     setConectividadTexto(nextTexto);
 
     console.log(conectividad, conectividadTexto)
-  }, [state.Salario, state.Cargo, setField,]);
+  }, [state.Salario, state.Cargo, setField,]); 
 
   /* ================== Garantizado ================== */
   React.useEffect(() => {
@@ -342,7 +355,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
 
       if(created.ok){
         await loadPasosPromocion()
-        await handleCreateAllSteps(rows, created.created ?? "")
+        await handleCreateAllSteps(rows, created.created?.Id ?? "", created.created?.Cargo ?? "")
         const body = createBody(account?.name ?? "", "Promociones", state.NombreSeleccionado, state.NumeroDoc, state.Cargo, state.FechaIngreso ?? "")
         await notifyTeam(mail, "Nuevo registro en Promociones - Gestor documental CH", body)
         await onClose()
@@ -413,7 +426,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
             {/* Número documento */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="numeroIdent">Número de identificación *</label>
-              <input id="numeroIdent" name="Numero_x0020_identificaci_x00f3_" type="number" placeholder="Ingrese el número de documento" value={state.NumeroDoc ?? ""} onChange={(e) => setField("NumeroDoc", e.target.value)} onBlur={ (e) => searchPeople(e.target.value)}
+              <input disabled={!canEditRegister} id="numeroIdent" name="Numero_x0020_identificaci_x00f3_" type="number" placeholder="Ingrese el número de documento" value={state.NumeroDoc ?? ""} onChange={(e) => setField("NumeroDoc", e.target.value)} onBlur={ (e) => searchPeople(e.target.value)}
                 autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.NumeroDoc}</small>
             </div>
@@ -428,7 +441,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
                 value={selectedTipoDocumento}
                 onChange={(opt) => {setField("AbreviacionTipoDoc", opt?.value ?? ""); setField("TipoDoc", opt?.label ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadingTipo}
+                isDisabled={loadingTipo || !canEditRegister}
                 isLoading={loadingTipo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -447,7 +460,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
             {/* Nombre seleccionado */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="nombreSeleccionado"> Nombre del seleccionado *</label>
-              <input id="nombreSeleccionado" name="NombreSeleccionado" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.NombreSeleccionado ?? ""} onChange={(e) => setField("NombreSeleccionado", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
+              <input disabled={!canEditRegister} id="nombreSeleccionado" name="NombreSeleccionado" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.NombreSeleccionado ?? ""} onChange={(e) => setField("NombreSeleccionado", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.NombreSeleccionado}</small>
             </div>
 
@@ -461,7 +474,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
                 value={selectedEmpresa}
                 onChange={(opt) => setField("EmpresaSolicitante", opt?.label ?? "")}
                 classNamePrefix="rs"
-                isDisabled={loadingEmp}
+                isDisabled={loadingEmp || !canEditRegister}
                 isLoading={loadingEmp}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -475,7 +488,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
             <div className="ft-field">
               <label className="ft-label" htmlFor="correo">Correo electrónico *</label>
               <input id="correo" name="CORREO_x0020_ELECTRONICO_x0020_" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.Correo ?? ""} onChange={(e) => setField("Correo", e.target.value)}
-                autoComplete="off" required aria-required="true" maxLength={300}/>
+                disabled={!canEditRegister} autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.Correo}</small>
             </div>
 
@@ -483,7 +496,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
             <div className="ft-field">
               <label className="ft-label" htmlFor="fechaIngreso">Fecha requerida para la promoción *</label>
               <input id="fechaIngreso" name="FECHA_x0020_REQUERIDA_x0020_PARA0" type="date" value={toISODateFlex(state.FechaIngreso) ?? ""} onChange={(e) => setField("FechaIngreso", e.target.value)}
-                autoComplete="off" required aria-required="true"/>
+                disabled={!canEditRegister} autoComplete="off" required aria-required="true"/>
               <small>{errors.FechaIngreso}</small>
             </div>
 
@@ -497,7 +510,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
                 value={selectedCargo}
                 onChange={(opt) => {setField("Cargo", opt?.label ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadingCargo}
+                isDisabled={loadingCargo || !canEditRegister}
                 isLoading={loadingCargo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -522,7 +535,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
                   setField("Departamento", value);  
                 }}
                 classNamePrefix="rs"
-                isDisabled={loadingDepto}
+                isDisabled={loadingDepto || !canEditRegister}
                 isLoading={loadingDepto}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -542,7 +555,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
                 value={ selectedMunicipio ? { value: selectedMunicipio, label: selectedMunicipio } : state.Ciudad ? { value: state.Ciudad, label: state.Ciudad } : null}
                 onChange={(opt) => { const value = opt?.value ?? ""; setSelectedMunicipio(value); setField("Ciudad", value);}}
                 classNamePrefix="rs"
-                isDisabled={!selectedDepto  || loadingCargo}
+                isDisabled={!selectedDepto  || loadingCargo || !canEditRegister}
                 isLoading={loadingCargo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -562,7 +575,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
                 value={selectedModalidad}
                 onChange={(opt) => {setField("ModalidadTeletrabajo", opt?.label ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadingModalidad}
+                isDisabled={loadingModalidad || !canEditRegister}
                 isLoading={loadingModalidad}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -575,7 +588,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
             {/* ================= Salario ================= */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="SALARIO">Nuevo Salario *</label>
-              <input id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} autoComplete="off" required aria-required="true" maxLength={300}
+              <input disabled={!canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} autoComplete="off" required aria-required="true" maxLength={300}
                 onChange={(e) => {
                   const raw = e.target.value;
                   if (raw === "") {
@@ -605,13 +618,13 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
               <label className="ft-label">¿Se hace ajuste de salario? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input type="radio" name="ajuste" value="Si" checked={state.AjusteSioNo === true} onChange={() => setField("AjusteSioNo", true)}/>
+                  <input disabled={!canEditRegister} type="radio" name="ajuste" value="Si" checked={state.AjusteSioNo === true} onChange={() => setField("AjusteSioNo", true)}/>
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input type="radio" name="ajuste" value="No" checked={state.AjusteSioNo === false} onChange={() => setField("AjusteSioNo", false)}/>
+                  <input disabled={!canEditRegister} type="radio" name="ajuste" value="No" checked={state.AjusteSioNo === false} onChange={() => setField("AjusteSioNo", false)}/>
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -621,7 +634,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
             {state.AjusteSioNo && (
               <div className="ft-field">
                 <label className="ft-label" htmlFor="SALARIO_x0020_AJUSTADO">Porcentaje de ajuste *</label>
-                <input id="SALARIO_x0020_AJUSTADO" name="SALARIO_x0020_AJUSTADO" type="text" placeholder="Porcentaje de ajuste" value={state.SalarioAjustado ?? ""}
+                <input disabled={!canEditRegister} id="SALARIO_x0020_AJUSTADO" name="SALARIO_x0020_AJUSTADO" type="text" placeholder="Porcentaje de ajuste" value={state.SalarioAjustado ?? ""}
                   onChange={(e) => setField("SalarioAjustado", toNumberFromEsCO(e.target.value) as any)} autoComplete="off" required aria-required="true" maxLength={3}/>
                 <small>{errors.SalarioAjustado}</small>
               </div>
@@ -632,13 +645,13 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
               <label className="ft-label">¿Lleva garantizado? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input type="radio" name="garantizado" value="Si" checked={state.Garantizado_x00bf_SiNo_x003f_ === "Si"} onChange={() => setField("Garantizado_x00bf_SiNo_x003f_", "Si")}/>
+                  <input disabled={!canEditRegister} type="radio" name="garantizado" value="Si" checked={state.Garantizado_x00bf_SiNo_x003f_ === "Si"} onChange={() => setField("Garantizado_x00bf_SiNo_x003f_", "Si")}/>
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input type="radio" name="garantizado" value="No" checked={state.Garantizado_x00bf_SiNo_x003f_ === "No"} onChange={() => setField("Garantizado_x00bf_SiNo_x003f_", "No")}/>
+                  <input disabled={!canEditRegister} type="radio" name="garantizado" value="No" checked={state.Garantizado_x00bf_SiNo_x003f_ === "No"} onChange={() => setField("Garantizado_x00bf_SiNo_x003f_", "No")}/>
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -649,7 +662,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
               <div className="ft-field">
                 <label className="ft-label" htmlFor="porcentajeValor">Porcentaje del garantizado *</label>
                 <input id="porcentajeValor" name="porcentajeValor" type="text" placeholder="Porcentaje del garantizado" value={porcentajeValor} 
-                    onChange={(e) => setPorcentajeValor(Number(e.target.value))} autoComplete="off" required aria-required="true" maxLength={3}/>
+                  disabled={!canEditRegister}  onChange={(e) => setPorcentajeValor(Number(e.target.value))} autoComplete="off" required aria-required="true" maxLength={3}/>
                 <small>{errors.Garantizado_x00bf_SiNo_x003f_}</small>
 
                 <input id="VALOR_x0020_GARANTIZADO" name="VALOR_x0020_GARANTIZADO" type="text" placeholder="Total Garantizado" value={garantizadoValor}  autoComplete="off" required aria-required="true" maxLength={3}/>
@@ -662,13 +675,13 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
               <label className="ft-label">¿Tiene auxilio de rodamiento? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input type="radio" name="rodamiento" value="Si" checked={!!state.AuxilioRodamientoSioNo} onChange={() => setField("AuxilioRodamientoSioNo", true)}/>
+                  <input disabled={!canEditRegister} type="radio" name="rodamiento" value="Si" checked={!!state.AuxilioRodamientoSioNo} onChange={() => setField("AuxilioRodamientoSioNo", true)}/>
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input type="radio" name="rodamiento" value="No" checked={!state.AuxilioRodamientoSioNo} onChange={() => setField("AuxilioRodamientoSioNo", false)}/>
+                  <input disabled={!canEditRegister} type="radio" name="rodamiento" value="No" checked={!state.AuxilioRodamientoSioNo} onChange={() => setField("AuxilioRodamientoSioNo", false)}/>
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -680,7 +693,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="Auxilio_x0020_de_x0020_rodamient">Auxilio de rodamiento *</label>
                   <input id="Auxilio_x0020_de_x0020_rodamient" name="Auxilio_x0020_de_x0020_rodamient" type="text" placeholder="Ingrese el auxilio de rodamiento del seleccionado" value={displayAuxilio} autoComplete="off"
-                    required aria-required="true" maxLength={300} onChange={(e) => {
+                    disabled={!canEditRegister} required aria-required="true" maxLength={300} onChange={(e) => {
                                                                         const raw = e.target.value;
                                                                         if (raw === "") {
                                                                             setDisplayAuxilio("");
@@ -717,7 +730,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
                 value={selectedEspecificidad}
                 onChange={(opt) => {setField("EspecificidadCargo", opt?.label ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadingEspecificdad}
+                isDisabled={loadingEspecificdad || !canEditRegister}
                 isLoading={loadingEspecificdad}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -737,7 +750,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
                 value={selectedNivelCargo}
                 onChange={(opt) => {setField("NivelCargo", opt?.label ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadinNivelCargo}
+                isDisabled={loadinNivelCargo || !canEditRegister}
                 isLoading={loadinNivelCargo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -752,13 +765,13 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
               <label className="ft-label"> ¿Cargo critico? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input type="radio" name="critico" value="Si" checked={state.CargoCritico === "Si"} onChange={() => setField("CargoCritico", "Si")}/>
+                  <input disabled={!canEditRegister} type="radio" name="critico" value="Si" checked={state.CargoCritico === "Si"} onChange={() => setField("CargoCritico", "Si")}/>
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input type="radio" name="critico" value="No" checked={state.CargoCritico === "No"} onChange={() => setField("CargoCritico", "No")}/>
+                  <input disabled={!canEditRegister} type="radio" name="critico" value="No" checked={state.CargoCritico === "No"} onChange={() => setField("CargoCritico", "No")}/>
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -775,7 +788,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
                 value={selectedDependencia}
                 onChange={(opt) => {setField("Dependencia", opt?.value ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadingDependencias}
+                isDisabled={loadingDependencias || !canEditRegister}
                 isLoading={loadingDependencias}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -795,7 +808,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
                 value={selectedCentroCostos}
                 onChange={(opt) => {setField("DescripcionCentroCostos", opt?.label ?? ""); setField("CodigoCentroCostos", opt?.value ?? "")}}
                 classNamePrefix="rs"
-                isDisabled={loadingCC}
+                isDisabled={loadingCC || !canEditRegister}
                 isLoading={loadingCC}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -821,7 +834,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
                 value={selectedCentroOperativo}
                 onChange={(opt) => {setField("DescripcionCentroOperativo", opt?.label ?? ""); setField("CentroOperativo", opt?.value ?? "")}}
                 classNamePrefix="rs"
-                isDisabled={loadingCO}
+                isDisabled={loadingCO || !canEditRegister}
                 isLoading={loadingCO}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -847,7 +860,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
                 value={selectedUnidadNegocio}
                 onChange={(opt) => {setField("UnidadNegocio", opt?.label ?? ""); setField("IDUnidadNegocio", opt?.value ?? "")}}
                 classNamePrefix="rs"
-                isDisabled={loadingUN}
+                isDisabled={loadingUN || !canEditRegister}
                 isLoading={loadingUN}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -868,13 +881,13 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
               <label className="ft-label"> ¿Personas a cargo? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input type="radio" name="personas" value="Si" checked={state.PersonasCargo === "Si"} onChange={() => setField("PersonasCargo", "Si")}/>
+                  <input disabled={!canEditRegister} type="radio" name="personas" value="Si" checked={state.PersonasCargo === "Si"} onChange={() => setField("PersonasCargo", "Si")}/>
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input type="radio" name="personas" value="No" checked={state.PersonasCargo === "No"} onChange={() => setField("PersonasCargo", "No")}/>
+                  <input disabled={!canEditRegister} type="radio" name="personas" value="No" checked={state.PersonasCargo === "No"} onChange={() => setField("PersonasCargo", "No")}/>
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -891,7 +904,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
                 value={selectedTipoVacante}
                 onChange={(opt) => {setField("TipoVacante", opt?.label ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadingTipoVacante}
+                isDisabled={loadingTipoVacante || !canEditRegister}
                 isLoading={loadingTipoVacante}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -916,6 +929,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
                   setField("HerramientasColaborador", values.join("; "));
                 }}
                 placeholder="Selecciona herramientas..."
+                isDisabled={!canEditRegister}
               />
             </div>
 
@@ -925,7 +939,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
               <Select inputId="nomina" options={opcionesTipoNomina} classNamePrefix="rs" placeholder="Selecciona tipo de nómina..."
                 value={opcionesTipoNomina.find(o => o.value === state.TipoNomina) ?? null}
                 onChange={(opt) => {setField("TipoNomina", opt?.value ?? ""); }}
-                isClearable
+                isClearable isDisabled={!canEditRegister}
               />
               <small>{errors.TipoNomina}</small>
             </div>
@@ -934,14 +948,14 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
             <div className="ft-field">
               <label className="ft-label" htmlFor="fechaIngreso">Fecha de ajuste academico</label>
               <input id="fechaIngreso" name="FECHA_x0020_REQUERIDA_x0020_PARA0" type="date" value={state.FechaAjusteAcademico ? toISODateFlex(state.FechaAjusteAcademico) : ""} onChange={(e) => setField("FechaAjusteAcademico", e.target.value)}
-                autoComplete="off" required aria-required="true"/>
+               disabled={!canEditRegister} autoComplete="off" required aria-required="true"/>
             </div>
 
             {/* Fecha de entrega valoracion de potencial */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="fechaIngreso">Fecha de entrega de la valoración de potencial</label>
               <input id="fechaIngreso" name="FECHA_x0020_DE_x0020_ENTREGA_x00" type="date" value={state.FechaValoracionPotencial ? toISODateFlex(state.FechaValoracionPotencial) : ""} onChange={(e) => setField("FechaValoracionPotencial", e.target.value)}
-                autoComplete="off" required aria-required="true"/>
+               disabled={!canEditRegister} autoComplete="off" required aria-required="true"/>
             </div>
 
             {/* ¿Pertenece al modelo? */}
@@ -949,13 +963,13 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
               <label className="ft-label"> ¿Pertenece al modelo? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input type="radio" name="modelo" value="Si" checked={!!state.PerteneceModelo} onChange={() => setField("PerteneceModelo", true)}/>
+                  <input disabled={!canEditRegister} type="radio" name="modelo" value="Si" checked={!!state.PerteneceModelo} onChange={() => setField("PerteneceModelo", true)}/>
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input type="radio" name="modelo" value="No" checked={!state.PerteneceModelo} onChange={() => setField("PerteneceModelo", false)}/>
+                  <input disabled={!canEditRegister} type="radio" name="modelo" value="No" checked={!state.PerteneceModelo} onChange={() => setField("PerteneceModelo", false)}/>
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -966,7 +980,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
               <>
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="Autonomia">Autonomía *</label>
-                  <select name="Autonomia" onChange={(e) => setField("Autonomia", e.target.value)} value={String(state.Autonomia)}>
+                  <select disabled={!canEditRegister} name="Autonomia" onChange={(e) => setField("Autonomia", e.target.value)} value={String(state.Autonomia)}>
                     <option value="0" selected>0</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
@@ -979,7 +993,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
 
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="presupuesto">Presupuesto ventas/magnitud económica *</label>
-                  <select name="presupuesto" onChange={(e) => setField("PresupuestoVentasMagnitudEconomi", e.target.value)} value={String(state.PresupuestoVentasMagnitudEconomi)}>
+                  <select disabled={!canEditRegister} name="presupuesto" onChange={(e) => setField("PresupuestoVentasMagnitudEconomi", e.target.value)} value={String(state.PresupuestoVentasMagnitudEconomi)}>
                     <option value="0" selected>0</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
@@ -991,7 +1005,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
 
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="impacto">Impacto cliente externo *</label>
-                  <select name="impacto" onChange={(e) => setField("ImpactoClienteExterno", e.target.value)}>
+                  <select disabled={!canEditRegister} name="impacto" onChange={(e) => setField("ImpactoClienteExterno", e.target.value)}>
                     <option value="0" selected>0</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
@@ -1003,7 +1017,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
 
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="contribucion">Contribución a la estrategia *</label>
-                  <select name="contribucion" onChange={(e) => setField("ContribucionaLaEstrategia", e.target.value)} value={String(state.ContribucionaLaEstrategia)}>
+                  <select disabled={!canEditRegister} name="contribucion" onChange={(e) => setField("ContribucionaLaEstrategia", e.target.value)} value={String(state.ContribucionaLaEstrategia)}>
                     <option value="0" selected>0</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
@@ -1032,13 +1046,13 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
               <label className="ft-label"> ¿Se debe hacer cargue de nuevo equipo de trabajo? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input type="radio" name="nuevoequipo" value="Si" checked={state.CargueNuevoEquipoTrabajo === "Si"} onChange={() => setField("CargueNuevoEquipoTrabajo", "Si")}/>
+                  <input disabled={!canEditRegister} type="radio" name="nuevoequipo" value="Si" checked={state.CargueNuevoEquipoTrabajo === "Si"} onChange={() => setField("CargueNuevoEquipoTrabajo", "Si")}/>
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input type="radio" name="nuevoequipo" value="No" checked={state.CargueNuevoEquipoTrabajo === "No"} onChange={() => setField("CargueNuevoEquipoTrabajo", "No")}/>
+                  <input disabled={!canEditRegister} type="radio" name="nuevoequipo" value="No" checked={state.CargueNuevoEquipoTrabajo === "No"} onChange={() => setField("CargueNuevoEquipoTrabajo", "No")}/>
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -1050,23 +1064,23 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
               <label className="ft-label"> ¿Tendra plan financiado por EDM? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input type="radio" name="auxilioRodamiento" value="Si" checked={planFinanciado} onChange={() => 
-                                                                                                    {
-                                                                                                      setPlanfinanciado(true); 
-                                                                                                      setField("AuxilioValor", String(conectividad));
-                                                                                                      setField("AuxilioTexto", conectividadTexto)
-                                                                                                    }
-                                                                                                  }/>
+                  <input disabled={!canEditRegister} type="radio" name="auxilioRodamiento" value="Si" checked={planFinanciado} onChange={() => 
+                                                                                                                                {
+                                                                                                                                  setPlanfinanciado(true); 
+                                                                                                                                  setField("AuxilioValor", String(conectividad));
+                                                                                                                                  setField("AuxilioTexto", conectividadTexto)
+                                                                                                                                }
+                                                                                                                              }/>
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input type="radio" name="auxilioRodamiento" value="No" checked={!planFinanciado} onChange={() => {
-                                                                                                                      setPlanfinanciado(false)
-                                                                                                                      setField("AuxilioValor", String(conectividad));
-                                                                                                                      setField("AuxilioTexto", conectividadTexto)}}
-                                                                                                                    />
+                  <input disabled={!canEditRegister} type="radio" name="auxilioRodamiento" value="No" checked={!planFinanciado} onChange={() => {
+                                                                                                                                  setPlanfinanciado(false)
+                                                                                                                                  setField("AuxilioValor", String(conectividad));
+                                                                                                                                  setField("AuxilioTexto", conectividadTexto)}}
+                                                                                                                                />
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -1090,19 +1104,28 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
 
         {/* Acciones */}
         <div className="ft-actions">
-            <button disabled={isView || selectedPromocion?.Estado === "Cancelado" || submitting} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreatePromotion(e)}>
-              {isView || selectedPromocion?.Estado === "Cancelado" ? "No se puede editar este registro ya que fue usado" : submitting ? "Guardando" : "Guardar"}
+            <button disabled={isView || selectedPromocion?.Estado === "Cancelado" || submitting || !canEditRegister} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreatePromotion(e)}>
+              {
+                !canEditRegister ? "No tiene registro para editar esta promoción" :
+                isView || selectedPromocion?.Estado === "Cancelado" ? "No se puede editar este registro ya que fue usado" : 
+                submitting ? "Guardando" : 
+                "Guardar"
+              }
             </button> 
             { isView || tipo === "edit" ?
               <button type="submit" className="btn btn-xs" onClick={() => setFlow(true)}>Detalles</button> : null
             }
-            { (isView || tipo === "edit") ?
-              <button type="submit" className="btn btn-xs btn-danger" onClick={() => {
-                                                                        selectedPromocion?.Estado === "Cancelado" ? 
-                                                                          handleReactivateProcessById(selectedPromocion.Id ?? "") : 
-                                                                          setCancelProcess(true)}}
-                                                                        >
-                {selectedPromocion?.Estado !== "Cancelado" ? "Cancelar proceso" : "Reactivar proceso"}
+            { canInactivateRegister && (isView || tipo === "edit") ?
+              <button type="submit" className="btn btn-xs btn-danger" disabled={!canInactivateRegister} onClick={() => {
+                                                                                                          selectedPromocion?.Estado === "Cancelado" ? 
+                                                                                                            handleReactivateProcessById(selectedPromocion.Id ?? "") : 
+                                                                                                            setCancelProcess(true)}}
+                                                                                                          >
+                {
+                  canInactivateRegister ? "No tiene permiso para cancelar este registro" :
+                  selectedPromocion?.Estado !== "Cancelado" ? "Cancelar proceso" : 
+                  "Reactivar proceso"
+                }
               </button> : null
             }
           <button type="button" className="btn btn-xs" onClick={onClose}>Cancelar</button>

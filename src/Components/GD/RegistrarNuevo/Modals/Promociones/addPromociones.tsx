@@ -341,7 +341,7 @@ export default function FormPromocion({submitting, title, handleCancelProcessbyI
 
       if(created.ok){
         await loadPasosPromocion()
-        await handleCreateAllSteps(rows, created.created?.Id ?? "",)
+        await handleCreateAllSteps(rows, created.created ?? "",)
         const body = createBody(account?.name ?? "", "Promociones", state.NombreSeleccionado, state.NumeroDoc, state.Cargo, state.FechaIngreso ?? "")
         await notifyTeam(mail, "Nuevo registro en Promociones - Gestor documental CH", body)
         await onClose()

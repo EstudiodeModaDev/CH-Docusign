@@ -41,7 +41,7 @@ type Props = {
   onClose: () => void;
   state: Promocion
   setField: SetField<Promocion>;
-  handleSubmit: () => Promise<{ok: boolean; created: Promocion | null;}>;
+  handleSubmit: () => Promise<{ok: boolean; created: string | null;}>;
   handleEdit: (e: React.FormEvent, NovedadSeleccionada: Promocion) => void;
   errors: PromocionErrors
   searchRegister: (cedula: string) => Promise<Promocion | null>

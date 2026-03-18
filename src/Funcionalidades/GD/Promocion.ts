@@ -4,8 +4,9 @@ import { normalize, normalizeDate, toGraphDateTime, toISODateFlex } from "../../
 import type { PromocionesService } from "../../Services/Promociones.service";
 import type { Promocion, PromocionErrors } from "../../models/Promociones";
 import { useAuth } from "../../auth/authProvider";
-import { useDebouncedValue } from "./Contratos";
 import { norm } from "../../utils/text";
+import { useGraphServices } from "../../graph/graphContext";
+import { useDebouncedValue } from "../Common/debounce";
 
 function includesSearch(row: Promocion, q: string) {
   const qq = norm(q);
@@ -145,7 +146,8 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
   const [errors, setErrors] = React.useState<PromocionErrors>({});
   const setField = <K extends keyof Promocion>(k: K, v: Promocion[K]) => setState((s) => ({ ...s, [k]: v }));
   const debouncedSearch = useDebouncedValue(search, 250);
-  
+  const graph = useGraphServices()
+
  const buildServerFilter = React.useCallback((): GetAllOpts => {
     const filters: string[] = [];
 
@@ -307,7 +309,7 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = async (): Promise<{created: string | null, ok: boolean}> => {
+  const handleSubmit = async (): Promise<{created: Promocion | null, ok: boolean}> => {
     if (!validate()) { 
       console.log(state)
       alert("Hay campos vacios")
@@ -383,7 +385,7 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
       console.log(created)
       alert("Se ha creado el registro con éxito")
       return {
-        created: created.Id!,
+        created: created,
         ok: true
       }
     } finally {
@@ -552,8 +554,24 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
     }
 }, [PromocionesSvc]);
 
+  const deletePromocion = React.useCallback(async (Id: string) => {
+    setLoading(true)
+    const pasos = await graph.PasosPromocion.getAll({filter: `fields/Title eq '${Id}'`})
+    try{
+      for (const paso of pasos) {
+        await graph.PasosCesacion.delete(paso.Id!);
+      }
+
+      await PromocionesSvc.delete(Id)
+    } catch {
+      throw new Error("Ha ocurrido un error reactivando el proceso");
+    } finally {
+      setLoading(false)
+    }
+  }, [PromocionesSvc]);
+
   return {
     errors, setState, rows, loading, error, pageSize, pageIndex, hasNext, range, search, sorts, state, workers, workersOptions, estado,
-    handleReactivateProcessById, handleCancelProcessbyId, setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage, searchRegister
+    deletePromocion, handleReactivateProcessById, handleCancelProcessbyId, setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage, searchRegister
   };
 }

@@ -17,6 +17,13 @@ export type GraphSendMailPayload = {
   saveToSentItems?: boolean;
 };
 
+export type GraphUserLite = {
+  id: string;
+  displayName?: string;
+  mail?: string;
+  userPrincipalName?: string;
+};
+
 export class GraphRest {
   private getToken: () => Promise<string>;
   private base = 'https://graph.microsoft.com/v1.0/';
@@ -237,6 +244,120 @@ export class GraphRest {
     }
 
     return txt as unknown as T;
+  }
+
+  async getUserIdByEmail(email: string): Promise<string> {
+    const e = (email ?? "").trim();
+    if (!e) throw new Error("getUserIdByEmail: email vacío");
+
+    // 1) Intento directo: /users/{id|UPN}
+    try {
+      const encoded = encodeURIComponent(e);
+      const u = await this.get<GraphUserLite>(
+        `/users/${encoded}?$select=id,displayName,mail,userPrincipalName`
+      );
+      if (u?.id) return u.id;
+    } catch (err: any) {
+
+    }
+
+    // 2) Fallback con filtro: mail o userPrincipalName
+    // Ojo: el $filter debe ir URL-encoded.
+    const filter = encodeURIComponent(`mail eq '${e}' or userPrincipalName eq '${e}'`);
+
+    const res = await this.get<{ value: GraphUserLite[] }>(`/users?$select=id,displayName,mail,userPrincipalName&$top=1&$filter=${filter}`);
+
+    const found = res?.value?.[0];
+    if (!found?.id) {
+      throw new Error(`No se encontró el usuario en Entra ID para: ${e}`);
+    }
+
+    return found.id;
+  }
+
+  async addUserToGroup(groupId: string, email: string): Promise<void> {
+    const gid = (groupId ?? "").trim();
+    if (!gid) throw new Error("addUserToGroup: groupId vacío");
+
+    const userId = await this.getUserIdByEmail(email);
+
+    try {
+      await this.post<void>(`/groups/${gid}/members/$ref`, {
+        "@odata.id": `https://graph.microsoft.com/v1.0/directoryObjects/${userId}`,
+      });
+    } catch (err: any) {
+      const msg = String(err?.message ?? err);
+
+      // "already exists" varía, así que toleramos 400/409 si huele a duplicado
+      const isDuplicate =
+        msg.includes("409") ||
+        msg.includes("added object references already exist") ||
+        msg.toLowerCase().includes("already exist");
+
+      if (!isDuplicate) throw err;
+    }
+  }
+
+  async isUserInGroup(groupId: string, email: string): Promise<boolean> {
+    const gid = (groupId ?? "").trim();
+    if (!gid) throw new Error("isUserInGroup: groupId vacío");
+
+    const userId = await this.getUserIdByEmail(email);
+
+    const token = await this["getToken"](); // acceso al token sin cambiar tu core
+    const res = await fetch(this["base"] + `/groups/${gid}/members/${userId}/$ref`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Prefer: "HonorNonIndexedQueriesWarningMayFailRandomly",
+      },
+    });
+
+    if (res.status === 204) return true;  // existe la referencia
+    if (res.status === 404) return false; // no es miembro
+
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      throw new Error(`GET /groups/${gid}/members/${userId}/$ref → ${res.status} ${res.statusText}${txt ? `: ${txt}` : ""}`);
+    }
+
+    // Por seguridad: algunos tenants podrían devolver 200 con body (raro)
+    return true;
+  }
+
+  async searchMembersInGroup(groupId: string, emailContains?: string, top: number = 50): Promise<GraphUserLite[]> {
+    const gid = (groupId ?? "").trim();
+    if (!gid) throw new Error("searchMembersInGroup: groupId vacío");
+
+    const t = Math.max(1, Math.min(top, 999)); // Graph top razonable
+    const res = await this.get<{ value: GraphUserLite[] }>(
+      `/groups/${gid}/members?$select=id,displayName,mail,userPrincipalName&$top=${t}`
+    );
+
+    const items = res?.value ?? [];
+    if (!emailContains) return items;
+
+    const q = emailContains.toLowerCase();
+    return items.filter(u =>
+      (u.mail ?? "").toLowerCase().includes(q) ||
+      (u.userPrincipalName ?? "").toLowerCase().includes(q)
+    );
+  }
+
+  async removeUserFromGroup(groupId: string, email: string): Promise<void> {
+    const gid = (groupId ?? "").trim();
+    if (!gid) throw new Error("removeUserFromGroup: groupId vacío");
+
+    const userId = await this.getUserIdByEmail(email);
+
+    try {
+      await this.delete(`/groups/${gid}/members/${userId}/$ref`);
+    } catch (err: any) {
+      const msg = String(err?.message ?? err);
+      // Si ya no estaba, lo tomamos como ok
+      if (msg.includes("404")) return;
+      throw err;
+    }
   }
 
 }

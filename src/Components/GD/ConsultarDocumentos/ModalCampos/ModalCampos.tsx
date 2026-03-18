@@ -1,8 +1,8 @@
 import * as React from "react";
 import "./ModalCampos.css"
-import { useDocusignTemplates } from "../../../../Funcionalidades/GD/Docusign";
 import { updateEnvelopeRecipients, } from "../../../../Services/DocusignAPI.service";
 import type { DocGenFormFieldResponse, DocusignRecipient, PrefillTabsResponse } from "../../../../models/Docusign";
+import { useDocusignTemplates } from "../../../../Funcionalidades/GD/Docusing/Templates/hooks/useDocusingTemplates";
 
 export type CampoActual = {
   label: string;

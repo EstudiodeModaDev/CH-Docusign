@@ -8,24 +8,26 @@ import FormHabeas from "./Modals/HabeasData/addHabeasData";
 import FormPromociones from "./Modals/Promociones/addPromociones";
 import CesacionesTabla from "./Cesaciones/Cesaciones";
 import FormCesacion from "./Modals/Cesaciones/addCesacion";
-import { useContratos } from "../../../Funcionalidades/GD/Contratos";
 import { useGraphServices } from "../../../graph/graphContext";
-import { useHabeasData } from "../../../Funcionalidades/GD/HabeasData";
-import { useCesaciones } from "../../../Funcionalidades/GD/Cesaciones";
 import { usePromocion } from "../../../Funcionalidades/GD/Promocion";
 import RetailTabla from "./Retail/Retail";
 import FormRetail from "./Modals/Retail/addRetail";
 import { useCargo, useCentroCostos, useCentroOperativo, useDependenciasMixtas, useDeptosMunicipios, useEmpresasSelect, useEspecificidadCargo, useEtapa, useModalidadTrabajo, useNivelCargo, useOrigenSeleccion, useTemporales, useTipoContrato, useTipoDocumentoSelect, useTipoVacante, useUnidadNegocio } from "../../../Funcionalidades/Desplegables";
 import { useRetail } from "../../../Funcionalidades/GD/Retail";
+import { usePermissions } from "../../../Funcionalidades/Permisos";
+import type { FeatureKey } from "../../../models/security";
+import { useCesaciones } from "../../../Funcionalidades/GD/Cesaciones/hooks/useCesaciones";
+import { useContratos } from "../../../Funcionalidades/GD/Contratos/hooks/useContratos";
+import { useHabeasData } from "../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
 
 export default function RegistrarNuevoPage() {
-  const { Contratos, HabeasData, Cesaciones,Promociones, Retail, Maestro, DeptosYMunicipios} = useGraphServices();
-  const { handleReactivateProcessById, handleCancelProcessbyId, setState, rows, loading, error, state, pageSize, handleSubmit, pageIndex, hasNext, sorts, setField, setEstado, estado, setRange, setPageSize, nextPage, reloadAll,  toggleSort, range, setSearch, search, loadFirstPage, errors, searchRegister, handleEdit} = useContratos(Contratos,);
-  const { setState: setStateHabeas, handleEdit: editHabeas, rows: rowsHabeas, loading: loadingHabeas, error: errorHabeas, pageSize: pageSizeHabeas, pageIndex: pageIndexHabeas, state: stateHabeas, hasNext: hasNextHabeas, sorts: sortsHabeas, setRange: setRangeHabeas, setPageSize: setPageSizeHabeas, handleSubmit: handleSubmitHabeas, setField: setFieldHabeas, errors: errorsHabeas, loadFirstPage: loadFirstPageHabeas, nextPage: nextPageHabeas, reloadAll: reloadAllHabeas, toggleSort: toggleSortHabeas, range: rangeHabeas, setSearch: setSearchHabeas, search: searchHabeas} = useHabeasData(HabeasData)
-  const { handleReactivateProcessById: reactivateCesacion,loading: loadingCesacion, setState: setCesacionState, handleEdit: handleEditCesaciones, rows: rowsCesaciones, loading: loadingCesaciones, error: errorCesaciones, pageSize: pageSizeCesaciones, pageIndex: pageIndexCesaciones, state: stateCesaciones, hasNext: hasNextCesaciones, sorts: sortsCesaciones, setRange: setRangeCesaciones, setPageSize: setPageSizeCesaciones, handleSubmit: handleSubmitCesaciones, setField: setFieldsCesaciones, errors: errorsCesaciones, loadFirstPage: loadFirstPageCesaciones, nextPage: nextPageCesaciones, reloadAll: reloadAllCesaciones, toggleSort: toggleSortCesaciones, range: rangeCesaciones, setSearch: setSearchCesaciones, search: searchCesaciones, estado: estadoCesaciones, setEstado: setEstadoCesaciones, searchRegister: searchCesacion, handleCancelProcessbyId: cancelCesacion} = useCesaciones(Cesaciones)
-  const { handleReactivateProcessById: reactivatePromotion, handleCancelProcessbyId: cancelPromotion,setState: setStatePromociones, handleEdit: editPromociones, rows: rowsPromociones, loading: loadingPromociones, error: errorPromociones, pageSize: pageSizePromociones, pageIndex: pageIndexPromociones, state: statePromociones, hasNext: hasNextPromociones, sorts: sortsPromociones, setRange: setRangePromociones, setPageSize: setPageSizePromociones, handleSubmit: handleSumbitPromociones, setField: setFieldsPromociones, errors: errorsPromociones, loadFirstPage: loadFirstPagePromociones, nextPage: nextPagePromociones, reloadAll: reloadAllPromociones, toggleSort: toggleSortPromociones, range: rangePromociones, setSearch: setSearchPromociones, search: searchPromociones, estado: estadoPromociones, setEstado: setEstadoPromociones, searchRegister: searchRegisterPromociones} = usePromocion(Promociones)
-  const { handleReactivateProcessById: reactivateRetail, handleCancelProcessbyId: cancelRetail, setState: setStateRetail, handleEdit: editRetail, rows: rowsRetail, loading: loadingRetail, error: errorRetail, pageSize: pageSizeRetail, pageIndex: pageIndexRetail, state: stateRetail, hasNext: hasNextRetail, sorts: sortsRetail, setRange: setRangeRetail, setPageSize: setPageSizeRetail, handleSubmit: handleSubmitRetail, setField: setFieldRetail, errors: errorsRetail, loadFirstPage: loadFirstPageRetail, nextPage: nextPageRetail, reloadAll: reloadAllRetail, toggleSort: toggleSortRetail, range: rangeRetail, setSearch: setSearchRetail, search: searchRetail, estado: estadoRetail, setEstado: setEstadoRetail, searchRegister: searchRegisterRetail} = useRetail(Retail)
-  
+  const { Promociones, Retail, Maestro, DeptosYMunicipios} = useGraphServices();
+  const contratosController = useContratos();
+  const habeasController = useHabeasData()
+  const cesacionesController = useCesaciones()
+  const promocionesController = usePromocion(Promociones)
+  const retailController = useRetail(Retail)
+  const { engine } = usePermissions();
    //Desplegables
   const { options: empresaOptions, loading: loadingEmp, reload: reloadEmpresas } = useEmpresasSelect(Maestro);
   const { options: tipoDocOptions, loading: loadingTipo, reload: reloadTipoDoc } = useTipoDocumentoSelect(Maestro);
@@ -44,7 +46,6 @@ export default function RegistrarNuevoPage() {
   const { options: dependenciaOptions, loading: loadingDependencias, } = useDependenciasMixtas(Maestro);
   const { options: temporalOptions, loading: loadingTemporal, reload: RealodTemporales } = useTemporales(Maestro);
  
-
   const [orden, setOrden] = React.useState("contrataciones");
   const [modal, setModal] = React.useState<boolean>(false)
 
@@ -67,51 +68,80 @@ export default function RegistrarNuevoPage() {
       RealodTemporales()
   }, []);
 
+  const allOptions = [
+    { value: "cesaciones", label: "Cesaciones", feature: "cesaciones.view" },
+    { value: "habeas", label: "Habeas Data", feature: "habeas.view" },
+    { value: "contrataciones", label: "Contrataciones", feature: "contrataciones.view" },
+    { value: "promociones", label: "Promociones", feature: "promociones.view" },
+    { value: "retail", label: "Retail", feature: "retail.view" },
+  ] as const;
+
+  const createPermissionBySection: Record<string, FeatureKey> = {
+   contrataciones: "contrataciones.add",
+   habeas: "habeas.add",
+   promociones: "promociones.add",
+    cesaciones: "cesaciones.add",
+   retail: "retail.add",
+  };
+
+  const allowedOptions = React.useMemo(() => {
+    return allOptions.filter((opt) => engine.can(opt.feature));
+  }, [engine]);
+
+  const canOpenCreateModal = React.useMemo(() => {
+    const requiredPermission = createPermissionBySection[orden];
+    if (!requiredPermission) return false;
+    return engine.can(requiredPermission);
+  }, [orden, engine]);
+
   return (
     <div className="rn-page">
 
       <div className="rn-toolbar">
         <div className="rn-toolbar__right">
           <select  id="orden" className="rn-select" value={orden} onChange={(e) => setOrden(e.target.value)} aria-label="Ordenar resultados">
-            <option value="cesaciones">Cesaciones</option>
-            <option value="habeas">Habeas Data</option>
-            <option value="contrataciones">Contrataciones</option>
-            <option value="promociones">Promociones</option>
-            <option value="retail">Retail</option>
+            {allowedOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
           </select>
-          <a className="btn btn-circle btn-circle--sm" onClick={() => setModal(true)} aria-label="Relacionar nuevo">+</a>
+          {canOpenCreateModal &&
+            <a className="btn btn-circle btn-circle--sm" onClick={() => setModal(true)} aria-label="Relacionar nuevo">+</a>
+          }
         </div>
       </div>
 
       {
         orden === "contrataciones" ? ( 
           <TablaContratos 
-            rows={rows}
-            loading={loading}
-            error={error}
-            pageIndex={pageIndex}
-            pageSize={pageSize}
-            hasNext={hasNext}
-            sorts={sorts}
-            setRange={setRange}
-            setPageSize={setPageSize}
-            nextPage={nextPage}
-            reloadAll={reloadAll}
-            toggleSort={toggleSort}
-            range={range}
-            search={search}
-            setSearch={setSearch}
-            loadFirstPage={loadFirstPage}
-            setEstado={setEstado}
-            estado={estado}
-            state={state}
-            setField={setField}
-            handleSubmit={handleSubmit}
-            handleEdit={handleEdit}
-            errors={errors}
-            searchRegister={searchRegister}
-            setState={setState}
-            handleCancelProcessbyId={handleCancelProcessbyId}
+            rows={contratosController.rows}
+            loading={contratosController.loading}
+            error={contratosController.error}
+            pageIndex={contratosController.pageIndex}
+            pageSize={contratosController.pageSize}
+            hasNext={contratosController.hasNext}
+            sorts={contratosController.sorts}
+            setRange={contratosController.setRange}
+            setPageSize={contratosController.setPageSize}
+            nextPage={contratosController.nextPage}
+            reloadAll={contratosController.reloadAll}
+            toggleSort={contratosController.toggleSort}
+            range={contratosController.range}
+            search={contratosController.search}
+            setSearch={contratosController.setSearch}
+            loadFirstPage={contratosController.loadFirstPage}
+            setEstado={contratosController.setEstado}
+            estado={contratosController.estado}
+            state={contratosController.state}
+            setField={contratosController.setField}
+            handleSubmit={contratosController.handleSubmit}
+            handleEdit={contratosController.handleEdit}
+            errors={contratosController.errors}
+            searchRegister={contratosController.searchRegister}
+            setState={contratosController.setState}
+            handleCancelProcessbyId={contratosController.handleCancelProcessbyId}
+            deleteContratacion={contratosController.deleteContrato}
             empresaOptions={empresaOptions}
             loadingEmp={loadingEmp}
             tipoDocOptions={tipoDocOptions}
@@ -142,31 +172,32 @@ export default function RegistrarNuevoPage() {
             loadingDepto={loadingDepto}
             dependenciaOptions={dependenciaOptions}
             loadingDependencias={loadingDependencias} 
-            handleReactivatProcessbyId={handleReactivateProcessById} /> ) :  
+            handleReactivatProcessbyId={contratosController.handleReactivateProcessById} /> ) :  
         orden === "habeas" ? (
           <TablaHabeas 
-            rows={rowsHabeas} 
-            loading={loadingHabeas} 
-            error={errorHabeas} 
-            pageSize={pageSizeHabeas} 
-            pageIndex={pageIndexHabeas} 
-            hasNext={hasNextHabeas} 
-            sorts={sortsHabeas} 
-            setRange={setRangeHabeas} 
-            setPageSize={setPageSizeHabeas} 
-            nextPage={nextPageHabeas} 
-            reloadAll={reloadAllHabeas} 
-            toggleSort={toggleSortHabeas} 
-            range={rangeHabeas} 
-            setSearch={setSearchHabeas} 
-            search={searchHabeas} 
-            loadFirstPage={loadFirstPageHabeas} 
-            state={stateHabeas} 
-            setField={setFieldHabeas} 
-            handleSubmit={handleSubmitHabeas} 
-            handleEdit={editHabeas} 
-            errors={errorsHabeas} 
-            setState={setStateHabeas} 
+            rows={habeasController.rows} 
+            loading={habeasController.loading} 
+            error={""} 
+            pageSize={habeasController.pageSize} 
+            pageIndex={habeasController.pageIndex} 
+            hasNext={habeasController.hasNext} 
+            sorts={habeasController.sorts} 
+            setRange={habeasController.setRange} 
+            setPageSize={habeasController.setPageSize} 
+            nextPage={habeasController.nextPage} 
+            reloadAll={habeasController.loadFirstPage} 
+            toggleSort={habeasController.toggleSort} 
+            range={habeasController.range} 
+            setSearch={habeasController.setSearch} 
+            search={habeasController.search} 
+            loadFirstPage={habeasController.loadFirstPage} 
+            state={habeasController.state} 
+            setField={habeasController.setField} 
+            handleSubmit={habeasController.handleSubmit} 
+            handleEdit={habeasController.handleEdit} 
+            errors={habeasController.errors} 
+            setState={habeasController.setState}
+            deleteHabeas={habeasController.deleteHabeasData} 
             empresaOptions={empresaOptions} 
             loadingEmp={loadingEmp} 
             tipoDocOptions={tipoDocOptions} 
@@ -175,143 +206,147 @@ export default function RegistrarNuevoPage() {
             loadingDepto={loadingDepto}/>) : 
         orden === "promociones" ? (
           <TablaPromociones 
-                rows={rowsPromociones}
-                loading={loadingPromociones}
-                error={errorPromociones}
-                pageSize={pageSizePromociones}
-                pageIndex={pageIndexPromociones}
-                hasNext={hasNextPromociones}
-                sorts={sortsPromociones}
-                setRange={setRangePromociones}
-                setPageSize={setPageSizePromociones}
-                nextPage={nextPagePromociones}
-                reloadAll={reloadAllPromociones}
-                toggleSort={toggleSortPromociones}
-                range={rangePromociones}
-                setSearch={setSearchPromociones}
-                search={searchPromociones}
-                loadFirstPage={loadFirstPagePromociones}
-                estado={estadoPromociones}
-                setEstado={setEstadoPromociones}
-                state={statePromociones}
-                setField={setFieldsPromociones}
-                handleSubmit={handleSumbitPromociones}
-                handleEdit={editPromociones}
-                errors={errorsPromociones}
-                searchRegister={searchRegisterPromociones}
-                setState={setStatePromociones}
-                handleCancelProcessbyId={cancelPromotion}
-                handleReactivateProcessById={reactivatePromotion}
-                empresaOptions={empresaOptions}
-                loadingEmp={loadingEmp}
-                tipoDocOptions={tipoDocOptions}
-                loadingTipo={loadingTipo}
-                cargoOptions={cargoOptions}
-                loadingCargo={loadingCargo}
-                modalidadOptions={modalidadOptions}
-                loadingModalidad={loadingModalidad}
-                especificidadOptions={especificidadOptions}
-                loadingEspecificdad={loadingEspecificdad}
-                etapasOptions={etapasOptions}
-                loadingEtapas={loadingEtapas}
-                nivelCargoOptions={nivelCargoOptions}
-                loadinNivelCargo={loadinNivelCargo}
-                CentroCostosOptions={CentroCostosOptions}
-                loadingCC={loadingCC}
-                COOptions={COOptions}
-                loadingCO={loadingCO}
-                UNOptions={UNOptions}
-                loadingUN={loadingUN}
-                origenOptions={origenOptions}
-                loadingOrigen={loadingOrigen}
-                tipoContratoOptions={tipoContratoOptions}
-                loadingTipoContrato={loadingTipoContrato}
-                tipoVacanteOptions={tipoVacanteOptions}
-                loadingTipoVacante={loadingTipoVacante}
-                deptoOptions={deptoOptions}
-                loadingDepto={loadingDepto}
-                dependenciaOptions={dependenciaOptions}
-                loadingDependencias={loadingDependencias} submmiting={loadingPromociones}/>) : 
+            rows={promocionesController.rows}
+            loading={promocionesController.loading}
+            error={promocionesController.error}
+            pageSize={promocionesController.pageSize}
+            pageIndex={promocionesController.pageIndex}
+            hasNext={promocionesController.hasNext}
+            sorts={promocionesController.sorts}
+            setRange={promocionesController.setRange}
+            setPageSize={promocionesController.setPageSize}
+            nextPage={promocionesController.nextPage}
+            reloadAll={promocionesController.reloadAll}
+            toggleSort={promocionesController.toggleSort}
+            range={promocionesController.range}
+            setSearch={promocionesController.setSearch}
+            search={promocionesController.search}
+            loadFirstPage={promocionesController.loadFirstPage}
+            estado={promocionesController.estado}
+            setEstado={promocionesController.setEstado}
+            state={promocionesController.state}
+            setField={promocionesController.setField}
+            handleSubmit={promocionesController.handleSubmit}
+            handleEdit={promocionesController.handleEdit}
+            errors={promocionesController.errors}
+            searchRegister={promocionesController.searchRegister}
+            setState={promocionesController.setState}
+            handleCancelProcessbyId={promocionesController.handleCancelProcessbyId}
+            handleReactivateProcessById={promocionesController.handleReactivateProcessById}
+            deletePromocion={promocionesController.deletePromocion}
+            empresaOptions={empresaOptions}
+            loadingEmp={loadingEmp}
+            tipoDocOptions={tipoDocOptions}
+            loadingTipo={loadingTipo}
+            cargoOptions={cargoOptions}
+            loadingCargo={loadingCargo}
+            modalidadOptions={modalidadOptions}
+            loadingModalidad={loadingModalidad}
+            especificidadOptions={especificidadOptions}
+            loadingEspecificdad={loadingEspecificdad}
+            etapasOptions={etapasOptions}
+            loadingEtapas={loadingEtapas}
+            nivelCargoOptions={nivelCargoOptions}
+            loadinNivelCargo={loadinNivelCargo}
+            CentroCostosOptions={CentroCostosOptions}
+            loadingCC={loadingCC}
+            COOptions={COOptions}
+            loadingCO={loadingCO}
+            UNOptions={UNOptions}
+            loadingUN={loadingUN}
+            origenOptions={origenOptions}
+            loadingOrigen={loadingOrigen}
+            tipoContratoOptions={tipoContratoOptions}
+            loadingTipoContrato={loadingTipoContrato}
+            tipoVacanteOptions={tipoVacanteOptions}
+            loadingTipoVacante={loadingTipoVacante}
+            deptoOptions={deptoOptions}
+            loadingDepto={loadingDepto}
+            dependenciaOptions={dependenciaOptions}
+            loadingDependencias={loadingDependencias} 
+            submmiting={promocionesController.loading}/>) : 
         orden === "cesaciones" ? (
           <CesacionesTabla 
-            rows={rowsCesaciones} 
-            loading={loadingCesaciones} 
-            error={errorCesaciones} 
-            pageSize={pageSizeCesaciones} 
-            pageIndex={pageIndexCesaciones} 
-            hasNext={hasNextCesaciones} 
-            sorts={sortsCesaciones} 
-            setRange={setRangeCesaciones} 
-            setPageSize={setPageSizeCesaciones} 
-            nextPage={nextPageCesaciones} 
-            reloadAll={reloadAllCesaciones} 
-            toggleSort={toggleSortCesaciones} 
-            range={rangeCesaciones} 
-            setSearch={setSearchCesaciones} 
-            search={searchCesaciones} 
-            loadFirstPage={loadFirstPageCesaciones} 
-            setEstado={setEstadoCesaciones} 
-            estado={estadoCesaciones} 
-            state={stateCesaciones} 
-            setField={setFieldsCesaciones} 
-            handleSubmit={handleSubmitCesaciones} 
-            handleEdit={handleEditCesaciones} 
-            errors={errorsCesaciones} 
-            searchRegister={searchCesacion} 
-            setState={setCesacionState} 
-            handleCancelProcessbyId={cancelCesacion} 
-            handleReactivateProcessById={reactivateCesacion} 
-            sending={loadingCesacion} 
-            empresaOptions={empresaOptions} 
-            loadingEmp={loadingEmp} 
-            cargoOptions={cargoOptions} 
-            loadingCargo={loadingCargo} 
-            tipoDocOptions={tipoDocOptions} 
-            loadingTipo={loadingTipo} 
-            nivelCargoOptions={nivelCargoOptions} 
-            loadinNivelCargo={loadinNivelCargo} 
-            dependenciaOptions={dependenciaOptions} 
-            loadingDependencias={loadingDependencias} 
-            CentroCostosOptions={CentroCostosOptions} 
-            loadingCC={loadingCC} 
-            COOptions={COOptions} 
-            loadingCO={loadingCO} 
-            UNOptions={UNOptions} 
-            loadingUN={loadingUN} 
-            temporalOption={temporalOptions} 
-            temporalLoading={loadingTemporal} 
+            rows={cesacionesController.rows}
+            loading={cesacionesController.loading}
+            error={cesacionesController.error}
+            pageSize={cesacionesController.pageSize}
+            pageIndex={cesacionesController.pageIndex}
+            hasNext={cesacionesController.hasNext}
+            sorts={cesacionesController.sorts}
+            setRange={cesacionesController.setRange}
+            setPageSize={cesacionesController.setPageSize}
+            nextPage={cesacionesController.nextPage}
+            reloadAll={cesacionesController.reloadAll}
+            toggleSort={cesacionesController.toggleSort}
+            range={cesacionesController.range}
+            setSearch={cesacionesController.setSearch}
+            search={cesacionesController.search}
+            loadFirstPage={cesacionesController.loadFirstPage}
+            setEstado={cesacionesController.setEstado}
+            estado={cesacionesController.estado}
+            state={cesacionesController.state}
+            setField={cesacionesController.setField}
+            handleSubmit={cesacionesController.handleSubmit}
+            handleEdit={cesacionesController.handleEdit}
+            errors={cesacionesController.errors}
+            searchRegister={cesacionesController.searchRegister}
+            setState={cesacionesController.setState}
+            handleCancelProcessbyId={cesacionesController.handleCancelProcessbyId}
+            handleReactivateProcessById={cesacionesController.handleReactivateProcessById}
+            deleteCesacion={cesacionesController.deleteCesacion}
+            sending={cesacionesController.loading}
+            empresaOptions={empresaOptions}
+            loadingEmp={loadingEmp}
+            cargoOptions={cargoOptions}
+            loadingCargo={loadingCargo}
+            tipoDocOptions={tipoDocOptions}
+            loadingTipo={loadingTipo}
+            nivelCargoOptions={nivelCargoOptions}
+            loadinNivelCargo={loadinNivelCargo}
+            dependenciaOptions={dependenciaOptions}
+            loadingDependencias={loadingDependencias}
+            CentroCostosOptions={CentroCostosOptions}
+            loadingCC={loadingCC}
+            COOptions={COOptions}
+            loadingCO={loadingCO}
+            UNOptions={UNOptions}
+            loadingUN={loadingUN}
+            temporalOption={temporalOptions}
+            temporalLoading={loadingTemporal}
             deptoOptions={deptoOptions} 
-            loadingDeptos={loadingDepto} />) :
+            loadingDeptos={loadingDepto}/>) :
         orden === "retail" ? (
           <RetailTabla 
-            rows={rowsRetail} 
-            loading={loadingRetail} 
-            error={errorRetail} 
-            pageSize={pageSizeRetail} 
-            pageIndex={pageIndexRetail} 
-            hasNext={hasNextRetail} 
-            sorts={sortsRetail} 
-            setRange={setRangeRetail} 
-            setPageSize={setPageSizeRetail} 
-            nextPage={nextPageRetail} 
-            reloadAll={reloadAllRetail} 
-            toggleSort={toggleSortRetail} 
-            range={rangeRetail} 
-            setSearch={setSearchRetail} 
-            search={searchRetail} 
-            loadFirstPage={loadFirstPageRetail} 
-            setEstado={setEstadoRetail} 
-            estado={estadoRetail} 
-            state={stateRetail} 
-            setField={setFieldRetail} 
-            handleSubmit={handleSubmitRetail} 
-            handleEdit={editRetail} 
-            errors={errorsRetail} 
-            searchRegister={searchRegisterRetail} 
-            setState={setStateRetail} 
-            handleCancelProcessbyId={cancelRetail} 
-            handleReactivateProcessById={reactivateRetail} 
-            submitting={loadingRetail} 
+            rows={retailController.rows} 
+            loading={retailController.loading} 
+            error={retailController.error} 
+            pageSize={retailController.pageSize} 
+            pageIndex={retailController.pageIndex} 
+            hasNext={retailController.hasNext} 
+            sorts={retailController.sorts} 
+            setRange={retailController.setRange} 
+            setPageSize={retailController.setPageSize} 
+            nextPage={retailController.nextPage} 
+            reloadAll={retailController.reloadAll} 
+            toggleSort={retailController.toggleSort} 
+            range={retailController.range} 
+            setSearch={retailController.setSearch} 
+            search={retailController.search} 
+            loadFirstPage={retailController.loadFirstPage} 
+            setEstado={retailController.setEstado} 
+            estado={retailController.estado} 
+            state={retailController.state} 
+            setField={retailController.setField} 
+            handleSubmit={retailController.handleSubmit} 
+            handleEdit={retailController.handleEdit} 
+            errors={retailController.errors} 
+            searchRegister={retailController.searchRegister} 
+            setState={retailController.setState} 
+            handleCancelProcessbyId={retailController.handleCancelProcessbyId} 
+            handleReactivateProcessById={retailController.handleReactivateProcessById} 
+            deleteRetail={retailController.deleteRetail}
+            submitting={retailController.loading} 
             empresaOptions={empresaOptions} 
             loadingEmp={loadingEmp} 
             tipoDocOptions={tipoDocOptions} 
@@ -338,13 +373,13 @@ export default function RegistrarNuevoPage() {
       {/* MODALES AGREGAR */}
       {orden === "contrataciones" && modal ? 
         <FormContratacion 
-          state={state}
-          setField={setField}
+          state={contratosController.state}
+          setField={contratosController.setField}
           onClose={() => setModal(false)}
-          handleSubmit={() => handleSubmit()}
-          errors={errors}
-          searchRegister={(cedula: string) => searchRegister(cedula)}
-          loadFirstPage={loadFirstPage}
+          handleSubmit={contratosController.handleSubmit}
+          errors={contratosController.errors}
+          searchRegister={contratosController.searchRegister}
+          loadFirstPage={contratosController.loadFirstPage}
           empresaOptions={empresaOptions}
           loadingEmp={loadingEmp}
           tipoDocOptions={tipoDocOptions}
@@ -375,43 +410,45 @@ export default function RegistrarNuevoPage() {
           loadingDepto={loadingDepto}
           dependenciaOptions={dependenciaOptions}
           loadingDependencias={loadingDependencias}
-          handleEdit={handleEdit}
+          handleEdit={contratosController.handleEdit}
           tipo={"new"}
-          setState={setState}
-          handleCancelProcessbyId={handleCancelProcessbyId}
+          setState={contratosController.setState}
+          handleCancelProcessbyId={contratosController.handleCancelProcessbyId}
           title={"Nueva Contratación"} 
-          handleReactivateProcessById={handleReactivateProcessById}/> : null}
+          handleReactivateProcessById={contratosController.handleReactivateProcessById}/> : null}
       {orden === "habeas" && modal ? 
         <FormHabeas 
           onClose={() => setModal(false)}
-          state={stateHabeas} setField={setFieldHabeas}
-          handleSubmit={handleSubmitHabeas}
-          errors={errorsHabeas}
-          loadFirstPage={loadFirstPageHabeas}
-          handleEdit={editHabeas}
+          state={habeasController.state} 
+          setField={habeasController.setField}
+          handleSubmit={habeasController.handleSubmit}
+          errors={habeasController.errors}
+          loadFirstPage={habeasController.loadFirstPage}
+          handleEdit={habeasController.handleEdit}
           tipo={"new"}
-          setState={setStateHabeas}
+          setState={habeasController.setState}
           title={"Nuevo Habeas Data"}
           empresaOptions={empresaOptions}
-          loadingEmp={loadingHabeas}
+          loadingEmp={habeasController.loading}
           tipoDocOptions={tipoDocOptions}
           loadingTipo={loadingTipo}
           deptoOptions={deptoOptions}
-          loadingDepto={loadingDepto} sending={loadingHabeas}        /> : null}
+          loadingDepto={loadingDepto} 
+          sending={habeasController.loading}        /> : null}
       {orden === "promociones" && modal ? 
         <FormPromociones 
           onClose={() => setModal(false)}
-          state={statePromociones}
-          setField={setFieldsPromociones}
-          handleSubmit={handleSumbitPromociones}
-          errors={errorsPromociones}
-          loadFirstPage={loadFirstPagePromociones}
-          handleEdit={handleSumbitPromociones}
-          searchRegister={searchRegisterPromociones}
+          state={promocionesController.state}
+          setField={promocionesController.setField}
+          handleSubmit={promocionesController.handleSubmit}
+          errors={promocionesController.errors}
+          loadFirstPage={promocionesController.loadFirstPage}
+          handleEdit={promocionesController.handleEdit}
+          searchRegister={promocionesController.searchRegister}
           tipo={"new"}
-          setState={setStatePromociones}
-          handleCancelProcessbyId={cancelPromotion}
-          handleReactivateProcessById={reactivatePromotion}
+          setState={promocionesController.setState}
+          handleCancelProcessbyId={promocionesController.handleCancelProcessbyId}
+          handleReactivateProcessById={promocionesController.handleReactivateProcessById}
           title={"Nueva Promoción"}
           empresaOptions={empresaOptions}
           loadingEmp={loadingEmp}
@@ -442,18 +479,19 @@ export default function RegistrarNuevoPage() {
           deptoOptions={deptoOptions}
           loadingDepto={loadingDepto}
           dependenciaOptions={dependenciaOptions}
-          loadingDependencias={loadingDependencias} submitting={loadingPromociones}/> : null}
+          loadingDependencias={loadingDependencias} 
+          submitting={promocionesController.loading}/> : null}
       {orden === "cesaciones" && modal ? 
         <FormCesacion 
           onClose={() => setModal(false)}
-          state={stateCesaciones}
-          setField={setFieldsCesaciones}
-          handleSubmit={handleSubmitCesaciones}
-          errors={errorsCesaciones}
-          handleEdit={handleEditCesaciones}
-          searchRegister={searchCesacion}
-          handleCancelProcessbyId={cancelCesacion}
-          handleReactivateProcessById={reactivateCesacion}
+          state={cesacionesController.state}
+          setField={cesacionesController.setField}
+          handleSubmit={cesacionesController.handleSubmit}
+          errors={cesacionesController.errors}
+          handleEdit={cesacionesController.handleEdit}
+          searchRegister={cesacionesController.searchRegister}
+          handleCancelProcessbyId={cesacionesController.handleCancelProcessbyId}
+          handleReactivateProcessById={cesacionesController.handleReactivateProcessById}
           title={"Nueva cesación"}
           empresaOptions={empresaOptions}
           loadingEmp={loadingEmp}
@@ -476,24 +514,24 @@ export default function RegistrarNuevoPage() {
           deptoOptions={deptoOptions}
           loadingDeptos={loadingDepto}
           tipo={"new"}
-          setState={setCesacionState} 
-          sending={loadingCesacion} /> : null}
+          setState={cesacionesController.setState} 
+          sending={cesacionesController.loading} /> : null}
       {orden === "retail" && modal ? 
         <FormRetail 
           onClose={() => setModal(false)}
-          state={stateRetail}
-          setField={setFieldRetail}
-          handleSubmit={handleSubmitRetail}
-          errors={errorsRetail}
-          loadFirstPage={loadFirstPageRetail} 
-          handleEdit={editRetail} 
-          searchRegister={searchRegisterRetail} 
+          state={retailController.state}
+          setField={retailController.setField}
+          handleSubmit={retailController.handleSubmit}
+          errors={retailController.errors}
+          loadFirstPage={retailController.loadFirstPage} 
+          handleEdit={retailController.handleEdit} 
+          searchRegister={retailController.searchRegister} 
           tipo={"new"} 
-          setState={setStateRetail} 
-          handleCancelProcessbyId={cancelRetail} 
-          handleReactivateProcessById={reactivateRetail} 
+          setState={retailController.setState} 
+          handleCancelProcessbyId={retailController.handleCancelProcessbyId} 
+          handleReactivateProcessById={retailController.handleReactivateProcessById} 
           title={"Nuevo retail"} 
-          submitting={loadingRetail} 
+          submitting={retailController.loading} 
           empresaOptions={empresaOptions} 
           loadingEmp={loadingEmp} 
           tipoDocOptions={tipoDocOptions} 

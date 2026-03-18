@@ -1,12 +1,12 @@
 import * as React from "react";
 import "./ViewerDocument.css";
-import { useColaboradoresExplorer } from "../../../Funcionalidades/GD/DocumentViewer";
 import { parseDateFlex } from "../../../utils/Date";
 import { RenameModal } from "./ChangeName/ChangeName";
 import { CancelProcessModal } from "./CancelProcess/CancelProcess";
 import type { Archivo } from "../../../models/archivos";
 import { SimpleFileUpload } from "../../GD/AddFile/AddFile";
-//import { usePermissions } from "../../../Funcionalidades/Permisos";
+import { usePermissions } from "../../../Funcionalidades/Permisos";
+import { useColaboradoresExplorer } from "../../../Funcionalidades/GD/DocumentViewer/hooks/useColaboradoresExplorer";
 
 /* ================= Helpers ================= */
 function buildBreadcrumb(currentPath: string) {
@@ -29,30 +29,30 @@ const EMPRESAS = [
 ] as const;
 
 export const ColaboradoresExplorer: React.FC = () => {
-  const { handleUploadClick, empresa, currentPath, items, loading, error, search, setEmpresa, setSearch, depth, goUp, openItem, reload, handleCancelProcess, moveCarpeta, organizacion, setOrganizacion} = useColaboradoresExplorer();
- // const { engine } = usePermissions();
+  const viewerController = useColaboradoresExplorer()
+  const { engine } = usePermissions();
   const [agregar, setAgregar] = React.useState(false);
   const [edit, setEdit] = React.useState(false);
   const [selectedFile, setSelectedFile] = React.useState<Archivo | null>(null);
   const [cancelProcess, setCancelProcess] = React.useState(false);
 
-  const hayRuta = !!currentPath.trim();
-  const showActions = depth >= 2;
-  const breadcrumbParts = React.useMemo(() => buildBreadcrumb(currentPath), [currentPath]);
-  const totalItems = items.length;
-  const totalFolders = React.useMemo(() => items.filter((i) => i.isFolder).length, [items]);
+  const hayRuta = !!viewerController.currentPath.trim();
+  const showActions = viewerController.depth >= 2;
+  const breadcrumbParts = React.useMemo(() => buildBreadcrumb(viewerController.currentPath), [viewerController.currentPath]);
+  const totalItems = viewerController.items.length;
+  const totalFolders = React.useMemo(() => viewerController.items.filter((i) => i.isFolder).length, [viewerController.items]);
   const totalFiles = totalItems - totalFolders;
-  const isActivosOrRetirados =currentPath.toLowerCase().includes("activos") || currentPath.toLowerCase().includes("retirados");
-  const isActivosOrCancelados = currentPath.toLowerCase().includes("activos") || currentPath.toLowerCase().includes("cancelados");
+  const isActivosOrRetirados = viewerController.currentPath.toLowerCase().includes("activos") || viewerController.currentPath.toLowerCase().includes("retirados");
+  const isActivosOrCancelados = viewerController.currentPath.toLowerCase().includes("activos") || viewerController.currentPath.toLowerCase().includes("cancelados");
 
   const handleCancel = async () => {
 
-    await handleCancelProcess();
+    await viewerController.handleCancelProcess();
     setCancelProcess(false);
   };
 
   const fileIndexById = React.useMemo(() => {
-    const onlyFiles = items
+    const onlyFiles = viewerController.items
       .filter((i) => !i.isFolder)
       .slice()
       .sort((a, b) => {
@@ -64,15 +64,15 @@ export const ColaboradoresExplorer: React.FC = () => {
     const map = new Map<string, string>();
     onlyFiles.forEach((f, idx) => map.set(f.id, String(idx + 1).padStart(2, "0")));
     return map;
-  }, [items]);
+  }, [viewerController.items]);
 
- /* const canInactivateRegister = React.useMemo(() => {
+ const canInactivateRegister = React.useMemo(() => {
     const requiredPermission = "documents.retirement";
     if (!requiredPermission) return false;
     const permiso = engine.can(requiredPermission);
     console.log(permiso)
     return permiso
-  }, [engine]);*/
+  }, [engine]);
 
   const handleOpenRename = (item: any) => {
     setSelectedFile(item);
@@ -89,7 +89,7 @@ export const ColaboradoresExplorer: React.FC = () => {
 
         <div className="ce2-sb__seg" role="tablist" aria-label="Selector de empresa">
           {EMPRESAS.map((e) => (
-            <button key={e.key} role="tab" aria-selected={empresa === e.key} type="button" className={"ce2-sb__segBtn" + (empresa === e.key ? " is-active" : "")} onClick={() => setEmpresa(e.key)}>
+            <button key={e.key} role="tab" aria-selected={viewerController.empresa === e.key} type="button" className={"ce2-sb__segBtn" + (viewerController.empresa === e.key ? " is-active" : "")} onClick={() => viewerController.setEmpresa(e.key)}>
               {e.label}
             </button>
           ))}
@@ -103,7 +103,7 @@ export const ColaboradoresExplorer: React.FC = () => {
           {/* Top bar: breadcrumb + counters */}
           <div className="ce3-top">
             <div className="ce3-bc" aria-label="Ruta">
-              <span className="ce3-bc__root">{EMPRESAS.find(e => e.key === empresa)?.label ?? "Inicio"}</span>
+              <span className="ce3-bc__root">{EMPRESAS.find(e => e.key === viewerController.empresa)?.label ?? "Inicio"}</span>
               {breadcrumbParts.length > 0 && <span className="ce3-bc__sep">/</span>}
               {breadcrumbParts.map((p, idx) => {
                 const isLast = idx === breadcrumbParts.length - 1;
@@ -128,7 +128,7 @@ export const ColaboradoresExplorer: React.FC = () => {
           <div className="ce3-ctl">
             <div className="ce3-actions">
               {hayRuta && (
-                <button type="button" className="ce3-btn ce3-btn--ghost" onClick={goUp}>
+                <button type="button" className="ce3-btn ce3-btn--ghost" onClick={viewerController.goUp}>
                   ← Volver
                 </button>
               )}
@@ -145,14 +145,14 @@ export const ColaboradoresExplorer: React.FC = () => {
                   <summary className="ce3-btn ce3-btn--ghost ce3-more__sum">Más ▾</summary>
 
                   <div className="ce3-more__menu">
-                    {/*canInactivateRegister &&*/ isActivosOrRetirados && (
+                    {canInactivateRegister && isActivosOrRetirados && (
                       <button type="button" className="ce3-menuItem" onClick={() =>
-                                                                        currentPath.toLowerCase().includes("activos")
-                                                                          ? moveCarpeta("Colaboradores Retirados")
-                                                                          : moveCarpeta("Colaboradores Activos")
+                                                                        viewerController.currentPath.toLowerCase().includes("activos")
+                                                                          ? viewerController.moveCarpeta("Colaboradores Retirados")
+                                                                          : viewerController.moveCarpeta("Colaboradores Activos")
                                                                       }
                                                                     >
-                        {currentPath.toLowerCase().includes("activos") ? "Marcar como retirado" : "Reintegrar colaborador"}
+                        {viewerController.currentPath.toLowerCase().includes("activos") ? "Marcar como retirado" : "Reintegrar colaborador"}
                       </button>
                       
                     )}
@@ -162,12 +162,12 @@ export const ColaboradoresExplorer: React.FC = () => {
             </div>
 
             <div className="ce3-filters">
-              <select className="ce3-select" value={organizacion} onChange={(e) => setOrganizacion(e.target.value)} aria-label="Orden">
+              <select className="ce3-select" value={viewerController.organizacion} onChange={(e) => viewerController.setOrganizacion(e.target.value as "asc" | "desc")} aria-label="Orden">
                 <option value="asc">Más antiguas</option>
                 <option value="desc">Más nuevas</option>
               </select>
 
-              <input className="ce3-search" placeholder="Buscar por nombre…" value={search} onChange={(e) => setSearch(e.target.value)}/>
+              <input className="ce3-search" placeholder="Buscar por nombre…" value={viewerController.search} onChange={(e) => viewerController.setSearch(e.target.value)}/>
             </div>
           </div>
         </header>
@@ -194,18 +194,18 @@ export const ColaboradoresExplorer: React.FC = () => {
             </div>
 
             <div className="ce2-tbody" role="rowgroup">
-              {loading && <div className="ce2-state">Cargando…</div>}
-              {!loading && error && <div className="ce2-state ce2-state--error">{error}</div>}
-              {!loading && !error && items.length === 0 && <div className="ce2-state">No hay elementos aquí.</div>}
+              {viewerController.loading && <div className="ce2-state">Cargando…</div>}
+              {!viewerController.loading && viewerController.error && <div className="ce2-state ce2-state--error">{viewerController.error}</div>}
+              {!viewerController.loading && !viewerController.error && viewerController.items.length === 0 && <div className="ce2-state">No hay elementos aquí.</div>}
 
-              {!loading &&
-                !error &&
-                items.map((item) => {
+              {!viewerController.loading &&
+                !viewerController.error &&
+                viewerController.items.map((item) => {
                   const seq = item.isFolder ? "—" : fileIndexById.get(item.id) ?? "--";
                   const date = parseDateFlex(item.lastModified ?? "")?.toLocaleDateString("es-CO") ?? "";
                   
                   return (
-                    <button key={item.id} type="button" className="ce2-tr ce2-rowBtn" role="row" onClick={() => openItem(item)}>
+                    <button key={item.id} type="button" className="ce2-tr ce2-rowBtn" role="row" onClick={() => viewerController.openItem(item)}>
                       <div className="ce2-td ce2-td--seq" role="cell">
                         <span className={"ce2-seq" + (seq === "—" ? " is-ghost" : "")}>{seq}</span>
                       </div>
@@ -229,16 +229,7 @@ export const ColaboradoresExplorer: React.FC = () => {
 
                       <div className="ce2-td ce2-td--act" role="cell">
                         {showActions && (
-                          <button
-                            type="button"
-                            className="ce2-iconBtn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenRename(item);
-                            }}
-                            aria-label="Renombrar"
-                            title="Renombrar"
-                          >
+                          <button type="button" className="ce2-iconBtn" onClick={(e) => {e.stopPropagation(); handleOpenRename(item);}} aria-label="Renombrar" title="Renombrar">
                             ✎
                           </button>
                         )}
@@ -254,14 +245,14 @@ export const ColaboradoresExplorer: React.FC = () => {
         </div>
 
         {/* Modals */}
-        {agregar ? <SimpleFileUpload folderPath={currentPath} onClose={() => setAgregar(false)}   handleUploadClick={handleUploadClick} /> : null}
+        {agregar ? <SimpleFileUpload folderPath={viewerController.currentPath} onClose={() => setAgregar(false)}   handleUploadClick={viewerController.handleUploadClick} /> : null}
 
         <RenameModal
           open={edit}
           selectedFile={selectedFile!}
           onClose={() => setEdit(false)}
-          biblioteca={empresa}
-          recargar={reload}
+          biblioteca={viewerController.empresa}
+          recargar={viewerController.reload}
         />
 
         <CancelProcessModal open={cancelProcess} onClose={() => setCancelProcess(false)} onEliminar={handleCancel} />

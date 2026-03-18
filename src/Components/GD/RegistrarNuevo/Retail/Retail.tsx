@@ -2,12 +2,13 @@ import * as React from "react";
 import "../Contratos/Contratos.css";
 import type { DateRange, SortDir, SortField } from "../../../../models/Commons";
 import { useGraphServices } from "../../../../graph/graphContext";
-import { useEnvios } from "../../../../Funcionalidades/GD/Envios";
 import { toISODateFlex } from "../../../../utils/Date";
 import type { Retail, RetailErrors } from "../../../../models/Retail";
 import FormRetail from "../Modals/Retail/addRetail";
 import type { SetField } from "../Modals/Contrato/addContrato";
 import type { desplegablesOption } from "../../../../models/Desplegables";
+import { usePermissions } from "../../../../Funcionalidades/Permisos";
+import { useEnvios } from "../../../../Funcionalidades/GD/Envios/hooks/useEnvios";
 
 function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; dir: SortDir}>) {
   const idx = sorts.findIndex(s => s.field === field);
@@ -38,7 +39,7 @@ export type Props = {
 
   state: Retail
   setField: SetField<Retail>;
-  handleSubmit: () => Promise<{ok: boolean; created: string | null;}>;
+  handleSubmit: () => Promise<{ok: boolean; created: Retail | null;}>;
   handleEdit: (e: React.FormEvent, NovedadSeleccionada: Retail) => void;
   errors: RetailErrors
   searchRegister: (cedula: string) => Promise<Retail | null>
@@ -47,6 +48,7 @@ export type Props = {
   handleCancelProcessbyId: (id: string, r: string) => void
   handleReactivateProcessById: (id: string) => void
   submitting: boolean
+  deleteRetail: (id: string) => void
 
   //Desplegables
   empresaOptions: desplegablesOption[]
@@ -81,13 +83,20 @@ export type PropsPagination = {
   totalRows: number;
 };
 
-export default function RetailTabla({dependenciaOptions, loadingDependencias, deptoOptions, loadingDepto, origenOptions, loadingOrigen, CentroCostosOptions, loadingCC, UNOptions, loadingUN, COOptions, loadingCO, nivelCargoOptions, loadinNivelCargo, cargoOptions, loadingCargo, tipoDocOptions, loadingTipo, empresaOptions, loadingEmp, submitting, handleCancelProcessbyId, handleReactivateProcessById, setState, searchRegister, errors, handleSubmit, handleEdit, setField, state, rows, loading: loadingRetail, error, pageSize: pageSizeRetail, pageIndex: pageIndexRetail, hasNext: hasNextRetail, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageRetail, reloadAll: reloadAllRetail, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
-  const { Envios, detallesPasosRetail, } = useGraphServices();
-  const { canEdit } = useEnvios(Envios);
+export default function RetailTabla({deleteRetail, dependenciaOptions, loadingDependencias, deptoOptions, loadingDepto, origenOptions, loadingOrigen, CentroCostosOptions, loadingCC, UNOptions, loadingUN, COOptions, loadingCO, nivelCargoOptions, loadinNivelCargo, cargoOptions, loadingCargo, tipoDocOptions, loadingTipo, empresaOptions, loadingEmp, submitting, handleCancelProcessbyId, handleReactivateProcessById, setState, searchRegister, errors, handleSubmit, handleEdit, setField, state, rows, loading: loadingRetail, error, pageSize: pageSizeRetail, pageIndex: pageIndexRetail, hasNext: hasNextRetail, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageRetail, reloadAll: reloadAllRetail, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
+  const { detallesPasosRetail, } = useGraphServices();
+  const { canEdit } = useEnvios();
   const [visible, setVisible] = React.useState(false);
   const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Retail | null>(null);
   const [tipoFormulario, setTipoFormulario] = React.useState<"edit" | "new" | "view">("edit");
   const [pctById, setPctById] = React.useState<Record<string, number>>({});
+  const { engine } = usePermissions();
+
+  const canDeleteRegister = React.useMemo(() => {
+    const requiredPermission = "retail.delete";
+    if (!requiredPermission) return false;
+    return engine.can(requiredPermission);
+  }, [engine]);
 
   const openRow = React.useCallback(
     async (novedad: Retail) => {
@@ -201,6 +210,7 @@ export default function RetailTabla({dependenciaOptions, loadingDependencias, de
             </th>
 
             <th style={{ textAlign: "center" }}>%</th>
+            {canDeleteRegister ? <th style={{ textAlign: "center" }}>Eliminar</th> : null}
           </tr>
         </thead>
 
@@ -219,6 +229,15 @@ export default function RetailTabla({dependenciaOptions, loadingDependencias, de
                   return pct === undefined ? "…" : `${pct.toFixed(2)}%`;
                 })()}
               </td>
+                {canDeleteRegister ?
+                  <td style={{ textAlign: "center" }}>
+                    <span title="Elimar proceso">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 26 26" onClick={(e) => {e.stopPropagation(); deleteRetail(n.Id!)}}>
+                        <path fill="#e53434" d="M11.5-.031c-1.958 0-3.531 1.627-3.531 3.594V4H4c-.551 0-1 .449-1 1v1H2v2h2v15c0 1.645 1.355 3 3 3h12c1.645 0 3-1.355 3-3V8h2V6h-1V5c0-.551-.449-1-1-1h-3.969v-.438c0-1.966-1.573-3.593-3.531-3.593h-3zm0 2.062h3c.804 0 1.469.656 1.469 1.531V4H10.03v-.438c0-.875.665-1.53 1.469-1.53zM6 8h5.125c.124.013.247.031.375.031h3c.128 0 .25-.018.375-.031H20v15c0 .563-.437 1-1 1H7c-.563 0-1-.437-1-1V8zm2 2v12h2V10H8zm4 0v12h2V10h-2zm4 0v12h2V10h-2z"/>
+                      </svg>
+                    </span>
+                  </td> : null
+                }
             </tr>
           ))}
         </tbody>
@@ -257,6 +276,15 @@ export default function RetailTabla({dependenciaOptions, loadingDependencias, de
                   return pct === undefined ? "…" : `${pct.toFixed(2)}%`;
                 })()}
               </td>
+              {canDeleteRegister ?
+                <td style={{ textAlign: "center" }}>
+                  <span title="Elimar proceso">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 26 26" onClick={(e) => {e.stopPropagation(); deleteRetail(n.Id!)}}>
+                      <path fill="#e53434" d="M11.5-.031c-1.958 0-3.531 1.627-3.531 3.594V4H4c-.551 0-1 .449-1 1v1H2v2h2v15c0 1.645 1.355 3 3 3h12c1.645 0 3-1.355 3-3V8h2V6h-1V5c0-.551-.449-1-1-1h-3.969v-.438c0-1.966-1.573-3.593-3.531-3.593h-3zm0 2.062h3c.804 0 1.469.656 1.469 1.531V4H10.03v-.438c0-.875.665-1.53 1.469-1.53zM6 8h5.125c.124.013.247.031.375.031h3c.128 0 .25-.018.375-.031H20v15c0 .563-.437 1-1 1H7c-.563 0-1-.437-1-1V8zm2 2v12h2V10H8zm4 0v12h2V10h-2zm4 0v12h2V10h-2z"/>
+                    </svg>
+                  </span>
+                </td> : null
+              }
             </tr>
           ))}
         </tbody>

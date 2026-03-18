@@ -294,6 +294,18 @@ export class ContratosService {
     return { items, nextLink };
   }
 
+  async findAllByDoc(title: string): Promise<Novedad[]> {
+    const resp = await this.getAll({filter: `fields/Numero_x0020_identificaci_x00f3_ eq '${title}' and fields/Estado ne 'Cancelado'`,  top: 200, orderby: "fields/Created desc",});
+
+    return resp.items;
+  }
+
+  async findLastByDoc(title: string): Promise<Novedad> {
+    const resp = await this.getAll({filter: `fields/Numero_x0020_identificaci_x00f3_ eq '${title}'`,  top: 1, orderby: "fields/Created desc",});
+
+    return resp.items?.[0];
+  }
+
 }
 
 

@@ -1,13 +1,13 @@
 import * as React from "react";
 import "../Contratos/Contratos.css";
 import type { DateRange, SortDir, SortField } from "../../../../models/Commons";
-import { useGraphServices } from "../../../../graph/graphContext";
 import type { HabeasData, HabeasErrors } from "../../../../models/HabeasData";
 import { toISODateFlex } from "../../../../utils/Date";
-import { useEnvios } from "../../../../Funcionalidades/GD/Envios";
 import FormHabeas from "../Modals/HabeasData/addHabeasData";
 import type { SetField } from "../Modals/Contrato/addContrato";
 import type { desplegablesOption } from "../../../../models/Desplegables";
+import { usePermissions } from "../../../../Funcionalidades/Permisos";
+import { useEnvios } from "../../../../Funcionalidades/GD/Envios/hooks/useEnvios";
 
 function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; dir: SortDir}>) {
   const idx = sorts.findIndex(s => s.field === field);
@@ -36,7 +36,7 @@ type Props = {
 
   state: HabeasData
   setField: SetField<HabeasData>;
-  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  handleSubmit: (e: React.FormEvent) => Promise<{ created: HabeasData | null; ok: boolean }>;
   handleEdit: (e: React.FormEvent, NovedadSeleccionada: HabeasData) => void;
   errors: HabeasErrors
   setState: (n: HabeasData) => void
@@ -49,14 +49,15 @@ type Props = {
 
   deptoOptions: desplegablesOption[], 
   loadingDepto: boolean, 
+  deleteHabeas: (id: string) => void
 }
 
-export default function TablaHabeas({empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, deptoOptions, loadingDepto, setState, errors, handleSubmit, handleEdit, setField, state, rows, loading, error, pageSize, pageIndex, hasNext, sorts, setRange, setPageSize, nextPage, reloadAll, toggleSort, range, setSearch, search, loadFirstPage}: Props) {
-  const { Envios } = useGraphServices();
-  const {canEdit} = useEnvios(Envios);
+export default function TablaHabeas({deleteHabeas, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, deptoOptions, loadingDepto, setState, errors, handleSubmit, handleEdit, setField, state, rows, loading, error, pageSize, pageIndex, hasNext, sorts, setRange, setPageSize, nextPage, reloadAll, toggleSort, range, setSearch, search, loadFirstPage}: Props) {
+  const {canEdit} = useEnvios();
   const [habeasSeleccionado, setHabeasSeleccionado] = React.useState<HabeasData | null>(null);
   const [visible, setVisible] = React.useState<boolean>(false);
   const [tipoFormulario, setTipoFormulario] = React.useState<"new" | "edit" | "view">("edit");
+  const { engine } = usePermissions();
 
   const handleRowClick = async (habeas: HabeasData) => {
     setHabeasSeleccionado(habeas);
@@ -64,6 +65,12 @@ export default function TablaHabeas({empresaOptions, loadingEmp, tipoDocOptions,
     setTipoFormulario(modo);
     setVisible(true);
   };
+
+  const canDeleteRegister = React.useMemo(() => {
+    const requiredPermission = "habeas.delete";
+    if (!requiredPermission) return false;
+    return engine.can(requiredPermission);
+  }, [engine]);
 
   return (
     <div className="tabla-novedades">
@@ -101,6 +108,7 @@ export default function TablaHabeas({empresaOptions, loadingEmp, tipoDocOptions,
                 </th>
 
                 <th>Reportado por</th>
+                {canDeleteRegister ? <th style={{ textAlign: "center" }}>Eliminar</th> : null}
               </tr>
             </thead>
             <tbody>
@@ -111,6 +119,15 @@ export default function TablaHabeas({empresaOptions, loadingEmp, tipoDocOptions,
                   <td><span title={habeas.Title}>{habeas.Title}</span></td>
                   <td><span title={habeas.Fechaenlaquesereporta!}>{toISODateFlex(habeas.Fechaenlaquesereporta)}</span></td>
                   <td><span title={habeas.Informacionreportadapor}>{habeas.Informacionreportadapor}</span></td>
+                  {canDeleteRegister ?
+                    <td style={{ textAlign: "center" }}>
+                      <span title="Elimar proceso">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 26 26" onClick={(e) => {e.stopPropagation(); deleteHabeas(habeas.Id!)}}>
+                          <path fill="#e53434" d="M11.5-.031c-1.958 0-3.531 1.627-3.531 3.594V4H4c-.551 0-1 .449-1 1v1H2v2h2v15c0 1.645 1.355 3 3 3h12c1.645 0 3-1.355 3-3V8h2V6h-1V5c0-.551-.449-1-1-1h-3.969v-.438c0-1.966-1.573-3.593-3.531-3.593h-3zm0 2.062h3c.804 0 1.469.656 1.469 1.531V4H10.03v-.438c0-.875.665-1.53 1.469-1.53zM6 8h5.125c.124.013.247.031.375.031h3c.128 0 .25-.018.375-.031H20v15c0 .563-.437 1-1 1H7c-.563 0-1-.437-1-1V8zm2 2v12h2V10H8zm4 0v12h2V10h-2zm4 0v12h2V10h-2z"/>
+                        </svg>
+                      </span>
+                    </td> : null
+                  }
                 </tr>
               ))}
             </tbody>

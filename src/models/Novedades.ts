@@ -79,27 +79,4 @@ export type Novedad = {
     CanceladoPor: string;
 }
 
-export type NovedadCancelada = {
-    Id?: string;
-    Title: string //Fecha en la que se inicio el proceso inicialmente
-    Informacionenviadapor: string
-    Procesocanceladopor: string
-    Empresaquesolicito: string
-    TipoDocumento: string
-    Tipodocumentoabreviacion: string
-    Numeroidentificacion: string;
-    Correo: string;
-    Celular: string;
-    Direcciondomicilio: string;
-    Barrio: string;
-    Ciudad: string;
-    Cargoqueibaaocupar: string;
-    Especificidaddelcargo: string;
-    Nivelcargo: string;
-    Origendelaseleccion: string;
-    RazonCancelacion: string;
-    Nombre: string
-    Created?: string
-}
-
 export type NovedadErrors = Partial<Record<keyof Novedad, string>>;

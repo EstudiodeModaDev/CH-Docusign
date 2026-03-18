@@ -9,17 +9,18 @@ import { getTodayLocalISO, toISODateFlex } from "../../../../../utils/Date";
 import { useDetallesPasosNovedades, usePasosNoveades } from "../../../../../Funcionalidades/GD/PasosNovedades";
 import { useSalarios } from "../../../../../Funcionalidades/GD/Salario";
 import { lookOtherInfo, } from "../../../../../utils/lookFor";
-import { useHabeasData } from "../../../../../Funcionalidades/GD/HabeasData";
 import { usePromocion } from "../../../../../Funcionalidades/GD/Promocion";
-import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones";
 import type { Novedad, NovedadErrors } from "../../../../../models/Novedades";
 import { useAutomaticCargo } from "../../../../../Funcionalidades/GD/Niveles";
 import { useRetail } from "../../../../../Funcionalidades/GD/Retail";
 import { createBody, notifyTeam } from "../../../../../utils/mail";
-import type { DetallesPasos } from "../../../../../models/Cesaciones";
+import type { DetallesPasos } from "../../../../../models/Pasos";
 import { ProcessDetail } from "../Cesaciones/procesoCesacion";
 import { CancelProcessModal } from "../../../View/CancelProcess/CancelProcess";
 import { safeLower } from "../../../../../utils/text";
+import { usePermissions } from "../../../../../Funcionalidades/Permisos";
+import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones/hooks/useCesaciones";
+import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -42,7 +43,7 @@ type Props = {
   onClose: () => void;
   state: Novedad
   setField: SetField<Novedad>;
-  handleSubmit: () => Promise<{ok: boolean; created: string | null;}>;
+  handleSubmit: () => Promise<{ok: boolean; created: Novedad | null;}>;
   handleEdit: (e: React.FormEvent, NovedadSeleccionada: Novedad) => void;
   errors: NovedadErrors
   searchRegister: (cedula: string) => Promise<Novedad | null>
@@ -89,16 +90,16 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormContratacion({handleReactivateProcessById, title, handleCancelProcessbyId, setState, selectedNovedad, handleEdit, tipo, tipoContratoOptions, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, loadingModalidad, especificidadOptions, loadingEspecificdad, etapasOptions, loadingEtapas, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, origenOptions, loadingOrigen, loadingTipoContrato, tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, onClose, state, setField, handleSubmit, errors, searchRegister: searchNovedad, loadFirstPage }: Props) {
-  const { Contratos, DetallesPasosNovedades, salarios, HabeasData, Promociones, Cesaciones, categorias, Retail, configuraciones, mail} = useGraphServices();
-  const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
+  const { Contratos, DetallesPasosNovedades, salarios, Promociones, categorias, Retail, configuraciones, mail} = useGraphServices();
+  const { searchRegister: searchHabeas} = useHabeasData();
   const { searchRegister: searchPromocion } = usePromocion(Promociones);
   const { searchRegister: searchRetail } = useRetail(Retail);
-  const { searchRegister: searchCesacion } = useCesaciones(Cesaciones);
+  const cesacionesController = useCesaciones();
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
   const { loadSpecificSalary } = useSalarios(salarios);
   const { loadPasosNovedad, rows, handleCompleteStep,  loading: loadingPasos, error: errorPasos, byId, decisiones, setDecisiones, motivos, setMotivos, } = usePasosNoveades();
   const { handleCreateAllSteps, loading: loadingDetalles, error: errorDetalles, rows: rowsDetalles, loadDetallesNovedades, calcPorcentaje} = useDetallesPasosNovedades(DetallesPasosNovedades, selectedNovedad ? selectedNovedad.Id : "")
-
+  const { engine } = usePermissions();
   const opciones = [
     { value: "Escritorio", label: "Escritorio" },
     { value: "Silla", label: "Silla" },
@@ -106,6 +107,18 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
   ];
 
   const isView = tipo === "view"
+
+  const canEditRegister = React.useMemo(() => {
+    const requiredPermission = "contrataciones.edit";
+    if (!requiredPermission) return false;
+    return engine.can(requiredPermission);
+  }, [engine]);
+
+  const canInactivateRegister = React.useMemo(() => {
+    const requiredPermission = "contrataciones.inactivate";
+    if (!requiredPermission) return false;
+    return engine.can(requiredPermission);
+  }, [engine]);
 
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
@@ -367,7 +380,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
 
       if (created.ok) {
         await loadPasosNovedad();
-        await handleCreateAllSteps(rows, created.created ?? "");
+        await handleCreateAllSteps(rows, created.created?.Id ?? "", created.created?.CARGO ?? "");
         const body = createBody(account?.name ?? "", "Contratación", state.NombreSeleccionado, state.Numero_x0020_identificaci_x00f3_, state.CARGO, state.FECHA_x0020_REQUERIDA_x0020_PARA0 ?? "",)
         await notifyTeam(mail, "Nuevo registro en contratación - Gestor documental CH", body)
         await loadFirstPage()
@@ -379,7 +392,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
   };
 
   const searchPeople = React.useCallback(async (cedula: string) => {
-    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion, searchHabeas, searchRetail})
+    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion: cesacionesController.searchRegister, searchHabeas, searchRetail})
     if(persona){
       setField("Numero_x0020_identificaci_x00f3_", persona.cedula)
       setField("NombreSeleccionado", persona.nombre)
@@ -443,7 +456,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
             {/* Número documento */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="numeroIdent">Número de identificación *</label>
-              <input disabled={isView} id="numeroIdent" name="Numero_x0020_identificaci_x00f3_" type="number" placeholder="Ingrese el número de documento" value={state.Numero_x0020_identificaci_x00f3_ ?? ""} onChange={(e) => setField("Numero_x0020_identificaci_x00f3_", e.target.value)} autoComplete="off" required aria-required="true" maxLength={300}  onBlur={ (e) => searchPeople(e.target.value)}/>
+              <input disabled={isView || !canEditRegister} id="numeroIdent" name="Numero_x0020_identificaci_x00f3_" type="number" placeholder="Ingrese el número de documento" value={state.Numero_x0020_identificaci_x00f3_ ?? ""} onChange={(e) => setField("Numero_x0020_identificaci_x00f3_", e.target.value)} autoComplete="off" required aria-required="true" maxLength={300}  onBlur={ (e) => searchPeople(e.target.value)}/>
               <small>{errors.Numero_x0020_identificaci_x00f3_}</small>
             </div>
 
@@ -460,7 +473,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                   setField("Tipo_x0020_de_x0020_documento_x0", (opt?.value as any) ?? "");
                 }}
                 classNamePrefix="rs"
-                isDisabled={loadingTipo || isView}
+                isDisabled={loadingTipo || isView || !canEditRegister}
                 isLoading={loadingTipo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -479,7 +492,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
             {/* Nombre seleccionado */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="nombreSeleccionado">Nombre del seleccionado *</label>
-              <input disabled={isView} id="nombreSeleccionado" name="NombreSeleccionado" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.NombreSeleccionado ?? ""} onChange={(e) => setField("NombreSeleccionado", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
+              <input disabled={isView || !canEditRegister} id="nombreSeleccionado" name="NombreSeleccionado" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.NombreSeleccionado ?? ""} onChange={(e) => setField("NombreSeleccionado", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.NombreSeleccionado}</small>
             </div>
 
@@ -493,7 +506,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                 value={selectedEmpresa}
                 onChange={(opt) => setField("Empresa_x0020_que_x0020_solicita", opt?.label ?? "")}
                 classNamePrefix="rs"
-                isDisabled={loadingEmp || isView}
+                isDisabled={loadingEmp || isView || !canEditRegister}
                 isLoading={loadingEmp}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -506,14 +519,14 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
             {/* Correo */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="correo">Correo electrónico *</label>
-              <input disabled={isView} id="correo" name="CORREO_x0020_ELECTRONICO_x0020_" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.CORREO_x0020_ELECTRONICO_x0020_ ?? ""} onChange={(e) => setField("CORREO_x0020_ELECTRONICO_x0020_", e.target.value.toLowerCase())} required  aria-required="true" maxLength={300}/>
+              <input disabled={isView || !canEditRegister} id="correo" name="CORREO_x0020_ELECTRONICO_x0020_" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.CORREO_x0020_ELECTRONICO_x0020_ ?? ""} onChange={(e) => setField("CORREO_x0020_ELECTRONICO_x0020_", e.target.value.toLowerCase())} required  aria-required="true" maxLength={300}/>
               <small>{errors.CORREO_x0020_ELECTRONICO_x0020_}</small>
             </div>
 
             {/* Fecha requerida para el ingreso */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="fechaIngreso">Fecha requerida para el ingreso *</label>
-              <input disabled={isView} id="fechaIngreso" name="FECHA_x0020_REQUERIDA_x0020_PARA0" type="date" value={state.FECHA_x0020_REQUERIDA_x0020_PARA0 ? toISODateFlex(state.FECHA_x0020_REQUERIDA_x0020_PARA0) : ""} onChange={(e) => setField("FECHA_x0020_REQUERIDA_x0020_PARA0", e.target.value)} required aria-required="true"/>
+              <input disabled={isView || !canEditRegister} id="fechaIngreso" name="FECHA_x0020_REQUERIDA_x0020_PARA0" type="date" value={state.FECHA_x0020_REQUERIDA_x0020_PARA0 ? toISODateFlex(state.FECHA_x0020_REQUERIDA_x0020_PARA0) : ""} onChange={(e) => setField("FECHA_x0020_REQUERIDA_x0020_PARA0", e.target.value)} required aria-required="true"/>
               <small>{errors.FECHA_x0020_REQUERIDA_x0020_PARA0}</small>
             </div>
 
@@ -524,10 +537,10 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                 inputId="cargo"
                 options={cargoOptions}
                 placeholder={loadingCargo ? "Cargando opciones…" : "Buscar cargo..."}
-                value={selectedCargo}
+                value={selectedCargo }
                 onChange={(opt) => setField("CARGO", opt?.label ?? "")}
                 classNamePrefix="rs"
-                isDisabled={loadingCargo || isView}
+                isDisabled={loadingCargo || isView || !canEditRegister}
                 isLoading={loadingCargo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -542,7 +555,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
               <label className="ft-label">¿Es aprendiz? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="aprendiz" value="Si" checked={!!state.Aprendiz} onChange={() => { 
+                  <input disabled={isView || !canEditRegister} type="radio" name="aprendiz" value="Si" checked={!!state.Aprendiz} onChange={() => { 
                                                                                                 setField("Aprendiz", true as any);
                                                                                                 setFechaFinalizacion(true);
                                                                                               }}
@@ -552,7 +565,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="aprendiz" value="No" checked={!state.Aprendiz} onChange={() => {setField("Aprendiz", false as any); setFechaFinalizacion(true)}}/>
+                  <input disabled={isView || !canEditRegister} type="radio" name="aprendiz" value="No" checked={!state.Aprendiz} onChange={() => {setField("Aprendiz", false as any); setFechaFinalizacion(true)}}/>
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -573,7 +586,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="practicante" value="No" checked={!state.Practicante} onChange={() => {setField("Practicante", false as any); setFechaFinalizacion(true)}}/>
+                  <input disabled={isView || !canEditRegister} type="radio" name="practicante" value="No" checked={!state.Practicante} onChange={() => {setField("Practicante", false as any); setFechaFinalizacion(true)}}/>
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -584,7 +597,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
               <>
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="universidad">Nombre de la universidad *</label>
-                  <input disabled={isView} id="universidad" name="universidad" type="text" placeholder="Ingrese el nombre de la universidad" value={state.Universidad ?? ""} autoComplete="off" required aria-required="true" maxLength={300} onChange={(e) => setField("Universidad", e.target.value.toUpperCase())}/>
+                  <input disabled={isView || !canEditRegister} id="universidad" name="universidad" type="text" placeholder="Ingrese el nombre de la universidad" value={state.Universidad ?? ""} autoComplete="off" required aria-required="true" maxLength={300} onChange={(e) => setField("Universidad", e.target.value.toUpperCase())}/>
                   <small>{errors.Universidad}</small>
                 </div>
 
@@ -693,7 +706,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                   setField("Departamento", value.toUpperCase());
                 }}
                 classNamePrefix="rs"
-                isDisabled={loadingDepto || isView}
+                isDisabled={loadingDepto || isView || !canEditRegister}
                 isLoading={loadingDepto}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -723,7 +736,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                   setField("CIUDAD", value.toUpperCase());
                 }}
                 classNamePrefix="rs"
-                isDisabled={!selectedDepto || loadingCargo || isView}
+                isDisabled={!selectedDepto || loadingCargo || isView || !canEditRegister}
                 isLoading={loadingCargo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -743,7 +756,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                 value={selectedModalidad}
                 onChange={(opt) => setField("MODALIDAD_x0020_TELETRABAJO", opt?.label ?? "")}
                 classNamePrefix="rs"
-                isDisabled={loadingModalidad || isView}
+                isDisabled={loadingModalidad || isView || !canEditRegister}
                 isLoading={loadingModalidad}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -756,7 +769,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
             {/* ================= Salario ================= */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="SALARIO">Salario *</label>
-              <input disabled={isView} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} required maxLength={300} onChange={(e) => {
+              <input disabled={isView || !canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} required maxLength={300} onChange={(e) => {
                                                                                                                                                                   const raw = e.target.value;
 
                                                                                                                                                                   if (raw === "") {
@@ -788,13 +801,13 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
               <label className="ft-label">¿Se hace ajuste de salario? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="ajuste" value="Si" checked={state.Ajustesalario === true} onChange={() => setField("Ajustesalario", true as any)} />
+                  <input disabled={isView || !canEditRegister} type="radio" name="ajuste" value="Si" checked={state.Ajustesalario === true} onChange={() => setField("Ajustesalario", true as any)} />
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="ajuste" value="No" checked={state.Ajustesalario === false} onChange={() => setField("Ajustesalario", false as any)} />
+                  <input disabled={isView || !canEditRegister} type="radio" name="ajuste" value="No" checked={state.Ajustesalario === false} onChange={() => setField("Ajustesalario", false as any)} />
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -804,7 +817,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
             {state.Ajustesalario && (
               <div className="ft-field">
                 <label className="ft-label" htmlFor="SALARIO_x0020_AJUSTADO">Porcentaje de ajuste *</label>
-                <input disabled={isView} id="SALARIO_x0020_AJUSTADO" name="SALARIO_x0020_AJUSTADO" type="text" placeholder="Porcentaje de ajuste" value={state.SALARIO_x0020_AJUSTADO ?? ""} onChange={(e) => setField("SALARIO_x0020_AJUSTADO", toNumberFromEsCO(e.target.value) as any)} maxLength={3}/>
+                <input disabled={isView || !canEditRegister} id="SALARIO_x0020_AJUSTADO" name="SALARIO_x0020_AJUSTADO" type="text" placeholder="Porcentaje de ajuste" value={state.SALARIO_x0020_AJUSTADO ?? ""} onChange={(e) => setField("SALARIO_x0020_AJUSTADO", toNumberFromEsCO(e.target.value) as any)} maxLength={3}/>
                 <small>{errors.SALARIO_x0020_AJUSTADO}</small>
               </div>
             )}
@@ -814,13 +827,13 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
               <label className="ft-label">¿Lleva garantizado? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="garantizado" value="Si" checked={state.GARANTIZADO_x0020__x0020__x00bf_ === "Si"} onChange={() => setField("GARANTIZADO_x0020__x0020__x00bf_", "Si" as any)}/>
+                  <input disabled={isView || !canEditRegister} type="radio" name="garantizado" value="Si" checked={state.GARANTIZADO_x0020__x0020__x00bf_ === "Si"} onChange={() => setField("GARANTIZADO_x0020__x0020__x00bf_", "Si" as any)}/>
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="garantizado" value="No" checked={state.GARANTIZADO_x0020__x0020__x00bf_ === "No"} onChange={() => setField("GARANTIZADO_x0020__x0020__x00bf_", "No" as any)}/>
+                  <input disabled={isView || !canEditRegister} type="radio" name="garantizado" value="No" checked={state.GARANTIZADO_x0020__x0020__x00bf_ === "No"} onChange={() => setField("GARANTIZADO_x0020__x0020__x00bf_", "No" as any)}/>
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -830,7 +843,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
             {state.GARANTIZADO_x0020__x0020__x00bf_?.toLocaleLowerCase() === "si" && (
               <div className="ft-field">
                 <label className="ft-label" htmlFor="porcentajeValor">Porcentaje del garantizado *</label>
-                <input disabled={isView} id="porcentajeValor" name="porcentajeValor" type="text" placeholder="Porcentaje del garantizado" value={porcentajeValor} onChange={(e) => setPorcentajeValor(Number(e.target.value))} maxLength={3}/>
+                <input disabled={isView || !canEditRegister} id="porcentajeValor" name="porcentajeValor" type="text" placeholder="Porcentaje del garantizado" value={porcentajeValor} onChange={(e) => setPorcentajeValor(Number(e.target.value))} maxLength={3}/>
                 <small>{errors.VALOR_x0020_GARANTIZADO}</small>
 
                 <input id="VALOR_x0020_GARANTIZADO" name="VALOR_x0020_GARANTIZADO" type="text" placeholder="Total Garantizado" value={garantizadoValor ? formatPesosEsCO(String(garantizadoValor)) : ""} autoComplete="off" readOnly/>
@@ -840,7 +853,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
             {/* ¿Auxilio de transporte? */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="SALARIO">Auxilio de transporte *</label>
-              <input disabled={isView} id="SALARIO" name="SALARIO" type="text" placeholder="Auxilio de transporte" value={ formatPesosEsCO(conectividad)} readOnly />
+              <input disabled={isView || !canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Auxilio de transporte" value={ formatPesosEsCO(conectividad)} readOnly />
               <small>{errors.SALARIO}</small>
             </div>
 
@@ -855,13 +868,13 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
               <label className="ft-label">¿Tiene auxilio de rodamiento? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="rodamiento" value="Si" checked={!!state.Auxilioderodamientosiono} onChange={() => setField("Auxilioderodamientosiono", true as any)} />
+                  <input disabled={isView || !canEditRegister} type="radio" name="rodamiento" value="Si" checked={!!state.Auxilioderodamientosiono} onChange={() => setField("Auxilioderodamientosiono", true as any)} />
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="rodamiento" value="No" checked={!state.Auxilioderodamientosiono} onChange={() => setField("Auxilioderodamientosiono", false as any)} />
+                  <input disabled={isView || !canEditRegister} type="radio" name="rodamiento" value="No" checked={!state.Auxilioderodamientosiono} onChange={() => setField("Auxilioderodamientosiono", false as any)} />
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -872,7 +885,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
               <>
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="Auxilio_x0020_de_x0020_rodamient">Auxilio de rodamiento *</label>
-                  <input disabled={isView} id="Auxilio_x0020_de_x0020_rodamient" name="Auxilio_x0020_de_x0020_rodamient" type="text" placeholder="Ingrese el auxilio de rodamiento del seleccionado"  value={displayAuxilio} maxLength={300} onChange={(e) => {
+                  <input disabled={isView || !canEditRegister} id="Auxilio_x0020_de_x0020_rodamient" name="Auxilio_x0020_de_x0020_rodamient" type="text" placeholder="Ingrese el auxilio de rodamiento del seleccionado"  value={displayAuxilio} maxLength={300} onChange={(e) => {
                                                                                                                                                                                                                               const raw = e.target.value;
                                                                                                                                                                                                                               if (raw === "") {
                                                                                                                                                                                                                                 setDisplayAuxilio("");
@@ -902,13 +915,13 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
               <label className="ft-label">¿Tiene fecha de finalización? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="finalizacion" value="Si" checked={!!fechaFinalizacion} onChange={() => setFechaFinalizacion(true)} />
+                  <input disabled={isView || !canEditRegister} type="radio" name="finalizacion" value="Si" checked={!!fechaFinalizacion} onChange={() => setFechaFinalizacion(true)} />
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="finalizacion" value="No" checked={!fechaFinalizacion} onChange={() => setFechaFinalizacion(false)} />
+                  <input disabled={isView || !canEditRegister} type="radio" name="finalizacion" value="No" checked={!fechaFinalizacion} onChange={() => setFechaFinalizacion(false)} />
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -918,7 +931,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
             {fechaFinalizacion && (
               <div className="ft-field">
                 <label className="ft-label" htmlFor="FECHA_x0020_REQUERIDA_x0020_PARA">Fecha de finalización *</label>
-                <input disabled={isView} id="FECHA_x0020_REQUERIDA_x0020_PARA" name="FECHA_x0020_REQUERIDA_x0020_PARA" type="date" value={state.FECHA_x0020_REQUERIDA_x0020_PARA ? toISODateFlex(state.FECHA_x0020_REQUERIDA_x0020_PARA) : ""}  onChange={(e) => setField("FECHA_x0020_REQUERIDA_x0020_PARA", e.target.value)}/>
+                <input disabled={isView || !canEditRegister} id="FECHA_x0020_REQUERIDA_x0020_PARA" name="FECHA_x0020_REQUERIDA_x0020_PARA" type="date" value={state.FECHA_x0020_REQUERIDA_x0020_PARA ? toISODateFlex(state.FECHA_x0020_REQUERIDA_x0020_PARA) : ""}  onChange={(e) => setField("FECHA_x0020_REQUERIDA_x0020_PARA", e.target.value)}/>
               </div>
             )}
 
@@ -927,21 +940,21 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
             {/* Celular */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="celular">Celular *</label>
-              <input disabled={isView} id="celular" name="CELULAR_x0020_" type="text" placeholder="Ingrese el número de celular" value={state.CELULAR_x0020_ ?? ""} onChange={(e) => setField("CELULAR_x0020_", e.target.value)} maxLength={300}/>
+              <input disabled={isView || !canEditRegister} id="celular" name="CELULAR_x0020_" type="text" placeholder="Ingrese el número de celular" value={state.CELULAR_x0020_ ?? ""} onChange={(e) => setField("CELULAR_x0020_", e.target.value)} maxLength={300}/>
               <small>{errors.CELULAR_x0020_}</small>
             </div>
 
             {/* Dirección */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="direccion">Dirección de domicilio *</label>
-              <input disabled={isView} id="direccion" name="DIRECCION_x0020_DE_x0020_DOMICIL" type="text" placeholder="Ingrese la dirección" value={state.DIRECCION_x0020_DE_x0020_DOMICIL ?? ""} onChange={(e) => setField("DIRECCION_x0020_DE_x0020_DOMICIL", e.target.value.toUpperCase())} maxLength={300}/>
+              <input disabled={isView || !canEditRegister} id="direccion" name="DIRECCION_x0020_DE_x0020_DOMICIL" type="text" placeholder="Ingrese la dirección" value={state.DIRECCION_x0020_DE_x0020_DOMICIL ?? ""} onChange={(e) => setField("DIRECCION_x0020_DE_x0020_DOMICIL", e.target.value.toUpperCase())} maxLength={300}/>
               <small>{errors.DIRECCION_x0020_DE_x0020_DOMICIL}</small>
             </div>
 
             {/* Barrio */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="barrio">Barrio *</label>
-              <input disabled={isView} id="barrio" name="BARRIO_x0020_" type="text" placeholder="Ingrese el barrio" value={state.BARRIO_x0020_ ?? ""} onChange={(e) => setField("BARRIO_x0020_", e.target.value.toUpperCase())} maxLength={300}/>
+              <input disabled={isView || !canEditRegister} id="barrio" name="BARRIO_x0020_" type="text" placeholder="Ingrese el barrio" value={state.BARRIO_x0020_ ?? ""} onChange={(e) => setField("BARRIO_x0020_", e.target.value.toUpperCase())} maxLength={300}/>
               <small>{errors.BARRIO_x0020_}</small>
             </div>
 
@@ -955,7 +968,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                 value={selectedEspecificidad}
                 onChange={(opt) => setField("ESPECIFICIDAD_x0020_DEL_x0020_CA", opt?.label ?? "")}
                 classNamePrefix="rs"
-                isDisabled={loadingEspecificdad || isView}
+                isDisabled={loadingEspecificdad || isView || !canEditRegister}
                 isLoading={loadingEspecificdad}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -975,7 +988,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                 value={selectedNivelCargo}
                 onChange={(opt) => setField("NIVEL_x0020_DE_x0020_CARGO", opt?.label ?? "")}
                 classNamePrefix="rs"
-                isDisabled={loadinNivelCargo || isView}
+                isDisabled={loadinNivelCargo || isView || !canEditRegister}
                 isLoading={loadinNivelCargo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -990,13 +1003,13 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
               <label className="ft-label">¿Cargo critico? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="critico" value="Si" checked={state.CARGO_x0020_CRITICO === "Si"} onChange={() => setField("CARGO_x0020_CRITICO", "Si" as any)} />
+                  <input disabled={isView || !canEditRegister} type="radio" name="critico" value="Si" checked={state.CARGO_x0020_CRITICO === "Si"} onChange={() => setField("CARGO_x0020_CRITICO", "Si" as any)} />
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="critico" value="No" checked={state.CARGO_x0020_CRITICO === "No"} onChange={() => setField("CARGO_x0020_CRITICO", "No" as any)} />
+                  <input disabled={isView || !canEditRegister} type="radio" name="critico" value="No" checked={state.CARGO_x0020_CRITICO === "No"} onChange={() => setField("CARGO_x0020_CRITICO", "No" as any)} />
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -1013,7 +1026,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                 value={selectedDependencia}
                 onChange={(opt) => setField("DEPENDENCIA_x0020_", (opt?.value as any) ?? "")}
                 classNamePrefix="rs"
-                isDisabled={loadingDependencias || isView}
+                isDisabled={loadingDependencias || isView || !canEditRegister}
                 isLoading={loadingDependencias}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -1036,7 +1049,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                   setField("CODIGO_x0020_CENTRO_x0020_DE_x00", (opt?.value as any) ?? "");
                 }}
                 classNamePrefix="rs"
-                isDisabled={loadingCC || isView}
+                isDisabled={loadingCC || isView || !canEditRegister}
                 isLoading={loadingCC}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -1064,7 +1077,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                   setField("CENTRO_x0020_OPERATIVO_x0020_", (opt?.value as any) ?? "");
                 }}
                 classNamePrefix="rs"
-                isDisabled={loadingCO || isView}
+                isDisabled={loadingCO || isView || !canEditRegister}
                 isLoading={loadingCO}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -1092,7 +1105,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                   setField("ID_x0020_UNIDAD_x0020_DE_x0020_N", (opt?.value as any) ?? "");
                 }}
                 classNamePrefix="rs"
-                isDisabled={loadingUN || isView}
+                isDisabled={loadingUN || isView || !canEditRegister}
                 isLoading={loadingUN}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -1112,13 +1125,13 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
               <label className="ft-label">¿Personas a cargo? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="personas" value="Si" checked={state.PERSONAS_x0020_A_x0020_CARGO === "Si"} onChange={() => setField("PERSONAS_x0020_A_x0020_CARGO", "Si" as any)} />
+                  <input disabled={isView || !canEditRegister} type="radio" name="personas" value="Si" checked={state.PERSONAS_x0020_A_x0020_CARGO === "Si"} onChange={() => setField("PERSONAS_x0020_A_x0020_CARGO", "Si" as any)} />
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="personas" value="No" checked={state.PERSONAS_x0020_A_x0020_CARGO === "No"} onChange={() => setField("PERSONAS_x0020_A_x0020_CARGO", "No" as any)} />
+                  <input disabled={isView || !canEditRegister} type="radio" name="personas" value="No" checked={state.PERSONAS_x0020_A_x0020_CARGO === "No"} onChange={() => setField("PERSONAS_x0020_A_x0020_CARGO", "No" as any)} />
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -1135,7 +1148,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                 value={selectedOrigenSeleccion}
                 onChange={(opt) => setField("ORIGEN_x0020_DE_x0020_LA_x0020_S", opt?.label ?? "")}
                 classNamePrefix="rs"
-                isDisabled={loadingOrigen || isView}
+                isDisabled={loadingOrigen || isView || !canEditRegister}
                 isLoading={loadingOrigen}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -1155,7 +1168,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                 value={selectedTipoContrato}
                 onChange={(opt) => setField("TIPO_x0020_DE_x0020_CONTRATO", opt?.label ?? "")}
                 classNamePrefix="rs"
-                isDisabled={loadingTipoContrato || isView}
+                isDisabled={loadingTipoContrato || isView || !canEditRegister}
                 isLoading={loadingTipoContrato}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -1175,7 +1188,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                 value={selectedTipoVacante}
                 onChange={(opt) => setField("TIPO_x0020_DE_x0020_VACANTE_x002", opt?.label ?? "")}
                 classNamePrefix="rs"
-                isDisabled={loadingTipoVacante || isView}
+                isDisabled={loadingTipoVacante || isView || !canEditRegister}
                 isLoading={loadingTipoVacante}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -1200,20 +1213,20 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                   setField("HERRAMIENTAS_x0020_QUE_x0020_POS", values.join("; "));
                 }}
                 placeholder="Selecciona herramientas..."
-                isDisabled={isView}
+                isDisabled={isView || !canEditRegister}
               />
             </div>
 
             {/* Fecha ajuste academico */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="fechaAjuste">Fecha de ajuste academico</label>
-              <input disabled={isView} id="fechaAjuste" name="FECHA_x0020_DE_x0020_AJUSTE_x002" type="date" value={state.FECHA_x0020_DE_x0020_AJUSTE_x002 ? toISODateFlex(state.FECHA_x0020_DE_x0020_AJUSTE_x002) : ""} onChange={(e) => setField("FECHA_x0020_DE_x0020_AJUSTE_x002", e.target.value)} autoComplete="off"/>
+              <input disabled={isView || !canEditRegister} id="fechaAjuste" name="FECHA_x0020_DE_x0020_AJUSTE_x002" type="date" value={state.FECHA_x0020_DE_x0020_AJUSTE_x002 ? toISODateFlex(state.FECHA_x0020_DE_x0020_AJUSTE_x002) : ""} onChange={(e) => setField("FECHA_x0020_DE_x0020_AJUSTE_x002", e.target.value)} autoComplete="off"/>
             </div>
 
             {/* Fecha entrega valoración */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="fechaEntrega">Fecha de entrega de la valoración de potencial</label>
-              <input disabled={isView} id="fechaEntrega" name="FECHA_x0020_DE_x0020_ENTREGA_x00" type="date" value={state.FECHA_x0020_DE_x0020_ENTREGA_x00 ? toISODateFlex(state.FECHA_x0020_DE_x0020_ENTREGA_x00) : ""} onChange={(e) => setField("FECHA_x0020_DE_x0020_ENTREGA_x00", e.target.value)} autoComplete="off"/>
+              <input disabled={isView || !canEditRegister} id="fechaEntrega" name="FECHA_x0020_DE_x0020_ENTREGA_x00" type="date" value={state.FECHA_x0020_DE_x0020_ENTREGA_x00 ? toISODateFlex(state.FECHA_x0020_DE_x0020_ENTREGA_x00) : ""} onChange={(e) => setField("FECHA_x0020_DE_x0020_ENTREGA_x00", e.target.value)} autoComplete="off"/>
             </div>
 
             {/* ¿Pertenece al modelo? */}
@@ -1221,13 +1234,13 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
               <label className="ft-label">¿Pertenece al modelo? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="modelo" value="Si" checked={!!state.Pertenecealmodelo} onChange={() => setField("Pertenecealmodelo", true as any)} />
+                  <input disabled={isView || !canEditRegister} type="radio" name="modelo" value="Si" checked={!!state.Pertenecealmodelo} onChange={() => setField("Pertenecealmodelo", true as any)} />
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="modelo" value="No" checked={!state.Pertenecealmodelo} onChange={() => setField("Pertenecealmodelo", false as any)} />
+                  <input disabled={isView || !canEditRegister} type="radio" name="modelo" value="No" checked={!state.Pertenecealmodelo} onChange={() => setField("Pertenecealmodelo", false as any)} />
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -1238,7 +1251,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
               <>
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="Autonomia">Autonomía *</label>
-                  <select disabled={isView} name="Autonomia" value={String(state.AUTONOM_x00cd_A_x0020_ ?? "0")} onChange={(e) => setField("AUTONOM_x00cd_A_x0020_", e.target.value as any)}>
+                  <select disabled={isView || !canEditRegister} name="Autonomia" value={String(state.AUTONOM_x00cd_A_x0020_ ?? "0")} onChange={(e) => setField("AUTONOM_x00cd_A_x0020_", e.target.value as any)}>
                     <option value="0">0</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
@@ -1303,13 +1316,13 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
               <label className="ft-label">¿Se debe hacer cargue de nuevo equipo de trabajo? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="nuevoequipo" value="Si" checked={state.SE_x0020_DEBE_x0020_HACER_x0020_ === "Si"} onChange={() => setField("SE_x0020_DEBE_x0020_HACER_x0020_", "Si" as any)} />
+                  <input disabled={isView || !canEditRegister} type="radio" name="nuevoequipo" value="Si" checked={state.SE_x0020_DEBE_x0020_HACER_x0020_ === "Si"} onChange={() => setField("SE_x0020_DEBE_x0020_HACER_x0020_", "Si" as any)} />
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="nuevoequipo" value="No" checked={state.SE_x0020_DEBE_x0020_HACER_x0020_ === "No"} onChange={() => setField("SE_x0020_DEBE_x0020_HACER_x0020_", "No" as any)} />
+                  <input disabled={isView || !canEditRegister} type="radio" name="nuevoequipo" value="No" checked={state.SE_x0020_DEBE_x0020_HACER_x0020_ === "No"} onChange={() => setField("SE_x0020_DEBE_x0020_HACER_x0020_", "No" as any)} />
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -1321,13 +1334,13 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
               <label className="ft-label">¿Tendra plan financiado por EDM? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="plan" value="Si" checked={planFinanciado} onChange={() => setPlanfinanciado(true)}/>
+                  <input disabled={isView || !canEditRegister} type="radio" name="plan" value="Si" checked={planFinanciado} onChange={() => setPlanfinanciado(true)}/>
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input disabled={isView} type="radio" name="plan"  value="No" checked={!planFinanciado} onChange={() => setPlanfinanciado(false)}/>
+                  <input disabled={isView || !canEditRegister} type="radio" name="plan"  value="No" checked={!planFinanciado} onChange={() => setPlanfinanciado(false)}/>
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -1352,19 +1365,27 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
         {/* Acciones */}
         {flow ? null : 
           <div className="ft-actions">
-              <button disabled={isView || selectedNovedad?.Estado === "Cancelado"} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreateNovedad(e)}>
-                {isView || selectedNovedad?.Estado === "Cancelado" ? "No se puede editar este registro ya que fue usado" : "Guardar"}
+              <button disabled={isView || selectedNovedad?.Estado === "Cancelado" || !canEditRegister} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreateNovedad(e)}>
+                {
+                  !canEditRegister ? "No tiene permiso para editar este registro" : 
+                  selectedNovedad?.Estado === "Cancelado" ? "No se puede editar este registro ya que fue usado" : 
+                  isView ? "No puede editar este registro porque ya ha sido usado" :
+                  "Guardar"}
               </button> 
               { isView || tipo === "edit" ?
                 <button type="submit" className="btn btn-xs" onClick={() => setFlow(true)}>Detalles</button> : null
               }
-              { (isView || tipo === "edit") ?
-                <button type="submit" className="btn btn-xs btn-danger" onClick={() => {
-                                                                          selectedNovedad?.Estado === "Cancelado" ? 
-                                                                            handleReactivateProcessById(selectedNovedad.Id ?? "") : 
-                                                                            setCancelProcess(true)}}
-                                                                          >
-                  {selectedNovedad?.Estado !== "Cancelado" ? "Cancelar proceso" : "Reactivar proceso"}
+              { canInactivateRegister && (isView || tipo === "edit") ?
+                <button disabled={!canInactivateRegister} type="submit" className="btn btn-xs btn-danger" onClick={() => {
+                                                                                                            selectedNovedad?.Estado === "Cancelado" ? 
+                                                                                                              handleReactivateProcessById(selectedNovedad.Id ?? "") : 
+                                                                                                              setCancelProcess(true)}}
+                                                                                                            >
+                  {
+                    !canInactivateRegister ? "No tiene permiso para cancelar este proceso" : 
+                    selectedNovedad?.Estado !== "Cancelado" ? "Cancelar proceso" : 
+                    "Reactivar proceso"
+                  }
                 </button> : null
               }
             <button type="button" className="btn btn-xs" onClick={onClose}>Cancelar</button>

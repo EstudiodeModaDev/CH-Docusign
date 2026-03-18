@@ -2,10 +2,9 @@ import * as React from "react";
 import "../RegistrarNuevo/Contratos/Contratos.css";
 import "./ConsultarDocumentos.css"
 import type { SortDir, SortField } from "../../../models/Commons";
-import type { Envio,} from "../../../models/Envios";
-import { useGraphServices } from "../../../graph/graphContext";
 import { PreviewEnvioModal } from "./ModalCampos/ModalCampos";
-import { useEnvios } from "../../../Funcionalidades/GD/Envios";
+import { useEnvios } from "../../../Funcionalidades/GD/Envios/hooks/useEnvios";
+import type { Envio } from "../../../models/Envios";
 
 function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; dir: SortDir}>) {
   const idx = sorts.findIndex(s => s.field === field);
@@ -17,8 +16,7 @@ function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; d
 
 export default function TablaEnvios() {
   const [visible, setVisible] = React.useState<boolean>(false)
-  const { Envios } = useGraphServices();
-  const {reloadAll, pageIndex, nextPage, hasNext, pageSize, setPageSize, rows, setSearch, setRange, range, search, loading, error, toggleSort, sorts} = useEnvios(Envios);
+  const enviosController = useEnvios();
   const [envioSeleccionado, setEnvioSeleccionado] = React.useState<Envio | null>(null);
 
   return (
@@ -26,50 +24,50 @@ export default function TablaEnvios() {
         <div className="tabla-novedades">
         <div className="rn-toolbar tabla-filters">
             <div className="rn-toolbar__left">
-                <input className="rn-input" onChange={(e) => {setSearch(e.target.value)}} value={search} placeholder="Buscador..."/>
-                <input type= "date" className="rn-input rn-date" onChange={(e) => {setRange({ ...range, from: e.target.value })}} value={range.from}/>
-                <input type= "date" className="rn-input rn-date" onChange={(e) => {setRange({ ...range, to: e.target.value })}} value={range.to}/>
+                <input className="rn-input" onChange={(e) => {enviosController.setSearch(e.target.value)}} value={enviosController.search} placeholder="Buscador..."/>
+                <input type= "date" className="rn-input rn-date" onChange={(e) => {enviosController.setRange({ ...enviosController.range, from: e.target.value })}} value={enviosController.range.from}/>
+                <input type= "date" className="rn-input rn-date" onChange={(e) => {enviosController.setRange({ ...enviosController.range, to: e.target.value })}} value={enviosController.range.to}/>
             </div>
         </div>
         
         {/* Estados */}
-        {loading && <p>Cargando registros...</p>}
-        {error && <p style={{ color: "#b91c1c" }}>{error}</p>}
-        {!loading && !error && rows.length === 0 && <p>No hay registros para los filtros seleccionados.</p>}
+        {enviosController.loading && <p>Cargando registros...</p>}
+        {enviosController.error && <p style={{ color: "#b91c1c" }}>{enviosController.error}</p>}
+        {!enviosController.loading && !enviosController.error && enviosController.rows.length === 0 && <p>No hay registros para los filtros seleccionados.</p>}
 
             <div className="novedades-wrap filas-novedades filas-envios">
             <table>
                 <thead>
                 <tr>
-                    <th role="button" tabIndex={0} onClick={(e) => toggleSort('Cedula', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Cedula', e.shiftKey); }} aria-label="Ordenar por Cedula" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    Cedula {renderSortIndicator('Cedula', sorts)}
+                    <th role="button" tabIndex={0} onClick={(e) => enviosController.toggleSort('Cedula', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') enviosController.toggleSort('Cedula', e.shiftKey); }} aria-label="Ordenar por Cedula" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    Cedula {renderSortIndicator('Cedula', enviosController.sorts)}
                     </th>
 
-                    <th role="button" tabIndex={0} onClick={(e) => toggleSort('Nombre', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Nombre', e.shiftKey); }} aria-label="Ordenar por Nombre" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    Destinatario {renderSortIndicator('Nombre', sorts)}
+                    <th role="button" tabIndex={0} onClick={(e) => enviosController.toggleSort('Nombre', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') enviosController.toggleSort('Nombre', e.shiftKey); }} aria-label="Ordenar por Nombre" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    Destinatario {renderSortIndicator('Nombre', enviosController.sorts)}
                     </th>
 
-                    <th role="button" tabIndex={0} onClick={(e) => toggleSort('Correo', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Correo', e.shiftKey); }} aria-label="Ordenar por Correo" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    Correo destinatario {renderSortIndicator('Correo', sorts)}
+                    <th role="button" tabIndex={0} onClick={(e) => enviosController.toggleSort('Correo', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') enviosController.toggleSort('Correo', e.shiftKey); }} aria-label="Ordenar por Correo" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    Correo destinatario {renderSortIndicator('Correo', enviosController.sorts)}
                     </th>
 
-                    <th role="button" tabIndex={0} onClick={(e) => toggleSort('enviadoPor', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('enviadoPor', e.shiftKey); }} aria-label="Ordenar por enviadoPor" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    Enviado Por {renderSortIndicator('enviadoPor', sorts)}
+                    <th role="button" tabIndex={0} onClick={(e) => enviosController.toggleSort('enviadoPor', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') enviosController.toggleSort('enviadoPor', e.shiftKey); }} aria-label="Ordenar por enviadoPor" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    Enviado Por {renderSortIndicator('enviadoPor', enviosController.sorts)}
                     </th>
 
-                    <th role="button" tabIndex={0} onClick={(e) => toggleSort('docSend', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('docSend', e.shiftKey); }} aria-label="Ordenar por Documento enviado" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    Documento {renderSortIndicator('docSend', sorts)}
+                    <th role="button" tabIndex={0} onClick={(e) => enviosController.toggleSort('docSend', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') enviosController.toggleSort('docSend', e.shiftKey); }} aria-label="Ordenar por Documento enviado" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    Documento {renderSortIndicator('docSend', enviosController.sorts)}
                     </th>
 
-                    <th role="button" tabIndex={0} onClick={(e) => toggleSort('fecha', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('fecha', e.shiftKey); }} aria-label="Ordenar por fecha de envio" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    Fecha de envio {renderSortIndicator('fecha', sorts)}
+                    <th role="button" tabIndex={0} onClick={(e) => enviosController.toggleSort('fecha', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') enviosController.toggleSort('fecha', e.shiftKey); }} aria-label="Ordenar por fecha de envio" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    Fecha de envio {renderSortIndicator('fecha', enviosController.sorts)}
                     </th>
 
                     <th style={{textAlign: 'center'}}>Estado</th>
                 </tr>
                 </thead>
                 <tbody>
-                {rows.map((envio: Envio) => (
+                {enviosController.rows.map((envio: Envio) => (
                     <tr key={envio.Id} onClick={() => {setEnvioSeleccionado(envio); setVisible(true)}} tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setEnvioSeleccionado(envio)}>
                     <td>{envio.Cedula}</td>
                     <td><span title={envio.Receptor}>{envio.Receptor}</span></td>
@@ -83,20 +81,19 @@ export default function TablaEnvios() {
                 </tbody>
             </table>
 
-            {/* Paginación servidor: Anterior = volver a primera página (loadFirstPage), Siguiente = nextLink */}
-            {rows.length > 0 && (
+            {enviosController.rows.length > 0 && (
                 <div className="paginacion">
-                <button onClick={reloadAll} disabled={loading || pageIndex <= 1}>
+                <button onClick={enviosController.reload} disabled={enviosController.loading || enviosController.pageIndex <= 1}>
                     Anterior
                 </button>
-                <span>Página {pageIndex}</span>
-                <button onClick={nextPage} disabled={loading || !hasNext}>
+                <span>Página {enviosController.pageIndex}</span>
+                <button onClick={enviosController.nextPage} disabled={enviosController.loading || !enviosController.hasNext}>
                     Siguiente
                 </button>
                     <label htmlFor="page-size" style={{ marginLeft: 12, marginRight: 8 }}>
                     Tickets por página:
                     </label>
-                    <select id="page-size" value={pageSize} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPageSize(parseInt(e.target.value, 10))} disabled={loading}>
+                    <select id="page-size" value={enviosController.pageSize} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => enviosController.setPageSize(parseInt(e.target.value, 10))} disabled={enviosController.loading}>
                     {[10, 15, 20, 50, 100].map((n) => (
                         <option key={n} value={n}>
                         {n}

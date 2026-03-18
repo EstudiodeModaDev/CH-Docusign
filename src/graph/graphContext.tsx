@@ -17,7 +17,6 @@ import { PermisosPazSalvosService } from "../Services/PermisosPazSalvos.service"
 import { RenovarService } from "../Services/Renovar.service";
 import { FirmasService } from "../Services/Firmas.service";
 import { RespuestaService } from "../Services/Respuesta.service";
-import { NovedadCanceladaService } from "../Services/NovedadCancelada.service";
 import { CesacionesService } from "../Services/Cesaciones.service";
 import { SalariosService } from "../Services/Salarios.service";
 import { PasosCesacionService } from "../Services/PasosCesaciones.service";
@@ -31,10 +30,14 @@ import { PasosRetailService } from "../Services/PasosRetail.service";
 import { DetallesPasosRetail } from "../Services/DetallesPasosRetail.service";
 import { TicketsService } from "../Services/Tickets.service";
 import { LogService } from "../Services/Log.service";
-import { CesacionCanceladaService } from "../Services/CesacionCancelada.service";
-import { PromocionesCanceladasService } from "../Services/PromocionesCanceladas.service";
-import { RetailCanceladosService } from "../Services/RetailCancelado.service";
 import { ConfiguracionesService } from "../Services/Configuraciones.service";
+import { MatrizPermisosService } from "../Services/MatrizPermisos.service";
+import { RequisicionesService } from "../Services/Requisiciones.service";
+import { AnsRequisicionService } from "../Services/Ans.service";
+import { cargoCiudadAnalistaService } from "../Services/cargoCiudadAnalista.service";
+import { maestroMotivosService } from "../Services/maestroMotivos.service";
+import { MoverANSService } from "../Services/moverAns.service"
+import { pasoRestriccionProcesoService } from "../Services/PasoRestriccionProceso.Service";
 
 
 /* ================== Tipos de config ================== */
@@ -53,7 +56,6 @@ export type UnifiedConfig = {
 
     //Novedades
     Contratos: string;
-    NovedadCancelada: string;
     PasosNovedades: string;
     DetallesPasosNovedad: string;
 
@@ -61,19 +63,16 @@ export type UnifiedConfig = {
     Promociones: string;
     PasosPromocion: string;
     DetallesPasosPromocion: string;
-    PromocionesCanceladas: string
 
     //Cesaciones
     Cesaciones: string
     PasosCesacion: string
     DetallesPasosCesacion: string;
-    CesacionCancelada: string
 
     //Retail
     Retail: string;
     pasosRetail: string;
     detallesPasosRetail: string;
-    retailCancelados: string;
 
     //Desplegables
     DeptosYMunicipios: string;
@@ -85,6 +84,7 @@ export type UnifiedConfig = {
     //Seguridad
     Usuarios: string;
     Perfiles: string;
+    MatrizPermisos: string
 
     //Envios
     Envios: string;
@@ -107,7 +107,16 @@ export type UnifiedConfig = {
     //Tickets
     tickets: string
     log: string
-    
+
+    //Requisiciones
+    requisiciones: string
+    ansRequisicion: string
+    cargoCiudadAnalista: string
+    maestroMotivos: string
+    moverANS: string
+
+    //RestriccionesPasos
+    pasoRestriccion: string;
   };
 };
 
@@ -120,7 +129,6 @@ export type GraphServices = {
 
   //Novedades
   Contratos: ContratosService;
-  NovedadCancelada: NovedadCanceladaService,
   PasosNovedades: PasosNovedadesService,
   DetallesPasosNovedades: DetallesPasosNovedadesService,
 
@@ -128,19 +136,16 @@ export type GraphServices = {
   Promociones: PromocionesService
   PasosPromocion: PasosPromocionService;
   DetallesPasosPromocion: DetallesPasosPromocionService,
-  PromocionesCanceladas: PromocionesCanceladasService
 
   //Cesaciones
   Cesaciones: CesacionesService
   PasosCesacion: PasosCesacionService
   DetallesPasosCesacion: DetallesPasosCesacionService
-  CesacionCancelada: CesacionCanceladaService
 
   //Retail
   Retail: RetailService;
   pasosRetail: PasosRetailService;
   detallesPasosRetail: DetallesPasosRetail
-  retailCancelados: RetailCanceladosService
 
   //Desplegables
   Maestro: MaestrosService
@@ -152,6 +157,7 @@ export type GraphServices = {
   // Seguridad
   Usuarios: UsuariosSPService;
   Perfiles: PerfilesService;
+  MatrizPermisos: MatrizPermisosService
 
   //Envios
   Envios: EnviosService;
@@ -177,6 +183,14 @@ export type GraphServices = {
   //Tickets
   Tickets: TicketsService
   log: LogService
+
+  //Requisiciones
+  requisiciones: RequisicionesService
+  ansRequisicion: AnsRequisicionService
+  cargoCiudadAnalista: cargoCiudadAnalistaService
+  maestrosMotivos: maestroMotivosService
+  moverANS: MoverANSService
+  pasoRestriccion: pasoRestriccionProcesoService
 };
 
 /* ================== Contexto ================== */
@@ -202,7 +216,6 @@ const DEFAULT_CONFIG: UnifiedConfig = {
 
     //Novedades
     Contratos: "Novedades - Novedades Administrativas",
-    NovedadCancelada: "Novedades - Novedades Canceladas",
     PasosNovedades: "Novedades - Pasos",
     DetallesPasosNovedad: "Novedades - Detalles Pasos",
 
@@ -210,19 +223,16 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     Promociones: "Promocion - Promociones",
     PasosPromocion: "Promocion - Pasos",
     DetallesPasosPromocion: "Promocion - Detalles Pasos",
-    PromocionesCanceladas: "Promocion - Promociones Canceladas",
 
     //Cesaciones
     Cesaciones: "Cesasion - Cesaciones",
     PasosCesacion: "Cesacion - Pasos",
     DetallesPasosCesacion: "Cesacion - Detalles Pasos",
-    CesacionCancelada: "Cesacion - Cesaciones Canceladas",
 
     //Retail
     Retail: "Retail - Novedades Retail",
     pasosRetail: "Retail - Pasos",
     detallesPasosRetail: "Retail - DetallesPasos",
-    retailCancelados: "Retail - Retail Cancelados",
 
     //Desplegables
     Maestros: "Maestros",
@@ -234,6 +244,7 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     //Seguridad
     Usuarios: "Permisos Docu",
     Perfiles: "Perfiles Novedades",
+    MatrizPermisos: "Permisos - Matriz Funcionamiento",
 
     //Envios
     Envios: "Envios",
@@ -255,7 +266,16 @@ const DEFAULT_CONFIG: UnifiedConfig = {
 
     //Tickets
     tickets: "Tickets",
-    log: "Log"
+    log: "Log",
+
+    //Requisiciones
+    requisiciones: "Requisiciones - Requisiciones",
+    ansRequisicion: "Requisiciones - ANS",
+    cargoCiudadAnalista: "ANS - CargoCiudadAnalista",
+    maestroMotivos: "Requisiciones - MaestroMotivos",
+    moverANS: "Requisiciones - Historico Fechas",
+
+    pasoRestriccion: "PasoRestriccionProceso"
   },
 };
 
@@ -305,7 +325,6 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
 
     //Novedades
     const Contratos               = new ContratosService(graph, ch.hostname, ch.sitePath, lists.Contratos)
-    const NovedadCancelada        = new NovedadCanceladaService(graph, ch.hostname, ch.sitePath, lists.NovedadCancelada)
     const PasosNovedades          = new PasosNovedadesService(graph, ch.hostname, ch.sitePath, lists.PasosNovedades)
     const DetallesPasosNovedades  = new DetallesPasosNovedadesService(graph, ch.hostname, ch.sitePath, lists.DetallesPasosNovedad)
 
@@ -313,19 +332,16 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     const Promociones             = new PromocionesService(graph, ch.hostname, ch.sitePath, lists.Promociones);
     const PasosPromocion          = new PasosPromocionService(graph, ch.hostname, ch.sitePath, lists.PasosPromocion);
     const DetallesPasosPromocion  = new DetallesPasosPromocionService(graph, ch.hostname, ch.sitePath, lists.DetallesPasosPromocion);
-    const PromocionesCanceladas   = new PromocionesCanceladasService(graph, ch.hostname, ch.sitePath, lists.PromocionesCanceladas);
 
     //Cesaciones
     const Cesaciones              = new CesacionesService(graph, ch.hostname, ch.sitePath, lists.Cesaciones)
     const PasosCesacion           = new PasosCesacionService(graph, ch.hostname, ch.sitePath, lists.PasosCesacion)
     const DetallesPasosCesacion   = new DetallesPasosCesacionService(graph, ch.hostname, ch.sitePath, lists.DetallesPasosCesacion)
-    const CesacionCancelada       = new CesacionCanceladaService(graph, ch.hostname, ch.sitePath, lists.CesacionCancelada)
 
     //Retail
     const Retail                  = new RetailService(graph, ch.hostname, ch.sitePath, lists.Retail)  
     const pasosRetail             = new PasosRetailService(graph, ch.hostname, ch.sitePath, lists.pasosRetail)
     const detallesPasosRetail     = new DetallesPasosRetail(graph, ch.hostname, ch.sitePath, lists.detallesPasosRetail)
-    const retailCancelados        = new RetailCanceladosService(graph, ch.hostname, ch.sitePath, lists.retailCancelados)
 
     //Desplegables
     const Maestro                 = new MaestrosService(graph, ch.hostname, ch.sitePath, lists.Maestros)
@@ -337,6 +353,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     //Seguridad
     const Usuarios                = new UsuariosSPService(graph, ch.hostname, ch.sitePath, lists.Usuarios);
     const Perfiles                = new PerfilesService(graph, ch.hostname, ch.sitePath, lists.Perfiles);
+    const MatrizPermisos          = new MatrizPermisosService(graph, ch.hostname, ch.sitePath, lists.MatrizPermisos);
     
     //Envios
     const Envios                  = new EnviosService(graph, ch.hostname, ch.sitePath, lists.Envios);
@@ -362,22 +379,31 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     //Tickets
     const Tickets                 = new TicketsService(graph, helpDesk.hostname, helpDesk.sitePath, lists.tickets)
     const log                     = new LogService(graph, helpDesk.hostname, helpDesk.sitePath, lists.log)
+
+    //Rrequisiciones
+    const requisiciones           = new RequisicionesService(graph, ch.hostname, ch.sitePath, lists.requisiciones)
+    const ansRequisicion          = new AnsRequisicionService(graph, ch.hostname, ch.sitePath, lists.ansRequisicion)
+    const cargoCiudadAnalista     = new cargoCiudadAnalistaService(graph, ch.hostname, ch.sitePath, lists.cargoCiudadAnalista)
+    const maestrosMotivos         = new maestroMotivosService(graph, ch.hostname, ch.sitePath, lists.maestroMotivos)
+    const moverANS                = new MoverANSService(graph, ch.hostname, ch.sitePath, lists.moverANS)
+
+    const pasoRestriccion         = new pasoRestriccionProcesoService(graph, ch.hostname, ch.sitePath, lists.pasoRestriccion)
     return {
       graph,
       //Habeas
       HabeasData, 
       //Novedades
-      Contratos, NovedadCancelada, PasosNovedades, DetallesPasosNovedades,
+      Contratos, PasosNovedades, DetallesPasosNovedades,
       //Promociones
-      Promociones, PasosPromocion, DetallesPasosPromocion, PromocionesCanceladas,
+      Promociones, PasosPromocion, DetallesPasosPromocion, 
       //Cesaciones
-      Cesaciones, PasosCesacion, DetallesPasosCesacion, CesacionCancelada,
+      Cesaciones, PasosCesacion, DetallesPasosCesacion, 
       //Retail
       Retail, pasosRetail, detallesPasosRetail,
       //Desplegables
-      Maestro, DeptosYMunicipios, salarios, categorias, retailCancelados, configuraciones,
+      Maestro, DeptosYMunicipios, salarios, categorias, configuraciones,
       //Seguridad
-      Usuarios, Perfiles,
+      Usuarios, Perfiles, MatrizPermisos,
       //Envios
       Envios,
       //Enviar Correo
@@ -387,7 +413,11 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       //paz salvos
       PazSalvos, PermisosPaz, Renovar, Firmas, Respuesta,
       //Tickets
-    Tickets, log
+      Tickets, log,
+      //Requisiciones
+      requisiciones, ansRequisicion, cargoCiudadAnalista, maestrosMotivos, moverANS,
+
+      pasoRestriccion,
     };
   }, [graph, cfg]);
 

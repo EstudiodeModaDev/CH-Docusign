@@ -1,9 +1,10 @@
 import React from "react";
 import { useAuth } from "../../auth/authProvider";
 import type { TipoPaso } from "../../Components/GD/RegistrarNuevo/Modals/Cesaciones/procesoCesacion";
-import type { DetallesPasos, PasosProceso } from "../../models/Cesaciones";
+import type { DetallesPasos, PasosProceso } from "../../models/Pasos";
 import { useGraphServices } from "../../graph/graphContext";
 import type { DetallesPasosNovedadesService } from "../../Services/DetallesPasosNovedades.service";
+import { shouldActivate } from "./StepRules/pasoActivationResolver";
 
 export function usePasosNoveades() {
     const {PasosNovedades, DetallesPasosNovedades } = useGraphServices()
@@ -150,6 +151,7 @@ export function useDetallesPasosNovedades(DetallesSvc: DetallesPasosNovedadesSer
   const [rows, setRows] = React.useState<DetallesPasos[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const graph = useGraphServices()
 
   const loadDetallesNovedades = React.useCallback(async (): Promise<DetallesPasos[]> => {
     setLoading(true); setError(null);
@@ -170,19 +172,27 @@ export function useDetallesPasosNovedades(DetallesSvc: DetallesPasosNovedadesSer
       loadDetallesNovedades();
   }, [loadDetallesNovedades]);
 
-  const handleCreateAllSteps = async (pasos: PasosProceso[], promocionId: string) => {
-    if(!pasos || pasos.length===0){
-      alert("No hay un proceso definido")
-      return
+  const handleCreateAllSteps = async (pasos: PasosProceso[], promocionId: string, cargoNegocio: string) => {
+    if (!pasos || pasos.length === 0) {
+      alert("No hay un proceso definido");
+      return;
     }
 
-    console.table(pasos)
+    try {
+      const creates: Promise<any>[] = [];
 
-    try{
-      await Promise.all(
-        pasos.map((p) =>
+      for (const p of pasos) {
+        const idPaso = String(p.Id ?? "");
+        const aplica = await shouldActivate("NOVEDADES ADMINISTRATIVAS", idPaso, cargoNegocio, graph);
+        console.log(aplica)
+        if (!aplica) {
+          console.log(`Paso ${idPaso} omitido por regla de cargo`);
+          continue;
+        }
+
+        creates.push(
           DetallesSvc.create({
-            Title: promocionId,           
+            Title: promocionId,
             CompletadoPor: "",
             EstadoPaso: "Pendiente",
             FechaCompletacion: "",
@@ -191,15 +201,22 @@ export function useDetallesPasosNovedades(DetallesSvc: DetallesPasosNovedadesSer
             Paso: Number(p.NombrePaso),
             TipoPaso: p.TipoPaso
           })
-        )
-      );
+        );
+      }
 
-      console.log("Se han creado todos los pasos")
+      if (creates.length === 0) {
+        alert("No hay pasos aplicables para este cargo.");
+        return;
+      }
+
+      await Promise.all(creates);
+
+      console.log("Se han creado todos los pasos aplicables");
     } catch (e) {
-      console.error("Error creando los pasos de la promocion.")
-      alert("Ha ocurrido un error")
+      console.error("Error creando los pasos de la promoción.", e);
+      alert("Ha ocurrido un error");
     }
-  }
+  };
 
   const calcPorcentaje = async (): Promise<number> => {
     const items = await DetallesSvc.getAll({filter: `fields/Title eq ${selected}`, orderby: "fields/NumeroPaso asc"})

@@ -8,19 +8,20 @@ import { formatPesosEsCO, numeroATexto, toNumberFromEsCO,  } from "../../../../.
 import { useSalarios } from "../../../../../Funcionalidades/GD/Salario";
 import { lookOtherInfo } from "../../../../../utils/lookFor";
 import { usePromocion } from "../../../../../Funcionalidades/GD/Promocion";
-import { useHabeasData } from "../../../../../Funcionalidades/GD/HabeasData";
-import { useContratos } from "../../../../../Funcionalidades/GD/Contratos";
 import { useAutomaticCargo } from "../../../../../Funcionalidades/GD/Niveles";
 import type { SetField } from "../Contrato/addContrato";
 import type { Retail, RetailErrors } from "../../../../../models/Retail";
-import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones";
 import { useDetallesPasosRetail, usePasosRetail } from "../../../../../Funcionalidades/GD/PasosRetail";
 import { createBody, notifyTeam } from "../../../../../utils/mail";
 import { safeLower } from "../../../../../utils/text";
-import type { DetallesPasos } from "../../../../../models/Cesaciones";
+import type { DetallesPasos } from "../../../../../models/Pasos";
 import { ProcessDetail } from "../Cesaciones/procesoCesacion";
 import { CancelProcessModal } from "../../../View/CancelProcess/CancelProcess";
 import { toISODateFlex } from "../../../../../utils/Date";
+import { usePermissions } from "../../../../../Funcionalidades/Permisos";
+import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones/hooks/useCesaciones";
+import { useContratos } from "../../../../../Funcionalidades/GD/Contratos/hooks/useContratos";
+import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -41,7 +42,7 @@ type Props = {
   onClose: () => void;
   state: Retail
   setField: SetField<Retail>;
-  handleSubmit: () => Promise<{ok: boolean; created: string | null;}>;
+  handleSubmit: () => Promise<{ok: boolean; created: Retail | null;}>;
   handleEdit: (e: React.FormEvent, NovedadSeleccionada: Retail) => void;
   errors: RetailErrors
   searchRegister: (cedula: string) => Promise<Retail | null>
@@ -82,11 +83,11 @@ type Props = {
 export default function FormRetail({
   origenOptions, loadingOrigen, submitting, title, selectedRetail, tipo, empresaOptions, loadingEmp, tipoDocOptions, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, loadingTipo, cargoOptions, loadingCargo, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, 
   handleReactivateProcessById, handleCancelProcessbyId, setState, handleEdit, onClose, state, setField, handleSubmit, errors, searchRegister: searchRetail, }: Props) {
-  const { Promociones, Contratos, detallesPasosRetail, salarios, HabeasData, Cesaciones, categorias, configuraciones, mail,} = useGraphServices();
-  const { searchRegister: searchHabeas} = useHabeasData(HabeasData);
-  const { searchRegister: searchNovedad } = useContratos(Contratos);
+  const { Promociones, detallesPasosRetail, salarios, Cesaciones, categorias, configuraciones, mail,} = useGraphServices();
+  const { searchRegister: searchHabeas} = useHabeasData();
+  const contratosController = useContratos();
   const { searchRegister: searchPromocion } = usePromocion(Promociones);
-  const { searchRegister: searchCesacion } = useCesaciones(Cesaciones);
+  const cesacionesController = useCesaciones();
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
   const { loadSpecificSalary } = useSalarios(salarios);
   const { loadPasosPromocion, rows, loading: loadinPasosPromocion, error: errorPasosPromocion, byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep} = usePasosRetail()
@@ -105,6 +106,7 @@ export default function FormRetail({
   const [cancelProcess, setCancelProcess] = React.useState<boolean>(false);
   const [flow, setFlow] = React.useState<boolean>(false)
   const { account } = useAuth();
+  const { engine } = usePermissions();
 
   /* ================== Deptos/Municipios ================== */
   const deptos = React.useMemo(() => {
@@ -135,6 +137,18 @@ export default function FormRetail({
       })),
     [municipiosFiltrados]
   );
+
+  const canEditRegister = React.useMemo(() => {
+    const requiredPermission = "retail.view";
+    if (!requiredPermission) return false;
+    return engine.can(requiredPermission);
+  }, [engine]);
+
+  const canInactivateRegister = React.useMemo(() => {
+    const requiredPermission = "retail.inactivate";
+    if (!requiredPermission) return false;
+    return engine.can(requiredPermission);
+  }, [engine]);
 
   const showCargos = React.useMemo(() => new Set<string>(["31", "42", "9", "33"]), []);
   const filteredCargoOptions = React.useMemo(() => cargoOptions.filter(o => showCargos.has(String(o.value))), [cargoOptions, showCargos]);
@@ -265,7 +279,7 @@ export default function FormRetail({
 
       if(created.ok){
         await loadPasosPromocion()
-        await handleCreateAllSteps(rows, created.created ?? "")
+        await handleCreateAllSteps(rows, created.created?.Id ?? "", created.created?.Cargo ?? "")
         const body = createBody(account?.name ?? "", "Retail", state.Nombre, state.Title, state.Cargo, state.FechaIngreso ?? "")
         await notifyTeam(mail, "Nuevo registro en el modulo de Retail - Gestor documental CH", body)
         await onClose()
@@ -276,7 +290,7 @@ export default function FormRetail({
   };
 
   const searchPeople = React.useCallback(async (cedula: string) => {
-    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion, searchHabeas, searchRetail})
+    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad: contratosController.searchRegister, searchCesacion: cesacionesController.searchRegister, searchHabeas, searchRetail})
     if(persona){
       setField("Title", persona.cedula)
       setField("Nombre", persona.nombre)
@@ -336,7 +350,7 @@ export default function FormRetail({
             {/* Número documento */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="numeroIdent">Número de identificación *</label>
-              <input disabled={isView} id="Title" name="Title" type="number" placeholder="Ingrese el número de documento" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value)} onBlur={ (e) => searchPeople(e.target.value)}
+              <input disabled={isView || !canEditRegister} id="Title" name="Title" type="number" placeholder="Ingrese el número de documento" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value)} onBlur={ (e) => searchPeople(e.target.value)}
                 autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.Title}</small>
             </div>
@@ -350,7 +364,7 @@ export default function FormRetail({
                 value={selectedTipoDocumento}
                 onChange={(opt) => {setField("TipoDoc", opt?.label ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadingTipo || isView}
+                isDisabled={loadingTipo || isView || !canEditRegister}
                 isLoading={loadingTipo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -363,7 +377,7 @@ export default function FormRetail({
             {/* Nombre seleccionado */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="Nombre"> Nombre del seleccionado *</label>
-              <input disabled={isView} id="Nombre" name="Nombre" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Nombre ?? ""} onChange={(e) => setField("Nombre", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
+              <input disabled={isView || !canEditRegister} id="Nombre" name="Nombre" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Nombre ?? ""} onChange={(e) => setField("Nombre", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.Nombre}</small>
             </div>
 
@@ -377,7 +391,7 @@ export default function FormRetail({
                 value={selectedEmpresa}
                 onChange={(opt) => setField("Empresaalaquepertenece", opt?.label ?? "")}
                 classNamePrefix="rs"
-                isDisabled={loadingEmp || isView}
+                isDisabled={loadingEmp || isView || !canEditRegister}
                 isLoading={loadingEmp}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -390,7 +404,7 @@ export default function FormRetail({
             {/* Correo */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="correo">Correo electrónico *</label>
-              <input disabled={isView} id="correo" name="Correoelectronico" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.CorreoElectronico ?? ""} onChange={(e) => setField("CorreoElectronico", e.target.value.toLowerCase())}
+              <input disabled={isView || !canEditRegister} id="correo" name="Correoelectronico" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.CorreoElectronico ?? ""} onChange={(e) => setField("CorreoElectronico", e.target.value.toLowerCase())}
                 autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.CorreoElectronico}</small>
             </div>
@@ -398,7 +412,7 @@ export default function FormRetail({
             {/* Celular */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="numeroIdent">Celular</label>
-              <input disabled={isView} id="Title" name="Title" type="number" placeholder="Ingrese el numero de celular" value={state.Celular ?? ""} onChange={(e) => setField("Celular", e.target.value)}
+              <input disabled={isView || !canEditRegister} id="Title" name="Title" type="number" placeholder="Ingrese el numero de celular" value={state.Celular ?? ""} onChange={(e) => setField("Celular", e.target.value)}
                 autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.Celular}</small>
             </div>
@@ -406,7 +420,7 @@ export default function FormRetail({
             {/* Fecha requerida para el ingreso */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="fechaIngreso">Fecha de ingreso *</label>
-              <input disabled={isView} id="FechaIngreso" name="FechaIngreso" type="date" value={state.FechaIngreso ? toISODateFlex(state.FechaIngreso) : ""} onChange={(e) => setField("FechaIngreso", e.target.value)}
+              <input disabled={isView || !canEditRegister} id="FechaIngreso" name="FechaIngreso" type="date" value={state.FechaIngreso ? toISODateFlex(state.FechaIngreso) : ""} onChange={(e) => setField("FechaIngreso", e.target.value)}
                 autoComplete="off" required aria-required="true"/>
               <small>{errors.FechaIngreso}</small>
             </div>
@@ -422,7 +436,7 @@ export default function FormRetail({
                 value={selectedCargo}
                 onChange={(opt) => {setField("Cargo", opt?.label ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadingCargo || isView}
+                isDisabled={loadingCargo || isView || !canEditRegister}
                 isLoading={loadingCargo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -442,7 +456,7 @@ export default function FormRetail({
                 value={selectedNivelCargo}
                 onChange={(opt) => {setField("NivelCargo", opt?.label ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadinNivelCargo || isView}
+                isDisabled={loadinNivelCargo || isView || !canEditRegister}
                 isLoading={loadinNivelCargo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -455,7 +469,7 @@ export default function FormRetail({
             {/* Salario */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Salario *</label>
-              <input disabled={isView} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} required maxLength={300} onChange={(e) => {
+              <input disabled={isView || !canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} required maxLength={300} onChange={(e) => {
                                                                                                                                                                 const raw = e.target.value;
               
                                                                                                                                                                 if (raw === "") {
@@ -479,19 +493,19 @@ export default function FormRetail({
             {/* Salario */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Salario en letras *</label>
-              <input disabled={isView} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={numeroATexto(Number(state.Salario)).toUpperCase()} readOnly/>
+              <input disabled={isView || !canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={numeroATexto(Number(state.Salario)).toUpperCase()} readOnly/>
             </div>
 
             {/* Auxilio de conectividad */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Auxilio de tranporte y conectividad *</label>
-              <input disabled={isView} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={formatPesosEsCO(String(conectividad))} readOnly/>
+              <input disabled={isView || !canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={formatPesosEsCO(String(conectividad))} readOnly/>
             </div>
 
             {/* Auxilio de conectividad texto */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Auxilio de tranporte y conectividad en letras *</label>
-              <input disabled={isView} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={conectividadTexto} readOnly/>
+              <input disabled={isView || !canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={conectividadTexto} readOnly/>
             </div>
 
               {/* Dependencia */}
@@ -504,7 +518,7 @@ export default function FormRetail({
                 value={selectedDependencia}
                 onChange={(opt) => {setField("Depedencia", opt?.value ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadingDependencias || isView}
+                isDisabled={loadingDependencias || isView || !canEditRegister}
                 isLoading={loadingDependencias}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -529,7 +543,7 @@ export default function FormRetail({
                   setField("Departamento", value.toUpperCase());  
                 }}
                 classNamePrefix="rs"
-                isDisabled={loadingDepto || isView}
+                isDisabled={loadingDepto || isView || !canEditRegister}
                 isLoading={loadingDepto}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -553,7 +567,7 @@ export default function FormRetail({
                   setField("Ciudad", value.toUpperCase());          
                 }}
                 classNamePrefix="rs"
-                isDisabled={!selectedDepto  || loadingCargo || isView}
+                isDisabled={!selectedDepto  || loadingCargo || isView || !canEditRegister}
                 isLoading={loadingCargo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -573,7 +587,7 @@ export default function FormRetail({
                 value={selectedCentroCostos}
                 onChange={(opt) => {setField("CentroCostos", opt?.label ?? ""); setField("CodigoCentroCostos", opt?.value ?? "")}}
                 classNamePrefix="rs"
-                isDisabled={loadingCC || isView}
+                isDisabled={loadingCC || isView || !canEditRegister}
                 isLoading={loadingCC}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -586,7 +600,7 @@ export default function FormRetail({
             {/* Codigo CC */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Codigo centro de costos *</label>
-              <input disabled={isView} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo de documento" value={state.CodigoCentroCostos} readOnly/>
+              <input disabled={isView || !canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo de documento" value={state.CodigoCentroCostos} readOnly/>
             </div>
 
             {/* ================= Centro Operativo ================= */ }
@@ -599,7 +613,7 @@ export default function FormRetail({
                 value={selectedCentroOperativo}
                 onChange={(opt) => {setField("CentroOperativo", opt?.label ?? ""); setField("CodigoCentroOperativo", opt?.value ?? "")}}
                 classNamePrefix="rs"
-                isDisabled={loadingCO || isView}
+                isDisabled={loadingCO || isView || !canEditRegister}
                 isLoading={loadingCO}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -612,7 +626,7 @@ export default function FormRetail({
             {/* Codigo CO */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Codigo centro de operativo *</label>
-              <input disabled={isView} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoCentroOperativo} readOnly/>
+              <input disabled={isView || !canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoCentroOperativo} readOnly/>
             </div>
 
             {/* ================= Unidad de negocio ================= */ }
@@ -625,7 +639,7 @@ export default function FormRetail({
                 value={selectedUnidadNegocio}
                 onChange={(opt) => {setField("UnidadNegocio", opt?.label ?? ""); setField("CodigoUnidadNegocio", opt?.value ?? "")}}
                 classNamePrefix="rs"
-                isDisabled={loadingUN || isView}
+                isDisabled={loadingUN || isView || !canEditRegister}
                 isLoading={loadingUN}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -638,7 +652,7 @@ export default function FormRetail({
             {/* Codigo UN */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Codigo unidad de negocio *</label>
-              <input disabled={isView} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoUnidadNegocio} readOnly/>
+              <input disabled={isView || !canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoUnidadNegocio} readOnly/>
             </div>
 
             {/* ================= Origen Seleccion ================= */}
@@ -651,7 +665,7 @@ export default function FormRetail({
                 value={selectedOrigenSeleccion}
                 onChange={(opt) => setField("OrigenSeleccion", opt?.label ?? "")}
                 classNamePrefix="rs"
-                isDisabled={loadingOrigen || isView}
+                isDisabled={loadingOrigen || isView || !canEditRegister}
                 isLoading={loadingOrigen}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -664,7 +678,7 @@ export default function FormRetail({
             {/* Informacion enviada por */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="enviadaPor"> Información enviada por *</label>
-              <input disabled={isView}id="enviadaPor" name="enviadaPor" type="text" value={account?.name} readOnly/>
+              <input disabled={isView || !canEditRegister} id="enviadaPor" name="enviadaPor" type="text" value={account?.name} readOnly/>
             </div>
 
             {/* Fecha salida cesacion */}
@@ -678,19 +692,26 @@ export default function FormRetail({
 
         {/* Acciones */}
         <div className="ft-actions">
-            <button disabled={isView || selectedRetail?.Estado === "Cancelado" || submitting} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreateRetail(e)}>
-              {isView || selectedRetail?.Estado === "Cancelado" ? "No se puede editar este registro ya que fue usado" : submitting ? "Guardando" : "Guardar"}
+            <button disabled={isView || selectedRetail?.Estado === "Cancelado" || submitting || !canEditRegister} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreateRetail(e)}>
+              {
+                !canEditRegister ? "No tiene permiso para editar este registro" : 
+                isView || selectedRetail?.Estado === "Cancelado" ? "No se puede editar este registro ya que fue usado" : 
+                submitting ? "Guardando" : "Guardar"
+              }
             </button> 
             { isView || tipo === "edit" ?
               <button type="submit" className="btn btn-xs" onClick={() => setFlow(true)}>Detalles</button> : null
             }
-            { (isView || tipo === "edit") ?
-              <button type="submit" className="btn btn-xs btn-danger" onClick={() => {
+            { (canInactivateRegister &&(isView || tipo === "edit")) ?
+              <button disabled={!canInactivateRegister} type="submit" className="btn btn-xs btn-danger" onClick={() => {
                                                                         selectedRetail?.Estado === "Cancelado" ? 
                                                                           handleReactivateProcessById(selectedRetail.Id ?? "") : 
                                                                           setCancelProcess(true)}}
                                                                         >
-                {selectedRetail?.Estado !== "Cancelado" ? "Cancelar proceso" : "Reactivar proceso"}
+                {
+                  !canInactivateRegister ? "No tiene permiso para cancelar este proceso" :
+                  selectedRetail?.Estado !== "Cancelado" ? "Cancelar proceso" : "Reactivar proceso"
+                }
               </button> : null
             }
           <button type="button" className="btn btn-xs" onClick={onClose}>Cancelar</button>

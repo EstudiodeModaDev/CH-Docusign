@@ -142,6 +142,7 @@ export async function exportNovedadesToExcel(
       "Grupo CVE": row.GRUPO_x0020_CVE_x0020_ ?? "N/A",
       "Herramienta que posee el colaborador": row.HERRAMIENTAS_x0020_QUE_x0020_POS ?? "N/A",
       "Se debe hacer cargue de nuevo equipo de trabajo": row.SE_x0020_DEBE_x0020_HACER_x0020_ ?? "N/A",
+      Estado: row.Estado,
       "% Completación": pct === undefined ? "N/A" : `${pct.toFixed(2)}%`,
     };
   });
@@ -207,6 +208,7 @@ export async function exportPromocionesToExcel(
       "Grupo CVE": row.GrupoCVE ?? "N/A",
       "Herramienta que posee el colaborador": row.HerramientasColaborador ?? "N/A",
       "Se debe hacer cargue de nuevo equipo de trabajo": row.CargueNuevoEquipoTrabajo ?? "N/A",
+      Estado: row.Estado,
       "% Completación": pct === undefined ? "N/A" : `${pct.toFixed(2)}%`,
     };
   });
@@ -251,6 +253,7 @@ export async function exportCesacionesToExcel(
       "Salario en letras": row.SalarioTexto ?? "N/A",
       "Auxilio de conectividad": formatPesosEsCO(row.auxConectividadValor) ?? "N/A",
       "Auxilio de conectividad en letras": row.auxConectividadTexto ?? "N/A",
+      Estado: row.Estado,
       "% Completación": pct === undefined ? "N/A" : `${pct.toFixed(2)}%`,
     };
   });
@@ -294,6 +297,7 @@ export async function exportRetailToExcel(
       "Salario en letras": row.SalarioLetras ?? "N/A",
       "Auxilio de conectividad": formatPesosEsCO(row.Auxiliodetransporte) ?? "N/A",
       "Auxilio de conectividad en letras": row.Auxiliotransporteletras ?? "N/A",
+      Estado: row.Estado,
       "% Completación": pct === undefined ? "N/A" : `${pct.toFixed(2)}%`,
     };
   });

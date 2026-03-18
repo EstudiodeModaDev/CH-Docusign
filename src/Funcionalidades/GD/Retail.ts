@@ -4,8 +4,9 @@ import { normalize, normalizeDate, toISODateFlex } from "../../utils/Date";
 import { useAuth } from "../../auth/authProvider";
 import type { RetailService } from "../../Services/Retail.service";
 import type { Retail, RetailErrors } from "../../models/Retail";
-import { useDebouncedValue } from "./Contratos";
 import { norm } from "../../utils/text";
+import { useGraphServices } from "../../graph/graphContext";
+import { useDebouncedValue } from "../Common/debounce";
 
 function includesSearch(row: Retail, q: string) {
   const qq = norm(q);
@@ -127,7 +128,8 @@ export function useRetail(RetailSvc: RetailService, ) {
   const [errors, setErrors] = React.useState<RetailErrors>({});
   const setField = <K extends keyof Retail>(k: K, v: Retail[K]) => setState((s) => ({ ...s, [k]: v }));
   const debouncedSearch = useDebouncedValue(search, 250);
-  
+  const graph = useGraphServices()
+
  const buildServerFilter = React.useCallback((): GetAllOpts => {
     const filters: string[] = [];
 
@@ -286,7 +288,7 @@ export function useRetail(RetailSvc: RetailService, ) {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = async (): Promise<{created: string | null, ok: boolean}> => {
+  const handleSubmit = async (): Promise<{created: Retail | null, ok: boolean}> => {
     if (!validate()) { 
       console.log(state)
       alert("Hay campos vacios")
@@ -336,7 +338,7 @@ export function useRetail(RetailSvc: RetailService, ) {
       const created = await RetailSvc.create(payload);
       alert("Se ha creado el registro con éxito")
       return {
-        created: created.Id!,
+        created: created,
         ok: true
       }
     } finally {
@@ -503,9 +505,24 @@ export function useRetail(RetailSvc: RetailService, ) {
     }
 }, [RetailSvc]);
 
+  const deleteRetail = React.useCallback(async (Id: string) => {
+    setLoading(true)
+    const pasos = await graph.pasosRetail.getAll({filter: `fields/Title eq '${Id}'`})
+    try{
+      for (const paso of pasos) {
+        await graph.PasosCesacion.delete(paso.Id!);
+      }
+
+      await RetailSvc.delete(Id)
+    } catch {
+      throw new Error("Ha ocurrido un error reactivando el proceso");
+    } finally {
+      setLoading(false)
+    }
+  }, [RetailSvc]);
 
   return {
     rows, loading, error, pageSize, pageIndex, hasNext, range, search, sorts, state, errors, workers, workersOptions, estado,
-    handleReactivateProcessById, setState, handleCancelProcessbyId, setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage, searchRegister
+    deleteRetail, handleReactivateProcessById, setState, handleCancelProcessbyId, setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage, searchRegister
   };
 }

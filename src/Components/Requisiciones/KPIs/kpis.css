@@ -1,0 +1,87 @@
+/* =========================
+   METRICS BAR
+   ========================= */
+
+.mb-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(140px, 1fr));
+  gap: 10px;
+
+  padding: 12px 14px;
+  border-radius: 12px;
+
+  background: #f3f4f6;          /* gris claro */
+  border: 1px solid #e5e7eb;     /* borde suave */
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
+}
+
+/* Cada métrica */
+.mb-metric {
+  display: grid;
+  place-items: center;
+  text-align: center;
+
+  padding: 10px 8px;
+  border-radius: 10px;
+
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(229, 231, 235, 0.9);
+}
+
+/* Número */
+.mb-metric__value {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.3px;
+}
+
+/* Texto */
+.mb-metric__label {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+/* Tonos (para value y label) */
+.mb-tone-muted { color: #6b7280; }   /* gris */
+.mb-tone-danger { color: #ef4444; }  /* rojo */
+.mb-tone-success { color: #22c55e; } /* verde */
+.mb-tone-info { color: #3b82f6; }    /* azul */
+.mb-tone-warn { color: #f59e0b; }    /* amarillo/naranja */
+
+/* Hover suave (opcional) */
+.mb-metric:hover {
+  transform: translateY(-1px);
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 980px) {
+  .mb-metrics {
+    grid-template-columns: repeat(3, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .mb-metrics {
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
+  }
+
+  .mb-metric__value {
+    font-size: 26px;
+  }
+}
+
+/* En pantallas muy pequeñas, una columna */
+@media (max-width: 420px) {
+  .mb-metrics {
+    grid-template-columns: 1fr;
+  }
+}

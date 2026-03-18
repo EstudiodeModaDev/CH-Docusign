@@ -1,6 +1,6 @@
 import type { GraphRest } from "../graph/graphRest";
-import type { PasosProceso } from "../models/Cesaciones";
 import type { GetAllOpts } from "../models/Commons";
+import type { PasosProceso } from "../models/Pasos";
 import { esc } from "../utils/text";
 
 export class PasosRetailService {

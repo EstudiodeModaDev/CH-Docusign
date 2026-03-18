@@ -207,3 +207,42 @@ export function toDateSafe(raw: any): Date | null {
 export const normalize = (v: any) => (v === "" ? null : v);
 
 export const normalizeDate = (v: any) => toISODateFlex(v) ?? null;
+
+export function normalizeToISODate(input: string) {
+  const v = input.trim();
+
+  // ya viene ISO: "2026-02-26"
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+
+  // viene DMY: "26/02/2026"
+  const m = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (m) {
+    const [, dd, mm, yyyy] = m;
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  // si llega algo raro, mejor fallar claro
+  throw new Error(`Fecha inválida: ${input}`);
+}
+
+export function toTime(v: any) {
+  if (!v) return 0;
+
+  const d1 = new Date(v);
+  if (!Number.isNaN(d1.getTime())) return d1.getTime();
+
+  const s = String(v).trim();
+  const isoTry = new Date(`${s}T00:00:00Z`);
+  if (!Number.isNaN(isoTry.getTime())) return isoTry.getTime();
+
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) {
+    const dd = Number(m[1]);
+    const mm = Number(m[2]);
+    const yyyy = Number(m[3]);
+    const d = new Date(Date.UTC(yyyy, mm - 1, dd));
+    return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+  }
+
+  return 0;
+}

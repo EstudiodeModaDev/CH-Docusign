@@ -2,8 +2,6 @@ import * as React from "react";
 import * as XLSX from "xlsx";
 import "./Bulk.css";
 
-import { useDocusignTemplates } from "../../../../Funcionalidades/GD/Docusign";
-import { generateCsvForTemplate } from "../../../../Funcionalidades/GD/Bulk";
 import {createEnvelopeFromTemplateDraft, getEnvelopeDocumentTabs, getEnvelopeDocGenFormFields, updateEnvelopePrefillTextTabs, updateEnvelopeDocGenFormFields, sendEnvelope,} from "../../../../Services/DocusignAPI.service";
 import type { DocGenUpdateDocPayload, UpdatePrefillTextTabPayload } from "../../../../models/Docusign";
 import { useGraphServices } from "../../../../graph/graphContext";
@@ -12,6 +10,8 @@ import { useAuth } from "../../../../auth/authProvider";
 import type { AccountInfo } from "@azure/msal-browser";
 import { useEmpresasSelect } from "../../../../Funcionalidades/Desplegables";
 import type { maestro } from "../../../../models/Desplegables";
+import { generateCsvForTemplate } from "../../../../Funcionalidades/GD/Docusing/bulk/functions/bulkTemplateBuilder";
+import { useDocusignTemplates } from "../../../../Funcionalidades/GD/Docusing/Templates/hooks/useDocusingTemplates";
 
 type Row = Record<string, string>;
 
@@ -404,7 +404,7 @@ export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (
  * UI principal (con preview)
  * ========================= */
 export const EnvioMasivoUI: React.FC = () => {
-  const { templatesOptions, createdraft, getRecipients } = useDocusignTemplates();
+  const docusingController = useDocusignTemplates();
   const { account } = useAuth();
   const { Envios, Maestro } = useGraphServices();
   const { items, reload } = useEmpresasSelect(Maestro);
@@ -426,7 +426,7 @@ export const EnvioMasivoUI: React.FC = () => {
   const [previewCols, setPreviewCols] = React.useState<string[]>([]);
   const [previewRows, setPreviewRows] = React.useState<Row[]>([]);
 
-  const plantillaSelected = templatesOptions.find((o) => o.value === templateId) ?? null;
+  const plantillaSelected = docusingController.templatesOptions.find((o) => o.value === templateId) ?? null;
   const gridReady = columns.length > 0;
 
   React.useEffect(() => {
@@ -459,8 +459,8 @@ export const EnvioMasivoUI: React.FC = () => {
       const build = await generateCsvForTemplate({
         templateId,
         templateName: plantillaSelected?.label ?? "template",
-        createdraft,
-        getRecipients,
+        createdraft: docusingController.createdraft,
+        getRecipients: docusingController.getRecipients,
       });
 
       const headers = [...build.headers];
@@ -730,7 +730,7 @@ export const EnvioMasivoUI: React.FC = () => {
 
             <select id="bulk-template" className="ef-input" value={templateId} onChange={(e) => setTemplateId(e.target.value)} disabled={loading || sending}>
               <option value="">Selecciona una plantilla</option>
-              {templatesOptions.map((opt) => (
+              {docusingController.templatesOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>

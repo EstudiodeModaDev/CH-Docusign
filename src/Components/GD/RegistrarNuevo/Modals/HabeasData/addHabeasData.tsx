@@ -28,7 +28,7 @@ type Props = {
   onClose: () => void;
   state: HabeasData
   setField: SetField<HabeasData>;
-  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  handleSubmit: (e: React.FormEvent) => Promise<{ created: HabeasData | null; ok: boolean }>;
   handleEdit: (e: React.FormEvent, NovedadSeleccionada: HabeasData) => void;
   errors: HabeasErrors
   loadFirstPage: () => Promise<void>

@@ -1,7 +1,8 @@
 import type { ParamTab } from "../Components/GD/Settings/SettingsPage";
 import type { Proceso } from "../utils/unify";
-import type { Cesacion, DetallesPasos, PasosProceso } from "./Cesaciones";
+import type { Cesacion,  } from "./Cesaciones";
 import type { Novedad } from "./Novedades";
+import type { DetallesPasos, PasosProceso } from "./Pasos";
 import type { Promocion } from "./Promociones";
 import type { Retail } from "./Retail";
 

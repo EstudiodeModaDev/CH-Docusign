@@ -1,0 +1,111 @@
+.nm-overlay{
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  z-index: 9999;
+  height: 100%;;
+}
+
+.nm-modal{
+  width: min(980px, 100%);
+  overflow: hidden;
+
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(0,0,0,.25);
+  border: 1px solid #e5e7eb;
+
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.nm-head{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.nm-title{
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.nm-close{
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+
+  display: grid;
+  place-items: center;
+
+  font-size: 20px;
+  line-height: 1;
+}
+
+.nm-close:hover{ background: #f3f4f6; }
+
+.nm-body{
+  padding: 14px 16px 18px;
+  overflow: auto;
+}
+
+.nm-state{
+  padding: 18px;
+  border: 1px dashed #e5e7eb;
+  border-radius: 14px;
+  background: #fafafa;
+  color: #374151;
+  font-weight: 700;
+}
+
+.nm-tableWrap{
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+}
+
+.nm-table{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+}
+
+.nm-table thead th{
+  position: sticky;
+  top: 0;
+  z-index: 1;
+
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 12px;
+
+  font-size: 12px;
+  font-weight: 900;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.nm-table tbody td{
+  border-bottom: 1px solid #f1f5f9;
+  padding: 12px 12px;
+  font-size: 14px;
+  color: #111827;
+}
+
+.nm-table tbody tr:hover td{
+  background: #fafafa;
+}

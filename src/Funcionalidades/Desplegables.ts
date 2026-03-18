@@ -167,6 +167,76 @@ export function useEmpresasSelect(EmpresaSvc: MaestrosService) {
   });
 }
 
+export function useDireccion(EmpresaSvc: MaestrosService) {
+  const load = React.useCallback(
+    async (search?: string) => {
+      const items = await EmpresaSvc.getAll({filter: "fields/Title eq 'Direccion'"}); // back completo
+      if (!search) return items;
+
+      const term = search.toLowerCase();
+      return items.filter((e:maestro) =>
+        (e.T_x00ed_tulo1 ?? "").toLowerCase().includes(term)
+      );
+    },
+    [EmpresaSvc]
+  );
+
+  const addItem = React.useCallback(
+    (payload: maestro) => EmpresaSvc.create(payload),
+    [EmpresaSvc]
+  );
+
+  const editItem = React.useCallback(
+    (payload: maestro, id: string) => EmpresaSvc.update(id, payload),
+    [EmpresaSvc]
+  );
+
+  const deleteItem = React.useCallback(
+    (id: string | number) => EmpresaSvc.delete(String(id)),
+    [EmpresaSvc]
+  );
+
+  return useDesplegable<maestro>({
+    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+  });
+}
+
+export function useGenero(EmpresaSvc: MaestrosService) {
+  const load = React.useCallback(
+    async (search?: string) => {
+      const items = await EmpresaSvc.getAll({filter: "fields/Title eq 'Genero'"}); // back completo
+      if (!search) return items;
+
+      const term = search.toLowerCase();
+      return items.filter((e:maestro) =>
+        (e.T_x00ed_tulo1 ?? "").toLowerCase().includes(term)
+      );
+    },
+    [EmpresaSvc]
+  );
+
+  const addItem = React.useCallback(
+    (payload: maestro) => EmpresaSvc.create(payload),
+    [EmpresaSvc]
+  );
+
+  const editItem = React.useCallback(
+    (payload: maestro, id: string) => EmpresaSvc.update(id, payload),
+    [EmpresaSvc]
+  );
+
+  const deleteItem = React.useCallback(
+    (id: string | number) => EmpresaSvc.delete(String(id)),
+    [EmpresaSvc]
+  );
+
+  return useDesplegable<maestro>({
+    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+  });
+}
+
 export function useTemporales(TiemposSvc: MaestrosService) {
   const load = React.useCallback(
     (_search?: string) => TiemposSvc.getAll({filter: "fields/Title eq 'Temporales'"}),
@@ -197,6 +267,60 @@ export function useTemporales(TiemposSvc: MaestrosService) {
 export function useCargo(CargoSvc: MaestrosService) {
   const load = React.useCallback(
     (_search?: string) => CargoSvc.getAll({filter: "fields/Title eq 'Cargos'"}),
+    [CargoSvc]
+  );
+
+  const addItem = React.useCallback(
+    (payload: maestro) => CargoSvc.create(payload),
+    [CargoSvc]
+  );
+
+  const editItem = React.useCallback(
+    (payload: maestro, id: string) => CargoSvc.update(id, payload),
+    [CargoSvc]
+  );
+
+  const deleteItem = React.useCallback(
+    (id: string | number) => CargoSvc.delete(String(id)),
+    [CargoSvc]
+  );
+
+  return useDesplegable<maestro>({
+    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+  });
+}
+
+export function tipoConvocatoria(CargoSvc: MaestrosService) {
+  const load = React.useCallback(
+    (_search?: string) => CargoSvc.getAll({filter: "fields/Title eq 'tipoConvocatoria'"}),
+    [CargoSvc]
+  );
+
+  const addItem = React.useCallback(
+    (payload: maestro) => CargoSvc.create(payload),
+    [CargoSvc]
+  );
+
+  const editItem = React.useCallback(
+    (payload: maestro, id: string) => CargoSvc.update(id, payload),
+    [CargoSvc]
+  );
+
+  const deleteItem = React.useCallback(
+    (id: string | number) => CargoSvc.delete(String(id)),
+    [CargoSvc]
+  );
+
+  return useDesplegable<maestro>({
+    load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+  });
+}
+
+export function gruposCVE(CargoSvc: MaestrosService) {
+  const load = React.useCallback(
+    (_search?: string) => CargoSvc.getAll({filter: "fields/Title eq 'Grupo CVE'"}),
     [CargoSvc]
   );
 
@@ -469,6 +593,33 @@ export function useTipoDocumentoSelect(tipoDocumentoSvc: MaestrosService) {
 export function useCentroCostos(centroCostosSvc: MaestrosService) {
   const load = React.useCallback(
     (_search?: string) => centroCostosSvc.getAll({filter: "fields/Title eq 'Centro de costos'"}),
+    [centroCostosSvc]
+  );
+
+  const addItem = React.useCallback(
+    (payload: maestro) => centroCostosSvc.create(payload),
+    [centroCostosSvc]
+  );
+
+  const editItem = React.useCallback(
+    (payload: maestro, id: string) => centroCostosSvc.update(id, payload),
+    [centroCostosSvc]
+  );
+
+  const deleteItem = React.useCallback(
+    (id: string | number) => centroCostosSvc.delete(String(id)),
+    [centroCostosSvc]
+  );
+
+  return useDesplegable<maestro>({
+    load, addItem, editItem, deleteItem, getId: (e) => e.Codigo, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
+    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+  });
+}
+
+export function useMotivoRequisicion(centroCostosSvc: MaestrosService) {
+  const load = React.useCallback(
+    (_search?: string) => centroCostosSvc.getAll({filter: "fields/Title eq 'motivoRequisicion'"}),
     [centroCostosSvc]
   );
 

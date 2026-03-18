@@ -1,7 +1,7 @@
 import * as React from "react";
 import "../PasosPromocion.css";
 import { useGraphServices } from "../../../../../graph/graphContext";
-import type { DetallesPasos, PasosProceso } from "../../../../../models/Cesaciones";
+import type { DetallesPasos, PasosProceso } from "../../../../../models/Pasos";
 import type { GraphSendMailPayload } from "../../../../../graph/graphRest";
 import { toUnifyVM, type Proceso } from "../../../../../utils/unify";
 import RichTextBase64 from "../../../../RichText/RichText";
@@ -164,7 +164,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
     const nombreBaseRaw = canon(`${vm?.numeroDoc ?? ""} - ${evidenciaRaw}`);
     const baseSafe = sanitizeFileName(nombreBaseRaw);
 
-    const folderName = canon(`${vm?.numeroDoc ?? ""} - ${vm?.nombre ?? ""}`);
+    const folderName = canon(`${vm.numeroDoc ?? ""} - ${vm.nombre ?? ""}`);
     const carpetaFallback = `Colaboradores Activos/${folderName}`;
 
     setUploading(true);
@@ -369,12 +369,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
                 </div>
               </div>
 
-              <div className="step-card__body">
-                {isOmitted ? (
-                  <div className="step-card__notes">
-                    <p className="step-card__note">{detalle.Notas || "Paso omitido."}</p>
-                  </div>
-                ) : (
+              <div className="step-card__body"> 
                   <>
                     {/* ======== APROBACIÓN ======== */}
                     {tipoPaso === "Aprobacion" && (
@@ -401,11 +396,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
                               ✓
                             </button>
                           </>
-                        ) : (
-                          <div className="step-card__notes">
-                            <p className="step-card__note">{detalle.Notas}</p>
-                          </div>
-                        )}
+                        ) :null}
                       </>
                     )}
 
@@ -446,11 +437,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
                               </div>
                             </div>
                           </div>
-                        ) : (
-                          <div className="step-card__notes">
-                            <p className="step-card__note">{detalle.Notas}</p>
-                          </div>
-                        )}
+                        ) : null}
                       </>
                     )}
 
@@ -491,15 +478,21 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
                               {busyUpload ? "Subiendo…" : "Subir ✓"}
                             </button>
                           </>
-                        ) : (
-                          <div className="step-card__notes">
-                            <p className="step-card__note">{detalle.Notas}</p>
-                          </div>
-                        )}
+                        ) : null}
                       </>
                     )}
+
+                    {(isOmitted || isCompleted) ?
+                       
+                      <>
+                        <div className="step-card__notes">
+                          <p className="step-card__note"><strong>{isOmitted ? "Omitido" : "Completado"} Por: </strong>{detalle.CompletadoPor}</p>
+                          <p className="step-card__note"><strong>Fecha en la que se {isOmitted ? "omitio" : "completo"}: </strong>{detalle.FechaCompletacion}</p>
+                          <p className="step-card__note"><strong>Notas: </strong>{detalle.Notas}</p>
+                        </div>
+                      </> : null
+                    }
                   </>
-                )}
               </div>
             </article>
           );

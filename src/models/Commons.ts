@@ -36,3 +36,38 @@ export type UserOption = {
   jobTitle?: string;  // opcional: para mostrar/filtrar
   
 };
+
+export type CommonRegister = {
+  Id?: string;
+  Cedula: string; 
+  Nombre: string;
+  Cargo: string;
+  Temporal: string;
+  Celular: string;
+  Correoelectronico: string;
+  FechaIngreso: string |null;
+  FechaSalidaCesacion: string | null;
+  FechaLimiteDocumentos: string | null;
+  Reportadopor: string;
+  Empresaalaquepertenece: string;
+  Fechaenlaquesereporta: string | null;
+  TipoDoc: string;
+  Departamento: string;
+  Ciudad: string;
+  Niveldecargo: string;
+  CargoCritico: string;
+  Dependencia: string;
+  CodigoCC : string;
+  DescripcionCC: string;
+  CodigoCO: string;
+  DescripcionCO: string;
+  CodigoUN: string;
+  DescripcionUN: string;
+  Salario: string;
+  SalarioTexto: string;
+  auxConectividadTexto: string;
+  auxConectividadValor: string;
+  Estado: string;
+  direccionResidencia: string;
+  Fuente: string
+}

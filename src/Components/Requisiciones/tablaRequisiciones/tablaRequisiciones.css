@@ -1,0 +1,263 @@
+/* =========================
+   RESET / BASE
+   ========================= */
+*, *::before, *::after{
+  box-sizing: border-box;
+}
+
+/* =========================
+   WRAP
+   ========================= */
+.rb-wrap{
+  display: grid;
+  gap: 12px;
+}
+
+/* =========================
+   FILTROS (2 filas)
+   Fila 1: ID | Estado | Cargo | Fecha desde | Fecha hasta
+   Fila 2: ¿Cumple ANS? | Ciudad | Analista | (vacío)
+   ========================= */
+.rb-filters.rb-filters--layout{
+  display: grid;
+
+  /* 5 columnas: las 4 primeras “controladas”, cargo flexible */
+  grid-template-columns: minmax(180px, 600px)  minmax(180px, 600px) minmax(180px, 600px)  minmax(180px, 600px) ;
+
+  grid-template-areas:
+    "id cargo desde hasta"
+    "cumple estado ciudad analista";
+
+  gap: 5px 5px;
+  align-items: end;
+
+  padding: 16px;
+  margin-top: 10px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+
+  /* evita overflow raro dentro del grid */
+  min-width: 0;
+  
+  -webkit-overflow-scrolling: touch;
+}
+
+/* posiciones (grid areas) */
+.rb-a-id{ grid-area: id; }
+.rb-a-estado{ grid-area: estado; }
+.rb-a-cargo{ grid-area: cargo; }
+.rb-a-desde{ grid-area: desde; }
+.rb-a-hasta{ grid-area: hasta; }
+.rb-a-cumple{ grid-area: cumple; }
+.rb-a-ciudad{ grid-area: ciudad; }
+.rb-a-analista{ grid-area: analista; }
+
+.rb-spacer{
+  height: 1px;
+}
+
+/* campos */
+.rb-field{
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rb-label{
+  font-size: 13px;
+  font-weight: 900;
+  color: #6b7280;
+}
+
+.rb-input, .rb-select{
+  width: 100%;
+  min-width: 0;
+
+  height: 40px;
+  border-radius: 12px;
+  border: 1.6px solid #a855f7;
+  padding: 0 12px;
+
+  outline: none;
+  background: #fff;
+  font-size: 14px;
+}
+
+.rb-input:focus, .rb-select:focus{
+  box-shadow: 0 0 0 4px rgba(168,85,247,0.18);
+}
+
+/* date wrapper (si luego pones icono) */
+.rb-date{
+  position: relative;
+}
+
+/* Responsive: cuando sea angosto, baja a 2 columnas */
+@media (max-width: 1050px){
+  .rb-filters.rb-filters--layout{
+    overflow-x: visible; /* ya no hace falta scroll en mobile */
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "id estado"
+      "cargo cargo"
+      "desde hasta"
+      "cumple ciudad"
+      "analista analista";
+  }
+
+  .rb-spacer{
+    display: none;
+  }
+}
+
+/* =========================
+   LISTADO
+   ========================= */
+.rb-list{
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.rb-empty{
+  padding: 18px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+/* Cada fila es un botón */
+.rb-row{
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: none;
+  border-bottom: 1px solid #eef2f7;
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+}
+
+.rb-row:last-child{
+  border-bottom: none;
+}
+
+/* contenido fila */
+.rb-row__main{
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 10px;
+  padding: 14px 14px 14px 12px;
+}
+
+/* barra izquierda tipo estado */
+.rb-row::before{
+  content:"";
+  position:absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #94a3b8;
+}
+
+.rb-row:hover{
+  background: #fafafa;
+}
+
+/* Izquierda */
+.rb-row__id{
+  font-weight: 900;
+  color: #111827;
+  font-size: 13px;
+}
+
+.rb-row__idlabel{
+  color: #6b7280;
+  font-weight: 800;
+}
+
+.rb-row__estado{
+  margin-left: 6px;
+  font-weight: 900;
+}
+
+.rb-row__meta{
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 10px 22px;
+  color: #111827;
+  font-size: 12px;
+}
+
+.rb-row__metaCol{
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.rb-row__metaLabel{
+  color: #6b7280;
+  font-weight: 800;
+}
+
+.rb-row__metaVal{
+  font-weight: 700;
+}
+
+.rb-row__cargo{
+  font-weight: 900;
+  font-size: 12px;
+  min-width: 0;
+}
+
+/* Derecha */
+.rb-row__right{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.rb-row__ans{
+  display: grid;
+  place-items: center;
+}
+
+.rb-emoji{
+  font-size: 20px;
+  line-height: 1;
+}
+
+.rb-emoji--na{ color: #9ca3af; }
+
+.rb-row__arrow{
+  font-size: 22px;
+  opacity: 0.7;
+}
+
+/* Tonos por estado (barra izquierda) */
+.rb-tone-active::before{ background: #22c55e; }
+.rb-tone-closed::before{ background: #3b82f6; }
+.rb-tone-cancel::before{ background: #ef4444; }
+.rb-tone-neutral::before{ background: #94a3b8; }
+
+/* Responsive listado */
+@media (max-width: 1050px){
+  .rb-row__main{
+    grid-template-columns: 1fr;
+  }
+
+  .rb-row__meta{
+    grid-template-columns: 1fr;
+  }
+
+  .rb-row__right{
+    grid-template-columns: 1fr auto;
+    justify-content: space-between;
+    padding-top: 10px;
+  }
+}

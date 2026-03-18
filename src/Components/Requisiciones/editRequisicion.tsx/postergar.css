@@ -1,0 +1,170 @@
+/* =========================
+   Backdrop
+   ========================= */
+.m4-overlay{
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  overflow: auto;
+}
+
+/* =========================
+   Modal
+   ========================= */
+.m4-modal{
+  width: min(720px, 100%);
+  background: #fff;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 16px;
+  box-shadow: 0 22px 45px rgba(15, 23, 42, 0.26);
+  overflow: hidden;
+}
+
+/* =========================
+   Header
+   ========================= */
+.m4-head{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+  background: #fff;
+}
+
+.m4-head__text{
+  flex: 1;
+  min-width: 0;
+}
+
+.m4-title{
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.m4-x{
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  line-height: 1;
+  transition: transform .1s ease, box-shadow .15s ease, background .15s ease;
+}
+.m4-x:hover{
+  background: #f3f4f6;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.10);
+}
+
+/* =========================
+   Body
+   ========================= */
+.m4-body{
+  padding: 16px;
+}
+
+.m4-grid{
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 12px 14px;
+  align-items: center;
+}
+
+.m4-input{
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 0 10px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.m4-input:focus{
+  border-color: #0f766e;
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15);
+  background: #fff;
+}
+
+/* Mensaje de error */
+.m4-error{
+  margin-top: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* =========================
+   Footer
+   ========================= */
+.m4-actions{
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 16px;
+  border-top: 1px solid rgba(226, 232, 240, 0.85);
+  background: linear-gradient(to top, #ffffff 75%, rgba(255,255,255,0));
+}
+
+.m4-btn{
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  background: #e2e8f0;
+  cursor: pointer;
+  font-weight: 900;
+  transition: transform .1s ease, box-shadow .15s ease, filter .15s ease;
+}
+
+.m4-btn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
+}
+
+.m4-btn:disabled{
+  opacity: .55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.m4-btn--primary{
+  background: #0f766e;
+  border-color: #0f766e;
+  color: #f9fafb;
+}
+
+.m4-btn--ghost{
+  background: #fff;
+}
+
+/* =========================
+   Responsive
+   ========================= */
+@media (max-width: 640px){
+  .m4-grid{
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+  .m4-actions{
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

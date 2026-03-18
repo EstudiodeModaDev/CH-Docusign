@@ -5,10 +5,11 @@ import { useGraphServices } from "../../../../graph/graphContext";
 import { toISODateFlex } from "../../../../utils/Date";
 import type { Promocion, PromocionErrors } from "../../../../models/Promociones";
 import { formatPesosEsCO } from "../../../../utils/Number";
-import { useEnvios } from "../../../../Funcionalidades/GD/Envios";
 import FormPromocion from "../Modals/Promociones/addPromociones";
 import type { SetField } from "../Modals/Contrato/addContrato";
 import type { desplegablesOption } from "../../../../models/Desplegables";
+import { usePermissions } from "../../../../Funcionalidades/Permisos";
+import { useEnvios } from "../../../../Funcionalidades/GD/Envios/hooks/useEnvios";
 
 function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; dir: SortDir}>) {
   const idx = sorts.findIndex(s => s.field === field);
@@ -39,7 +40,7 @@ type Props = {
 
   state: Promocion
   setField: SetField<Promocion>;
-  handleSubmit: () => Promise<{ok: boolean; created: string | null;}>;
+  handleSubmit: () => Promise<{ok: boolean; created: Promocion | null;}>;
   handleEdit: (e: React.FormEvent, NovedadSeleccionada: Promocion) => void;
   errors: PromocionErrors
   searchRegister: (cedula: string) => Promise<Promocion | null>
@@ -48,6 +49,7 @@ type Props = {
   setState: (n: Promocion) => void
   handleCancelProcessbyId: (id: string, r: string) => void
   handleReactivateProcessById: (id: string) => void
+  deletePromocion:(id: string) => void
   submmiting: boolean
 
   //Desplegables
@@ -93,9 +95,10 @@ export type PropsPagination = {
   totalRows: number;
 };
 
-export default function TablaPromociones({submmiting, origenOptions, nivelCargoOptions, tipoVacanteOptions, tipoContratoOptions, loadingEspecificdad, loadingCC, loadingCO, loadingDependencias, loadingDepto, loadingEtapas, loadingOrigen, loadingTipoContrato, loadingTipoVacante, loadingUN, loadingCargo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, modalidadOptions, loadingModalidad, deptoOptions, etapasOptions, COOptions, CentroCostosOptions, UNOptions, dependenciaOptions, loadinNivelCargo, especificidadOptions, errors, handleEdit, setState, handleCancelProcessbyId,searchRegister,  handleReactivateProcessById, setField, handleSubmit, state, rows, loading: loadingPromociones, error, pageSize: pageSizePromociones, pageIndex: pageIndexPromociones, hasNext: hasNextPromociones, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPagePromociones, reloadAll: reloadAllPromociones, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
-  const { Envios, DetallesPasosPromocion,} = useGraphServices();
-  const { canEdit } = useEnvios(Envios);
+export default function TablaPromociones({deletePromocion, submmiting, origenOptions, nivelCargoOptions, tipoVacanteOptions, tipoContratoOptions, loadingEspecificdad, loadingCC, loadingCO, loadingDependencias, loadingDepto, loadingEtapas, loadingOrigen, loadingTipoContrato, loadingTipoVacante, loadingUN, loadingCargo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, modalidadOptions, loadingModalidad, deptoOptions, etapasOptions, COOptions, CentroCostosOptions, UNOptions, dependenciaOptions, loadinNivelCargo, especificidadOptions, errors, handleEdit, setState, handleCancelProcessbyId,searchRegister,  handleReactivateProcessById, setField, handleSubmit, state, rows, loading: loadingPromociones, error, pageSize: pageSizePromociones, pageIndex: pageIndexPromociones, hasNext: hasNextPromociones, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPagePromociones, reloadAll: reloadAllPromociones, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
+  const { DetallesPasosPromocion,} = useGraphServices();
+  const { canEdit } = useEnvios();
+  const { engine } = usePermissions();
   
   const [visible, setVisible] = React.useState(false);
   const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Promocion | null>(null);
@@ -143,6 +146,12 @@ export default function TablaPromociones({submmiting, origenOptions, nivelCargoO
   );
 
   const isCanceladas = estado === "cancelado";
+
+  const canDeleteRegister = React.useMemo(() => {
+    const requiredPermission = "promociones.delete";
+    if (!requiredPermission) return false;
+    return engine.can(requiredPermission);
+  }, [engine]);
 
   React.useEffect(() => {
     for (const c of rows) {
@@ -222,6 +231,7 @@ export default function TablaPromociones({submmiting, origenOptions, nivelCargoO
             <th>Reportado por</th>
 
             <th style={{ textAlign: "center" }}>%</th>
+            {canDeleteRegister ? <th style={{ textAlign: "center" }}>Eliminar</th> : null}
           </tr>
         </thead>
 
@@ -241,6 +251,15 @@ export default function TablaPromociones({submmiting, origenOptions, nivelCargoO
                   return pct === undefined ? "…" : `${pct.toFixed(2)}%`;
                 })()}
               </td>
+                {canDeleteRegister ?
+                  <td style={{ textAlign: "center" }}>
+                    <span title="Elimar proceso">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 26 26" onClick={(e) => {e.stopPropagation(); deletePromocion(n.Id!)}}>
+                        <path fill="#e53434" d="M11.5-.031c-1.958 0-3.531 1.627-3.531 3.594V4H4c-.551 0-1 .449-1 1v1H2v2h2v15c0 1.645 1.355 3 3 3h12c1.645 0 3-1.355 3-3V8h2V6h-1V5c0-.551-.449-1-1-1h-3.969v-.438c0-1.966-1.573-3.593-3.531-3.593h-3zm0 2.062h3c.804 0 1.469.656 1.469 1.531V4H10.03v-.438c0-.875.665-1.53 1.469-1.53zM6 8h5.125c.124.013.247.031.375.031h3c.128 0 .25-.018.375-.031H20v15c0 .563-.437 1-1 1H7c-.563 0-1-.437-1-1V8zm2 2v12h2V10H8zm4 0v12h2V10h-2zm4 0v12h2V10h-2z"/>
+                      </svg>
+                    </span>
+                  </td> : null
+                }
             </tr>
           ))}
         </tbody>

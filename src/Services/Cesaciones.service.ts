@@ -162,6 +162,19 @@ export class CesacionesService {
     return res
   }
 
+  async findAllByTitle(title: string): Promise<Cesacion[]> {
+    const resp = await this.getAll({filter: `fields/Title eq '${title}' and fields/Estado ne 'Cancelado'`,  top: 200, orderby: "fields/Created desc",});
+
+    return resp.items;
+  }
+
+  async findLastByTitle(title: string): Promise<Cesacion> {
+    const resp = await this.getAll({filter: `fields/Title eq '${title}'`,  top: 1, orderby: "fields/Created desc",});
+
+    return resp.items?.[0];
+  }
+
+
   // Seguir el @odata.nextLink tal cual lo entrega Graph
   async getByNextLink(nextLink: string): Promise<PageResult<Cesacion>> {
     return this.fetchPage(nextLink, /*isAbsolute*/ true);

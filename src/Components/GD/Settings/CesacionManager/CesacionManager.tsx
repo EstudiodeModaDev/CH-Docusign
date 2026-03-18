@@ -1,7 +1,11 @@
 import * as React from "react";
 import "./CesacionManager.css";
-import type { PasosProceso } from "../../../../models/Cesaciones";
+import type { PasoRestriccion, PasosProceso } from "../../../../models/Pasos";
 import RichTextBase64 from "../../../RichText/RichText";
+import PasoActivationRulesModal from "../StepActivationModal/PasosActivacionModal";
+import { useGraphServices } from "../../../../graph/graphContext";
+import { createStepRestriction, toggleUpdateRestriction, updateStepRestriction } from "../../../../Funcionalidades/GD/StepRules/pasoRestriccionAction";
+import type { desplegablesOption } from "../../../../models/Desplegables";
 
 type PasoCesacionDraft = Omit<PasosProceso, "Id">;
 
@@ -13,6 +17,8 @@ type Props = {
   onDelete: (id: string) => void;
   pasos: PasosProceso[];
   tipo: string;
+  cargos: desplegablesOption[];
+  loadingCargo: boolean
 };
 
 const TIPOS_PASO = ["Aprobacion", "Notificacion", "SubidaDocumento"];
@@ -22,7 +28,7 @@ function toInt(v: any, fallback = 0) {
   return Number.isFinite(n) ? Math.trunc(n) : fallback;
 }
 
-export const ProcesosStepManager: React.FC<Props> = ({onChanged, pasos, onReload, tipo, onAdd, onEdit, onDelete,}) => {
+export const ProcesosStepManager: React.FC<Props> = ({loadingCargo, cargos, onChanged, pasos, onReload, tipo, onAdd, onEdit, onDelete,}) => {
   const [state, setState] = React.useState<PasosProceso>({
     NombreEvidencia: "",
     NombrePaso: "",
@@ -33,6 +39,8 @@ export const ProcesosStepManager: React.FC<Props> = ({onChanged, pasos, onReload
     PlantillaAsunto: "",
     Obligatorio: true,
   });
+  const [openRulesModalState, setOpenRulesModalState] = React.useState(false);
+  const [selectedPasoForRules, setSelectedPasoForRules] = React.useState<PasosProceso | null>(null);
 
   const setField = <K extends keyof PasosProceso>(k: K, v: PasosProceso[K]) => setState((s) => ({ ...s, [k]: v }));
 
@@ -42,6 +50,7 @@ export const ProcesosStepManager: React.FC<Props> = ({onChanged, pasos, onReload
 
   // MODAL
   const [openModal, setOpenModal] = React.useState(false);
+  const graph = useGraphServices()
 
   // Cerrar modal con ESC
   React.useEffect(() => {
@@ -160,6 +169,16 @@ export const ProcesosStepManager: React.FC<Props> = ({onChanged, pasos, onReload
     }
   };
 
+  const openRulesModal = (paso: PasosProceso) => {
+    setSelectedPasoForRules(paso);
+    setOpenRulesModalState(true);
+  };
+
+  const closeRulesModal = () => {
+    setSelectedPasoForRules(null);
+    setOpenRulesModalState(false);
+  };
+
   return (
     <section className="csx">
       <header className="csx__head">
@@ -221,6 +240,10 @@ export const ProcesosStepManager: React.FC<Props> = ({onChanged, pasos, onReload
                   <div className="csx__itemBtns">
                     <button type="button" className="btn btn-xs btn-primary" onClick={() => startEdit(s)} disabled={saving}>
                       Editar
+                    </button>
+
+                    <button type="button" className="btn btn-xs" onClick={() => openRulesModal(s)} disabled={saving}>
+                      Reglas
                     </button>
 
                     <button type="button" className="btn btn-xs btn-danger" onClick={() => remove(s)} disabled={saving}>
@@ -329,6 +352,27 @@ export const ProcesosStepManager: React.FC<Props> = ({onChanged, pasos, onReload
             </div>
           </div>
         </div>
+      )}
+
+
+      {openRulesModalState && selectedPasoForRules && (
+        <PasoActivationRulesModal
+          open={openRulesModalState}
+          proceso={tipo.toUpperCase()}
+          paso={selectedPasoForRules}
+          onClose={closeRulesModal}
+          onChanged={onChanged}
+          loadRules={async (proceso, idPaso) => {
+            return await graph.pasoRestriccion.getAll({
+              filter: `fields/Proceso eq '${proceso}' and fields/Title eq '${idPaso}'`
+            });
+          } }
+          onAddRule={async (payload) => await createStepRestriction(payload, graph)}
+          onEditRule={async (payload: PasoRestriccion) => await updateStepRestriction(payload, graph)}
+          onToggleRule={async (id, activo) => await toggleUpdateRestriction(id, activo, graph)}
+          cargos={cargos} 
+          loadingCargo={loadingCargo}        
+        />
       )}
     </section>
   );

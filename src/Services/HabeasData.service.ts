@@ -26,45 +26,45 @@ export class HabeasDataService {
   }
 
   // cache (mem + localStorage opcional)
-    private loadCache() {
-        try {
-        const k = `sp:${this.hostname}${this.sitePath}:${this.listName}`;
-        const raw = localStorage.getItem(k);
-        if (raw) {
-            const { siteId, listId } = JSON.parse(raw);
-            this.siteId = siteId || this.siteId;
-            this.listId = listId || this.listId;
-        }
-        } catch {}
-    }
+  private loadCache() {
+      try {
+      const k = `sp:${this.hostname}${this.sitePath}:${this.listName}`;
+      const raw = localStorage.getItem(k);
+      if (raw) {
+          const { siteId, listId } = JSON.parse(raw);
+          this.siteId = siteId || this.siteId;
+          this.listId = listId || this.listId;
+      }
+      } catch {}
+  }
 
-    private saveCache() {
-        try {
-        const k = `sp:${this.hostname}${this.sitePath}:${this.listName}`;
-        localStorage.setItem(k, JSON.stringify({ siteId: this.siteId, listId: this.listId }));
-        } catch {}
-    }
+  private saveCache() {
+      try {
+      const k = `sp:${this.hostname}${this.sitePath}:${this.listName}`;
+      localStorage.setItem(k, JSON.stringify({ siteId: this.siteId, listId: this.listId }));
+      } catch {}
+  }
 
-    private async ensureIds() {
-        if (!this.siteId || !this.listId) this.loadCache();
+  private async ensureIds() {
+      if (!this.siteId || !this.listId) this.loadCache();
 
-        if (!this.siteId) {
-        const site = await this.graph.get<any>(`/sites/${this.hostname}:${this.sitePath}`);
-        this.siteId = site?.id;
-        if (!this.siteId) throw new Error('No se pudo resolver siteId');
-        this.saveCache();
-        }
+      if (!this.siteId) {
+      const site = await this.graph.get<any>(`/sites/${this.hostname}:${this.sitePath}`);
+      this.siteId = site?.id;
+      if (!this.siteId) throw new Error('No se pudo resolver siteId');
+      this.saveCache();
+      }
 
-        if (!this.listId) {
-        const lists = await this.graph.get<any>(
-            `/sites/${this.siteId}/lists?$filter=displayName eq '${esc(this.listName)}'`
-        );
-        const list = lists?.value?.[0];
-        if (!list?.id) throw new Error(`Lista no encontrada: ${this.listName}`);
-        this.listId = list.id;
-        this.saveCache();
-        }
-    }
+      if (!this.listId) {
+      const lists = await this.graph.get<any>(
+          `/sites/${this.siteId}/lists?$filter=displayName eq '${esc(this.listName)}'`
+      );
+      const list = lists?.value?.[0];
+      if (!list?.id) throw new Error(`Lista no encontrada: ${this.listName}`);
+      this.listId = list.id;
+      this.saveCache();
+      }
+  }
 
   // ---------- mapping ----------
   
@@ -196,6 +196,18 @@ export class HabeasDataService {
       }
       throw e;
     }
+  }
+
+  async findAllByDoc(title: string): Promise<HabeasData[]> {
+    const resp = await this.getAll({filter: `fields/NumeroDocumento eq '${title}'`,  top: 200, orderby: "fields/Created desc",});
+
+    return resp.items;
+  }
+
+  async findLastByDoc(title: string): Promise<HabeasData> {
+    const resp = await this.getAll({filter: `fields/NumeroDocumento eq '${title}'`,  top: 1, orderby: "fields/Created desc",});
+
+    return resp.items?.[0];
   }
 
 }

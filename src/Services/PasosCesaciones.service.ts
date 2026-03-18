@@ -1,6 +1,6 @@
 import type { GraphRest } from "../graph/graphRest";
-import type { PasosProceso } from "../models/Cesaciones";
 import type { GetAllOpts } from "../models/Commons";
+import type { PasosProceso } from "../models/Pasos";
 import { esc } from "../utils/text";
 
 export class PasosCesacionService {
@@ -117,7 +117,7 @@ export class PasosCesacionService {
     return this.toModel(res);
   }
 
-  async getAll(opts?: GetAllOpts) {
+  async getAll(opts?: GetAllOpts): Promise<PasosProceso[]> {
     await this.ensureIds()
     // ID -> id, Title -> fields/Title (cuando NO está prefijado con '/')
     const normalizeFieldTokens = (s: string) =>

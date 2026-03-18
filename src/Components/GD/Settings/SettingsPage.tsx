@@ -15,12 +15,13 @@ import { ProcesosStepManager } from "./CesacionManager/CesacionManager";
 import { usePasosCesacion } from "../../../Funcionalidades/GD/PasosCesacion";
 import { useGraphServices } from "../../../graph/graphContext";
 import { usePasosNoveades } from "../../../Funcionalidades/GD/PasosNovedades";
-import type { PasosProceso } from "../../../models/Cesaciones";
+import type { PasosProceso } from "../../../models/Pasos";
 import { usePasosPromocion } from "../../../Funcionalidades/GD/PasosPromocion";
 import type { TablaParametrosProps } from "../../../models/Props";
 import { usePasosRetail } from "../../../Funcionalidades/GD/PasosRetail";
 import { ConfiguracionesVariasComponent } from "./ConfiguracionesVarias/ConfiguracionesVarias";
 import { OrigenSeleccionManager } from "./OrigenSeleccion/OrigenSeleccion";
+import { useCargo } from "../../../Funcionalidades/Desplegables";
 
 export type ParamTab = {
   id: string;
@@ -28,8 +29,9 @@ export type ParamTab = {
 };
 
 export const ParamTabs: React.FC<TablaParametrosProps> = ({ tabs, value, onChange}) => {
-    const containerRef = React.useRef<HTMLDivElement | null>(null);
-    const [indicatorStyle, setIndicatorStyle] = React.useState<React.CSSProperties>({});
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const [indicatorStyle, setIndicatorStyle] = React.useState<React.CSSProperties>({});
+
 
   React.useEffect(() => {
     const container = containerRef.current;
@@ -93,11 +95,16 @@ const TABS = [
 
 export const ParametrosPage: React.FC = () => {
   const [active, setActive] = React.useState<string>("configs");
-  const {PasosCesacion, PasosNovedades,PasosPromocion, pasosRetail} = useGraphServices()
+  const {PasosCesacion, PasosNovedades,PasosPromocion, pasosRetail, Maestro} = useGraphServices()
   const {loadPasosCesacion, rows} = usePasosCesacion()
   const {loadPasosNovedad, rows: rowsNovedades} = usePasosNoveades()
   const {rows: rowsPromocion, loadPasosPromocion} = usePasosPromocion()
   const {rows: rowsRetail, loadPasosPromocion: loasPasosReatil} = usePasosRetail()
+  const { options: cargosOption, loading: loadingCargo, reload: reloadCargo } = useCargo(Maestro);
+
+  React.useEffect(() => {
+    reloadCargo()
+  }, []);
 
   return (
     <section>
@@ -123,28 +130,36 @@ export const ParametrosPage: React.FC = () => {
                                     tipo={"Cesación"} 
                                     onAdd={(payload: PasosProceso) => PasosCesacion.create(payload)} 
                                     onEdit={(id: string, changed: Partial<Omit<PasosProceso, "ID">>) => PasosCesacion.update(id, changed)} 
-                                    onDelete={(id: string) => PasosCesacion.delete(id)}/>}
+                                    onDelete={(id: string) => PasosCesacion.delete(id)}
+                                    cargos={cargosOption} 
+                                    loadingCargo={loadingCargo}/>}
       {active === "novedades" && <ProcesosStepManager 
                                     onReload={() => loadPasosNovedad()} 
                                     pasos={rowsNovedades} 
                                     tipo={"Novedades Administrativas"} 
                                     onAdd={(payload: PasosProceso) => PasosNovedades.create(payload)} 
                                     onEdit={(id: string, changed: Partial<Omit<PasosProceso, "ID">>) => PasosNovedades.update(id, changed)} 
-                                    onDelete={(id: string) => PasosNovedades.delete(id)}/>}
+                                    onDelete={(id: string) => PasosNovedades.delete(id)}
+                                    cargos={cargosOption} 
+                                    loadingCargo={loadingCargo}/>}
       {active === "promociones" && <ProcesosStepManager 
                                     onReload={() => loadPasosPromocion()} 
                                     pasos={rowsPromocion} 
                                     tipo={"Promociones"} 
                                     onAdd={(payload: PasosProceso) => PasosPromocion.create(payload)} 
                                     onEdit={(id: string, changed: Partial<Omit<PasosProceso, "ID">>) => PasosPromocion.update(id, changed)} 
-                                    onDelete={(id: string) => PasosPromocion.delete(id)}/>}
+                                    onDelete={(id: string) => PasosPromocion.delete(id)}
+                                    cargos={cargosOption} 
+                                    loadingCargo={loadingCargo}/>}
       {active === "retail" && <ProcesosStepManager 
-                                    onReload={() => loasPasosReatil()} 
-                                    pasos={rowsRetail} 
-                                    tipo={"Retail"} 
-                                    onAdd={(payload: PasosProceso) => pasosRetail.create(payload)} 
-                                    onEdit={(id: string, changed: Partial<Omit<PasosProceso, "ID">>) => pasosRetail.update(id, changed)} 
-                                    onDelete={(id: string) => pasosRetail.delete(id)}/>}
+                                    onReload={() => loasPasosReatil()}
+                                    pasos={rowsRetail}
+                                    tipo={"Retail"}
+                                    onAdd={(payload: PasosProceso) => pasosRetail.create(payload)}
+                                    onEdit={(id: string, changed: Partial<Omit<PasosProceso, "ID">>) => pasosRetail.update(id, changed)}
+                                    onDelete={(id: string) => pasosRetail.delete(id)} 
+                                    cargos={cargosOption} 
+                                    loadingCargo={loadingCargo}/>}
       
     </section>
   );

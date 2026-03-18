@@ -2,12 +2,13 @@ import * as React from "react";
 import "../Contratos/Contratos.css";
 import type { DateRange, SortDir, SortField } from "../../../../models/Commons";
 import { useGraphServices } from "../../../../graph/graphContext";
-import { useEnvios } from "../../../../Funcionalidades/GD/Envios";
 import type { Cesacion, CesacionErrors } from "../../../../models/Cesaciones";
 import { toISODateFlex } from "../../../../utils/Date";
 import FormCesacion from "../Modals/Cesaciones/addCesacion";
 import type { SetField } from "../Modals/Contrato/addContrato";
 import type { desplegablesOption } from "../../../../models/Desplegables";
+import { usePermissions } from "../../../../Funcionalidades/Permisos";
+import { useEnvios } from "../../../../Funcionalidades/GD/Envios/hooks/useEnvios";
 
 function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; dir: SortDir}>) {
   const idx = sorts.findIndex(s => s.field === field);
@@ -38,7 +39,7 @@ export type Props = {
 
   state: Cesacion
   setField: SetField<Cesacion>;
-  handleSubmit: () => Promise<{ok: boolean; created: string | null;}>;
+  handleSubmit: () => Promise<{ok: boolean; created: Cesacion | null;}>;
   handleEdit: (e: React.FormEvent, NovedadSeleccionada: Cesacion) => void;
   errors: CesacionErrors
   searchRegister: (cedula: string) => Promise<Cesacion | null>
@@ -46,6 +47,7 @@ export type Props = {
   setState: (n: Cesacion) => void
   handleCancelProcessbyId: (id: string, r: string) => void
   handleReactivateProcessById: (id: string) => void
+  deleteCesacion: (id: string) => void
   sending: boolean
 
   //Desplegables
@@ -83,13 +85,14 @@ export type PropsPagination = {
   totalRows: number;
 };
 
-export default function CesacionesTabla({deptoOptions, loadingDeptos, temporalLoading, temporalOption, UNOptions, loadingUN, COOptions, loadingCO, CentroCostosOptions, loadingCC, dependenciaOptions, loadingDependencias, nivelCargoOptions, loadinNivelCargo, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, empresaOptions, loadingEmp, sending, handleReactivateProcessById, handleCancelProcessbyId, setState, searchRegister, errors, handleEdit, handleSubmit, setField, state, rows, loading: loadingCesacion, error, pageSize: pageSizeCesacion, pageIndex: pageIndexCesacion, hasNext: hasNextCesacion, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageCesacion, reloadAll: reloadAllCesacion, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
-  const { Envios, DetallesPasosCesacion, } = useGraphServices();
-  const { canEdit } = useEnvios(Envios);
+export default function CesacionesTabla({deleteCesacion, deptoOptions, loadingDeptos, temporalLoading, temporalOption, UNOptions, loadingUN, COOptions, loadingCO, CentroCostosOptions, loadingCC, dependenciaOptions, loadingDependencias, nivelCargoOptions, loadinNivelCargo, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, empresaOptions, loadingEmp, sending, handleReactivateProcessById, handleCancelProcessbyId, setState, searchRegister, errors, handleEdit, handleSubmit, setField, state, rows, loading: loadingCesacion, error, pageSize: pageSizeCesacion, pageIndex: pageIndexCesacion, hasNext: hasNextCesacion, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageCesacion, reloadAll: reloadAllCesacion, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
+  const { DetallesPasosCesacion, } = useGraphServices();
+  const { canEdit } = useEnvios();
   const [visible, setVisible] = React.useState(false);
   const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Cesacion | null>(null);
   const [tipoFormulario, setTipoFormulario] = React.useState<"new" | "edit" | "view">("edit");
   const [pctById, setPctById] = React.useState<Record<string, number>>({});
+  const { engine } = usePermissions();
 
   const openRow = React.useCallback(
     async (novedad: Cesacion) => {
@@ -132,6 +135,12 @@ export default function CesacionesTabla({deptoOptions, loadingDeptos, temporalLo
   );
 
   const isCanceladas = estado === "cancelado";
+
+  const canDeleteRegister = React.useMemo(() => {
+    const requiredPermission = "cesaciones.delete";
+    if (!requiredPermission) return false;
+    return engine.can(requiredPermission);
+  }, [engine]);
 
   React.useEffect(() => {
     for (const c of rows) {
@@ -202,12 +211,13 @@ export default function CesacionesTabla({deptoOptions, loadingDeptos, temporalLo
             </th>
 
             <th style={{ textAlign: "center" }}>%</th>
+            {canDeleteRegister ? <th style={{ textAlign: "center" }}>Eliminar</th> : null}
           </tr>
         </thead>
 
         <tbody>
           {rows.map((n) => (
-            <tr key={n.Id} tabIndex={0} onClick={() => openRow(n)} onKeyDown={(e) => onRowKeyDown(e, n)}>
+            <tr key={n.Id} tabIndex={0} onClick={() => openRow(n)} onKeyDown={(e) => onRowKeyDown(e,n)}>
               <td>{n.Title}</td>
               <td><span title={n.Nombre}>{n.Nombre}</span></td>
               <td><span title={n.DescripcionCO}>{n.DescripcionCO}</span></td>
@@ -220,6 +230,17 @@ export default function CesacionesTabla({deptoOptions, loadingDeptos, temporalLo
                   return pct === undefined ? "…" : `${pct.toFixed(2)}%`;
                 })()}
               </td>
+              {canDeleteRegister ?
+              <td style={{ textAlign: "center" }}>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="20" 
+                  height="20" 
+                  viewBox="0 0 26 26"
+                  onClick={(e) => {e.stopPropagation(); deleteCesacion(n.Id!)}}>
+                  <path fill="#e53434" d="M11.5-.031c-1.958 0-3.531 1.627-3.531 3.594V4H4c-.551 0-1 .449-1 1v1H2v2h2v15c0 1.645 1.355 3 3 3h12c1.645 0 3-1.355 3-3V8h2V6h-1V5c0-.551-.449-1-1-1h-3.969v-.438c0-1.966-1.573-3.593-3.531-3.593h-3zm0 2.062h3c.804 0 1.469.656 1.469 1.531V4H10.03v-.438c0-.875.665-1.53 1.469-1.53zM6 8h5.125c.124.013.247.031.375.031h3c.128 0 .25-.018.375-.031H20v15c0 .563-.437 1-1 1H7c-.563 0-1-.437-1-1V8zm2 2v12h2V10H8zm4 0v12h2V10h-2zm4 0v12h2V10h-2z"/></svg>
+              </td> : null}
+
             </tr>
           ))}
         </tbody>

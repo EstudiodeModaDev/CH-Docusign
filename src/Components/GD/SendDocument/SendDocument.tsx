@@ -1,24 +1,24 @@
 import React from "react";
 import "./SendDocument.css";
-import { useDocusignTemplates } from "../../../Funcionalidades/GD/Docusign";
 import { useGraphServices } from "../../../graph/graphContext";
-import { useEnvios } from "../../../Funcionalidades/GD/Envios";
 import { usePromocion } from "../../../Funcionalidades/GD/Promocion";
 import { ElegirColaboradorModal } from "./ModalSelect/ModalSelect";
-import { useHabeasData } from "../../../Funcionalidades/GD/HabeasData";
-import { useContratos } from "../../../Funcionalidades/GD/Contratos";
 import { getEnvelopeDocGenFormFields, getEnvelopeDocumentTabs, sendEnvelope, updateEnvelopeDocGenFormFields, updateEnvelopePrefillTextTabs, updateEnvelopeRecipients, } from "../../../Services/DocusignAPI.service";
 import { formatPesosEsCO } from "../../../utils/Number";
 import type { Promocion } from "../../../models/Promociones";
 import type { Novedad } from "../../../models/Novedades";
 import type { HabeasData } from "../../../models/HabeasData";
 import type { Cesacion } from "../../../models/Cesaciones";
-import { useCesaciones } from "../../../Funcionalidades/GD/Cesaciones";
 import {DDMMYYYY, spDateToSpanishLong } from "../../../utils/Date";
 import type { Retail } from "../../../models/Retail";
 import { useRetail } from "../../../Funcionalidades/GD/Retail";
 import type { DocGenUpdateDocPayload, DocusignRecipient, UpdatePrefillTextTabPayload } from "../../../models/Docusign";
 import { formatNIT } from "../../../utils/mail";
+import { useCesaciones } from "../../../Funcionalidades/GD/Cesaciones/hooks/useCesaciones";
+import { useContratos } from "../../../Funcionalidades/GD/Contratos/hooks/useContratos";
+import { useDocusignTemplates } from "../../../Funcionalidades/GD/Docusing/Templates/hooks/useDocusingTemplates";
+import { useEnvios } from "../../../Funcionalidades/GD/Envios/hooks/useEnvios";
+import { useHabeasData } from "../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
 
 export type Proceso = "Promocion" | "Habeas" | "Nuevo" | "Cesacion" | "Retail";
 
@@ -220,15 +220,15 @@ const EnviarFormatoCard: React.FC = () => {
   const [signers, setSigners] = React.useState<DocusignRecipient[]>([]);
   const [varColaborador, setVarColaborador] = React.useState<Promocion | Novedad | HabeasData | Cesacion | Retail | null>(null);
   const [elegir, setElegir] = React.useState<boolean>(false);
-  const { templatesOptions, createdraft, getRecipients } = useDocusignTemplates();
-  const { Envios, Promociones, HabeasData, Contratos, Cesaciones, Retail } = useGraphServices();
-  const { state, setField, handleSubmit: crearRegistro } = useEnvios(Envios);
-  const { searchWorker: searchWorkerHabeas, workers: workersHabeas, workersOptions: workerOptionsHabeas,} = useHabeasData(HabeasData);
-  const { searchWorker: searchWorkerContratos, workers: workersContratos, workersOptions: workerOptionsContratos,} = useContratos(Contratos);
+  const docusignController = useDocusignTemplates();
+  const { Promociones, Retail } = useGraphServices();
+  const enviosController = useEnvios();
+  const { searchWorker: searchWorkerHabeas, workers: workersHabeas, workersOptions: workerOptionsHabeas,} = useHabeasData();
+  const contratosController = useContratos();
   const { searchWorker, workers, workersOptions, } = usePromocion(Promociones);
-  const { searchWorker: searchWorkerCesacion, workersOptions: workerOptionsCesaciones, workers: workersCesaciones } = useCesaciones(Cesaciones)
+  const cesaciones = useCesaciones()
   const { searchWorker: searchWorkerRetail, workersOptions: workerOptionsRetail, workers: workersRetail } = useRetail(Retail)
-  const plantillaSelected = templatesOptions.find((o) => o.value === templateId) ?? null;
+  const plantillaSelected = docusignController.templatesOptions.find((o) => o.value === templateId) ?? null;
 
   const vm = React.useMemo(() => {
     if (!proceso || !varColaborador) return null;
@@ -355,7 +355,7 @@ const EnviarFormatoCard: React.FC = () => {
       alert("Selecciona un formato.");
       return;
     }
-    if (!state.Cedula || !state.Receptor || !state.CorreoReceptor) {
+    if (!enviosController.state.Cedula || !enviosController.state.Receptor || !enviosController.state.CorreoReceptor) {
       alert("Por favor completa todos los campos.");
       return; 
     }
@@ -367,10 +367,10 @@ const EnviarFormatoCard: React.FC = () => {
     setLoading(true);
 
     try {
-      const draft = await createdraft(templateId);
+      const draft = await docusignController.createdraft(templateId);
       setEnvelopeId(draft.envelopeId);
 
-      const signersResp = await getRecipients(draft.envelopeId);
+      const signersResp = await docusignController.getRecipients(draft.envelopeId);
       setSigners(signersResp);
 
       const documentTabs = await getEnvelopeDocumentTabs(draft.envelopeId, "1");
@@ -406,8 +406,8 @@ const EnviarFormatoCard: React.FC = () => {
         await updateEnvelopeDocGenFormFields(draft.envelopeId, docGenPayload);
       }
 
-      setField("IdSobre", draft.envelopeId);
-      setField("Title", plantillaSelected?.label ?? "");
+      enviosController.setField("IdSobre", draft.envelopeId);
+      enviosController.setField("Title", plantillaSelected?.label ?? "");
       setSegundoPaso(true);
     } catch (err) {
       console.error(err);
@@ -435,20 +435,20 @@ const EnviarFormatoCard: React.FC = () => {
           const unico = results[0] as Promocion;
           setVarColaborador(unico);
 
-          setField("CorreoReceptor", unico.Correo ?? unico.Email ?? "");
-          setField("Receptor", unico.NombreSeleccionado ?? "");
-          setField("Fuente", "Promocion");
-          setField("Cedula", unico.NumeroDoc ?? "");
-          setField("Compa_x00f1_ia", unico.EmpresaSolicitante ?? "");
-          setField("Estado", "Enviado");
-          setField("ID_Novedad", unico.Id ?? "");
+          enviosController.setField("CorreoReceptor", unico.Correo ?? unico.Email ?? "");
+          enviosController.setField("Receptor", unico.NombreSeleccionado ?? "");
+          enviosController.setField("Fuente", "Promocion");
+          enviosController.setField("Cedula", unico.NumeroDoc ?? "");
+          enviosController.setField("Compa_x00f1_ia", unico.EmpresaSolicitante ?? "");
+          enviosController.setField("Estado", "Enviado");
+          enviosController.setField("ID_Novedad", unico.Id ?? "");
         } else {
           setElegir(true);
         }
         break;
 
       case "Cesacion":
-        results = await searchWorkerCesacion(query);
+        results = await cesaciones.searchWorker(query);
         cantidad = results.length;
 
         if (cantidad === 0) {
@@ -457,13 +457,13 @@ const EnviarFormatoCard: React.FC = () => {
           const unico = results[0] as Cesacion;
           setVarColaborador(unico);
 
-          setField("CorreoReceptor", unico.Correoelectronico ?? "");
-          setField("Receptor", unico.Nombre ?? "");
-          setField("Fuente", "Cesación");
-          setField("Cedula", unico.Title ?? "");
-          setField("Compa_x00f1_ia", unico.Empresaalaquepertenece ?? "");
-          setField("Estado", "Enviado");
-          setField("ID_Novedad", unico.Id ?? "");
+          enviosController.setField("CorreoReceptor", unico.Correoelectronico ?? "");
+          enviosController.setField("Receptor", unico.Nombre ?? "");
+          enviosController.setField("Fuente", "Cesación");
+          enviosController.setField("Cedula", unico.Title ?? "");
+          enviosController.setField("Compa_x00f1_ia", unico.Empresaalaquepertenece ?? "");
+          enviosController.setField("Estado", "Enviado");
+          enviosController.setField("ID_Novedad", unico.Id ?? "");
         } else {
           setElegir(true);
         }
@@ -479,20 +479,20 @@ const EnviarFormatoCard: React.FC = () => {
           const unico = results[0] as HabeasData;
           setVarColaborador(unico);
 
-          setField("CorreoReceptor", unico.Correo ?? "");
-          setField("Receptor", unico.Title ?? "");
-          setField("Fuente", "Habeas");
-          setField("Cedula", unico.NumeroDocumento ?? "");
-          setField("Compa_x00f1_ia", unico.Empresa ?? "");
-          setField("Estado", "Enviado");
-          setField("ID_Novedad", unico.Id ?? "");
+          enviosController.setField("CorreoReceptor", unico.Correo ?? "");
+          enviosController.setField("Receptor", unico.Title ?? "");
+          enviosController.setField("Fuente", "Habeas");
+          enviosController.setField("Cedula", unico.NumeroDocumento ?? "");
+          enviosController.setField("Compa_x00f1_ia", unico.Empresa ?? "");
+          enviosController.setField("Estado", "Enviado");
+          enviosController.setField("ID_Novedad", unico.Id ?? "");
         } else {
           setElegir(true);
         }
         break;
 
       case "Nuevo":
-        results = await searchWorkerContratos(query);
+        results = await contratosController.searchWorker(query);
         cantidad = results.length;
 
         if (cantidad === 0) {
@@ -501,13 +501,13 @@ const EnviarFormatoCard: React.FC = () => {
           const unico = results[0] as Novedad;
           setVarColaborador(unico);
 
-          setField("CorreoReceptor", unico.CORREO_x0020_ELECTRONICO_x0020_ ?? "");
-          setField("Receptor", unico.NombreSeleccionado ?? "");
-          setField("Fuente", "Novedades");
-          setField("Cedula", unico.Numero_x0020_identificaci_x00f3_ ?? "");
-          setField("Compa_x00f1_ia", unico.Empresa_x0020_que_x0020_solicita ?? "");
-          setField("Estado", "Enviado");
-          setField("ID_Novedad", unico.Id ?? "");
+          enviosController.setField("CorreoReceptor", unico.CORREO_x0020_ELECTRONICO_x0020_ ?? "");
+          enviosController.setField("Receptor", unico.NombreSeleccionado ?? "");
+          enviosController.setField("Fuente", "Novedades");
+          enviosController.setField("Cedula", unico.Numero_x0020_identificaci_x00f3_ ?? "");
+          enviosController.setField("Compa_x00f1_ia", unico.Empresa_x0020_que_x0020_solicita ?? "");
+          enviosController.setField("Estado", "Enviado");
+          enviosController.setField("ID_Novedad", unico.Id ?? "");
         } else {
           setElegir(true);
         }
@@ -523,13 +523,13 @@ const EnviarFormatoCard: React.FC = () => {
           const unico = results[0] as Retail;
           setVarColaborador(unico);
 
-          setField("CorreoReceptor", unico.CorreoElectronico ?? "");
-          setField("Receptor", unico.Nombre ?? "");
-          setField("Fuente", "Retail");
-          setField("Cedula", unico.Title ?? "");
-          setField("Compa_x00f1_ia", unico.Empresaalaquepertenece ?? "");
-          setField("Estado", "Enviado");
-          setField("ID_Novedad", unico.Id ?? "");
+          enviosController.setField("CorreoReceptor", unico.CorreoElectronico ?? "");
+          enviosController.setField("Receptor", unico.Nombre ?? "");
+          enviosController.setField("Fuente", "Retail");
+          enviosController.setField("Cedula", unico.Title ?? "");
+          enviosController.setField("Compa_x00f1_ia", unico.Empresaalaquepertenece ?? "");
+          enviosController.setField("Estado", "Enviado");
+          enviosController.setField("ID_Novedad", unico.Id ?? "");
         } else {
           setElegir(true);
         }
@@ -547,13 +547,13 @@ const EnviarFormatoCard: React.FC = () => {
         if (!seleccionado) return;
 
         setVarColaborador(seleccionado);
-        setField("CorreoReceptor", (seleccionado.Correo ?? seleccionado.Email) ?? "");
-        setField("Receptor", seleccionado.NombreSeleccionado ?? "");
-        setField("Fuente", "Promocion");
-        setField("Cedula", seleccionado.NumeroDoc ?? "");
-        setField("Compa_x00f1_ia", seleccionado.EmpresaSolicitante ?? "");
-        setField("Estado", "Enviado");
-        setField("ID_Novedad", seleccionado.Id ?? "");
+        enviosController.setField("CorreoReceptor", (seleccionado.Correo ?? seleccionado.Email) ?? "");
+        enviosController.setField("Receptor", seleccionado.NombreSeleccionado ?? "");
+        enviosController.setField("Fuente", "Promocion");
+        enviosController.setField("Cedula", seleccionado.NumeroDoc ?? "");
+        enviosController.setField("Compa_x00f1_ia", seleccionado.EmpresaSolicitante ?? "");
+        enviosController.setField("Estado", "Enviado");
+        enviosController.setField("ID_Novedad", seleccionado.Id ?? "");
         setElegir(false);
         break;
       }
@@ -563,44 +563,44 @@ const EnviarFormatoCard: React.FC = () => {
         if (!seleccionado) return;
 
         setVarColaborador(seleccionado);
-        setField("CorreoReceptor", seleccionado.Correo ?? "");
-        setField("Receptor", seleccionado.Title ?? "");
-        setField("Fuente", "Habeas");
-        setField("Cedula", seleccionado.NumeroDocumento ?? "");
-        setField("Compa_x00f1_ia", seleccionado.Empresa ?? "");
-        setField("Estado", "Enviado");
-        setField("ID_Novedad", seleccionado.Id ?? "");
+        enviosController.setField("CorreoReceptor", seleccionado.Correo ?? "");
+        enviosController.setField("Receptor", seleccionado.Title ?? "");
+        enviosController.setField("Fuente", "Habeas");
+        enviosController.setField("Cedula", seleccionado.NumeroDocumento ?? "");
+        enviosController.setField("Compa_x00f1_ia", seleccionado.Empresa ?? "");
+        enviosController.setField("Estado", "Enviado");
+        enviosController.setField("ID_Novedad", seleccionado.Id ?? "");
         setElegir(false);
         break;
       }
 
       case "Nuevo": {
-        const seleccionado = workersContratos.find((w: any) => w.Id === selectedId) as Novedad | undefined;
+        const seleccionado = contratosController.workers.find((w: any) => w.Id === selectedId) as Novedad | undefined;
         if (!seleccionado) return;
 
         setVarColaborador(seleccionado);
-        setField("CorreoReceptor", seleccionado.CORREO_x0020_ELECTRONICO_x0020_ ?? "");
-        setField("Receptor", seleccionado.NombreSeleccionado ?? "");
-        setField("Fuente", "Novedades");
-        setField("Cedula", seleccionado.Numero_x0020_identificaci_x00f3_ ?? "");
-        setField("Compa_x00f1_ia", seleccionado.Empresa_x0020_que_x0020_solicita ?? "");
-        setField("Estado", "Enviado");
-        setField("ID_Novedad", seleccionado.Id ?? "");
+        enviosController.setField("CorreoReceptor", seleccionado.CORREO_x0020_ELECTRONICO_x0020_ ?? "");
+        enviosController.setField("Receptor", seleccionado.NombreSeleccionado ?? "");
+        enviosController.setField("Fuente", "Novedades");
+        enviosController.setField("Cedula", seleccionado.Numero_x0020_identificaci_x00f3_ ?? "");
+        enviosController.setField("Compa_x00f1_ia", seleccionado.Empresa_x0020_que_x0020_solicita ?? "");
+        enviosController.setField("Estado", "Enviado");
+        enviosController.setField("ID_Novedad", seleccionado.Id ?? "");
         setElegir(false);
         break;
       }
       case "Cesacion": {
-        const seleccionado = workersCesaciones.find((w: any) => w.Id === selectedId) as Cesacion | undefined;
+        const seleccionado = cesaciones.workersOptions.find((w: any) => w.Id === selectedId) as Cesacion | undefined;
         if (!seleccionado) return;
 
         setVarColaborador(seleccionado);
-        setField("CorreoReceptor", seleccionado.Correoelectronico ?? "");
-        setField("Receptor", seleccionado.Nombre ?? "");
-        setField("Fuente", "Cesacion");
-        setField("Cedula", seleccionado.Title ?? "");
-        setField("Compa_x00f1_ia", seleccionado.Empresaalaquepertenece ?? "");
-        setField("Estado", "Enviado");
-        setField("ID_Novedad", seleccionado.Id ?? "");
+        enviosController.setField("CorreoReceptor", seleccionado.Correoelectronico ?? "");
+        enviosController.setField("Receptor", seleccionado.Nombre ?? "");
+        enviosController.setField("Fuente", "Cesacion");
+        enviosController.setField("Cedula", seleccionado.Title ?? "");
+        enviosController.setField("Compa_x00f1_ia", seleccionado.Empresaalaquepertenece ?? "");
+        enviosController.setField("Estado", "Enviado");
+        enviosController.setField("ID_Novedad", seleccionado.Id ?? "");
         setElegir(false);
       break;
       }
@@ -609,13 +609,13 @@ const EnviarFormatoCard: React.FC = () => {
           if (!seleccionado) return;
 
           setVarColaborador(seleccionado);
-          setField("CorreoReceptor", seleccionado.CorreoElectronico ?? "");
-          setField("Receptor", seleccionado.Nombre ?? "");
-          setField("Fuente", "Retail");
-          setField("Cedula", seleccionado.Title ?? "");
-          setField("Compa_x00f1_ia", seleccionado.Empresaalaquepertenece ?? "");
-          setField("Estado", "Enviado");
-          setField("ID_Novedad", seleccionado.Id ?? "");
+          enviosController.setField("CorreoReceptor", seleccionado.CorreoElectronico ?? "");
+          enviosController.setField("Receptor", seleccionado.Nombre ?? "");
+          enviosController.setField("Fuente", "Retail");
+          enviosController.setField("Cedula", seleccionado.Title ?? "");
+          enviosController.setField("Compa_x00f1_ia", seleccionado.Empresaalaquepertenece ?? "");
+          enviosController.setField("Estado", "Enviado");
+          enviosController.setField("ID_Novedad", seleccionado.Id ?? "");
           setElegir(false);
         break;
       }
@@ -629,9 +629,9 @@ const EnviarFormatoCard: React.FC = () => {
   const handleSendEnvolope = async () => {
     try {
       const recipients = await updateEnvelopeRecipients(envelopeId, { signers });
-      setField("Recipients", JSON.stringify(recipients.signers));
+      enviosController.setField("Recipients", JSON.stringify(recipients.signers));
       await sendEnvelope(envelopeId);
-      crearRegistro();
+      enviosController.handleSubmit();
       alert("Se ha enviado con exito el sobre");
     } catch (err) {
       console.error(err);
@@ -660,17 +660,17 @@ const EnviarFormatoCard: React.FC = () => {
 
           <div className="ef-field">
             <label className="ef-label" htmlFor="cedula"> Cédula del receptor </label>
-            <input id="cedula" type="number" className="ef-input" disabled={disabled} value={state.Cedula} onBlur={(e) => handleLookWorker(e.target.value)} onChange={(e) => setField("Cedula", e.target.value)}/>
+            <input id="cedula" type="number" className="ef-input" disabled={disabled} value={enviosController.state.Cedula} onBlur={(e) => handleLookWorker(e.target.value)} onChange={(e) => enviosController.setField("Cedula", e.target.value)}/>
           </div>
 
           <div className="ef-field">
             <label className="ef-label" htmlFor="nombre"> Nombre del receptor </label>
-            <input id="nombre" type="text" className="ef-input" disabled={disabled} value={state.Receptor} onChange={(e) => setField("Receptor", e.target.value)}/>
+            <input id="nombre" type="text" className="ef-input" disabled={disabled} value={enviosController.state.Receptor} onChange={(e) => enviosController.setField("Receptor", e.target.value)}/>
           </div>
 
           <div className="ef-field">
             <label className="ef-label" htmlFor="correo"> Correo del receptor </label>
-            <input id="correo" type="email" className="ef-input" disabled={disabled} value={state.CorreoReceptor} onChange={(e) => setField("CorreoReceptor", e.target.value)}/>
+            <input id="correo" type="email" className="ef-input" disabled={disabled} value={enviosController.state.CorreoReceptor} onChange={(e) => enviosController.setField("CorreoReceptor", e.target.value)}/>
           </div>
 
           <div className="ef-field">
@@ -679,11 +679,11 @@ const EnviarFormatoCard: React.FC = () => {
                                                                                                                     const newTemplateId = e.target.value;
                                                                                                                     setTemplateId(newTemplateId);
 
-                                                                                                                    const sel = templatesOptions.find((o) => o.value === newTemplateId);
-                                                                                                                    setField("Title", sel?.label ?? "");
+                                                                                                                    const sel = docusignController.templatesOptions.find((o) => o.value === newTemplateId);
+                                                                                                                    enviosController.setField("Title", sel?.label ?? "");
                                                                                                                   }}>
               <option value="">Selecciona un formato</option>
-              {templatesOptions.map((opt) => (
+              {docusignController.templatesOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
@@ -702,13 +702,13 @@ const EnviarFormatoCard: React.FC = () => {
       <ElegirColaboradorModal open={elegir} onClose={() => setElegir(false)} onConfirm={handleConfirmWorker} options={
                                                                                                               proceso === "Promocion" ? workersOptions
                                                                                                                 : proceso === "Habeas"? workerOptionsHabeas
-                                                                                                                : proceso === "Nuevo" ? workerOptionsContratos
-                                                                                                                : proceso === "Cesacion" ? workerOptionsCesaciones
+                                                                                                                : proceso === "Nuevo" ? contratosController.workersOptions
+                                                                                                                : proceso === "Cesacion" ? cesaciones.workersOptions
                                                                                                                 : proceso === "Retail" ? workerOptionsRetail:
                                                                                                                 workersOptions
                                                                                                             }/>
 
-      <SignersModal open={segundoPaso} signers={signers} onClose={() => setSegundoPaso(false)} onChangeSigner={handleChangeSigner} onSave={handleSendEnvolope} vm={vm} vmEmail={state.CorreoReceptor ?? ""}/>
+      <SignersModal open={segundoPaso} signers={signers} onClose={() => setSegundoPaso(false)} onChangeSigner={handleChangeSigner} onSave={handleSendEnvolope} vm={vm} vmEmail={enviosController.state.CorreoReceptor ?? ""}/>
     </div>
   );
 };

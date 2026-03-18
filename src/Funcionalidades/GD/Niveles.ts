@@ -94,4 +94,3 @@ export function useAutomaticCargo(nivelSvc: CategoriaCargosService) {
      applyRange, reloadAll, setField, handleSubmit, handleEdit, loadSpecificLevel, loadAll, setState
   };
 }
-

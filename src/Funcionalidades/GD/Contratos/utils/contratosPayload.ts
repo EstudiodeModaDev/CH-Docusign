@@ -16,5 +16,8 @@ export function contratosPayload(state: Novedad): Novedad {
     FECHA_x0020_HASTA_x0020_PARA_x00: toGraphDateTime(state.FECHA_x0020_HASTA_x0020_PARA_x00) ?? null,
     FECHA_x0020_REQUERIDA_x0020_PARA0: toGraphDateTime(state.FECHA_x0020_REQUERIDA_x0020_PARA0) ?? null,
     FECHA_x0020_REQUERIDA_x0020_PARA: toGraphDateTime(state.FECHA_x0020_REQUERIDA_x0020_PARA) ?? null,
+    SALARIO: String(state.SALARIO),
+    Auxilio_x0020_de_x0020_rodamient: String(state.Auxilio_x0020_de_x0020_rodamient),
+    
   };
 }

@@ -90,8 +90,9 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
   const { loadDetallesCesacion, handleCreateAllSteps, calcPorcentaje, loading: loadingDetalles, rows: rowsDetalles, error: errorDetalles,} = useDetallesPasosCesacion(DetallesPasosCesacion, selectedCesacion?.Id)
   const { engine } = usePermissions();
 
-  const showCargos = React.useMemo(() => new Set<string>(["31", "42", "9", "33"]), []);
+  const showCargos = React.useMemo(() => new Set<string>(["31", "42", "9", "33", "793"]), []);
   const filteredCargoOptions = React.useMemo(() => cargoOptions.filter(o => showCargos.has(String(o.value))), [cargoOptions, showCargos]);
+  console.log(filteredCargoOptions)
 
   const canEditRegister = React.useMemo(() => {
     const requiredPermission = "cesaciones.edit";

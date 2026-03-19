@@ -75,7 +75,7 @@ export function useContratos() {
   };
 
   const searchWorker = async (query: string): Promise<Novedad[]> => {
-    const resp = await graph.Contratos.getAll({filter: `fields/Title eq '${query}'`, top: 200,});
+    const resp = await graph.Contratos.getAll({filter: `fields/Numero_x0020_identificaci_x00f3_ eq '${query}'`, top: 200,});
 
     const foundWorkers = resp.items ?? [];
     setWorkers(foundWorkers);

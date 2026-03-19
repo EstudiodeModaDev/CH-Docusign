@@ -12,7 +12,7 @@ import { buildContratosPatch } from "../utils/contratosPatch";
 export function useContratos() {
   const { account } = useAuth();
   const graph = useGraphServices()
-  const formController = useContratosForm()
+  const formController = useContratosForm(account?.name ?? "")
   const registerController = useContratosTable(graph.Contratos, account?.username)
   const [workers, setWorkers] = React.useState<Novedad[]>([]);
   const [workersOptions, setWorkersOptions] = React.useState<rsOption[]>([]);

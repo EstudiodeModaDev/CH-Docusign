@@ -3,7 +3,7 @@ import { createEmptyContratos } from "../utils/contratosState";
 import type { Novedad, NovedadErrors } from "../../../../models/Novedades";
 import { validateContrato } from "../utils/contratosValidation";
 
-export function useContratosForm(reportadoPor?: string) {
+export function useContratosForm(reportadoPor: string) {
   const [state, setState] = React.useState<Novedad>(() => createEmptyContratos(reportadoPor ?? ""));
   const [errors, setErrors] = React.useState<NovedadErrors>({});
 

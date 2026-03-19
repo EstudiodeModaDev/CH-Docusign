@@ -3,7 +3,7 @@ import { validateCesacion } from "../utils/cesacionValidation";
 import { createEmptyCesacion } from "../utils/cesacionesState";
 import type { Cesacion, CesacionErrors } from "../../../../models/Cesaciones";
 
-export function useCesacionForm(reportadoPor?: string) {
+export function useCesacionForm(reportadoPor: string) {
   const [state, setState] = React.useState<Cesacion>(() => createEmptyCesacion(reportadoPor ?? ""));
   const [errors, setErrors] = React.useState<CesacionErrors>({});
 

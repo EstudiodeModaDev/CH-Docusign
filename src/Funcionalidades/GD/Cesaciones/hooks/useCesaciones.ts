@@ -12,7 +12,7 @@ import { convertCommonToOptions, convertToCommonDTO } from "../../../Common/pars
 export function useCesaciones() {
   const { account } = useAuth();
   const graph = useGraphServices()
-  const formController = useCesacionForm()
+  const formController = useCesacionForm(account?.username ?? "")
   const registerController = useCesacionesTable(graph.Cesaciones, account?.username)
   const [workers, setWorkers] = React.useState<Cesacion[]>([]);
   const [workersOptions, setWorkersOptions] = React.useState<rsOption[]>([]);

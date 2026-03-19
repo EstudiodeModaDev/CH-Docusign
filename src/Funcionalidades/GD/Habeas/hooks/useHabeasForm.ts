@@ -3,7 +3,7 @@ import { createEmptyHabeas } from "../utils/habeasState";
 import type { HabeasData, HabeasErrors } from "../../../../models/HabeasData";
 import { validateHabeas } from "../utils/habeasValidation";
 
-export function useHabeasForm(reportadoPor?: string) {
+export function useHabeasForm(reportadoPor: string) {
   const [state, setState] = React.useState<HabeasData>(() => createEmptyHabeas(reportadoPor ?? ""));
   const [errors, setErrors] = React.useState<HabeasErrors>({});
 

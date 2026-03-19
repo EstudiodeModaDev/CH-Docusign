@@ -13,7 +13,7 @@ import { compareHabeas } from "../utils/habeasSorts";
 export function useHabeasData() {
   const graph = useGraphServices()
   const auth = useAuth()
-  const formController = useHabeasForm()
+  const formController = useHabeasForm(auth.account?.name ?? "")
   const actionsController = useHabeasActions()
   const paginationController = useHabeasPagintation(graph)
   const listController = useHabeasList(paginationController.pageSize, auth.account?.name ?? "")

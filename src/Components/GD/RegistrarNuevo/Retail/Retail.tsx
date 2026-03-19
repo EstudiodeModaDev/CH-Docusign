@@ -197,8 +197,8 @@ export default function RetailTabla({deleteRetail, dependenciaOptions, loadingDe
               Nombre {renderSortIndicator('Nombre', sorts)}
             </th>
 
-            <th role="button" tabIndex={0} onClick={(e) => toggleSort('Temporal', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Temporal', e.shiftKey); }} aria-label="Ordenar por Temporal" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-              Temporal {renderSortIndicator('Temporal', sorts)}
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort('cargp', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('cargo', e.shiftKey); }} aria-label="Ordenar por Temporal" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              Cargo {renderSortIndicator('cargo', sorts)}
             </th>
 
             <th role="button" tabIndex={0} onClick={(e) => toggleSort('Tienda', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('Tienda', e.shiftKey); }} aria-label="Ordenar por Tienda" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -207,6 +207,10 @@ export default function RetailTabla({deleteRetail, dependenciaOptions, loadingDe
 
             <th role="button" tabIndex={0} onClick={(e) => toggleSort('inicio', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('inicio', e.shiftKey); }} aria-label="Ordenar por ingreso" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
               Fecha Ingreso {renderSortIndicator('inicio', sorts)}
+            </th>
+
+            <th role="button" tabIndex={0} aria-label="Ordenar por ingreso" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              Información repartada por
             </th>
 
             <th style={{ textAlign: "center" }}>%</th>
@@ -219,9 +223,10 @@ export default function RetailTabla({deleteRetail, dependenciaOptions, loadingDe
             <tr key={n.Id} tabIndex={0} onClick={() => openRow(n)} onKeyDown={(e) => onRowKeyDown(e, n)}>
               <td>{n.Title}</td>
               <td><span title={n.Nombre}>{n.Nombre}</span></td>
-              <td><span title={n.Temporal}>{n.Temporal}</span></td>
+              <td><span title={n.Cargo}>{n.Cargo}</span></td>
               <td><span title={n.CentroCostos}>{n.CentroCostos}</span></td>
               <td>{toISODateFlex(n.FechaIngreso) || "–"}</td>
+              <td><span title={n.InformacionEnviadaPor}>{n.InformacionEnviadaPor}</span></td>
               <td style={{ textAlign: "center" }}>
                 {(() => {
                   const id = String(n.Id ?? "");

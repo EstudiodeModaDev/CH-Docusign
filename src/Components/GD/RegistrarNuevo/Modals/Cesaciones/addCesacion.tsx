@@ -184,7 +184,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
       nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();
     } else if (valor > dosSalarios) {
       nextValor = 48961;
-      nextTexto = "Cuarenta y seis mil ciento noventa pesos";
+      nextTexto = "Cuarenta y ocho mil novecientos secenta y un pesos";
     }
 
     

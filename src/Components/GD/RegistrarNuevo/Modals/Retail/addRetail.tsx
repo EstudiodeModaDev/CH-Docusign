@@ -248,15 +248,15 @@ export default function FormRetail({
   React.useEffect(() => {
     const dosSalarios = Number(minimo)*2;
     const valor = Number(state.Salario || 0);
-    const cargo = (state.Cargo || "").toLowerCase();
+    
     let nextValor = 0;
     let nextTexto = "";
     if (valor <= dosSalarios) {
       nextValor = Number(auxTransporte);
       nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();
-    } else if (valor > dosSalarios || cargo.toLocaleLowerCase().includes("aprendiz") || cargo.toLocaleLowerCase().includes("practicante")) {
-      nextValor = 46150;
-      nextTexto = "Cuarenta y seis mil ciento noventa pesos";
+    } else if (valor > dosSalarios) {
+      nextValor = 48961;
+      nextTexto = "Cuarenta y ocho mil novecientos secenta y un pesos"
     }
  
     // Solo actualiza si cambia (evita loops)

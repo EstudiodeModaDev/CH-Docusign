@@ -225,7 +225,6 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
   React.useEffect(() => {
     const dosSalarios = minimo*2;
     const valor = Number(state.SALARIO || 0);
-    const cargo = (state.CARGO || "").toLowerCase();
 
     let nextValor = 0;
     let nextTexto = "";
@@ -233,13 +232,10 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
     if (valor <= dosSalarios) {
       nextValor = auxTransporte;
       nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();;
-    } else if (valor > dosSalarios || cargo.includes("aprendiz") || cargo.includes("practicante")) {
-      nextValor = 46150;
-      nextTexto = "Cuarenta y seis mil ciento noventa pesos";
-    } else if(valor > dosSalarios || state.CARGO.toLocaleLowerCase().includes("aprendiz") || state.CARGO.toLocaleLowerCase().includes("practicante")){
-      setConectividad(46150)
-      setConectividadTexto("Cuarenta y seis mil ciento noventa pesos")
-    }
+    } else if (valor > dosSalarios) {
+      nextValor = 48961;
+      nextTexto = "Cuarenta y ocho mil novecientos secenta y un pesos"
+    } 
  
     // Solo actualiza si cambia (evita loops)
     if (String(state.auxconectividadvalor ?? "") !== String(nextValor)) {

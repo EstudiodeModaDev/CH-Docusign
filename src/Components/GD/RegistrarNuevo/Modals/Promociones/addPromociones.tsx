@@ -211,7 +211,6 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
   React.useEffect(() => {
     const dosSalarios = minimo*2;
     const valor = Number(state.Salario || 0);
-    const cargo = (state.Cargo || "").toLowerCase();
 
     let nextValor = 0;
     let nextTexto = "";
@@ -219,14 +218,10 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
     if (valor <= dosSalarios) {
       nextValor = auxTransporte;
       nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();;
-    } else if (valor > dosSalarios || cargo.includes("aprendiz") || cargo.includes("practicante")) {
-      nextValor = 46150;
-      nextTexto = "Cuarenta y seis mil ciento noventa pesos";
-    } else if(valor > dosSalarios || state.Cargo.toLocaleLowerCase().includes("aprendiz") || state.Cargo.toLocaleLowerCase().includes("practicante")){
-      setConectividad(46150)
-      setConectividadTexto("Cuarenta y seis mil ciento noventa pesos")
-    }
- 
+    } else if (valor > dosSalarios) {
+      nextValor = 48961;
+      nextTexto = "Cuarenta y ocho mil novecientos secenta y un pesos"
+    } 
     // Solo actualiza si cambia (evita loops)
     if (String(state.AuxilioValor ?? "") !== String(nextValor)) {
       setField("AuxilioValor", String(nextValor));

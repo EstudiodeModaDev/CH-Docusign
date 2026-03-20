@@ -1,25 +1,15 @@
-// src/utils/exportExcel.ts
-import * as XLSX from "xlsx";
+import type { Cesacion } from "../../models/Cesaciones";
+import type { Envio } from "../../models/Envios";
+import type { HabeasData } from "../../models/HabeasData";
+import type { Novedad } from "../../models/Novedades";
+import type { Promocion } from "../../models/Promociones";
+import type { Retail } from "../../models/Retail";
+import { computePctById, type GetAllSvc, type PasoLike } from "../completation";
+import { toISODateFlex } from "../Date";
+import { formatPesosEsCO } from "../Number";
 
-import type { Envio } from "../models/Envios";
-import type { Novedad } from "../models/Novedades";
-import type { Promocion } from "../models/Promociones";
-import type { HabeasData } from "../models/HabeasData";
-import type { Cesacion } from "../models/Cesaciones";
-import type { Retail } from "../models/Retail";
-
-import { toISODateFlex } from "./Date";
-import { formatPesosEsCO, } from "./Number";
-import { computePctById, type GetAllSvc, type PasoLike } from "./completation";
-
-/* ============================================================================
-   EXPORTS SIN % (SYNC)
-   - Envios
-   - HabeasData
-   ============================================================================ */
-
-export function exportEnviosToExcel(rows: Envio[], opts?: { fileName?: string }) {
-  const data = rows.map((row) => ({
+export function buildEnviosData(rows: Envio[]) {
+  return rows.map((row) => ({
     "Documento enviado": row.Title ?? "N/A",
     Destinatario: row.Receptor ?? "N/A",
     "Correo Receptor": row.CorreoReceptor ?? "N/A",
@@ -32,21 +22,16 @@ export function exportEnviosToExcel(rows: Envio[], opts?: { fileName?: string })
       row.Estado === "Sent"
         ? "Enviado"
         : row.Estado === "Completed"
-          ? "Completado"
-          : row.Estado === "Declined"
-            ? "Rechazado"
-            : row.Estado ?? "N/A",
+        ? "Completado"
+        : row.Estado === "Declined"
+        ? "Rechazado"
+        : row.Estado ?? "N/A",
   }));
-
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Envios");
-
-  XLSX.writeFile(wb, opts?.fileName ?? "ReporteEnvios.xlsx");
 }
 
-export function exportHabeasToExcel(rows: HabeasData[], opts?: { fileName?: string }) {
-  const data = rows.map((row) => ({
+export function buildHabeasData(rows: HabeasData[],) {
+
+  return rows.map((row) => ({
     "Información enviada por": row.Informacionreportadapor ?? "N/A",
     "Fecha en la que se reportó": toISODateFlex(row.Fechaenlaquesereporta) ?? "N/A",
     "Tipo de documento": row.Tipodoc ?? "N/A",
@@ -56,31 +41,13 @@ export function exportHabeasToExcel(rows: HabeasData[], opts?: { fileName?: stri
     "Correo electrónico del seleccionado": row.Correo ?? "N/A",
     Ciudad: row.Ciudad ?? "N/A",
   }));
-
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "HabeasData");
-
-  XLSX.writeFile(wb, opts?.fileName ?? "ReporteHabeasData.xlsx");
 }
 
-/* ============================================================================
-   EXPORTS CON % COMPLETACIÓN (ASYNC)
-   - Novedades
-   - Promociones
-   - Cesaciones
-   - Retail
-   ============================================================================ */
-
-export async function exportNovedadesToExcel(
-  rows: Novedad[],
-  detallesPasosNovedadSvc: GetAllSvc<PasoLike>,
-  opts?: { fileName?: string }
-) {
+export async function buildNovedadesData(rows: Novedad[], detallesPasosNovedadSvc: GetAllSvc<PasoLike>) {
   const ids = rows.map((r) => String(r.Id ?? "")).filter(Boolean);
   const pctById = await computePctById(ids, detallesPasosNovedadSvc, { concurrency: 10 });
 
-  const data = rows.map((row) => {
+  return rows.map((row) => {
     const id = String(row.Id ?? "");
     const pct = pctById[id];
 
@@ -95,7 +62,8 @@ export async function exportNovedadesToExcel(
       "Celular del seleccionado": row.CELULAR_x0020_ ?? "N/A",
       Dirección: row.DIRECCION_x0020_DE_x0020_DOMICIL ?? "N/A",
       Barrio: row.BARRIO_x0020_ ?? "N/A",
-      "Fecha requerida para el ingreso": toISODateFlex(row.FECHA_x0020_REQUERIDA_x0020_PARA0) ?? "N/A",
+      "Fecha requerida para el ingreso":
+        toISODateFlex(row.FECHA_x0020_REQUERIDA_x0020_PARA0) ?? "N/A",
       "Empresa solicitante": row.Empresa_x0020_que_x0020_solicita ?? "N/A",
       Ciudad: row.CIUDAD ?? "N/A",
       Cargo: row.CARGO ?? "N/A",
@@ -103,66 +71,17 @@ export async function exportNovedadesToExcel(
       "Nivel de cargo": row.NIVEL_x0020_DE_x0020_CARGO ?? "N/A",
       "¿Cargo crítico?": row.CARGO_x0020_CRITICO ?? "N/A",
       Dependencia: row.DEPENDENCIA_x0020_ ?? "N/A",
-      "Centro de costos":
-        (row.CODIGO_x0020_CENTRO_x0020_DE_x00 ?? "N/A") +
-        " - " +
-        (row.DESCRIPCION_x0020_DE_x0020_CENTR ?? "N/A"),
-      "Centro operativo":
-        (row.CENTRO_x0020_OPERATIVO_x0020_ ?? "N/A") +
-        " - " +
-        (row.DESCRIPCION_x0020_CENTRO_x0020_O ?? "N/A"),
-      "Unidad de negocio":
-        (row.ID_x0020_UNIDAD_x0020_DE_x0020_N ?? "N/A") +
-        " - " +
-        (row.UNIDAD_x0020_DE_x0020_NEGOCIO_x0 ?? "N/A"),
-      "Personas a cargo": row.PERSONAS_x0020_A_x0020_CARGO ?? "N/A",
-      Temporal: row.TEMPORAL ?? "N/A",
-      "Origen de la selección": row.ORIGEN_x0020_DE_x0020_LA_x0020_S ?? "N/A",
-      "Tipo de trabajo": row.MODALIDAD_x0020_TELETRABAJO ?? "N/A",
-      "Tipo de vacante": row.TIPO_x0020_DE_x0020_VACANTE_x002 ?? "N/A",
-      "Tipo de contrato": row.TIPO_x0020_DE_x0020_CONTRATO ?? "N/A",
-      "Fecha de ajuste académico": toISODateFlex(row.FECHA_x0020_DE_x0020_AJUSTE_x002) ?? "N/A",
-      "Fecha de entrega de valoración de potencial":
-        toISODateFlex(row.FECHA_x0020_DE_x0020_ENTREGA_x00) ?? "N/A",
-      Salario: row.SALARIO ? formatPesosEsCO(row.SALARIO) : "N/A",
-      "Salario en letras": row.salariotexto ?? "N/A",
-      "Tiene garantizado": row.GARANTIZADO_x0020__x0020__x00bf_ ?? "N/A",
-      "Valor garantizado": row.VALOR_x0020_GARANTIZADO ? formatPesosEsCO(row.VALOR_x0020_GARANTIZADO) : "N/A",
-      "Garantizado en letras": row.Garantizado_x0020_en_x0020_letra ?? "N/A",
-      "Auxilio de conectividad": row.auxconectividadvalor ?? "N/A",
-      "Auxilio de conectividad en letras": row.auxconectividadtexto ?? "N/A",
-      "Auxilio de rodamiento": row.Auxilio_x0020_de_x0020_rodamient ?? "N/A",
-      "Auxilio de rodamiento en letras": row.Auxilio_x0020_de_x0020_rodamient0 ?? "N/A",
-      "¿Pertenece al modelo?": row.Pertenecealmodelo ? "Sí" : "No",
-      "Presupuesto ventas/Magnitud económica": row.PRESUPUESTO_x0020_VENTAS_x002f_M ?? "N/A",
-      Autonomía: row.AUTONOM_x00cd_A_x0020_ ?? "N/A",
-      "Impacto cliente externo": row.IMPACTO_x0020_CLIENTE_x0020_EXTE ?? "N/A",
-      "Contribución a la estrategia": row.CONTRIBUCION_x0020_A_x0020_LA_x0 ?? "N/A",
-      Promedio: row.Pertenecealmodelo ? (row.PROMEDIO_x0020_ ?? "N/A") : "N/A",
-      "Grupo CVE": row.GRUPO_x0020_CVE_x0020_ ?? "N/A",
-      "Herramienta que posee el colaborador": row.HERRAMIENTAS_x0020_QUE_x0020_POS ?? "N/A",
-      "Se debe hacer cargue de nuevo equipo de trabajo": row.SE_x0020_DEBE_x0020_HACER_x0020_ ?? "N/A",
-      Estado: row.Estado,
+      Estado: row.Estado ?? "N/A",
       "% Completación": pct === undefined ? "N/A" : `${pct.toFixed(2)}%`,
     };
   });
-
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "NovedadesAdministrativas");
-
-  XLSX.writeFile(wb, opts?.fileName ?? "ReporteNovedadesAdministrativas.xlsx");
 }
 
-export async function exportPromocionesToExcel(
-  rows: Promocion[],
-  detallesPasosPromocionSvc: GetAllSvc<PasoLike>,
-  opts?: { fileName?: string }
-) {
+export async function buildPromocionesData(rows: Promocion[], detallesPasosPromocionSvc: GetAllSvc<PasoLike>,) {
   const ids = rows.map((r) => String(r.Id ?? "")).filter(Boolean);
   const pctById = await computePctById(ids, detallesPasosPromocionSvc, { concurrency: 10 });
 
-  const data = rows.map((row) => {
+  return rows.map((row) => {
     const id = String(row.Id ?? "");
     const pct = pctById[id];
 
@@ -212,23 +131,13 @@ export async function exportPromocionesToExcel(
       "% Completación": pct === undefined ? "N/A" : `${pct.toFixed(2)}%`,
     };
   });
-
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Promociones");
-
-  XLSX.writeFile(wb, opts?.fileName ?? "ReportePromociones.xlsx");
 }
 
-export async function exportCesacionesToExcel(
-  rows: Cesacion[],
-  detallesPasosCesacionSvc: GetAllSvc<PasoLike>,
-  opts?: { fileName?: string }
-) {
+export async function buildCesacionesData(rows: Cesacion[], detallesPasosPromocionSvc: GetAllSvc<PasoLike>,) {
   const ids = rows.map((r) => String(r.Id ?? "")).filter(Boolean);
-  const pctById = await computePctById(ids, detallesPasosCesacionSvc, { concurrency: 10 });
+  const pctById = await computePctById(ids, detallesPasosPromocionSvc, { concurrency: 10 });
 
-  const data = rows.map((row) => {
+  return rows.map((row) => {
     const id = String(row.Id ?? "");
     const pct = pctById[id];
 
@@ -257,23 +166,13 @@ export async function exportCesacionesToExcel(
       "% Completación": pct === undefined ? "N/A" : `${pct.toFixed(2)}%`,
     };
   });
-
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Cesaciones");
-
-  XLSX.writeFile(wb, opts?.fileName ?? "ReporteCesaciones.xlsx");
 }
 
-export async function exportRetailToExcel(
-  rows: Retail[],
-  detallesPasosRetailSvc: GetAllSvc<PasoLike>,
-  opts?: { fileName?: string }
-) {
+export async function buildRetailData(rows: Retail[], detallesPasosPromocionSvc: GetAllSvc<PasoLike>,) {
   const ids = rows.map((r) => String(r.Id ?? "")).filter(Boolean);
-  const pctById = await computePctById(ids, detallesPasosRetailSvc, { concurrency: 10 });
+  const pctById = await computePctById(ids, detallesPasosPromocionSvc, { concurrency: 10 });
 
-  const data = rows.map((row) => {
+  return rows.map((row) => {
     const id = String(row.Id ?? "");
     const pct = pctById[id];
 
@@ -301,10 +200,7 @@ export async function exportRetailToExcel(
       "% Completación": pct === undefined ? "N/A" : `${pct.toFixed(2)}%`,
     };
   });
-
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Retail");
-
-  XLSX.writeFile(wb, opts?.fileName ?? "ReporteRetail.xlsx");
 }
+
+
+

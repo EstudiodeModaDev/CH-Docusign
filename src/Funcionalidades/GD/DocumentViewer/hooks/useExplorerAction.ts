@@ -65,6 +65,29 @@ export function useExplorerActions({empresa, currentPath,  activeService, setPat
     }
   }, [activeService, reload]);
 
+
+  const handleDelete = React.useCallback(async (itemId: string, nombre: string) => {
+    if (!itemId) {
+      alert("No se puede eliminar");
+      return;
+    }
+
+    const ok = window.confirm("Esta seguro que desea eliminar el archivo " + nombre + " de forma permanente")
+
+    if(!ok){
+      return
+    }
+
+    try {
+      await activeService.deleteArchivoById(itemId);
+      await reload();
+      alert("Archivo eliminado correctamente");
+    } catch (e: any) {
+      console.error(e);
+      alert("Error eliminando archivo: " + e.message);
+    }
+  }, [activeService, reload]);
+
   const moveToPath = React.useCallback(async (targetPath: string, fallbackMessage: string) => {
     if (!currentPath) return;
 
@@ -106,5 +129,6 @@ export function useExplorerActions({empresa, currentPath,  activeService, setPat
     handleUploadClick,
     handleCancelProcess,
     moveCarpeta,
+    handleDelete
   };
 }

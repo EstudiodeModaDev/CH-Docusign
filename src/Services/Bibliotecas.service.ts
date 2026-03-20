@@ -338,6 +338,17 @@ class BibliotecaBaseService {
       created: moved.createdDateTime,
     };
   }
+
+  async deleteArchivoById(itemId: string): Promise<void> {
+    await this.ensureIds();
+
+    if (!itemId) {
+      throw new Error("itemId es requerido");
+    }
+
+    await this.graph.delete(`/drives/${this.driveId}/items/${itemId}`);
+  }
+
 }
 
 // =========================

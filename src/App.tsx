@@ -45,10 +45,10 @@ const SECTIONS: Section[] = [
                                                                                               <path fill="white" d="M.292 1.665L24.002 12L.293 22.336L3.94 12L.292 1.665ZM5.708 13l-2 5.665L18.999 12L3.708 5.336l2 5.664H11v2H5.708Z"/>
                                                                                             </svg>
   },
-  { id: "enviar", label: "Enviar Documentos Masivos", feature: "documents.send", element: <EnvioMasivoUI/>, icon: 
-                                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24">
-                                                                                              <path fill="white" d="M.292 1.665L24.002 12L.293 22.336L3.94 12L.292 1.665ZM5.708 13l-2 5.665L18.999 12L3.708 5.336l2 5.664H11v2H5.708Z"/>
-                                                                                            </svg>
+  { id: "masivo", label: "Enviar Documentos Masivos", feature: "documents.send", element: <EnvioMasivoUI/>, icon: 
+                                                                                                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24">
+                                                                                                        <path fill="white" d="M.292 1.665L24.002 12L.293 22.336L3.94 12L.292 1.665ZM5.708 13l-2 5.665L18.999 12L3.708 5.336l2 5.664H11v2H5.708Z"/>
+                                                                                                      </svg>
   },
   { id: "consultar",  label: "Consultar Documentos", feature: "documents.view", element: <TablaEnvios/>, icon: 
                                                                                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 21 21" fill="#000000">

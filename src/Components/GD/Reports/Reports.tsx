@@ -3,7 +3,7 @@ import "./Reports.css";
 import type { DateRange, rsOption } from "../../../models/Commons";
 import { useGraphServices } from "../../../graph/graphContext";
 import { usePromocion } from "../../../Funcionalidades/GD/Promocion";
-import { exportCesacionesToExcel, exportEnviosToExcel, exportHabeasToExcel, exportNovedadesToExcel, exportPromocionesToExcel, exportRetailToExcel } from "../../../utils/exportExcel";
+import { exportAllProcesosToExcel, exportCesacionesToExcel, exportEnviosToExcel, exportHabeasToExcel, exportNovedadesToExcel, exportPromocionesToExcel, exportRetailToExcel } from "../../../utils/ExcelActions/exportExcel";
 import { useRetail } from "../../../Funcionalidades/GD/Retail";
 import { useCesaciones } from "../../../Funcionalidades/GD/Cesaciones/hooks/useCesaciones";
 import { useContratos } from "../../../Funcionalidades/GD/Contratos/hooks/useContratos";
@@ -31,24 +31,31 @@ export const ReporteFiltros: React.FC = () => {
   const cesacionController = useCesaciones();
   const { rows: rowsRetail, loadToReport: loadRetailToReport } = useRetail(Retail);
   const { rows: rowsHabeas, loadToReport: loadHabeasToReport } = useHabeasData();
-
+  
   React.useEffect(() => {
-    if(tipo === "Envios"){
-        enviosController.loadToReport(range.from, range.to, enviadoPor, destinatario, plantilla);
-    } else if(tipo === "novedad"){
-        console.log("Novedad")
-        contratosController.loadToReport(range.from, range.to, enviadoPor, cargo, empresa, ciudad)
-    } else if(tipo === "Promociones"){
-        console.log("Promociones")
-        loadPromocionesToReport(range.from, range.to, enviadoPor, cargo, empresa)
-    } else if(tipo === "Habeas"){
-        loadHabeasToReport(range.from, range.to, enviadoPor, ciudad)
-    } else if(tipo === "cesacion"){
-        cesacionController.loadToReport(range.from, range.to, enviadoPor, ciudad)
-    } else if(tipo === "retail"){
-        loadRetailToReport(range.from, range.to, enviadoPor, cargo, empresa)
+    const { from, to } = range;
+
+    const actions: Record<Exclude<string, "all">, () => void> = {
+        Envios: () => enviosController.loadToReport(from, to, enviadoPor, destinatario, plantilla),
+
+        novedad: () => contratosController.loadToReport(from, to, enviadoPor, cargo, empresa, ciudad),
+
+        Promociones: () => loadPromocionesToReport(from, to, enviadoPor, cargo, empresa),
+
+        Habeas: () => loadHabeasToReport(from, to, enviadoPor, ciudad),
+
+        cesacion: () => cesacionController.loadToReport(from, to, enviadoPor, ciudad),
+
+        retail: () => loadRetailToReport(from, to, enviadoPor, cargo, empresa),
+    };
+
+    if (tipo === "all") {
+        Object.values(actions).forEach(action => action());
+        return;
     }
-  }, [range, enviadoPor, destinatario, cargo, ciudad, empresa, plantilla]);
+
+    actions[tipo]?.();
+    }, [tipo, range.from, range.to, enviadoPor, destinatario, cargo, ciudad, empresa, plantilla,]);
 
   const handleGenerar = () => {
     if(!range.from || !range.to){
@@ -74,6 +81,8 @@ export const ReporteFiltros: React.FC = () => {
         exportCesacionesToExcel(cesacionController.rows, DetallesPasosCesacion)
     } else if (tipo === "retail"){
         exportRetailToExcel(rowsRetail, detallesPasosRetail)
+    } else {
+        exportAllProcesosToExcel({habeas: rowsHabeas, novedades: contratosController.rows, promociones: rowsPromociones, retail: rowsRetail, cesaciones: cesacionController.rows, detallesPasosCesacionSvc: DetallesPasosCesacion, detallesPasosNovedadSvc: DetallesPasosNovedades, detallesPasosPromocionSvc: DetallesPasosPromocion, detallesPasosRetailSvc: detallesPasosRetail,})
     }
     
     setGenerando(false)
@@ -131,6 +140,7 @@ export const ReporteFiltros: React.FC = () => {
                     <option value="Habeas">Habeas Data</option>
                     <option value="cesacion">Cesaciones</option>
                     <option value="retail">Retail</option>
+                    <option value="all">Consolidado</option>
                 </select>
         </div>
 

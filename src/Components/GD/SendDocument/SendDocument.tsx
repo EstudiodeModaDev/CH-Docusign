@@ -20,6 +20,7 @@ import { toDocuSignVM, type Proceso } from "../../../Funcionalidades/GD/Docusing
 import { SignersModal } from "./SignerModal/SignerModal";
 import { pickValueFromLabel } from "../../../Funcionalidades/GD/Docusing/Templates/utils/getDocusignObject";
 import { convertToCommonDTO } from "../../../Funcionalidades/Common/parseOptions";
+import { validateFields } from "../../../Funcionalidades/GD/Docusing/Templates/utils/validateTemplate";
 
 
 export interface EnviarFormatoValues {
@@ -57,25 +58,19 @@ const EnviarFormatoCard: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent,) => {
     e.preventDefault();
+    const Cedula = enviosController.state.Cedula
+    const receptor = enviosController.state.Receptor
+    const correoReceptor = enviosController.state.CorreoReceptor
+    const canContinue = validateFields({proceso, templateId, Cedula, receptor, asunto, correoReceptor })
 
-    if (!proceso) {
-      alert("Selecciona un proceso.");
-      return;
+    if(!canContinue.ok){
+      alert(canContinue.message)
     }
-    if (!templateId) {
-      alert("Selecciona un formato.");
-      return;
-    }
-    if (!enviosController.state.Cedula || !enviosController.state.Receptor || !enviosController.state.CorreoReceptor) {
-      alert("Por favor completa todos los campos.");
-      return; 
-    }
+
     if (!varColaborador) {
       alert("No se encontró información del colaborador.");
       return;
     }
-
-    setLoading(true);
 
     try {
       const draft = await docusignController.createdraft(templateId, asunto);

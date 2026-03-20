@@ -3,10 +3,10 @@ import type { DocusignRecipient } from "../../../../../models/Docusign";
 import { getEnvelopeDocGenFormFields, getEnvelopeDocumentTabs } from "../../../../../Services/DocusignAPI.service";
 import { buildFieldHeaders, buildRoleHeaders, uniqKeepOrder } from "../utils/bulkHeader";
 
-export async function generateCsvForTemplate(args: {templateId: string; templateName?: string; createdraft: (templateId: string) => Promise<{ envelopeId: string }>; getRecipients: (envelopeId: string) => Promise<DocusignRecipient[]>;}): Promise<CsvTemplateBuild> {
+export async function generateCsvForTemplate(args: {templateId: string; templateName?: string; createdraft: (templateId: string, asunto: string) => Promise<{ envelopeId: string }>; getRecipients: (envelopeId: string) => Promise<DocusignRecipient[]>;}): Promise<CsvTemplateBuild> {
   const { templateId, createdraft, getRecipients } = args;
 
-  const draft = await createdraft(templateId);
+  const draft = await createdraft(templateId, "");
   const envelopeId = draft.envelopeId;
 
   const signers = await getRecipients(envelopeId);

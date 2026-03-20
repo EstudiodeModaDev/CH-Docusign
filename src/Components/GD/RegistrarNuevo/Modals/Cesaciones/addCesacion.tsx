@@ -175,7 +175,6 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
   React.useEffect(() => {
     const dosSalarios = minimo*2;
     const valor = Number(state.Salario || 0);
-    const cargo = (state.Cargo || "").toLowerCase();
 
     let nextValor = 0;
     let nextTexto = "";
@@ -183,8 +182,8 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
     if (valor <= dosSalarios) {
       nextValor = auxTransporte;
       nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();
-    } else if (valor > dosSalarios || cargo.includes("aprendiz") || cargo.includes("practicante")) {
-      nextValor = 46150;
+    } else if (valor > dosSalarios) {
+      nextValor = 48961;
       nextTexto = "Cuarenta y seis mil ciento noventa pesos";
     }
 

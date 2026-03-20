@@ -28,6 +28,7 @@ export const ElegirColaboradorModal: React.FC<Props> = ({open, options, onClose,
   const handleConfirm = () => {
     if (!selectedId) return;
     onConfirm(selectedId);
+    onClose()
   };
 
   return (

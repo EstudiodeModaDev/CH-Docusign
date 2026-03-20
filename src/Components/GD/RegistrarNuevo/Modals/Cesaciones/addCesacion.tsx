@@ -198,7 +198,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
     // si igual quieres el display local:
     setConectividad(nextValor);
     setConectividadTexto(nextTexto);
-  }, [state.Salario, state.Cargo, state.auxConectividadValor, state.auxConectividadTexto, setField]);
+  }, [state.Salario, state.Cargo, state.auxConectividadValor, state.auxConectividadTexto, setField, minimo]);
 
   /* ================== Salario recomendado por cargo ================== */
   React.useEffect(() => {

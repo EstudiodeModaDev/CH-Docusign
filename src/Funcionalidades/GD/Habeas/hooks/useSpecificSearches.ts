@@ -12,7 +12,7 @@ export function useSpecificHabeasSearches() {
 
 
   const searchWorker = async (query: string): Promise<HabeasData[]> => {
-    const resp = await graph.HabeasData.getAll({filter: `fields/Title eq '${query}'`, top: 200,});
+    const resp = await graph.HabeasData.getAll({filter: `fields/NumeroDocumento eq '${query}'`, top: 200,});
 
     const foundWorkers = resp.items ?? [];
     setWorkers(foundWorkers);

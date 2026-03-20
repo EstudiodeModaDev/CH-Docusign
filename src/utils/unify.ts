@@ -115,7 +115,7 @@ export function mapToUnifyVM<T>(
 /* ============================================================================
  * Proceso
  * ========================================================================== */
-export type Proceso = "Promocion" | "Nuevo" | "Habeas" | "Cesacion";
+export type Proceso = "Promocion" | "Nuevo" | "Habeas" | "Cesacion" ;
 
 type DataByProceso = {
   Promocion: Promocion;

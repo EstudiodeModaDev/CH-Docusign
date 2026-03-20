@@ -11,10 +11,10 @@ export async function fetchTemplates(args: {
   })) as ListTemplatesResponse;
 }
 
-export async function createTemplateDraft(templateId: string): Promise<EnvelopeBasic> {
+export async function createTemplateDraft(templateId: string, asunto: string): Promise<EnvelopeBasic> {
   return createEnvelopeFromTemplateDraft({
     templateId,
-    emailSubject: "Firma de documento",
+    emailSubject: asunto ?? "Firma de documento",
     emailBlurb: "Por favor revisa y firma.",
     roles: [],
   });

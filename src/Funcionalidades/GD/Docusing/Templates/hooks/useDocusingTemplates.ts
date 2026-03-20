@@ -1,6 +1,6 @@
 import * as React from "react";
 import { mapTemplatesToOptions } from "../utils/templateOptions";
-import type { DocusignTemplateSummary, ListTemplatesResponse, UseDocusignTemplatesOptions } from "../../../../../models/Docusign";
+import type { DocusignTemplateSummary, EnvelopeBasic, ListTemplatesResponse, UseDocusignTemplatesOptions } from "../../../../../models/Docusign";
 import type { rsOption } from "../../../../../models/Commons";
 import { createTemplateDraft, fetchEnvelopeInfo, fetchEnvelopeRecipients, fetchEnvelopeTabs, fetchTemplates } from "../Functions/docusingTemplate";
 
@@ -46,12 +46,12 @@ export function useDocusignTemplates(options?: UseDocusignTemplatesOptions) {
     setTemplatesOptions(mapTemplatesToOptions(templates));
   }, [templates]);
 
-  const createdraft = React.useCallback(async (templateId: string) => {
+  const createdraft = React.useCallback(async (templateId: string, asunto: string): Promise<EnvelopeBasic> => {
     setLoading(true);
     setError(null);
 
     try {
-      return await createTemplateDraft(templateId);
+      return await createTemplateDraft(templateId, asunto);
     } catch (e) {
       const err =
         e instanceof Error ? e : new Error("Error desconocido creando draft");

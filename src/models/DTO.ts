@@ -1,0 +1,31 @@
+export type DocuSignVM = {
+  nombre: string;
+  fechaIngreso: string;
+  cargo: string;
+  ciudad: string;
+  conectividadLetras: string;
+  conectividadValor: string;
+  garantizadoValor: string;
+  garantizadoLetras: string;
+  identificacion: string;
+  salarioLetras: string;
+  salarioValor: string;
+  tipoDoc: string;
+  tipoDocCorto: string;
+  tipoTel: string;
+  universidad: string;
+  nitUniversidad: string;
+  fechaNac: string;
+  coordinador: string;
+  especialidad: string;
+  fechaInicioLectiva: string;
+  fechaFinalLectiva: string;
+  fechaInicioProductiva: string;
+  fechaFinalProductiva: string;
+  etapa: string;
+  fechaFinal: string;
+  ciudadExpedicion: string;
+  FechaLetras: string;
+  ciudadExpe: string
+  departamento: string;
+};

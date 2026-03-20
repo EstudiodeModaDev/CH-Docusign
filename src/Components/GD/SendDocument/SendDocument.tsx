@@ -335,7 +335,7 @@ const EnviarFormatoCard: React.FC = () => {
 
           <div className="ef-field">
             <label className="ef-label" htmlFor="correo"> Asunto del correo </label>
-            <input id="correo" type="email" className="ef-input" disabled={disabled} value={asunto} onChange={(e) => setAsunto(e.target.value)}/>
+            <input id="correo" type="text" className="ef-input" disabled={disabled} value={asunto} onChange={(e) => setAsunto(e.target.value)}/>
           </div>
 
           <div className="ef-actions">

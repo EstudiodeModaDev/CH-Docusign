@@ -233,7 +233,6 @@ const EnviarFormatoCard: React.FC = () => {
       }
       case "Cesacion": {
         const seleccionado = cesaciones.workers.find((w: any) => w.Id.trim() === selectedId.trim()) as Cesacion | undefined;
-        console.log(seleccionado)
         if (!seleccionado) return;
 
         setVarColaborador(seleccionado);

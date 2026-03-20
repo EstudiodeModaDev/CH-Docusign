@@ -187,7 +187,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
       nextTexto = "Cuarenta y seis mil ciento noventa pesos";
     }
 
-    // Solo actualiza si cambia (evita loops)
+    
     if (String(state.auxConectividadValor ?? "") !== String(nextValor)) {
       setField("auxConectividadValor", String(nextValor));
     }

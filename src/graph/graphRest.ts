@@ -24,6 +24,11 @@ export type GraphUserLite = {
   userPrincipalName?: string;
 };
 
+export type GraphCollectionPage<T> = {
+  value: T[];
+  "@odata.nextLink"?: string;
+};
+
 export class GraphRest {
   private getToken: () => Promise<string>;
   private base = 'https://graph.microsoft.com/v1.0/';
@@ -358,6 +363,44 @@ export class GraphRest {
       if (msg.includes("404")) return;
       throw err;
     }
+  }
+
+  async getAllGroupMembers(groupId: string, options?: {excludeEmail?: string; onlyWithEmail?: boolean;}): Promise<GraphUserLite[]> {
+    const gid = (groupId ?? "").trim();
+    if (!gid) throw new Error("getAllGroupMembers: groupId vacío");
+
+    const exclude = (options?.excludeEmail ?? "").trim().toLowerCase();
+    const onlyWithEmail = options?.onlyWithEmail ?? true;
+
+    const results: GraphUserLite[] = [];
+    let nextUrl: string | null = `${this.base}groups/${gid}/members?$select=id,displayName,mail,userPrincipalName&$top=999`;
+
+    while (nextUrl) {
+      const page: GraphCollectionPage<GraphUserLite> = await this.getAbsolute<GraphCollectionPage<GraphUserLite>>(nextUrl);
+
+      const items = page.value ?? [];
+
+      for (const user of items) {
+        const email = (user.mail ?? user.userPrincipalName ?? "").trim().toLowerCase();
+
+        if (onlyWithEmail && !email) continue;
+        if (exclude && email === exclude) continue;
+
+        results.push(user);
+      }
+
+      nextUrl = page["@odata.nextLink"] ?? null;
+    }
+
+    const unique = new Map<string, GraphUserLite>();
+
+    for (const user of results) {
+      const key = (user.mail ?? user.userPrincipalName ?? user.id).trim().toLowerCase();
+      if (!key) continue;
+      if (!unique.has(key)) unique.set(key, user);
+    }
+
+    return Array.from(unique.values());
   }
 
 }

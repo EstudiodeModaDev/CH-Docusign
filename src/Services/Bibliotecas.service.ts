@@ -237,11 +237,12 @@ class BibliotecaBaseService {
   // UPLOAD / RENOMBRE / MOVER
   // =========================
 
-  async uploadFile(folderPath: string, file: File): Promise<Archivo> {
+  async uploadFile(folderPath: string, file: File, name?: string): Promise<Archivo> {
     await this.ensureIds();
-
+    
+    const ext = file.name.split(".")[1]
     const cleanFolder = (folderPath ?? "").replace(/^\/|\/$/g, "");
-    const fileName = file.name;
+    const fileName = name ? `${name}.${ext}` : file.name;
 
     const serverPath = cleanFolder.length > 0 ? `${cleanFolder}/${fileName}` : fileName;
 

@@ -9,6 +9,9 @@ import { useSpecificHabeasSearches } from "./useSpecificSearches";
 import { useAuth } from "../../../../auth/authProvider";
 import { includesHabeasSearch } from "../utils/habeasSearch";
 import { compareHabeas } from "../utils/habeasSorts";
+import { useRequestActions } from "../../UpdateRequest/hooks/useRequestActions";
+import { detallePayloadFromHabeas } from "../../UpdateRequestDetails/utils/requestPayload";
+import { notifyUpdateRequest } from "../../../../utils/mail";
 
 export function useHabeasData() {
   const graph = useGraphServices()
@@ -16,6 +19,7 @@ export function useHabeasData() {
   const formController = useHabeasForm(auth.account?.name ?? "")
   const actionsController = useHabeasActions()
   const paginationController = useHabeasPagintation(graph)
+  const requestController = useRequestActions()
   const listController = useHabeasList(paginationController.pageSize, auth.account?.name ?? "")
   const searchesController = useSpecificHabeasSearches()
 
@@ -41,16 +45,15 @@ export function useHabeasData() {
     }
   };
 
-  const handleEdit = async (e: React.FormEvent, habeasSeleccionado: HabeasData) => {
+  const handleEdit = async (e: React.FormEvent, habeasSeleccionado: HabeasData, canEdit: boolean) => {
     e.preventDefault();
 
     const validationErrors = formController.validate()
 
-    if (validationErrors) {
+    if (!validationErrors) {
       alert("Hay algunos campos faltantes")
       return
     };
-
     if (!habeasSeleccionado.Id) {
       alert("Registro sin Id");
       return;
@@ -59,8 +62,30 @@ export function useHabeasData() {
     setLoading(true);
 
     try {
-      await actionsController.handleEditBd(habeasSeleccionado, formController.state)
-      alert("Se ha actualizado el registro con éxito");
+      const toEdit = await graph.HabeasData.get(habeasSeleccionado.Id!)
+
+      if(!canEdit){
+        await actionsController.handleEditBd(toEdit, formController.state)
+        alert("Se ha actualizado el registro con éxito");
+      } else {
+
+        const request = await requestController.createRequest("Habeas", habeasSeleccionado.Id)
+        if(!request.created || !request.ok) return
+
+        const realRegister = await graph.HabeasData.get(habeasSeleccionado.Id)
+
+        const DetallesPayload = detallePayloadFromHabeas(realRegister, formController.state, request.created.Id!)
+
+        console.log(DetallesPayload)
+
+        requestController.genericProcess("Habeas", DetallesPayload,)
+
+        const groupMembers = await graph.graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
+        await notifyUpdateRequest(graph.mail, "Habeas data", auth.account?.name ?? "", habeasSeleccionado.NumeroDocumento, groupMembers,)
+        
+        alert("Se ha enviado la solicitud, se te notificara el resultado")
+        
+      }
     } catch {
       alert("Ha ocurrido un error");
     } finally {
@@ -72,6 +97,8 @@ export function useHabeasData() {
     setLoading(true)
       try {
         await actionsController.deleteHabeasDataBd(Id)
+        await listController.loadBase()
+        alert("Se ha eliminado el registro con exito.")
       } catch {
         throw new Error("Ha ocurrido un error eliminando la cesación");
       }

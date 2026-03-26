@@ -29,7 +29,7 @@ type Props = {
   state: HabeasData
   setField: SetField<HabeasData>;
   handleSubmit: (e: React.FormEvent) => Promise<{ created: HabeasData | null; ok: boolean }>;
-  handleEdit: (e: React.FormEvent, NovedadSeleccionada: HabeasData) => void;
+  handleEdit: (e: React.FormEvent, NovedadSeleccionada: HabeasData, canEdit: boolean) => void;
   errors: HabeasErrors
   loadFirstPage: () => Promise<void>
   tipo: "new" | "edit" | "view"
@@ -119,8 +119,8 @@ export default function FormHabeas({sending, title, setState, selectedHabeasData
       await handleSubmit(e);
       await loadFirstPage()
       onClose()
-    } else if(tipo=== "edit") {
-      handleEdit(e, selectedHabeasData!)
+    } else {
+      handleEdit(e, selectedHabeasData!, isView)
     }
   };
 
@@ -142,7 +142,7 @@ export default function FormHabeas({sending, title, setState, selectedHabeasData
               value={selectedEmpresa}
               onChange={(opt) => setField("Empresa", opt?.label ?? "")}
               classNamePrefix="rs"
-              isDisabled={loadingEmp || isView}
+              isDisabled={loadingEmp}
               isLoading={loadingEmp}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -154,7 +154,7 @@ export default function FormHabeas({sending, title, setState, selectedHabeasData
 
           <div className="ft-field">
             <label className="ft-label" htmlFor="nombreSeleccionado"> Nombre del seleccionado *</label>
-            <input disabled={isView} id="nombreSeleccionado" name="NombreSeleccionado" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
+            <input id="nombreSeleccionado" name="NombreSeleccionado" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.Title}</small>
           </div>
 
@@ -168,7 +168,7 @@ export default function FormHabeas({sending, title, setState, selectedHabeasData
               value={selectedTipoDocumento}
               onChange={(opt) => {setField("AbreviacionTipoDoc", opt?.value ?? ""); setField("Tipodoc", opt?.label ?? "");}}
               classNamePrefix="rs"
-              isDisabled={loadingTipo || isView}
+              isDisabled={loadingTipo}
               isLoading={loadingTipo}
               getOptionValue={(o) => String(o.value)}
               getOptionLabel={(o) => o.label}
@@ -184,13 +184,13 @@ export default function FormHabeas({sending, title, setState, selectedHabeasData
           {/* Abreviación tipo documento (solo lectura con la abreviación seleccionada) */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="abreviacionDoc"> Abreviación tipo de documento *</label>
-            <input disabled={isView} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo de documento" value={state.AbreviacionTipoDoc ?? ""} readOnly/>
+            <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo de documento" value={state.AbreviacionTipoDoc ?? ""} readOnly/>
           </div>
 
           {/* Número documento */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="numeroIdent">Número de identificación *</label>
-            <input  disabled={isView} id="numeroIdent" name="Numero_x0020_identificaci_x00f3_" type="number" placeholder="Ingrese el número de documento" value={state.NumeroDocumento ?? ""} onChange={(e) => setField("NumeroDocumento", e.target.value)}
+            <input id="numeroIdent" name="Numero_x0020_identificaci_x00f3_" type="number" placeholder="Ingrese el número de documento" value={state.NumeroDocumento ?? ""} onChange={(e) => setField("NumeroDocumento", e.target.value)}
               autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.NumeroDocumento}</small>
           </div>
@@ -198,7 +198,7 @@ export default function FormHabeas({sending, title, setState, selectedHabeasData
           {/* Correo */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="correo">Correo electrónico *</label>
-            <input  disabled={isView} id="correo" name="CORREO_x0020_ELECTRONICO_x0020_" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.Correo ?? ""} onChange={(e) => setField("Correo", e.target.value.toLocaleLowerCase())}
+            <input id="correo" name="CORREO_x0020_ELECTRONICO_x0020_" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.Correo ?? ""} onChange={(e) => setField("Correo", e.target.value.toLocaleLowerCase())}
               autoComplete="off" required aria-required="true" maxLength={300}/>
             <small>{errors.Correo}</small>
           </div>
@@ -260,20 +260,23 @@ export default function FormHabeas({sending, title, setState, selectedHabeasData
           {/* Fecha reporte ingreso */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="FechaReporte"> Fecha reporte ingreso *</label>
-            <input  disabled={isView} id="FechaReporte" name="FechaReporte" type="date" value={today} readOnly/>
+            <input id="FechaReporte" name="FechaReporte" type="date" value={today} readOnly/>
           </div>
 
           {/* Informacion enviada por */}
           <div className="ft-field">
             <label className="ft-label" htmlFor="enviadaPor"> Información enviada por *</label>
-            <input  disabled={isView} id="enviadaPor" name="enviadaPor" type="text" value={account?.name} readOnly/>
+            <input id="enviadaPor" name="enviadaPor" type="text" value={account?.name} readOnly/>
           </div>
         </form>
 
         {/* Acciones */}
         <div className="ft-actions">
-          <button disabled={isView || sending} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreateNovedad(e)}>
-            {isView ? "No se puede editar este registro ya que fue usado" : sending ? "Guardando..." : "Guardar"}
+          <button disabled={sending} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreateNovedad(e)}>
+            {
+              isView ? "Enviar solicitud de edición" : 
+              sending ? "Guardando..." : "Guardar"
+            }
           </button> 
           <button type="button" className="btn btn-xs" onClick={onClose}>Cancelar</button>
         </div>

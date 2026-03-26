@@ -148,7 +148,8 @@ export class ContratosService {
         Estado: f.Estado,
         LugarExpedicion: f.LugarExpedicion,
         RazonCancelacion: f.RazonCancelacion,
-        CanceladoPor: f.CanceladoPor
+        CanceladoPor: f.CanceladoPor,
+        FechaExamenesMedicos: f.FechaExamenesMedicos
     };
   }
 

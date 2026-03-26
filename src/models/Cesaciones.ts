@@ -14,6 +14,7 @@ export type Cesacion = {
     Reportadopor: string;
     Empresaalaquepertenece: string;
     Fechaenlaquesereporta: string | null;
+    FechaExamenesMedicos: string | null
     TipoDoc: string;
     Departamento: string;
     Ciudad: string;

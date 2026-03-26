@@ -38,6 +38,8 @@ import { cargoCiudadAnalistaService } from "../Services/cargoCiudadAnalista.serv
 import { maestroMotivosService } from "../Services/maestroMotivos.service";
 import { MoverANSService } from "../Services/moverAns.service"
 import { pasoRestriccionProcesoService } from "../Services/PasoRestriccionProceso.Service";
+import { solicitudService } from "../Services/Solicitud.service";
+import { solicitudDetalleService } from "../Services/SolicitudDetalle.service";
 
 
 /* ================== Tipos de config ================== */
@@ -117,6 +119,10 @@ export type UnifiedConfig = {
 
     //RestriccionesPasos
     pasoRestriccion: string;
+
+    //SolicitudActualizacion
+    solicitud: string;
+    detalle: string;
   };
 };
 
@@ -191,6 +197,10 @@ export type GraphServices = {
   maestrosMotivos: maestroMotivosService
   moverANS: MoverANSService
   pasoRestriccion: pasoRestriccionProcesoService
+
+  //Solicitud actualizacion
+  solicitud: solicitudService
+  detalle: solicitudDetalleService
 };
 
 /* ================== Contexto ================== */
@@ -275,7 +285,11 @@ const DEFAULT_CONFIG: UnifiedConfig = {
     maestroMotivos: "Requisiciones - MaestroMotivos",
     moverANS: "Requisiciones - Historico Fechas",
 
-    pasoRestriccion: "PasoRestriccionProceso"
+    pasoRestriccion: "PasoRestriccionProceso",
+
+    //SolicitudActualizacion
+    solicitud: "Actualizacion - Solicitud Cambio",
+    detalle: "Actualizacion - DetalleSolicitud"
   },
 };
 
@@ -388,6 +402,9 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     const moverANS                = new MoverANSService(graph, ch.hostname, ch.sitePath, lists.moverANS)
 
     const pasoRestriccion         = new pasoRestriccionProcesoService(graph, ch.hostname, ch.sitePath, lists.pasoRestriccion)
+
+    const solicitud               = new solicitudService(graph, ch.hostname, ch.sitePath, lists.solicitud)
+    const detalle                 = new solicitudDetalleService(graph, ch.hostname, ch.sitePath, lists.detalle)
     return {
       graph,
       //Habeas
@@ -418,6 +435,8 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       requisiciones, ansRequisicion, cargoCiudadAnalista, maestrosMotivos, moverANS,
 
       pasoRestriccion,
+
+      solicitud, detalle,
     };
   }, [graph, cfg]);
 

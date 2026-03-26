@@ -69,6 +69,7 @@ export type Novedad = {
     FechaFinalLectiva: string | null;
     FechaInicioProductiva: string | null;
     FechaFinalProductiva: string | null;
+    FechaExamenesMedicos: string | null
     Etapa: string
     Practicante: boolean;
     Aprendiz: boolean

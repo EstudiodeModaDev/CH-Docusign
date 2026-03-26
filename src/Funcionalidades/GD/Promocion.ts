@@ -1,12 +1,16 @@
 import React from "react";
 import type { DateRange, GetAllOpts, rsOption, SortDir, SortField, } from "../../models/Commons";
-import { normalize, normalizeDate, toGraphDateTime, toISODateFlex } from "../../utils/Date";
+import { toGraphDateTime, toISODateFlex } from "../../utils/Date";
 import type { PromocionesService } from "../../Services/Promociones.service";
 import type { Promocion, PromocionErrors } from "../../models/Promociones";
 import { useAuth } from "../../auth/authProvider";
 import { norm } from "../../utils/text";
 import { useGraphServices } from "../../graph/graphContext";
 import { useDebouncedValue } from "../Common/debounce";
+import { useRequestActions } from "./UpdateRequest/hooks/useRequestActions";
+import { buildPromocionesPatch } from "./Habeas/utils/habeasPatch";
+import { detallePayloadFromPromocion } from "./UpdateRequestDetails/utils/requestPayload";
+import { notifyUpdateRequest } from "../../utils/mail";
 
 function includesSearch(row: Promocion, q: string) {
   const qq = norm(q);
@@ -140,13 +144,15 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
     PerteneceModelo: false,
     Estado: "En proceso",
     CanceladoPor: "",
-    razonCancelacion: ""
+    razonCancelacion: "",
+    FechaExamenesMedicos: null
   });
   const [estado, setEstado] = React.useState<string>("En proceso");
   const [errors, setErrors] = React.useState<PromocionErrors>({});
   const setField = <K extends keyof Promocion>(k: K, v: Promocion[K]) => setState((s) => ({ ...s, [k]: v }));
   const debouncedSearch = useDebouncedValue(search, 250);
   const graph = useGraphServices()
+  const requestController = useRequestActions()
 
  const buildServerFilter = React.useCallback((): GetAllOpts => {
     const filters: string[] = [];
@@ -379,7 +385,8 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
         PerteneceModelo: state.PerteneceModelo,
         Estado: "En proceso",
         CanceladoPor: state.CanceladoPor,
-        razonCancelacion: state.razonCancelacion
+        razonCancelacion: state.razonCancelacion,
+        FechaExamenesMedicos: null
       };
       const created = await PromocionesSvc.create(payload);
       console.log(created)
@@ -393,59 +400,70 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
       }
   };
 
-  const fields: (keyof Promocion)[] = [
-    "Title", "Cargo", "CargoPersonaReporta", "EmpresaSolicitante", "TipoDoc", "AbreviacionTipoDoc", "NumeroDoc", "Email", "Ciudad", "EspecificidadCargo", "NivelCargo", 
-    "CargoCritico", "Dependencia", "CodigoCentroCostos", "DescripcionCentroCostos", "CentroOperativo", "DescripcionCentroOperativo", "UnidadNegocio", "PersonasCargo", 
-    "TipoContrato", "TipoVacante", "ModalidadTeletrabajo", "StatusIngreso", "Salario", "SalarioTexto", "SalarioAjustado", "Adicionales", "Garantizado_x00bf_SiNo_x003f_",
-    "PresupuestoVentasMagnitudEconomi", "AuxilioValor", "AuxilioTexto", "Autonomia", "ImpactoClienteExterno", "ContribucionaLaEstrategia", "ValorGarantizado", "Promedio", 
-    "GrupoCVE", "HerramientasColaborador", "CargueNuevoEquipoTrabajo", "IDUnidadNegocio", "GarantizadoLetras", "AuxilioRodamiento", "AuxilioRodamientoLetras", "Departamento", 
-    "NombreSeleccionado", "TipoNomina", "EstadoProceso", "ResultadoValoracion", "Correo", "AjusteSioNo", "AuxilioRodamientoSioNo", "PerteneceModelo",];
-
-  const dateFields: (keyof Promocion)[] = [
-    "FechaAjusteAcademico","FechaValoracionPotencial","FechaIngreso",
-  ];
-
-  const buildPatch = (original: Promocion, next: Promocion) => {
-    const patch: Record<string, any> = {};
-
-    for (const k of fields) {
-      const a = normalize(original[k]);
-      const b = normalize(next[k]);
-      if (a !== b) patch[k] = b;
-    }
-
-    for (const k of dateFields) {
-      const a = normalizeDate(original[k]);
-      const b = normalizeDate(next[k]);
-      if (a !== b) patch[k] = b;
-    }
-
-    return patch;
-  };
-
-  const handleEdit = async (e: React.FormEvent, CesacionSeleccionada: Promocion) => {
+  const handleEdit = async (e: React.FormEvent, promocionSeleccionada: Promocion, canEdit: boolean) => {
     e.preventDefault();
-    if (!validate()) return;
-    if (!CesacionSeleccionada.Id) { alert("Registro sin Id"); return; }
+
+    const validationErrors = validate()
+
+    if (!validationErrors) {
+      alert("Hay algunos campos faltantes")
+      return
+    };
+    if (!promocionSeleccionada.Id) {
+      alert("Registro sin Id");
+      return;
+    }
 
     setLoading(true);
+
     try {
-      const payload = buildPatch(CesacionSeleccionada, state);
+      const toEdit = await PromocionesSvc.get(promocionSeleccionada.Id!)
 
-      // opcional: si no hay cambios, no pegues al servidor
-      if (Object.keys(payload).length === 0) {
-        alert("No hay cambios para guardar");
-        return;
+      if(!canEdit){
+        const payload = buildPromocionesPatch(toEdit, state);
+        await PromocionesSvc.update(promocionSeleccionada.Id, payload);
+        alert("Se ha actualizado el registro con éxito");
+      } else {
+
+        const request = await requestController.createRequest("Promocion", promocionSeleccionada.Id)
+        if(!request.created || !request.ok) return
+
+        const realRegister = await graph.Promociones.get(promocionSeleccionada.Id)
+
+        const DetallesPayload = detallePayloadFromPromocion(realRegister, state, request.created.Id!)
+
+        console.log(DetallesPayload)
+
+        requestController.genericProcess("Promocion", DetallesPayload,)
+
+        const groupMembers = await graph.graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
+        await notifyUpdateRequest(graph.mail, "Promocion", account?.name ?? "", promocionSeleccionada.NumeroDoc, groupMembers,)
+        
+        alert("Se ha enviado la solicitud, se te notificara el resultado")
+        
       }
-
-      await PromocionesSvc.update(CesacionSeleccionada.Id, payload);
-      alert("Se ha actualizado el registro con éxito");
     } catch {
       alert("Ha ocurrido un error");
     } finally {
       setLoading(false);
     }
   };
+
+  const saveMedicalExams = React.useCallback(async (Id: string, fecha: string) => {
+      try {
+        if(!Id || !fecha ) return
+
+        const spDate = toGraphDateTime(fecha)
+        await graph.Promociones.update(Id, {FechaExamenesMedicos: spDate});
+        await loadBase()
+        alert("Se ha guardado la fecha de los examenes medicos con éxito.")
+      } catch {
+        throw new Error("Ha ocurrido un error eliminando la novedad");
+      }
+    },
+    []
+  )
+
 
   const searchWorker = async (query: string): Promise<Promocion[]> => {
     const resp = await PromocionesSvc.getAll({
@@ -563,6 +581,8 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
       }
 
       await PromocionesSvc.delete(Id)
+      await loadBase()
+      alert("Se ha eliminado el registro con exito.")
     } catch {
       throw new Error("Ha ocurrido un error reactivando el proceso");
     } finally {
@@ -572,6 +592,6 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
 
   return {
     errors, setState, rows, loading, error, pageSize, pageIndex, hasNext, range, search, sorts, state, workers, workersOptions, estado,
-    deletePromocion, handleReactivateProcessById, handleCancelProcessbyId, setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage, searchRegister
+    saveMedicalExams, deletePromocion, handleReactivateProcessById, handleCancelProcessbyId, setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage, searchRegister
   };
 }

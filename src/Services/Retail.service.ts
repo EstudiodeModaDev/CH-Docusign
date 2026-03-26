@@ -107,7 +107,8 @@ export class RetailService {
         FechaReporte: f.FechaReporte,
         Estado: f.Estado,
         razonCancelacion: f.razonCancelacion,
-        CanceladoPor: f.CanceladoPor
+        CanceladoPor: f.CanceladoPor,
+        FechaExamenesMedicos: f.FechaExamenesMedicos
     };
   }
 

@@ -130,7 +130,8 @@ export class PromocionesService {
         PerteneceModelo: f.PerteneceModelo,
         Estado: f.Estado,
         CanceladoPor: f.CanceladoPor, 
-        razonCancelacion: f.razonCancelacion
+        razonCancelacion: f.razonCancelacion,
+        FechaExamenesMedicos: f.FechaExamenesMedicos
     };
   }
 

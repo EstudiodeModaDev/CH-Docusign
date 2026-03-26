@@ -1,0 +1,157 @@
+.med-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 24, 40, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 9999;
+}
+
+.med-modal {
+  width: 100%;
+  max-width: 460px;
+  background: #ffffff;
+  border: 1px solid #eaecf0;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(16, 24, 40, 0.18);
+  overflow: hidden;
+  animation: medModalFadeIn 0.18s ease;
+}
+
+.med-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.med-modal__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #101828;
+}
+
+.med-modal__close {
+  border: none;
+  background: transparent;
+  color: #667085;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.med-modal__close:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.med-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px;
+}
+
+.med-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.med-field__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #344054;
+}
+
+.med-field__input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #101828;
+  background: #ffffff;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.med-field__input:focus {
+  border-color: #306cfe;
+  box-shadow: 0 0 0 4px rgba(48, 108, 254, 0.12);
+}
+
+.med-field__input:disabled {
+  background: #f9fafb;
+  cursor: not-allowed;
+}
+
+.med-modal__error {
+  margin: 0;
+  font-size: 14px;
+  color: #d92d20;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.med-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.med-btn {
+  min-height: 42px;
+  border-radius: 10px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.med-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.med-btn--secondary {
+  background: #ffffff;
+  border-color: #d0d5dd;
+  color: #344054;
+}
+
+.med-btn--secondary:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
+.med-btn--primary {
+  background: #306cfe;
+  color: #ffffff;
+}
+
+.med-btn--primary:hover:not(:disabled) {
+  background: #2457d6;
+}
+
+@keyframes medModalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

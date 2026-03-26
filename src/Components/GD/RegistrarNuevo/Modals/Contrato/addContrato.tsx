@@ -21,6 +21,7 @@ import { safeLower } from "../../../../../utils/text";
 import { usePermissions } from "../../../../../Funcionalidades/Permisos";
 import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones/hooks/useCesaciones";
 import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
+import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -221,35 +222,6 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
     }
   }, [state.Auxilio_x0020_de_x0020_rodamient]);
 
-  /* ================== Conectividad ================== */
-  React.useEffect(() => {
-    const dosSalarios = minimo*2;
-    const valor = Number(state.SALARIO || 0);
-
-    let nextValor = 0;
-    let nextTexto = "";
-
-    if (valor <= dosSalarios) {
-      nextValor = auxTransporte;
-      nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();;
-    } else if (valor > dosSalarios) {
-      nextValor = 48961;
-      nextTexto = "Cuarenta y ocho mil novecientos secenta y un pesos"
-    } 
- 
-    // Solo actualiza si cambia (evita loops)
-    if (String(state.auxconectividadvalor ?? "") !== String(nextValor)) {
-      setField("auxconectividadvalor", String(nextValor));
-    }
-    if (String(state.auxconectividadtexto ?? "") !== nextTexto) {
-      setField("auxconectividadtexto", nextTexto.toUpperCase());
-    } 
-
-    // si igual quieres el display local:
-    setConectividad(nextValor);
-    setConectividadTexto(nextTexto);
-
-  }, [state.SALARIO, state.CARGO, minimo,]);
 
   /* ================== Garantizado ================== */
   const inicializadoRef = React.useRef(false);
@@ -276,18 +248,6 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
     }
 
   }, [state.SALARIO, state.VALOR_x0020_GARANTIZADO]);
-
-
-  React.useEffect(() => {
-    const salario = Number(state.SALARIO || 0);
-    const porcentaje = Number(porcentajeValor || 0);
-
-    const valor = Math.round(salario * (porcentaje / 100));
-
-    setValorGarantizado((prev) => (prev === valor ? prev : valor));
-    setField("VALOR_x0020_GARANTIZADO", String(valor));
-    setField("Garantizado_x0020_en_x0020_letra", valor > 0 ? numeroATexto(valor).toUpperCase() : "");
-  }, [state.SALARIO, porcentajeValor]);
 
   /* ================== CVE  ================== */
   React.useEffect(() => {
@@ -317,33 +277,6 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
     state.CONTRIBUCION_x0020_A_x0020_LA_x0,
     setField,
   ]);
-
-  /* ================== Salario recomendado por cargo ================== */
-  React.useEffect(() => {
-    let cancelled = false;
-
-    const run = async () => {
-      const salario = await loadSpecificSalary(state.CARGO);
-
-      if (cancelled) return;
-      if (!salario) return;
-
-      const recomendado = String(salario.Salariorecomendado ?? "");
-      const actual = String(state.SALARIO ?? "");
-
-      // Si ya está igual, no vuelvas a setear (evita loops por "mismo valor")
-      if (recomendado && recomendado !== actual) {
-        setField("SALARIO", recomendado as any);
-        setField("salariotexto", numeroATexto(Number(recomendado)).toUpperCase());
-      }
-    };
-
-    if (state.CARGO) run();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [state.CARGO]);
 
   /* ================== Nivel por cargo ================== */
   React.useEffect(() => {
@@ -395,6 +328,35 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
 
     run();
   }, []);
+
+  const handleCargoChange = async (cargo: string) => {
+    setField("CARGO", cargo);
+
+    if (!cargo) return;
+
+    const salario = await loadSpecificSalary(cargo);
+
+    if (!salario?.Salariorecomendado) return;
+
+    setField("SALARIO", String(salario.Salariorecomendado));
+    setField("salariotexto", numeroATexto(Number(salario.Salariorecomendado)).toUpperCase());
+
+    handleAuxilioChange(salario.Salariorecomendado)
+  };
+
+  const  handleAuxilioChange = async (salario: string) => {
+
+    const auxRes = auxilioHandlder(minimo, Number(salario || 0), auxTransporte)
+
+    if (!auxRes) return;
+
+    setField("auxconectividadvalor", String(auxRes.valor))
+    setField("auxconectividadtexto", auxRes.texto)
+
+    setConectividad(auxRes.valor);
+    setConectividadTexto(auxRes.texto.toUpperCase());
+  };
+
 
   const handleCreateNovedad = async (e: React.FormEvent) => {
     if(tipo=== "new"){
@@ -561,7 +523,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                 options={cargoOptions}
                 placeholder={loadingCargo ? "Cargando opciones…" : "Buscar cargo..."}
                 value={selectedCargo }
-                onChange={(opt) => setField("CARGO", opt?.label ?? "")}
+                onChange={(opt) => handleCargoChange(opt?.label ?? "")}
                 classNamePrefix="rs"
                 isDisabled={loadingCargo || !canEditRegister}
                 isLoading={loadingCargo}
@@ -795,6 +757,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
               <label className="ft-label" htmlFor="SALARIO">Salario *</label>
               <input disabled={!canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} required maxLength={300} onChange={(e) => {
                                                                                                                                                                   const raw = e.target.value;
+                                                                                                                                                                  handleAuxilioChange(raw)
 
                                                                                                                                                                   if (raw === "") {
                                                                                                                                                                     setDisplaySalario("");

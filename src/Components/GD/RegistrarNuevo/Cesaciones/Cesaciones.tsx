@@ -9,6 +9,8 @@ import type { SetField } from "../Modals/Contrato/addContrato";
 import type { desplegablesOption } from "../../../../models/Desplegables";
 import { usePermissions } from "../../../../Funcionalidades/Permisos";
 import { useEnvios } from "../../../../Funcionalidades/GD/Envios/hooks/useEnvios";
+import MedicalExamDateModal from "../Modals/Common/SetFechaExamenes/MedicalExam";
+//import { id } from "date-fns/locale";
 
 function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; dir: SortDir}>) {
   const idx = sorts.findIndex(s => s.field === field);
@@ -40,7 +42,7 @@ export type Props = {
   state: Cesacion
   setField: SetField<Cesacion>;
   handleSubmit: () => Promise<{ok: boolean; created: Cesacion | null;}>;
-  handleEdit: (e: React.FormEvent, NovedadSeleccionada: Cesacion) => void;
+  handleEdit: (e: React.FormEvent, NovedadSeleccionada: Cesacion, canEdit: boolean) => void;
   errors: CesacionErrors
   searchRegister: (cedula: string) => Promise<Cesacion | null>
   selectedCesacion?: Cesacion
@@ -48,6 +50,7 @@ export type Props = {
   handleCancelProcessbyId: (id: string, r: string) => void
   handleReactivateProcessById: (id: string) => void
   deleteCesacion: (id: string) => void
+  saveMedicalExams: (Id: string, fecha: string) => void
   sending: boolean
 
   //Desplegables
@@ -85,13 +88,14 @@ export type PropsPagination = {
   totalRows: number;
 };
 
-export default function CesacionesTabla({deleteCesacion, deptoOptions, loadingDeptos, temporalLoading, temporalOption, UNOptions, loadingUN, COOptions, loadingCO, CentroCostosOptions, loadingCC, dependenciaOptions, loadingDependencias, nivelCargoOptions, loadinNivelCargo, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, empresaOptions, loadingEmp, sending, handleReactivateProcessById, handleCancelProcessbyId, setState, searchRegister, errors, handleEdit, handleSubmit, setField, state, rows, loading: loadingCesacion, error, pageSize: pageSizeCesacion, pageIndex: pageIndexCesacion, hasNext: hasNextCesacion, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageCesacion, reloadAll: reloadAllCesacion, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
+export default function CesacionesTabla({saveMedicalExams, deleteCesacion, deptoOptions, loadingDeptos, temporalLoading, temporalOption, UNOptions, loadingUN, COOptions, loadingCO, CentroCostosOptions, loadingCC, dependenciaOptions, loadingDependencias, nivelCargoOptions, loadinNivelCargo, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, empresaOptions, loadingEmp, sending, handleReactivateProcessById, handleCancelProcessbyId, setState, searchRegister, errors, handleEdit, handleSubmit, setField, state, rows, loading: loadingCesacion, error, pageSize: pageSizeCesacion, pageIndex: pageIndexCesacion, hasNext: hasNextCesacion, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageCesacion, reloadAll: reloadAllCesacion, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
   const { DetallesPasosCesacion, } = useGraphServices();
   const { canEdit } = useEnvios();
   const [visible, setVisible] = React.useState(false);
   const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Cesacion | null>(null);
   const [tipoFormulario, setTipoFormulario] = React.useState<"new" | "edit" | "view">("edit");
   const [pctById, setPctById] = React.useState<Record<string, number>>({});
+  const [examenesMedicos, setExamenesMedicos] = React.useState<boolean>(false)
   const { engine } = usePermissions();
 
   const openRow = React.useCallback(
@@ -158,6 +162,12 @@ export default function CesacionesTabla({deleteCesacion, deptoOptions, loadingDe
     }
   };
 
+  const setExamenes = React.useCallback(async (c: Cesacion) => {
+    setNovedadSeleccionada(c)
+    setExamenesMedicos(true)
+  }, []);
+
+
   const Paginacion = ({reloadAll, loading, pageIndex, pageSize, hasNext,  nextPage, totalRows, setPageSize}: PropsPagination) =>
     totalRows > 0 ? (
       <div className="paginacion">
@@ -205,13 +215,17 @@ export default function CesacionesTabla({deleteCesacion, deptoOptions, loadingDe
             <th role="button" tabIndex={0} onClick={(e) => toggleSort('ingreso', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('ingreso', e.shiftKey); }} aria-label="Ordenar por ingreso" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
               Fecha ingreso {renderSortIndicator('ingreso', sorts)}
             </th>
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort('ingreso', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('ingreso', e.shiftKey); }} aria-label="Ordenar por ingreso" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              Fecha de examenes medicos {renderSortIndicator('ingreso', sorts)}
+            </th>
 
             <th role="button" tabIndex={0} onClick={(e) => toggleSort('reporta', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('reporta', e.shiftKey); }} aria-label="Ordenar por quien reporta" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
               Información reportada por {renderSortIndicator('Temporal', sorts)}
             </th>
 
             <th style={{ textAlign: "center" }}>%</th>
-            {canDeleteRegister ? <th style={{ textAlign: "center" }}>Eliminar</th> : null}
+            <th style={{ textAlign: "center" }}>Acciones</th>
+            
           </tr>
         </thead>
 
@@ -222,6 +236,7 @@ export default function CesacionesTabla({deleteCesacion, deptoOptions, loadingDe
               <td><span title={n.Nombre}>{n.Nombre}</span></td>
               <td><span title={n.DescripcionCO}>{n.DescripcionCO}</span></td>
               <td>{toISODateFlex(n.FechaIngreso) || "–"}</td>
+              <td>{toISODateFlex(n.FechaExamenesMedicos) || "No se han programado"}</td>
               <td><span title={n.Reportadopor}>{n.Reportadopor}</span></td>
               <td style={{ textAlign: "center" }}>
                 {(() => {
@@ -230,17 +245,50 @@ export default function CesacionesTabla({deleteCesacion, deptoOptions, loadingDe
                   return pct === undefined ? "…" : `${pct.toFixed(2)}%`;
                 })()}
               </td>
-              {canDeleteRegister ?
               <td style={{ textAlign: "center" }}>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="20" 
-                  height="20" 
-                  viewBox="0 0 26 26"
-                  onClick={(e) => {e.stopPropagation(); deleteCesacion(n.Id!)}}>
-                  <path fill="#e53434" d="M11.5-.031c-1.958 0-3.531 1.627-3.531 3.594V4H4c-.551 0-1 .449-1 1v1H2v2h2v15c0 1.645 1.355 3 3 3h12c1.645 0 3-1.355 3-3V8h2V6h-1V5c0-.551-.449-1-1-1h-3.969v-.438c0-1.966-1.573-3.593-3.531-3.593h-3zm0 2.062h3c.804 0 1.469.656 1.469 1.531V4H10.03v-.438c0-.875.665-1.53 1.469-1.53zM6 8h5.125c.124.013.247.031.375.031h3c.128 0 .25-.018.375-.031H20v15c0 .563-.437 1-1 1H7c-.563 0-1-.437-1-1V8zm2 2v12h2V10H8zm4 0v12h2V10h-2zm4 0v12h2V10h-2z"/></svg>
-              </td> : null}
+                <div style={{display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",}}>
+                  <button type="button" title="Fecha de exámenes médicos" onClick={(e) => {e.stopPropagation(); setExamenes(n);}}
+                    style={{
+                      border: "none",
+                      background: "transparent",
+                      padding: 0,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 50 50">
+                      <g fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
+                        <path stroke="#306CFE" d="M15.708 39.583H8.333A2.083 2.083 0 0 1 6.25 37.5V10.417a2.083 2.083 0 0 1 2.083-2.084h33.334a2.083 2.083 0 0 1 2.083 2.084V37.5a2.083 2.083 0 0 1-2.083 2.083h-7.375"/>
+                        <path stroke="#306CFE" d="M6.25 18.75h37.5m-18.75 0a12.5 12.5 0 1 0 0 25a12.5 12.5 0 0 0 0-25"/>
+                        <path stroke="#344054" d="M16.667 6.25v6.25m16.666-6.25v6.25zm-12.5 27.083l2.084 2.084l6.25-6.25"/>
+                      </g>
+                    </svg>
+                  </button>
 
+                  {canDeleteRegister && (
+                    <button type="button" title="Eliminar proceso" onClick={(e) => {e.stopPropagation(); deleteCesacion(n.Id!);}}
+                      style={{
+                        border: "none",
+                        background: "transparent",
+                        padding: 0,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 26 26">
+                        <path
+                          fill="#e53434"
+                          d="M11.5-.031c-1.958 0-3.531 1.627-3.531 3.594V4H4c-.551 0-1 .449-1 1v1H2v2h2v15c0 1.645 1.355 3 3 3h12c1.645 0 3-1.355 3-3V8h2V6h-1V5c0-.551-.449-1-1-1h-3.969v-.438c0-1.966-1.573-3.593-3.531-3.593h-3zm0 2.062h3c.804 0 1.469.656 1.469 1.531V4H10.03v-.438c0-.875.665-1.53 1.469-1.53zM6 8h5.125c.124.013.247.031.375.031h3c.128 0 .25-.018.375-.031H20v15c0 .563-.437 1-1 1H7c-.563 0-1-.437-1-1V8zm2 2v12h2V10H8zm4 0v12h2V10h-2zm4 0v12h2V10h-2z"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -315,6 +363,12 @@ export default function CesacionesTabla({deleteCesacion, deptoOptions, loadingDe
       <div className="novedades-wrap filas-novedades">
         {isCanceladas ? <TablaCanceladas /> : <TablaNormal />}
       </div>
+
+      <MedicalExamDateModal 
+        isOpen={examenesMedicos}
+        onClose={() => setExamenesMedicos(false)}
+        onSaveDate={saveMedicalExams} 
+        Id={novedadSeleccionada?.Id!}/>
 
       {visible && novedadSeleccionada ? (
         <FormCesacion 

@@ -19,6 +19,7 @@ import RegistrarNuevoPage from "./Components/GD/RegistrarNuevo/RegistrarNuevo";
 import TablaEnvios from "./Components/GD/ConsultarDocumentos/ConsultarDocumentos";
 import EnvioMasivoUI from "./Components/GD/SendDocument/BulkSend/Bulk";
 import RequisicionPage from "./Components/Requisiciones/RequisicionPage"
+import SolicitudesAprobacion from "./Components/GD/RegistrarNuevo/Update/AproveList/AproveList";
 
 
 /* ================== Config del sidebar plano ================== */
@@ -39,6 +40,15 @@ const SECTIONS: Section[] = [
                                                                                                     <path fill="white" d="M7.5 4a.5.5 0 0 1 .5.5V7h2.5a.5.5 0 0 1 0 1H8v2.5a.5.5 0 0 1-1 0V8H4.5a.5.5 0 0 1 0-1H7V4.5a.5.5 0 0 1 .5-.5"/>
                                                                                                     <path fill="white" fill-rule="evenodd" d="M0 6.4c0-2.24 0-3.36.436-4.22A4.03 4.03 0 0 1 2.186.43c.856-.436 1.98-.436 4.22-.436h2.2c2.24 0 3.36 0 4.22.436c.753.383 1.36.995 1.75 1.75c.436.856.436 1.98.436 4.22v2.2c0 2.24 0 3.36-.436 4.22a4.03 4.03 0 0 1-1.75 1.75c-.856.436-1.98.436-4.22.436h-2.2c-2.24 0-3.36 0-4.22-.436a4.03 4.03 0 0 1-1.75-1.75C0 11.964 0 10.84 0 8.6zM6.4 1h2.2c1.14 0 1.93 0 2.55.051c.605.05.953.142 1.22.276a3.02 3.02 0 0 1 1.31 1.31c.134.263.226.611.276 1.22c.05.617.051 1.41.051 2.55v2.2c0 1.14 0 1.93-.051 2.55c-.05.605-.142.953-.276 1.22a3 3 0 0 1-1.31 1.31c-.263.134-.611.226-1.22.276c-.617.05-1.41.051-2.55.051H6.4c-1.14 0-1.93 0-2.55-.05c-.605-.05-.953-.143-1.22-.277a3 3 0 0 1-1.31-1.31c-.134-.263-.226-.61-.276-1.22c-.05-.617-.051-1.41-.051-2.55v-2.2c0-1.14 0-1.93.051-2.55c.05-.605.142-.953.276-1.22a3.02 3.02 0 0 1 1.31-1.31c.263-.134.611-.226 1.22-.276C4.467 1.001 5.26 1 6.4 1" clip-rule="evenodd"/>
                                                                                                   </svg>
+   },
+  { id: "aprobar", label: "Aprobar Ediciones", feature: "acess.view", element: <SolicitudesAprobacion/>, icon: 
+                                                                                                          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="#ffffff">
+                                                                                                            <g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="2">
+                                                                                                              <path stroke-linejoin="round" d="M14 19c3.771 0 5.657 0 6.828-1.172C22 16.657 22 14.771 22 11c0-3.771 0-5.657-1.172-6.828C19.657 3 17.771 3 14 3h-4C6.229 3 4.343 3 3.172 4.172C2 5.343 2 7.229 2 11c0 3.771 0 5.657 1.172 6.828c.653.654 1.528.943 2.828 1.07"/>
+                                                                                                              <path stroke-linejoin="round" d="m9 11l2.25 2L15 9"/>
+                                                                                                              <path d="M14 19c-1.236 0-2.598.5-3.841 1.145c-1.998 1.037-2.997 1.556-3.489 1.225c-.492-.33-.399-1.355-.212-3.404L6.5 17.5"/>
+                                                                                                            </g>
+                                                                                                          </svg>
    },
   { id: "enviar", label: "Enviar Documento", feature: "documents.send", element: <EnviarFormatoCard/>, icon: 
                                                                                             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24">

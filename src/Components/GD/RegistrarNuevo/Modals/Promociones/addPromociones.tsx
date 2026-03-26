@@ -22,6 +22,7 @@ import { usePermissions } from "../../../../../Funcionalidades/Permisos";
 import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones/hooks/useCesaciones";
 import { useContratos } from "../../../../../Funcionalidades/GD/Contratos/hooks/useContratos";
 import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
+import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
   const { label } = props;
@@ -42,7 +43,7 @@ type Props = {
   state: Promocion
   setField: SetField<Promocion>;
   handleSubmit: () => Promise<{ok: boolean; created: Promocion | null;}>;
-  handleEdit: (e: React.FormEvent, NovedadSeleccionada: Promocion) => void;
+  handleEdit: (e: React.FormEvent, NovedadSeleccionada: Promocion, canEdit: boolean) => void;
   errors: PromocionErrors
   searchRegister: (cedula: string) => Promise<Promocion | null>
   loadFirstPage: () => Promise<void>
@@ -51,6 +52,7 @@ type Props = {
   setState: (n: Promocion) => void
   handleCancelProcessbyId: (id: string, r: string) => void
   handleReactivateProcessById: (id: string) => void
+  
   title: string
   submitting: boolean
 
@@ -88,7 +90,7 @@ type Props = {
 };
 
 /* ================== Formulario ================== */
-export default function FormPromocion({submitting, handleReactivateProcessById, title, handleCancelProcessbyId, setState, selectedPromocion, handleEdit, tipo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, loadingModalidad, especificidadOptions, loadingEspecificdad, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, onClose, state, setField, handleSubmit, errors, searchRegister: searchPromocion, loadFirstPage }: Props) {
+export default function FormPromocion({ submitting, handleReactivateProcessById, title, handleCancelProcessbyId, setState, selectedPromocion, handleEdit, tipo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, loadingModalidad, especificidadOptions, loadingEspecificdad, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, onClose, state, setField, handleSubmit, errors, searchRegister: searchPromocion, loadFirstPage }: Props) {
   const { Promociones, DetallesPasosPromocion, salarios, categorias, Retail, configuraciones, mail} = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData();
   const contratosController = useContratos();
@@ -125,6 +127,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
   const [porcentajeCompletacion, setPorcetanjeCompletacion] = React.useState<number>(0);
   const [cancelProcess, setCancelProcess] = React.useState<boolean>(false);
   const [flow, setFlow] = React.useState<boolean>(false)
+  
 
   const { account } = useAuth();
   const today = getTodayLocalISO();
@@ -206,37 +209,6 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
     }
   }, [state.AuxilioRodamiento]);
 
-  /* ================== Conectividad ================== */
-
-  React.useEffect(() => {
-    const dosSalarios = minimo*2;
-    const valor = Number(state.Salario || 0);
-
-    let nextValor = 0;
-    let nextTexto = "";
-
-    if (valor <= dosSalarios) {
-      nextValor = auxTransporte;
-      nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();;
-    } else if (valor > dosSalarios) {
-      nextValor = 48961;
-      nextTexto = "Cuarenta y ocho mil novecientos secenta y un pesos"
-    } 
-    // Solo actualiza si cambia (evita loops)
-    if (String(state.AuxilioValor ?? "") !== String(nextValor)) {
-      setField("AuxilioValor", String(nextValor));
-    }
-    if (String(state.AuxilioTexto ?? "") !== nextTexto) {
-      setField("AuxilioTexto", nextTexto.toUpperCase());
-    } 
-
-    // si igual quieres el display local:
-    setConectividad(nextValor);
-    setConectividadTexto(nextTexto);
-
-    console.log(conectividad, conectividadTexto)
-  }, [state.Salario, state.Cargo, setField,]); 
-
   /* ================== Garantizado ================== */
   React.useEffect(() => {
     const salario = Number(state.Salario || 0);
@@ -270,26 +242,6 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
     setField("GrupoCVE", grupoCVE)
 
   }, [state.Autonomia, state.PresupuestoVentasMagnitudEconomi, state.ImpactoClienteExterno, state.ContribucionaLaEstrategia, grupoCVE]);
-
-  /* ================== Salario recomendado por cargo ================== */
-  React.useEffect(() => {
-    let cancelled = false;
-
-    const run = async () => {
-      const salario = await loadSpecificSalary(state.Cargo);
-
-      if (!cancelled && salario !== null) {
-        setField("Salario", salario.Salariorecomendado);
-        setField("SalarioTexto", numeroATexto(Number(salario.Salariorecomendado)))
-      }
-    };
-
-    if (state.Cargo) run();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [state.Cargo,]);
 
   /* ================== Nivel por cargo ================== */
   React.useEffect(() => {
@@ -355,8 +307,8 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
         await onClose()
         await loadFirstPage()
       }
-    } else if(tipo=== "edit") {
-      handleEdit(e, selectedPromocion!)
+    } else {
+      handleEdit(e, selectedPromocion!, isView)
     }
   };
 
@@ -391,6 +343,34 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
   const handleCancel = async (razon: string) => {
     await handleCancelProcessbyId(selectedPromocion!.Id ?? "", razon)
     setCancelProcess(false)
+  };
+
+  const handleCargoChange = async (cargo: string) => {
+    setField("Cargo", cargo);
+
+    if (!cargo) return;
+
+    const salario = await loadSpecificSalary(cargo);
+
+    if (!salario?.Salariorecomendado) return;
+
+    setField("Salario", String(salario.Salariorecomendado));
+    setField("SalarioTexto", numeroATexto(Number(salario.Salariorecomendado)).toUpperCase());
+
+    handleAuxilioChange(salario.Salariorecomendado)
+  };
+
+  const  handleAuxilioChange = async (salario: string) => {
+
+    const auxRes = auxilioHandlder(minimo, Number(salario || 0), auxTransporte)
+
+    if (!auxRes) return;
+
+    setField("AuxilioValor", String(auxRes.valor))
+    setField("AuxilioTexto", auxRes.texto)
+
+    setConectividad(auxRes.valor);
+    setConectividadTexto(auxRes.texto.toUpperCase());
   };
 
   return (
@@ -502,7 +482,7 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
                 options={cargoOptions}
                 placeholder={loadingCargo ? "Cargando opciones…" : "Buscar cargo..."}
                 value={selectedCargo}
-                onChange={(opt) => {setField("Cargo", opt?.label ?? "");}}
+                onChange={(opt) => {handleCargoChange(opt?.label ?? "");}}
                 classNamePrefix="rs"
                 isDisabled={loadingCargo || !canEditRegister}
                 isLoading={loadingCargo}
@@ -585,6 +565,8 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
               <input disabled={!canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} autoComplete="off" required aria-required="true" maxLength={300}
                 onChange={(e) => {
                   const raw = e.target.value;
+                  handleAuxilioChange(raw)
+
                   if (raw === "") {
                     setDisplaySalario("");
                     setField("Salario", "" as any);
@@ -1098,10 +1080,11 @@ export default function FormPromocion({submitting, handleReactivateProcessById, 
 
         {/* Acciones */}
         <div className="ft-actions">
-            <button disabled={isView || selectedPromocion?.Estado === "Cancelado" || submitting || !canEditRegister} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreatePromotion(e)}>
+            <button disabled={selectedPromocion?.Estado === "Cancelado" || submitting || !canEditRegister} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreatePromotion(e)}>
               {
                 !canEditRegister ? "No tiene registro para editar esta promoción" :
-                isView || selectedPromocion?.Estado === "Cancelado" ? "No se puede editar este registro ya que fue usado" : 
+                isView ? "Enviar solicitud de edición" : 
+                selectedPromocion?.Estado === "Cancelado" ? "Este proceso fue cancelado" : 
                 submitting ? "Guardando" : 
                 "Guardar"
               }

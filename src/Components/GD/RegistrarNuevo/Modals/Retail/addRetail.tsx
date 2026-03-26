@@ -22,6 +22,7 @@ import { usePermissions } from "../../../../../Funcionalidades/Permisos";
 import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones/hooks/useCesaciones";
 import { useContratos } from "../../../../../Funcionalidades/GD/Contratos/hooks/useContratos";
 import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
+import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -43,7 +44,7 @@ type Props = {
   state: Retail
   setField: SetField<Retail>;
   handleSubmit: () => Promise<{ok: boolean; created: Retail | null;}>;
-  handleEdit: (e: React.FormEvent, NovedadSeleccionada: Retail) => void;
+  handleEdit: (e: React.FormEvent, NovedadSeleccionada: Retail, canEdit: boolean) => void;
   errors: RetailErrors
   searchRegister: (cedula: string) => Promise<Retail | null>
   loadFirstPage: () => Promise<void>
@@ -174,6 +175,18 @@ export default function FormRetail({
     }
   }, [state.Salario]);
 
+  React.useEffect(() => {
+
+    const run = async () => {
+      const salario = (await configuraciones.get("1")).Valor
+      const auxTransporte = await (await configuraciones.get("2")).Valor
+      setMinimo(Number(salario))
+      setAuxTransporte(Number(auxTransporte))
+    };
+
+    run();
+  }, []);
+
   /* ================== Salario recomendado por cargo ================== */
   React.useEffect(() => {
     let cancelled = false;
@@ -233,46 +246,6 @@ export default function FormRetail({
 
   }, [selectedRetail]);
 
-  React.useEffect(() => {
-
-    const run = async () => {
-      const salario = (await configuraciones.get("1")).Valor
-      const auxTransporte = await (await configuraciones.get("2")).Valor
-      setMinimo(Number(salario))
-      setAuxTransporte(Number(auxTransporte))
-    };
-
-    run();
-  }, []);
-
-  React.useEffect(() => {
-    const dosSalarios = Number(minimo)*2;
-    const valor = Number(state.Salario || 0);
-    
-    let nextValor = 0;
-    let nextTexto = "";
-    if (valor <= dosSalarios) {
-      nextValor = Number(auxTransporte);
-      nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();
-    } else if (valor > dosSalarios) {
-      nextValor = 48961;
-      nextTexto = "Cuarenta y ocho mil novecientos secenta y un pesos"
-    }
- 
-    // Solo actualiza si cambia (evita loops)
-    if (String(state.Auxiliodetransporte ?? "") !== String(nextValor)) {
-      setField("Auxiliodetransporte", String(nextValor));
-    }
-    if (String(state.Auxiliotransporteletras ?? "") !== nextTexto) {
-      setField("Auxiliotransporteletras", nextTexto.toUpperCase());
-    } 
-
-    // si igual quieres el display local:
-    setConectividad(nextValor);
-    setConectividadTexto(nextTexto);
-  }, [state.Salario, state.Cargo, minimo]);
-
-
   const handleCreateRetail = async (e: React.FormEvent) => {
     if(tipo=== "new"){
       const created = await handleSubmit();
@@ -284,8 +257,8 @@ export default function FormRetail({
         await notifyTeam(mail, "Nuevo registro en el modulo de Retail - Gestor documental CH", body)
         await onClose()
       }
-    } else if(tipo=== "edit") {
-      handleEdit(e, selectedRetail!)
+    } else {
+      handleEdit(e, selectedRetail!, isView)
     }
   };
 
@@ -322,6 +295,34 @@ export default function FormRetail({
     setCancelProcess(false)
   };
 
+  const handleCargoChange = async (cargo: string) => {
+    setField("Cargo", cargo);
+
+    if (!cargo) return;
+
+    const salario = await loadSpecificSalary(cargo);
+
+    if (!salario?.Salariorecomendado) return;
+
+    setField("Salario", String(salario.Salariorecomendado));
+    setField("SalarioLetras", numeroATexto(Number(salario.Salariorecomendado)).toUpperCase());
+
+    handleAuxilioChange(salario.Salariorecomendado)
+  };
+
+  const  handleAuxilioChange = async (salario: string) => {
+
+    const auxRes = auxilioHandlder(minimo, Number(salario || 0), auxTransporte)
+
+    if (!auxRes) return;
+
+    setField("Auxiliodetransporte", String(auxRes.valor))
+    setField("Auxiliotransporteletras", auxRes.texto)
+
+    setConectividad(auxRes.valor);
+    setConectividadTexto(auxRes.texto.toUpperCase());
+  };
+
   return (
     <div className="ft-modal-backdrop">
       <section className="ft-scope ft-card" role="region" aria-labelledby="ft_title">
@@ -350,7 +351,7 @@ export default function FormRetail({
             {/* Número documento */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="numeroIdent">Número de identificación *</label>
-              <input disabled={isView || !canEditRegister} id="Title" name="Title" type="number" placeholder="Ingrese el número de documento" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value)} onBlur={ (e) => searchPeople(e.target.value)}
+              <input disabled={!canEditRegister} id="Title" name="Title" type="number" placeholder="Ingrese el número de documento" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value)} onBlur={ (e) => searchPeople(e.target.value)}
                 autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.Title}</small>
             </div>
@@ -364,7 +365,7 @@ export default function FormRetail({
                 value={selectedTipoDocumento}
                 onChange={(opt) => {setField("TipoDoc", opt?.label ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadingTipo || isView || !canEditRegister}
+                isDisabled={loadingTipo || !canEditRegister}
                 isLoading={loadingTipo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -377,7 +378,7 @@ export default function FormRetail({
             {/* Nombre seleccionado */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="Nombre"> Nombre del seleccionado *</label>
-              <input disabled={isView || !canEditRegister} id="Nombre" name="Nombre" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Nombre ?? ""} onChange={(e) => setField("Nombre", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
+              <input disabled={!canEditRegister} id="Nombre" name="Nombre" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Nombre ?? ""} onChange={(e) => setField("Nombre", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.Nombre}</small>
             </div>
 
@@ -391,7 +392,7 @@ export default function FormRetail({
                 value={selectedEmpresa}
                 onChange={(opt) => setField("Empresaalaquepertenece", opt?.label ?? "")}
                 classNamePrefix="rs"
-                isDisabled={loadingEmp || isView || !canEditRegister}
+                isDisabled={loadingEmp || !canEditRegister}
                 isLoading={loadingEmp}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -404,7 +405,7 @@ export default function FormRetail({
             {/* Correo */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="correo">Correo electrónico *</label>
-              <input disabled={isView || !canEditRegister} id="correo" name="Correoelectronico" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.CorreoElectronico ?? ""} onChange={(e) => setField("CorreoElectronico", e.target.value.toLowerCase())}
+              <input disabled={!canEditRegister} id="correo" name="Correoelectronico" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.CorreoElectronico ?? ""} onChange={(e) => setField("CorreoElectronico", e.target.value.toLowerCase())}
                 autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.CorreoElectronico}</small>
             </div>
@@ -412,7 +413,7 @@ export default function FormRetail({
             {/* Celular */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="numeroIdent">Celular</label>
-              <input disabled={isView || !canEditRegister} id="Title" name="Title" type="number" placeholder="Ingrese el numero de celular" value={state.Celular ?? ""} onChange={(e) => setField("Celular", e.target.value)}
+              <input disabled={!canEditRegister} id="Title" name="Title" type="number" placeholder="Ingrese el numero de celular" value={state.Celular ?? ""} onChange={(e) => setField("Celular", e.target.value)}
                 autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.Celular}</small>
             </div>
@@ -420,7 +421,7 @@ export default function FormRetail({
             {/* Fecha requerida para el ingreso */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="fechaIngreso">Fecha de ingreso *</label>
-              <input disabled={isView || !canEditRegister} id="FechaIngreso" name="FechaIngreso" type="date" value={state.FechaIngreso ? toISODateFlex(state.FechaIngreso) : ""} onChange={(e) => setField("FechaIngreso", e.target.value)}
+              <input disabled={!canEditRegister} id="FechaIngreso" name="FechaIngreso" type="date" value={state.FechaIngreso ? toISODateFlex(state.FechaIngreso) : ""} onChange={(e) => setField("FechaIngreso", e.target.value)}
                 autoComplete="off" required aria-required="true"/>
               <small>{errors.FechaIngreso}</small>
             </div>
@@ -434,9 +435,9 @@ export default function FormRetail({
                 options={filteredCargoOptions}
                 placeholder={loadingCargo ? "Cargando opciones…" : "Buscar cargo..."}
                 value={selectedCargo}
-                onChange={(opt) => {setField("Cargo", opt?.label ?? "");}}
+                onChange={(opt) => {handleCargoChange(opt?.label ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadingCargo || isView || !canEditRegister}
+                isDisabled={loadingCargo || !canEditRegister}
                 isLoading={loadingCargo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -469,8 +470,10 @@ export default function FormRetail({
             {/* Salario */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Salario *</label>
-              <input disabled={isView || !canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} required maxLength={300} onChange={(e) => {
+              <input disabled={!canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} required maxLength={300} onChange={(e) => {
                                                                                                                                                                 const raw = e.target.value;
+
+                                                                                                                                                                handleAuxilioChange(raw)
               
                                                                                                                                                                 if (raw === "") {
                                                                                                                                                                   setDisplaySalario("");
@@ -493,19 +496,19 @@ export default function FormRetail({
             {/* Salario */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Salario en letras *</label>
-              <input disabled={isView || !canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={numeroATexto(Number(state.Salario)).toUpperCase()} readOnly/>
+              <input disabled={!canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={numeroATexto(Number(state.Salario)).toUpperCase()} readOnly/>
             </div>
 
             {/* Auxilio de conectividad */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Auxilio de tranporte y conectividad *</label>
-              <input disabled={isView || !canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={formatPesosEsCO(String(conectividad))} readOnly/>
+              <input disabled={!canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={formatPesosEsCO(String(conectividad))} readOnly/>
             </div>
 
             {/* Auxilio de conectividad texto */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Auxilio de tranporte y conectividad en letras *</label>
-              <input disabled={isView || !canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={conectividadTexto} readOnly/>
+              <input disabled={!canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={conectividadTexto} readOnly/>
             </div>
 
               {/* Dependencia */}
@@ -518,7 +521,7 @@ export default function FormRetail({
                 value={selectedDependencia}
                 onChange={(opt) => {setField("Depedencia", opt?.value ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadingDependencias || isView || !canEditRegister}
+                isDisabled={loadingDependencias || !canEditRegister}
                 isLoading={loadingDependencias}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -543,7 +546,7 @@ export default function FormRetail({
                   setField("Departamento", value.toUpperCase());  
                 }}
                 classNamePrefix="rs"
-                isDisabled={loadingDepto || isView || !canEditRegister}
+                isDisabled={loadingDepto || !canEditRegister}
                 isLoading={loadingDepto}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -567,7 +570,7 @@ export default function FormRetail({
                   setField("Ciudad", value.toUpperCase());          
                 }}
                 classNamePrefix="rs"
-                isDisabled={!selectedDepto  || loadingCargo || isView || !canEditRegister}
+                isDisabled={!selectedDepto  || loadingCargo || !canEditRegister}
                 isLoading={loadingCargo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -587,7 +590,7 @@ export default function FormRetail({
                 value={selectedCentroCostos}
                 onChange={(opt) => {setField("CentroCostos", opt?.label ?? ""); setField("CodigoCentroCostos", opt?.value ?? "")}}
                 classNamePrefix="rs"
-                isDisabled={loadingCC || isView || !canEditRegister}
+                isDisabled={loadingCC || !canEditRegister}
                 isLoading={loadingCC}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -600,7 +603,7 @@ export default function FormRetail({
             {/* Codigo CC */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Codigo centro de costos *</label>
-              <input disabled={isView || !canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo de documento" value={state.CodigoCentroCostos} readOnly/>
+              <input disabled={!canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo de documento" value={state.CodigoCentroCostos} readOnly/>
             </div>
 
             {/* ================= Centro Operativo ================= */ }
@@ -613,7 +616,7 @@ export default function FormRetail({
                 value={selectedCentroOperativo}
                 onChange={(opt) => {setField("CentroOperativo", opt?.label ?? ""); setField("CodigoCentroOperativo", opt?.value ?? "")}}
                 classNamePrefix="rs"
-                isDisabled={loadingCO || isView || !canEditRegister}
+                isDisabled={loadingCO || !canEditRegister}
                 isLoading={loadingCO}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -626,7 +629,7 @@ export default function FormRetail({
             {/* Codigo CO */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Codigo centro de operativo *</label>
-              <input disabled={isView || !canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoCentroOperativo} readOnly/>
+              <input disabled={!canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoCentroOperativo} readOnly/>
             </div>
 
             {/* ================= Unidad de negocio ================= */ }
@@ -639,7 +642,7 @@ export default function FormRetail({
                 value={selectedUnidadNegocio}
                 onChange={(opt) => {setField("UnidadNegocio", opt?.label ?? ""); setField("CodigoUnidadNegocio", opt?.value ?? "")}}
                 classNamePrefix="rs"
-                isDisabled={loadingUN || isView || !canEditRegister}
+                isDisabled={loadingUN || !canEditRegister}
                 isLoading={loadingUN}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -652,7 +655,7 @@ export default function FormRetail({
             {/* Codigo UN */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Codigo unidad de negocio *</label>
-              <input disabled={isView || !canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoUnidadNegocio} readOnly/>
+              <input disabled={!canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoUnidadNegocio} readOnly/>
             </div>
 
             {/* ================= Origen Seleccion ================= */}
@@ -665,7 +668,7 @@ export default function FormRetail({
                 value={selectedOrigenSeleccion}
                 onChange={(opt) => setField("OrigenSeleccion", opt?.label ?? "")}
                 classNamePrefix="rs"
-                isDisabled={loadingOrigen || isView || !canEditRegister}
+                isDisabled={loadingOrigen || !canEditRegister}
                 isLoading={loadingOrigen}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -678,7 +681,7 @@ export default function FormRetail({
             {/* Informacion enviada por */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="enviadaPor"> Información enviada por *</label>
-              <input disabled={isView || !canEditRegister} id="enviadaPor" name="enviadaPor" type="text" value={account?.name} readOnly/>
+              <input disabled={!canEditRegister} id="enviadaPor" name="enviadaPor" type="text" value={account?.name} readOnly/>
             </div>
 
             {/* Fecha salida cesacion */}
@@ -692,11 +695,12 @@ export default function FormRetail({
 
         {/* Acciones */}
         <div className="ft-actions">
-            <button disabled={isView || selectedRetail?.Estado === "Cancelado" || submitting || !canEditRegister} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreateRetail(e)}>
+            <button disabled={selectedRetail?.Estado === "Cancelado" || submitting || !canEditRegister} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreateRetail(e)}>
               {
                 !canEditRegister ? "No tiene permiso para editar este registro" : 
-                isView || selectedRetail?.Estado === "Cancelado" ? "No se puede editar este registro ya que fue usado" : 
-                submitting ? "Guardando" : "Guardar"
+                selectedRetail?.Estado === "Cancelado" ? "Este registro ha sido cancelado" : 
+                isView ? "Enviar solicitud de edición" :
+                submitting ? "Guardando" : "Guardar" 
               }
             </button> 
             { isView || tipo === "edit" ?

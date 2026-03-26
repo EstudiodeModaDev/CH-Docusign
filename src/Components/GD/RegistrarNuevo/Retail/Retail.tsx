@@ -9,6 +9,7 @@ import type { SetField } from "../Modals/Contrato/addContrato";
 import type { desplegablesOption } from "../../../../models/Desplegables";
 import { usePermissions } from "../../../../Funcionalidades/Permisos";
 import { useEnvios } from "../../../../Funcionalidades/GD/Envios/hooks/useEnvios";
+import MedicalExamDateModal from "../Modals/Common/SetFechaExamenes/MedicalExam";
 
 function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; dir: SortDir}>) {
   const idx = sorts.findIndex(s => s.field === field);
@@ -40,7 +41,7 @@ export type Props = {
   state: Retail
   setField: SetField<Retail>;
   handleSubmit: () => Promise<{ok: boolean; created: Retail | null;}>;
-  handleEdit: (e: React.FormEvent, NovedadSeleccionada: Retail) => void;
+  handleEdit: (e: React.FormEvent, NovedadSeleccionada: Retail, canEdit: boolean) => void;
   errors: RetailErrors
   searchRegister: (cedula: string) => Promise<Retail | null>
   selectedRetail?: Retail
@@ -49,6 +50,7 @@ export type Props = {
   handleReactivateProcessById: (id: string) => void
   submitting: boolean
   deleteRetail: (id: string) => void
+  saveExamenesMedicos: (Id: string, fecha: string) => void
 
   //Desplegables
   empresaOptions: desplegablesOption[]
@@ -83,10 +85,11 @@ export type PropsPagination = {
   totalRows: number;
 };
 
-export default function RetailTabla({deleteRetail, dependenciaOptions, loadingDependencias, deptoOptions, loadingDepto, origenOptions, loadingOrigen, CentroCostosOptions, loadingCC, UNOptions, loadingUN, COOptions, loadingCO, nivelCargoOptions, loadinNivelCargo, cargoOptions, loadingCargo, tipoDocOptions, loadingTipo, empresaOptions, loadingEmp, submitting, handleCancelProcessbyId, handleReactivateProcessById, setState, searchRegister, errors, handleSubmit, handleEdit, setField, state, rows, loading: loadingRetail, error, pageSize: pageSizeRetail, pageIndex: pageIndexRetail, hasNext: hasNextRetail, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageRetail, reloadAll: reloadAllRetail, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
+export default function RetailTabla({saveExamenesMedicos, deleteRetail, dependenciaOptions, loadingDependencias, deptoOptions, loadingDepto, origenOptions, loadingOrigen, CentroCostosOptions, loadingCC, UNOptions, loadingUN, COOptions, loadingCO, nivelCargoOptions, loadinNivelCargo, cargoOptions, loadingCargo, tipoDocOptions, loadingTipo, empresaOptions, loadingEmp, submitting, handleCancelProcessbyId, handleReactivateProcessById, setState, searchRegister, errors, handleSubmit, handleEdit, setField, state, rows, loading: loadingRetail, error, pageSize: pageSizeRetail, pageIndex: pageIndexRetail, hasNext: hasNextRetail, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageRetail, reloadAll: reloadAllRetail, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
   const { detallesPasosRetail, } = useGraphServices();
   const { canEdit } = useEnvios();
   const [visible, setVisible] = React.useState(false);
+  const [examenesMedicos, setExamenesMedicos] = React.useState(false);
   const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Retail | null>(null);
   const [tipoFormulario, setTipoFormulario] = React.useState<"edit" | "new" | "view">("edit");
   const [pctById, setPctById] = React.useState<Record<string, number>>({});
@@ -157,6 +160,11 @@ export default function RetailTabla({deleteRetail, dependenciaOptions, loadingDe
     }
   };
 
+  const setExamenes = React.useCallback(async (c: Retail) => {
+    setNovedadSeleccionada(c)
+    setExamenesMedicos(true)
+  }, []);
+
   const Paginacion = ({reloadAll, loading, pageIndex, pageSize, hasNext,  nextPage, totalRows,}: PropsPagination) =>
     totalRows > 0 ? (
       <div className="paginacion">
@@ -209,6 +217,10 @@ export default function RetailTabla({deleteRetail, dependenciaOptions, loadingDe
               Fecha Ingreso {renderSortIndicator('inicio', sorts)}
             </th>
 
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort('inicio', e.shiftKey)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSort('inicio', e.shiftKey); }} aria-label="Ordenar por ingreso" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              Fecha de examenes medicos {renderSortIndicator('inicio', sorts)}
+            </th>
+
             <th role="button" tabIndex={0} aria-label="Ordenar por ingreso" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
               Información repartada por
             </th>
@@ -226,6 +238,7 @@ export default function RetailTabla({deleteRetail, dependenciaOptions, loadingDe
               <td><span title={n.Cargo}>{n.Cargo}</span></td>
               <td><span title={n.CentroCostos}>{n.CentroCostos}</span></td>
               <td>{toISODateFlex(n.FechaIngreso) || "–"}</td>
+              <td>{toISODateFlex(n.FechaExamenesMedicos) || "No han sido asignados aun"}</td>
               <td><span title={n.InformacionEnviadaPor}>{n.InformacionEnviadaPor}</span></td>
               <td style={{ textAlign: "center" }}>
                 {(() => {
@@ -234,15 +247,50 @@ export default function RetailTabla({deleteRetail, dependenciaOptions, loadingDe
                   return pct === undefined ? "…" : `${pct.toFixed(2)}%`;
                 })()}
               </td>
-                {canDeleteRegister ?
-                  <td style={{ textAlign: "center" }}>
-                    <span title="Elimar proceso">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 26 26" onClick={(e) => {e.stopPropagation(); deleteRetail(n.Id!)}}>
-                        <path fill="#e53434" d="M11.5-.031c-1.958 0-3.531 1.627-3.531 3.594V4H4c-.551 0-1 .449-1 1v1H2v2h2v15c0 1.645 1.355 3 3 3h12c1.645 0 3-1.355 3-3V8h2V6h-1V5c0-.551-.449-1-1-1h-3.969v-.438c0-1.966-1.573-3.593-3.531-3.593h-3zm0 2.062h3c.804 0 1.469.656 1.469 1.531V4H10.03v-.438c0-.875.665-1.53 1.469-1.53zM6 8h5.125c.124.013.247.031.375.031h3c.128 0 .25-.018.375-.031H20v15c0 .563-.437 1-1 1H7c-.563 0-1-.437-1-1V8zm2 2v12h2V10H8zm4 0v12h2V10h-2zm4 0v12h2V10h-2z"/>
+              <td style={{ textAlign: "center" }}>
+                <div style={{display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",}}>
+                  <button type="button" title="Fecha de exámenes médicos" onClick={(e) => {e.stopPropagation(); setExamenes(n);}}
+                    style={{
+                      border: "none",
+                      background: "transparent",
+                      padding: 0,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 50 50">
+                      <g fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
+                        <path stroke="#306CFE" d="M15.708 39.583H8.333A2.083 2.083 0 0 1 6.25 37.5V10.417a2.083 2.083 0 0 1 2.083-2.084h33.334a2.083 2.083 0 0 1 2.083 2.084V37.5a2.083 2.083 0 0 1-2.083 2.083h-7.375"/>
+                        <path stroke="#306CFE" d="M6.25 18.75h37.5m-18.75 0a12.5 12.5 0 1 0 0 25a12.5 12.5 0 0 0 0-25"/>
+                        <path stroke="#344054" d="M16.667 6.25v6.25m16.666-6.25v6.25zm-12.5 27.083l2.084 2.084l6.25-6.25"/>
+                      </g>
+                    </svg>
+                  </button>
+
+                  {canDeleteRegister && (
+                    <button type="button" title="Eliminar proceso" onClick={(e) => {e.stopPropagation(); deleteRetail(n.Id!);}}
+                      style={{
+                        border: "none",
+                        background: "transparent",
+                        padding: 0,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 26 26">
+                        <path
+                          fill="#e53434"
+                          d="M11.5-.031c-1.958 0-3.531 1.627-3.531 3.594V4H4c-.551 0-1 .449-1 1v1H2v2h2v15c0 1.645 1.355 3 3 3h12c1.645 0 3-1.355 3-3V8h2V6h-1V5c0-.551-.449-1-1-1h-3.969v-.438c0-1.966-1.573-3.593-3.531-3.593h-3zm0 2.062h3c.804 0 1.469.656 1.469 1.531V4H10.03v-.438c0-.875.665-1.53 1.469-1.53zM6 8h5.125c.124.013.247.031.375.031h3c.128 0 .25-.018.375-.031H20v15c0 .563-.437 1-1 1H7c-.563 0-1-.437-1-1V8zm2 2v12h2V10H8zm4 0v12h2V10h-2zm4 0v12h2V10h-2z"
+                        />
                       </svg>
-                    </span>
-                  </td> : null
-                }
+                    </button>
+                  )}
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -260,6 +308,7 @@ export default function RetailTabla({deleteRetail, dependenciaOptions, loadingDe
             <th style={{ whiteSpace: "nowrap" }}>Cedula</th>
             <th style={{ whiteSpace: "nowrap" }}>Nombre</th>
             <th style={{ whiteSpace: "nowrap" }}>Fecha Inicio</th>
+            <th style={{ whiteSpace: "nowrap" }}>Fecha de examenes medicos</th>
             <th>Motivo cancelación</th>
             <th>Cancelado por</th>
             <th style={{ textAlign: "center" }}>%</th>
@@ -272,6 +321,7 @@ export default function RetailTabla({deleteRetail, dependenciaOptions, loadingDe
               <td>{n.Title}</td>
               <td><span title={n.Nombre}>{n.Nombre}</span></td>
               <td>{toISODateFlex(n.FechaIngreso) || "–"}</td>
+              <td>{toISODateFlex(n.FechaExamenesMedicos) || "No han sido asignados"}</td>
               <td><span title={n.razonCancelacion}>{n.razonCancelacion || "–"}</span></td>
               <td><span title={n.CanceladoPor}>{n.CanceladoPor || "–"}</span></td>
               <td style={{ textAlign: "center" }}>
@@ -326,6 +376,12 @@ export default function RetailTabla({deleteRetail, dependenciaOptions, loadingDe
       <div className="novedades-wrap filas-novedades">
         {isCanceladas ? <TablaCanceladas /> : <TablaNormal />}
       </div>
+
+      <MedicalExamDateModal 
+        isOpen={examenesMedicos}
+        onClose={() => setExamenesMedicos(false)}
+        onSaveDate={saveExamenesMedicos} 
+        Id={novedadSeleccionada?.Id!}/>
 
       {visible && novedadSeleccionada ? (
         <FormRetail 

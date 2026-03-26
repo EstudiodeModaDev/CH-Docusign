@@ -17,7 +17,6 @@ export function validateContrato(state: Novedad): NovedadErrors {
   if(!state.DIRECCION_x0020_DE_x0020_DOMICIL) e.DIRECCION_x0020_DE_x0020_DOMICIL = "Ingrese la direccion de domicilio"
   if(!state.BARRIO_x0020_) e.BARRIO_x0020_ = "Ingrese el barrio"
   if(!!state.Ajustesalario && !state.SALARIO_x0020_AJUSTADO) e.SALARIO_x0020_AJUSTADO = "Debe ingresar el porcentaje de ajuste"
-  if(state.GARANTIZADO_x0020__x0020__x00bf_.toLocaleLowerCase() === "si" && Number(state.VALOR_x0020_GARANTIZADO) < 1) e.VALOR_x0020_GARANTIZADO = "Debe ingresar el porcentaje de ajuste en el garantizado"
   if(!!state.Auxilioderodamientosiono && !state.Auxilio_x0020_de_x0020_rodamient) e.Auxilio_x0020_de_x0020_rodamient = "Ingrese el valor del auxilio de rodamiento"
   if(!state.DEPENDENCIA_x0020_) e.DEPENDENCIA_x0020_ = "Seleccione la dependencia"
   if(!state.CODIGO_x0020_CENTRO_x0020_DE_x00) e.CODIGO_x0020_CENTRO_x0020_DE_x00 = "Seleccione un CC"
@@ -37,9 +36,8 @@ export function validateContrato(state: Novedad): NovedadErrors {
   if(!!state.Aprendiz && !state.FechaNac) e.FechaNac = "Seleccione la fecha de nacimiento del aprendiz"
   if(!!state.Aprendiz && !state.NitUniversidad) e.NitUniversidad = "Ingrese el NIT de la universidad"
   if(!!state.Universidad && !state.Universidad) e.Universidad = "Ingrese el nombre de la universidad"
-  if(new Date(state.FechaFinalLectiva ?? "") < new Date(state.FechaInicioProductiva ?? "")) e.FechaInicioProductiva = "El estudiante no puede iniciar etapa productiva sin finalizar la etapa lectiva"
-  if(new Date(state.FechaFinalProductiva ?? "") < new Date(state.FechaInicioProductiva ?? "")) e.FechaFinalProductiva = "El estudiante no puede finalizar la etapa productiva sin haberla iniciado"
-  if(new Date(state.FechaFinalLectiva ?? "") < new Date(state.FechaInicioLectiva ?? "")) e.FechaFinalLectiva = "El estudiante no puede finalizar la etapa lectiva sin haberla iniciado"
   
+  console.log(e)
+
   return e;
 }

@@ -1,12 +1,16 @@
 import React from "react";
 import type { DateRange, GetAllOpts, rsOption, SortDir, SortField, } from "../../models/Commons";
-import { normalize, normalizeDate, toISODateFlex } from "../../utils/Date";
+import { toGraphDateTime, toISODateFlex } from "../../utils/Date";
 import { useAuth } from "../../auth/authProvider";
 import type { RetailService } from "../../Services/Retail.service";
 import type { Retail, RetailErrors } from "../../models/Retail";
 import { norm } from "../../utils/text";
 import { useGraphServices } from "../../graph/graphContext";
 import { useDebouncedValue } from "../Common/debounce";
+import { buildRetailPatch } from "./Retail/utils/RetailPatch";
+import { useRequestActions } from "./UpdateRequest/hooks/useRequestActions";
+import { detallePayloadFromRetail } from "./UpdateRequestDetails/utils/requestPayload";
+import { notifyUpdateRequest } from "../../utils/mail";
 
 function includesSearch(row: Retail, q: string) {
   const qq = norm(q);
@@ -122,13 +126,15 @@ export function useRetail(RetailSvc: RetailService, ) {
     OrigenSeleccion: "",
     Temporal: "",
     CanceladoPor: "",
-    razonCancelacion: ""
+    razonCancelacion: "",
+    FechaExamenesMedicos: null
   });
   const [estado, setEstado] = React.useState<string>("En proceso");
   const [errors, setErrors] = React.useState<RetailErrors>({});
   const setField = <K extends keyof Retail>(k: K, v: Retail[K]) => setState((s) => ({ ...s, [k]: v }));
   const debouncedSearch = useDebouncedValue(search, 250);
   const graph = useGraphServices()
+  const requestController = useRequestActions()
 
  const buildServerFilter = React.useCallback((): GetAllOpts => {
     const filters: string[] = [];
@@ -334,6 +340,7 @@ export function useRetail(RetailSvc: RetailService, ) {
         NivelCargo: state.NivelCargo,
         Temporal: state.Temporal,
         UnidadNegocio: state.UnidadNegocio,
+        FechaExamenesMedicos: null
     };
       const created = await RetailSvc.create(payload);
       alert("Se ha creado el registro con éxito")
@@ -346,57 +353,52 @@ export function useRetail(RetailSvc: RetailService, ) {
       }
   };
 
-  const fields: (keyof Retail)[] = [
-    "Title", "TipoDoc", "Nombre", "Empresaalaquepertenece", "CorreoElectronico", "Celular", "NivelCargo", "Cargo", "Salario", "SalarioLetras", "Auxiliodetransporte", 
-    "Auxiliotransporteletras", "Depedencia", "Departamento", "Ciudad", "Temporal", "CentroCostos", "CodigoCentroCostos", "CentroOperativo", "CodigoCentroOperativo", 
-    "UnidadNegocio", "CodigoUnidadNegocio", "OrigenSeleccion", ];
-
-  const dateFields: (keyof Retail)[] = [
-    "FechaIngreso",
-  ];
-
-  const buildPatch = (original: Retail, next: Retail) => {
-    const patch: Record<string, any> = {};
-
-    for (const k of fields) {
-      const a = normalize(original[k]);
-      const b = normalize(next[k]);
-      if (a !== b) patch[k] = b;
-    }
-
-    for (const k of dateFields) {
-      const a = normalizeDate(original[k]);
-      const b = normalizeDate(next[k]);
-      if (a !== b) patch[k] = b;
-    }
-
-    return patch;
-  };
-
-  const handleEdit = async (e: React.FormEvent, CesacionSeleccionada: Retail) => {
+  const handleEdit = async (e: React.FormEvent, retailSeleccionado: Retail, canEdit: boolean) => {
     e.preventDefault();
-    if (!validate()) return;
-    if (!CesacionSeleccionada.Id) { alert("Registro sin Id"); return; }
+
+    const validationErrors = validate()
+
+    if (!validationErrors) {
+      alert("Hay algunos campos faltantes")
+      return
+    };
+    if (!retailSeleccionado.Id) {
+      alert("Registro sin Id");
+      return;
+    }
 
     setLoading(true);
+
     try {
-      const payload = buildPatch(CesacionSeleccionada, state);
+      const toEdit = await RetailSvc.get(retailSeleccionado.Id!)
 
-      // opcional: si no hay cambios, no pegues al servidor
-      if (Object.keys(payload).length === 0) {
-        alert("No hay cambios para guardar");
-        return;
+      if(!canEdit){
+        const payload = buildRetailPatch(toEdit, state);
+        await RetailSvc.update(retailSeleccionado.Id, payload);
+        alert("Se ha actualizado el registro con éxito");
+      } else {
+
+        const request = await requestController.createRequest("Retail", retailSeleccionado.Id)
+        if(!request.created || !request.ok) return
+
+        const realRegister = await graph.Retail.get(retailSeleccionado.Id)
+
+        const DetallesPayload = detallePayloadFromRetail(realRegister, state, request.created.Id!)
+
+        requestController.genericProcess("Retail", DetallesPayload,)
+
+        const groupMembers = await graph.graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
+        await notifyUpdateRequest(graph.mail, "Retail", account?.name ?? "", retailSeleccionado.Title, groupMembers,)
+        
+        alert("Se ha enviado la solicitud, se te notificara el resultado")
+        
       }
-
-      await RetailSvc.update(CesacionSeleccionada.Id, payload);
-      alert("Se ha actualizado el registro con éxito");
     } catch {
       alert("Ha ocurrido un error");
     } finally {
       setLoading(false);
     }
   };
-
 
   const searchWorker = async (query: string): Promise<Retail[]> => {
     const resp = await RetailSvc.getAll({
@@ -514,6 +516,8 @@ export function useRetail(RetailSvc: RetailService, ) {
       }
 
       await RetailSvc.delete(Id)
+      await loadBase()
+      alert("Se ha eliminado el registro con exito.")
     } catch {
       throw new Error("Ha ocurrido un error reactivando el proceso");
     } finally {
@@ -521,8 +525,23 @@ export function useRetail(RetailSvc: RetailService, ) {
     }
   }, [RetailSvc]);
 
+  const saveMedicalExams = React.useCallback(async (Id: string, fecha: string) => {
+      try {
+        if(!Id || !fecha ) return
+
+        const spDate = toGraphDateTime(fecha)
+        await graph.Promociones.update(Id, {FechaExamenesMedicos: spDate});
+        await loadBase()
+        alert("Se ha guardado la fecha de los examenes medicos con éxito.")
+      } catch {
+        throw new Error("Ha ocurrido un error eliminando la novedad");
+      }
+    },
+    []
+  )
+
   return {
     rows, loading, error, pageSize, pageIndex, hasNext, range, search, sorts, state, errors, workers, workersOptions, estado,
-    deleteRetail, handleReactivateProcessById, setState, handleCancelProcessbyId, setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage, searchRegister
+    saveMedicalExams, deleteRetail, handleReactivateProcessById, setState, handleCancelProcessbyId, setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage, searchRegister
   };
 }

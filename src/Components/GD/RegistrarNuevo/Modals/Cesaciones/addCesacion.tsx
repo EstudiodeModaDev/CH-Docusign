@@ -22,6 +22,7 @@ import { usePermissions } from "../../../../../Funcionalidades/Permisos";
 import type { DetallesPasos } from "../../../../../models/Pasos";
 import { useContratos } from "../../../../../Funcionalidades/GD/Contratos/hooks/useContratos";
 import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
+import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -43,7 +44,7 @@ type Props = {
   state: Cesacion
   setField: SetField<Cesacion>;
   handleSubmit: () => Promise<{ok: boolean; created: Cesacion | null;}>;
-  handleEdit: (e: React.FormEvent, NovedadSeleccionada: Cesacion) => void;
+  handleEdit: (e: React.FormEvent, NovedadSeleccionada: Cesacion, canEdit: boolean) => void;
   errors: CesacionErrors
   searchRegister: (cedula: string) => Promise<Cesacion | null>
   tipo: "new" | "edit" | "view"
@@ -171,55 +172,6 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
     }
   }, [state.Salario]);
 
-  /* ================== display auxilio transporte ================== */
-  React.useEffect(() => {
-    const dosSalarios = minimo*2;
-    const valor = Number(state.Salario || 0);
-
-    let nextValor = 0;
-    let nextTexto = "";
-
-    if (valor <= dosSalarios) {
-      nextValor = auxTransporte;
-      nextTexto = numeroATexto(Number(auxTransporte)).toLocaleUpperCase();
-    } else if (valor > dosSalarios) {
-      nextValor = 48961;
-      nextTexto = "Cuarenta y ocho mil novecientos secenta y un pesos";
-    }
-
-    
-    if (String(state.auxConectividadValor ?? "") !== String(nextValor)) {
-      setField("auxConectividadValor", String(nextValor));
-    }
-    if (String(state.auxConectividadTexto ?? "") !== nextTexto) {
-      setField("auxConectividadTexto", nextTexto.toUpperCase());
-    }
-
-    // si igual quieres el display local:
-    setConectividad(nextValor);
-    setConectividadTexto(nextTexto);
-  }, [state.Salario, state.Cargo, state.auxConectividadValor, state.auxConectividadTexto, setField, minimo]);
-
-  /* ================== Salario recomendado por cargo ================== */
-  React.useEffect(() => {
-    let cancelled = false;
-
-    const run = async () => {
-      const salario = await loadSpecificSalary(state.Cargo);
-
-      if (!cancelled && salario !== null) {
-        setField("Salario", salario.Salariorecomendado);
-        setField("SalarioTexto", numeroATexto(Number(salario.Salariorecomendado)).toUpperCase())
-      }
-    };
-
-    if (state.Cargo) run();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [state.Cargo,]);
-
   React.useEffect(() => {
 
     const run = async () => {
@@ -282,8 +234,8 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
         await notifyTeam(mail, "Nuevo registro en cesaciones - Gestor documental CH", body)
         await onClose()
       }
-    } else if(tipo=== "edit") {
-      handleEdit(e, selectedCesacion!)
+    } else{
+      handleEdit(e, selectedCesacion!, isView)
     }
   };
 
@@ -320,6 +272,33 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
     setCancelProcess(false)
   };
 
+  const handleCargoChange = async (cargo: string) => {
+    setField("Cargo", cargo);
+
+    if (!cargo) return;
+
+    const salario = await loadSpecificSalary(cargo);
+
+    if (!salario?.Salariorecomendado) return;
+
+    setField("Salario", String(salario.Salariorecomendado));
+    setField("SalarioTexto", numeroATexto(Number(salario.Salariorecomendado)).toUpperCase());
+
+    handleAuxilioChange(salario.Salariorecomendado)
+  };
+
+  const  handleAuxilioChange = async (salario: string) => {
+
+    const auxRes = auxilioHandlder(minimo, Number(salario || 0), auxTransporte)
+
+    if (!auxRes) return;
+
+    setField("auxConectividadValor", String(auxRes.valor))
+    setField("auxConectividadTexto", auxRes.texto)
+
+    setConectividad(auxRes.valor);
+    setConectividadTexto(auxRes.texto.toUpperCase());
+  };
 
   return (
     <div className="ft-modal-backdrop">
@@ -342,14 +321,14 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
                     loadDetalles={() => loadDetallesCesacion()} 
                     proceso={"Cesacion"}/> :
         <>
-          <h2 id="ft_title" className="ft-title">{title} {(tipo === "edit" || isView) ? ` - ${porcentajeCompletacion}` : null}</h2>
+          <h2 id="ft_title" className="ft-title">{title} {(tipo === "edit") ? ` - ${porcentajeCompletacion}` : null}</h2>
 
           <form className="ft-form" noValidate>
 
             {/* Número documento */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="numeroIdent">Número de identificación *</label>
-              <input disabled={isView || !canEditRegister} id="Title" name="Title" type="number" placeholder="Ingrese el número de documento" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value)} onBlur={ (e) => searchPeople(e.target.value)}
+              <input disabled={!canEditRegister} id="Title" name="Title" type="number" placeholder="Ingrese el número de documento" value={state.Title ?? ""} onChange={(e) => setField("Title", e.target.value)} onBlur={ (e) => searchPeople(e.target.value)}
                 autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.Title}</small>
             </div>
@@ -363,8 +342,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
                 value={selectedTipoDocumento}
                 onChange={(opt) => {setField("TipoDoc", opt?.label ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadingTipo}
-                isLoading={loadingTipo || isView || !canEditRegister}
+                isDisabled={loadingTipo || !canEditRegister}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
                 components={{ Option }}
@@ -376,7 +354,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             {/* Nombre seleccionado */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="Nombre"> Nombre del seleccionado *</label>
-              <input disabled={isView || !canEditRegister} id="Nombre" name="Nombre" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Nombre ?? ""} onChange={(e) => setField("Nombre", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
+              <input disabled={!canEditRegister} id="Nombre" name="Nombre" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.Nombre ?? ""} onChange={(e) => setField("Nombre", e.target.value.toUpperCase())} autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.Nombre}</small>
             </div>
 
@@ -390,7 +368,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
                 value={selectedEmpresa}
                 onChange={(opt) => setField("Empresaalaquepertenece", opt?.label ?? "")}
                 classNamePrefix="rs"
-                isDisabled={loadingEmp || isView || !canEditRegister}
+                isDisabled={loadingEmp || !canEditRegister}
                 isLoading={loadingEmp}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -403,7 +381,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             {/* Correo */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="correo">Correo electrónico *</label>
-              <input disabled={isView || !canEditRegister} id="correo" name="Correoelectronico" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.Correoelectronico ?? ""} onChange={(e) => setField("Correoelectronico", e.target.value.toLowerCase())}
+              <input disabled={!canEditRegister} id="correo" name="Correoelectronico" type="email" placeholder="Ingrese el correo electrónico del seleccionado" value={state.Correoelectronico ?? ""} onChange={(e) => setField("Correoelectronico", e.target.value.toLowerCase())}
                 autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.Correoelectronico}</small>
             </div>
@@ -411,7 +389,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             {/* Celular */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="numeroIdent">Celular</label>
-              <input disabled={isView || !canEditRegister} id="Title" name="Title" type="number" placeholder="Ingrese el numero de celular" value={state.Celular ?? ""} onChange={(e) => setField("Celular", e.target.value)}
+              <input disabled={!canEditRegister} id="Title" name="Title" type="number" placeholder="Ingrese el numero de celular" value={state.Celular ?? ""} onChange={(e) => setField("Celular", e.target.value)}
                 autoComplete="off" required aria-required="true" maxLength={300}/>
               <small>{errors.Title}</small>
             </div>
@@ -419,7 +397,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             {/* Fecha requerida para el ingreso */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="fechaIngreso">Fecha de ingreso *</label>
-              <input disabled={isView || !canEditRegister} id="FechaIngreso" name="FechaIngreso" type="date" value={state.FechaIngreso ? toISODateFlex(state.FechaIngreso) : ""} onChange={(e) => setField("FechaIngreso", e.target.value)}
+              <input disabled={!canEditRegister} id="FechaIngreso" name="FechaIngreso" type="date" value={state.FechaIngreso ? toISODateFlex(state.FechaIngreso) : ""} onChange={(e) => setField("FechaIngreso", e.target.value)}
                 autoComplete="off" required aria-required="true"/>
               <small>{errors.FechaIngreso}</small>
             </div>
@@ -427,7 +405,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             {/* Fecha salida cesacion */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="FechaSalidaCesacion">Fecha salida cesación *</label>
-              <input disabled={isView || !canEditRegister} id="FechaSalidaCesacion" name="FechaSalidaCesacion" type="date" value={state.FechaSalidaCesacion ? toISODateFlex(state.FechaSalidaCesacion) : ""} onChange={(e) => setField("FechaSalidaCesacion", e.target.value)}
+              <input disabled={!canEditRegister} id="FechaSalidaCesacion" name="FechaSalidaCesacion" type="date" value={state.FechaSalidaCesacion ? toISODateFlex(state.FechaSalidaCesacion) : ""} onChange={(e) => setField("FechaSalidaCesacion", e.target.value)}
                 autoComplete="off" required aria-required="true"/>
               <small>{errors.FechaSalidaCesacion}</small>
             </div>
@@ -435,7 +413,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             {/* Fecha limite documentos */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="FechaLimiteDocumentos">Fecha limite documentos *</label>
-              <input disabled={isView || !canEditRegister} id="FechaLimiteDocumentos" name="FechaLimiteDocumentos" type="date" value={state.FechaLimiteDocumentos ? toISODateFlex(state.FechaLimiteDocumentos) : ""} onChange={(e) => setField("FechaLimiteDocumentos", e.target.value)}
+              <input disabled={!canEditRegister} id="FechaLimiteDocumentos" name="FechaLimiteDocumentos" type="date" value={state.FechaLimiteDocumentos ? toISODateFlex(state.FechaLimiteDocumentos) : ""} onChange={(e) => setField("FechaLimiteDocumentos", e.target.value)}
                 autoComplete="off" required aria-required="true"/>
               <small>{errors.FechaLimiteDocumentos}</small>
             </div>
@@ -448,9 +426,9 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
                 options={filteredCargoOptions}
                 placeholder={loadingCargo ? "Cargando opciones…" : "Buscar cargo..."}
                 value={selectedCargo}
-                onChange={(opt) => {setField("Cargo", opt?.label ?? "");}}
+                onChange={(opt) => {handleCargoChange(opt?.label ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadingCargo || isView || !canEditRegister}
+                isDisabled={loadingCargo || !canEditRegister}
                 isLoading={loadingCargo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -470,7 +448,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
                 value={selectedNivelCargo}
                 onChange={(opt) => {setField("Niveldecargo", opt?.label ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadinNivelCargo || isView || !canEditRegister}
+                isDisabled={loadinNivelCargo || !canEditRegister}
                 isLoading={loadinNivelCargo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -485,7 +463,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
               <label className="ft-label"> ¿Cargo critico? *</label>
               <div className="ft-radio-group">
                 <label className="ft-radio-custom">
-                  <input disabled={isView || !canEditRegister} type="radio" name="critico" value="Si" checked={state.CargoCritico === "Si"} onChange={() => setField("CargoCritico", "Si")}/>
+                  <input disabled={!canEditRegister} type="radio" name="critico" value="Si" checked={state.CargoCritico === "Si"} onChange={() => setField("CargoCritico", "Si")}/>
                   <span className="circle"></span>
                   <span className="text">Si</span>
                 </label>
@@ -503,8 +481,10 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             {/* Salario */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Salario *</label>
-              <input disabled={isView || !canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} required maxLength={300} onChange={(e) => {
+              <input disabled={!canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} required maxLength={300} onChange={(e) => {
                                                                                                                                                                   const raw = e.target.value;
+
+                                                                                                                                                                  handleAuxilioChange(raw)
 
                                                                                                                                                                   if (raw === "") {
                                                                                                                                                                     setDisplaySalario("");
@@ -527,19 +507,19 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             {/* Salario */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Salario en letras *</label>
-              <input disabled={isView || !canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={numeroATexto(Number(state.Salario)).toUpperCase()} readOnly/>
+              <input disabled={!canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={numeroATexto(Number(state.Salario)).toUpperCase()} readOnly/>
             </div>
 
             {/* Auxilio de conectividad */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Auxilio de tranporte y conectividad *</label>
-              <input disabled={isView || !canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={formatPesosEsCO(String(conectividad))} readOnly/>
+              <input disabled={!canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={formatPesosEsCO(String(conectividad))} readOnly/>
             </div>
 
             {/* Auxilio de conectividad texto */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Auxilio de tranporte y conectividad en letras *</label>
-              <input disabled={isView || !canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={conectividadTexto} readOnly/>
+              <input disabled={!canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={conectividadTexto} readOnly/>
             </div>
 
               {/* Dependencia */}
@@ -552,7 +532,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
                 value={selectedDependencia}
                 onChange={(opt) => {setField("Dependencia", opt?.value ?? "");}}
                 classNamePrefix="rs"
-                isDisabled={loadingDependencias || isView || !canEditRegister}
+                isDisabled={loadingDependencias || !canEditRegister}
                 isLoading={loadingDependencias}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -577,7 +557,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
                   setField("Departamento", value.toUpperCase());  
                 }}
                 classNamePrefix="rs"
-                isDisabled={loadingDeptos || isView || !canEditRegister}
+                isDisabled={loadingDeptos || !canEditRegister}
                 isLoading={loadingDeptos}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -601,7 +581,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
                   setField("Ciudad", value.toUpperCase());          
                 }}
                 classNamePrefix="rs"
-                isDisabled={!selectedDepto  || loadingCargo || isView || !canEditRegister}
+                isDisabled={!selectedDepto  || loadingCargo || !canEditRegister}
                 isLoading={loadingCargo}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -641,7 +621,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
                 value={selectedCentroCostos}
                 onChange={(opt) => {setField("DescripcionCC", opt?.label ?? ""); setField("CodigoCC", opt?.value ?? "")}}
                 classNamePrefix="rs"
-                isDisabled={loadingCC || isView || !canEditRegister}
+                isDisabled={loadingCC || !canEditRegister}
                 isLoading={loadingCC}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -667,7 +647,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
                 value={selectedCentroOperativo}
                 onChange={(opt) => {setField("DescripcionCO", opt?.label ?? ""); setField("CodigoCO", opt?.value ?? "")}}
                 classNamePrefix="rs"
-                isDisabled={loadingCO || isView || !canEditRegister}
+                isDisabled={loadingCO || !canEditRegister}
                 isLoading={loadingCO}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -693,7 +673,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
                 value={selectedUnidadNegocio}
                 onChange={(opt) => {setField("DescripcionUN", opt?.label ?? ""); setField("CodigoUN", opt?.value ?? "")}}
                 classNamePrefix="rs"
-                isDisabled={loadingUN || isView || !canEditRegister}
+                isDisabled={loadingUN || !canEditRegister}
                 isLoading={loadingUN}
                 getOptionValue={(o) => String(o.value)}
                 getOptionLabel={(o) => o.label}
@@ -712,7 +692,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             {/* Direccion */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="Nombre"> Dirección de residencia *</label>
-              <input disabled={isView} id="Nombre" name="Nombre" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.direccionResidencia ?? ""} onChange={(e) => setField("direccionResidencia", e.target.value.toUpperCase())} required/>
+              <input disabled={!canEditRegister} id="Nombre" name="Nombre" type="text" placeholder="Ingrese el nombre del seleccionado" value={state.direccionResidencia ?? ""} onChange={(e) => setField("direccionResidencia", e.target.value.toUpperCase())} required/>
               <small>{errors.direccionResidencia}</small>
             </div>
 
@@ -733,10 +713,11 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
 
         {/* Acciones */}
         <div className="ft-actions">
-            <button disabled={isView || selectedCesacion?.Estado === "Cancelado" || sending || !canEditRegister} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreateCesacion(e)}>
+            <button disabled={selectedCesacion?.Estado === "Cancelado" || sending || !canEditRegister} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreateCesacion(e)}>
               {
                 !canEditRegister ? "No tiene permisos para editar en este modulo" :
-                isView || selectedCesacion?.Estado === "Cancelado" ? "No se puede editar este registro ya que fue usado" : 
+                isView ? "Enviar solicitud de edición" :
+                selectedCesacion?.Estado === "Cancelado" ? "Este proceso fue cancelado, no puede ser usado" : 
                 sending ? "Procesando..." : 
                 "Guardar"
               }

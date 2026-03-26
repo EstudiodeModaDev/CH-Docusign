@@ -10,6 +10,7 @@ import type { SetField } from "../Modals/Contrato/addContrato";
 import FormContratacion from "../Modals/Contrato/addContrato";
 import { usePermissions } from "../../../../Funcionalidades/Permisos";
 import { useEnvios } from "../../../../Funcionalidades/GD/Envios/hooks/useEnvios";
+import MedicalExamDateModal from "../Modals/Common/SetFechaExamenes/MedicalExam";
 
 function renderSortIndicator(
   field: SortField,
@@ -55,13 +56,14 @@ export type Props = {
   state: Novedad
   setField: SetField<Novedad>;
   handleSubmit: () => Promise<{ok: boolean; created: Novedad | null;}>;
-  handleEdit: (e: React.FormEvent, NovedadSeleccionada: Novedad) => void;
+  handleEdit: (e: React.FormEvent, NovedadSeleccionada: Novedad, canEdit: boolean) => void;
   errors: NovedadErrors
   searchRegister: (cedula: string) => Promise<Novedad | null>
   setState: (n: Novedad) => void
   handleCancelProcessbyId: (id: string, r: string) => void
   handleReactivatProcessbyId: (id: string,) => void
   deleteContratacion: (id: string) => void
+  saveMedicalExams: (Id: string, fecha: string) => void
 
   //Desplegables
   empresaOptions: desplegablesOption[]
@@ -106,12 +108,13 @@ export type PropsPagination = {
   totalRows: number;
 };
 
-export default function TablaContratos({deleteContratacion, handleReactivatProcessbyId, tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias,CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, origenOptions, loadingOrigen, tipoContratoOptions, loadingTipoContrato, errors, searchRegister, setState, loadingModalidad, especificidadOptions, loadingEspecificdad, etapasOptions, loadingEtapas, nivelCargoOptions, loadinNivelCargo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, state, setField, handleSubmit, handleCancelProcessbyId, handleEdit,  rows, loading: loadingContratos, error, pageSize: pageSizeContratos, pageIndex: pageIndexContratos, hasNext: hasNextContratos, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageContratos, reloadAll: reloadAllContratos, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
+export default function TablaContratos({saveMedicalExams, deleteContratacion, handleReactivatProcessbyId, tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias,CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, origenOptions, loadingOrigen, tipoContratoOptions, loadingTipoContrato, errors, searchRegister, setState, loadingModalidad, especificidadOptions, loadingEspecificdad, etapasOptions, loadingEtapas, nivelCargoOptions, loadinNivelCargo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, state, setField, handleSubmit, handleCancelProcessbyId, handleEdit,  rows, loading: loadingContratos, error, pageSize: pageSizeContratos, pageIndex: pageIndexContratos, hasNext: hasNextContratos, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageContratos, reloadAll: reloadAllContratos, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
   const { DetallesPasosNovedades, } = useGraphServices();
   const { canEdit } = useEnvios();
   const { engine } = usePermissions();
 
   const [visible, setVisible] = React.useState(false);
+  const [examenesMedicos, setExamenesMedicos] = React.useState(false);
   const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Novedad | null>(null);
   const [tipoFormulario, setTipoFormulario] = React.useState<"new" | "edit" | "view">("view");
   const [pctById, setPctById] = React.useState<Record<string, number>>({});
@@ -161,6 +164,11 @@ export default function TablaContratos({deleteContratacion, handleReactivatProce
     },
     [DetallesPasosNovedades]
   );
+
+  const setExamenes = React.useCallback(async (nov: Novedad) => {
+    setNovedadSeleccionada(nov)
+    setExamenesMedicos(true)
+  }, []);
 
   const isCanceladas = estado === "cancelado";
 
@@ -232,9 +240,13 @@ export default function TablaContratos({deleteContratacion, handleReactivatProce
               Fecha de inicio {renderSortIndicator("inicio", sorts)}
             </th>
 
+            <th role="button" tabIndex={0} onClick={(e) => toggleSort("inicio", (e as any).shiftKey)} style={{ cursor: "pointer", whiteSpace: "nowrap" }}>
+              Fecha de examenes medicos {renderSortIndicator("inicio", sorts)}
+            </th>
+
             <th>Reportado por</th>
             <th style={{ textAlign: "center" }}>%</th>
-            {canDeleteRegister ? <th style={{ textAlign: "center" }}>Eliminar</th> : null}
+            <th style={{ textAlign: "center" }}>Acciones</th>
           </tr>
         </thead>
 
@@ -246,6 +258,7 @@ export default function TablaContratos({deleteContratacion, handleReactivatProce
               <td><span title={n.CARGO}>{n.CARGO}</span></td>
               <td><span title={n.SALARIO}>{formatPesosEsCO(n.SALARIO)}</span></td>
               <td>{toISODateFlex(n.FECHA_x0020_REQUERIDA_x0020_PARA0) || "–"}</td>
+              <td>{toISODateFlex(n.FechaExamenesMedicos) || "No han sido asignados"}</td>
               <td><span title={n.Informaci_x00f3_n_x0020_enviada_}>{n.Informaci_x00f3_n_x0020_enviada_}</span></td>
               <td style={{ textAlign: "center" }}>
                 {(() => {
@@ -254,15 +267,50 @@ export default function TablaContratos({deleteContratacion, handleReactivatProce
                   return pct === undefined ? "…" : `${pct.toFixed(2)}%`;
                 })()}
               </td>
-              {canDeleteRegister ?
-                <td style={{ textAlign: "center" }}>
-                  <span title="Elimar proceso">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 26 26" onClick={(e) => {e.stopPropagation(); deleteContratacion(n.Id!)}}>
-                      <path fill="#e53434" d="M11.5-.031c-1.958 0-3.531 1.627-3.531 3.594V4H4c-.551 0-1 .449-1 1v1H2v2h2v15c0 1.645 1.355 3 3 3h12c1.645 0 3-1.355 3-3V8h2V6h-1V5c0-.551-.449-1-1-1h-3.969v-.438c0-1.966-1.573-3.593-3.531-3.593h-3zm0 2.062h3c.804 0 1.469.656 1.469 1.531V4H10.03v-.438c0-.875.665-1.53 1.469-1.53zM6 8h5.125c.124.013.247.031.375.031h3c.128 0 .25-.018.375-.031H20v15c0 .563-.437 1-1 1H7c-.563 0-1-.437-1-1V8zm2 2v12h2V10H8zm4 0v12h2V10h-2zm4 0v12h2V10h-2z"/>
+              <td style={{ textAlign: "center" }}>
+                <div style={{display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",}}>
+                  <button type="button" title="Fecha de exámenes médicos" onClick={(e) => {e.stopPropagation(); setExamenes(n);}}
+                    style={{
+                      border: "none",
+                      background: "transparent",
+                      padding: 0,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 50 50">
+                      <g fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
+                        <path stroke="#306CFE" d="M15.708 39.583H8.333A2.083 2.083 0 0 1 6.25 37.5V10.417a2.083 2.083 0 0 1 2.083-2.084h33.334a2.083 2.083 0 0 1 2.083 2.084V37.5a2.083 2.083 0 0 1-2.083 2.083h-7.375"/>
+                        <path stroke="#306CFE" d="M6.25 18.75h37.5m-18.75 0a12.5 12.5 0 1 0 0 25a12.5 12.5 0 0 0 0-25"/>
+                        <path stroke="#344054" d="M16.667 6.25v6.25m16.666-6.25v6.25zm-12.5 27.083l2.084 2.084l6.25-6.25"/>
+                      </g>
                     </svg>
-                  </span>
-                </td> : null
-              }
+                  </button>
+
+                  {canDeleteRegister && (
+                    <button type="button" title="Eliminar proceso" onClick={(e) => {e.stopPropagation(); deleteContratacion(n.Id!);}}
+                      style={{
+                        border: "none",
+                        background: "transparent",
+                        padding: 0,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 26 26">
+                        <path
+                          fill="#e53434"
+                          d="M11.5-.031c-1.958 0-3.531 1.627-3.531 3.594V4H4c-.551 0-1 .449-1 1v1H2v2h2v15c0 1.645 1.355 3 3 3h12c1.645 0 3-1.355 3-3V8h2V6h-1V5c0-.551-.449-1-1-1h-3.969v-.438c0-1.966-1.573-3.593-3.531-3.593h-3zm0 2.062h3c.804 0 1.469.656 1.469 1.531V4H10.03v-.438c0-.875.665-1.53 1.469-1.53zM6 8h5.125c.124.013.247.031.375.031h3c.128 0 .25-.018.375-.031H20v15c0 .563-.437 1-1 1H7c-.563 0-1-.437-1-1V8zm2 2v12h2V10H8zm4 0v12h2V10h-2zm4 0v12h2V10h-2z"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -367,6 +415,12 @@ export default function TablaContratos({deleteContratacion, handleReactivatProce
       <div className="novedades-wrap filas-novedades">
         {isCanceladas ? <TablaCanceladas /> : <TablaNormal />}
       </div>
+
+      <MedicalExamDateModal 
+        isOpen={examenesMedicos}
+        onClose={() => setExamenesMedicos(false)}
+        onSaveDate={saveMedicalExams} 
+        Id={novedadSeleccionada?.Id!}/>
 
       {visible && novedadSeleccionada ? (
         <FormContratacion 

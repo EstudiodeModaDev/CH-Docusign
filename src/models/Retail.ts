@@ -36,6 +36,7 @@ export type Retail = {
     Estado: string;
     CanceladoPor?: string;
     razonCancelacion?: string; 
+    FechaExamenesMedicos: string | null
 }
 
 export type RetailErrors = Partial<Record<keyof Retail, string>>;

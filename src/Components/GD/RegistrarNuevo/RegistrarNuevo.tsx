@@ -171,8 +171,9 @@ export default function RegistrarNuevoPage() {
             deptoOptions={deptoOptions}
             loadingDepto={loadingDepto}
             dependenciaOptions={dependenciaOptions}
-            loadingDependencias={loadingDependencias} 
-            handleReactivatProcessbyId={contratosController.handleReactivateProcessById} /> ) :  
+            loadingDependencias={loadingDependencias}
+            handleReactivatProcessbyId={contratosController.handleReactivateProcessById} 
+            saveMedicalExams={contratosController.saveMedicalExams} /> ) :  
         orden === "habeas" ? (
           <TablaHabeas 
             rows={habeasController.rows} 
@@ -264,7 +265,8 @@ export default function RegistrarNuevoPage() {
             loadingDepto={loadingDepto}
             dependenciaOptions={dependenciaOptions}
             loadingDependencias={loadingDependencias} 
-            submmiting={promocionesController.loading}/>) : 
+            submmiting={promocionesController.loading}
+            saveMedicalExams={promocionesController.saveMedicalExams}/>) : 
         orden === "cesaciones" ? (
           <CesacionesTabla 
             rows={cesacionesController.rows}
@@ -315,7 +317,8 @@ export default function RegistrarNuevoPage() {
             temporalOption={temporalOptions}
             temporalLoading={loadingTemporal}
             deptoOptions={deptoOptions} 
-            loadingDeptos={loadingDepto}/>) :
+            loadingDeptos={loadingDepto}
+            saveMedicalExams={cesacionesController.saveMedicalExams}/>) :
         orden === "retail" ? (
           <RetailTabla 
             rows={retailController.rows} 
@@ -366,7 +369,8 @@ export default function RegistrarNuevoPage() {
             deptoOptions={deptoOptions} 
             loadingDepto={loadingDepto} 
             dependenciaOptions={dependenciaOptions} 
-            loadingDependencias={loadingDependencias} />) : null
+            loadingDependencias={loadingDependencias} 
+            saveExamenesMedicos={retailController.saveMedicalExams}/>) : null
       }
       
 

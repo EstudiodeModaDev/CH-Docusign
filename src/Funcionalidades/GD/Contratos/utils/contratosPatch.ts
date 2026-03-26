@@ -32,6 +32,6 @@ export function buildContratosPatch(original: Novedad, next: Novedad) {
     const b = normalizeDate(next[k]);
     if (a !== b) patch[k] = b;
   }
-
+  console.log(patch)
   return patch;
 }

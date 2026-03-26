@@ -8,12 +8,19 @@ import type { Novedad } from "../../../../models/Novedades";
 import { useContratosTable } from "./useContratosTable";
 import { useContratosForm } from "./useContratosForm";
 import { buildContratosPatch } from "../utils/contratosPatch";
+import { useRequestActions } from "../../UpdateRequest/hooks/useRequestActions";
+import { useRequestDetailsActions } from "../../UpdateRequestDetails/hooks/useRequestDetailsActions";
+import { detallePayloadFromContrato } from "../../UpdateRequestDetails/utils/requestPayload";
+import { notifyUpdateRequest } from "../../../../utils/mail";
+import { toGraphDateTime } from "../../../../utils/Date";
 
 export function useContratos() {
   const { account } = useAuth();
   const graph = useGraphServices()
   const formController = useContratosForm(account?.name ?? "")
   const registerController = useContratosTable(graph.Contratos, account?.username)
+  const requestController = useRequestActions()
+  const requestDetailsController = useRequestDetailsActions()
   const [workers, setWorkers] = React.useState<Novedad[]>([]);
   const [workersOptions, setWorkersOptions] = React.useState<rsOption[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -21,7 +28,7 @@ export function useContratos() {
   const handleSubmit = async (): Promise<{ created: Novedad | null; ok: boolean }> => {
     const validationErrors = formController.validate()
 
-    if (Object.keys(validationErrors).length > 0) {
+    if (!validationErrors) {
       alert("Hay campos sin rellenar");
       return { ok: false, created: null };
     }
@@ -41,12 +48,12 @@ export function useContratos() {
     }
   };
 
-  const handleEdit = async (e: React.FormEvent, contratoToEdit: Novedad) => {
+  const handleEdit = async (e: React.FormEvent, contratoToEdit: Novedad, canEdit: boolean) => {
     e.preventDefault();
 
     const validationErrors = formController.validate()
 
-    if (validationErrors) {
+    if (!validationErrors) {
       alert("Hay algunos campos faltantes")
       return
     };
@@ -58,15 +65,35 @@ export function useContratos() {
     setLoading(true);
 
     try {
-      const payload = buildContratosPatch(contratoToEdit, formController.state);
+      const toEdit = await graph.Contratos.get(contratoToEdit.Id!)
+      const payload = buildContratosPatch(contratoToEdit, toEdit,);
 
       if (Object.keys(payload).length === 0) {
         alert("No hay cambios para guardar");
         return;
       }
 
-      await graph.Contratos.update(contratoToEdit.Id, payload);
-      alert("Se ha actualizado el registro con éxito");
+      
+      if(!canEdit){
+        await graph.Contratos.update(contratoToEdit.Id, payload);
+        alert("Se ha actualizado el registro con éxito");
+      } else {
+
+        const request = await requestController.createRequest("Contratacion", contratoToEdit.Id)
+        if(!request.created || !request.ok) return
+        const realRegister = await graph.Contratos.get(contratoToEdit.Id)
+        
+        const DetallesPayload = detallePayloadFromContrato(realRegister, formController.state, request.created?.Id ?? "", )
+
+        for(const detalle of DetallesPayload){
+          await requestDetailsController.createDetails(detalle)
+        }
+        const groupMembers = await graph.graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
+        await notifyUpdateRequest(graph.mail, "Contrato", account?.name ?? "", contratoToEdit.Numero_x0020_identificaci_x00f3_, groupMembers,)
+        alert("Se ha enviado la solicitud, se te notificara el resultado")
+        
+      }
+
     } catch {
       alert("Ha ocurrido un error");
     } finally {
@@ -133,6 +160,23 @@ export function useContratos() {
   const deleteContrato = React.useCallback(async (Id: string) => {
       try {
         await graph.Contratos.delete(Id);
+        await registerController.loadBase()
+        alert("Se ha eliminado el registro con exito.")
+      } catch {
+        throw new Error("Ha ocurrido un error eliminando la novedad");
+      }
+    },
+    []
+  );
+
+  const saveMedicalExams = React.useCallback(async (Id: string, fecha: string) => {
+      try {
+        if(!Id || !fecha ) return
+
+        const spDate = toGraphDateTime(fecha)
+        await graph.Contratos.update(Id, {FechaExamenesMedicos: spDate});
+        await registerController.loadBase()
+        alert("Se ha guardado la fecha de los examenes medicos con éxito.")
       } catch {
         throw new Error("Ha ocurrido un error eliminando la novedad");
       }
@@ -151,6 +195,7 @@ export function useContratos() {
     handleEdit,
     searchWorker,
     deleteContrato,
+    saveMedicalExams,
     ...formController,
     ...registerController,
     loading

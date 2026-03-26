@@ -112,7 +112,8 @@ export class CesacionesService {
       Estado: f.Estado,
       direccionResidencia: f.direccionResidencia,
       CanceladoPor: f.CanceladoPor,
-      RazonCancelacion: f.RazonCancelacion
+      RazonCancelacion: f.RazonCancelacion,
+      FechaExamenesMedicos: f.FechaExamenesMedicos
     };
   }
 

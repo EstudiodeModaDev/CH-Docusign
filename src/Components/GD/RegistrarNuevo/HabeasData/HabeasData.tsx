@@ -37,7 +37,7 @@ type Props = {
   state: HabeasData
   setField: SetField<HabeasData>;
   handleSubmit: (e: React.FormEvent) => Promise<{ created: HabeasData | null; ok: boolean }>;
-  handleEdit: (e: React.FormEvent, NovedadSeleccionada: HabeasData) => void;
+  handleEdit: (e: React.FormEvent, NovedadSeleccionada: HabeasData, canEdit: boolean) => void;
   errors: HabeasErrors
   setState: (n: HabeasData) => void
 

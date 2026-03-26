@@ -5,13 +5,14 @@ type SimpleFileUploadProps = {
   folderPath: string;
   onClose: () => void;
   onUploaded?: (result: any) => void;
-  handleUploadClick: (path: string, file: File) => Promise<void> 
+  handleUploadClick: (path: string, file: File, name?: string) => Promise<void> 
 };
 
 export const SimpleFileUpload: React.FC<SimpleFileUploadProps> = ({handleUploadClick, folderPath, onClose, onUploaded,}) => {
-    const [loading, setLoading] = React.useState(false);
-    const [error, setError] = React.useState<string | null>(null);
-    const [file, setFile] = React.useState<File | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [name, setName] = React.useState<string>("")
+  const [error, setError] = React.useState<string | null>(null);
+  const [file, setFile] = React.useState<File | null>(null);
 
   const handleConfirm = async () => {
     if (!file) {
@@ -22,7 +23,7 @@ export const SimpleFileUpload: React.FC<SimpleFileUploadProps> = ({handleUploadC
     setLoading(true);
     setError(null);
     try {
-      const result = await handleUploadClick(folderPath, file);
+      const result = await handleUploadClick(folderPath, file, name);
       onUploaded?.(result);
       setFile(null);
       onClose();
@@ -39,12 +40,7 @@ export const SimpleFileUpload: React.FC<SimpleFileUploadProps> = ({handleUploadC
       <section className="sf-modal">
         <header className="sf-modal__header">
           <h2 className="sf-modal__title">Subir archivo</h2>
-          <button
-            type="button"
-            className="sf-modal__close"
-            onClick={onClose}
-            disabled={loading}
-          >
+          <button type="button" className="sf-modal__close" onClick={onClose} disabled={loading}>
             ×
           </button>
         </header>
@@ -55,11 +51,12 @@ export const SimpleFileUpload: React.FC<SimpleFileUploadProps> = ({handleUploadC
           </p>
 
           <div className="sf-upload-box">
-            <input
-              id="sf-file-input"
-              type="file"
-              className="sf-upload-box__input"
-              onChange={(e) => {
+            <div className="sf-input-group">
+              <label className="sf-input-group__label">Nombre del archivo</label>
+              <input type="text" className="sf-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: contrato_empleado.pdf"/>
+            </div>
+
+            <input id="sf-file-input" type="file" className="sf-upload-box__input" onChange={(e) => {
                 const f = e.target.files?.[0] ?? null;
                 setFile(f);
                 setError(null);

@@ -8,12 +8,17 @@ import { buildCesacionPatch } from "../utils/cesacionPatch";
 import { useCesacionForm } from "./useCesacionForm";
 import { useCesacionesTable } from "./useCesacionesTable";
 import { convertCommonToOptions, convertToCommonDTO } from "../../../Common/parseOptions";
+import { useRequestActions } from "../../UpdateRequest/hooks/useRequestActions";
+import { detallePayloadFromCesacion } from "../../UpdateRequestDetails/utils/requestPayload";
+import { notifyUpdateRequest } from "../../../../utils/mail";
+import { toGraphDateTime } from "../../../../utils/Date";
 
 export function useCesaciones() {
   const { account } = useAuth();
   const graph = useGraphServices()
   const formController = useCesacionForm(account?.username ?? "")
   const registerController = useCesacionesTable(graph.Cesaciones, account?.username)
+  const requestController = useRequestActions()
   const [workers, setWorkers] = React.useState<Cesacion[]>([]);
   const [workersOptions, setWorkersOptions] = React.useState<rsOption[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -21,7 +26,7 @@ export function useCesaciones() {
   const handleSubmit = async (): Promise<{ created: Cesacion | null; ok: boolean }> => {
     const validationErrors = formController.validate()
 
-    if (Object.keys(validationErrors).length > 0) {
+    if (!validationErrors) {
       alert("Hay campos sin rellenar");
       return { ok: false, created: null };
     }
@@ -41,12 +46,12 @@ export function useCesaciones() {
     }
   };
 
-  const handleEdit = async (e: React.FormEvent, cesacionSeleccionada: Cesacion) => {
+  const handleEdit = async (e: React.FormEvent, cesacionSeleccionada: Cesacion, canEdit: boolean) => {
     e.preventDefault();
 
     const validationErrors = formController.validate()
 
-    if (validationErrors) {
+    if (!validationErrors) {
       alert("Hay algunos campos faltantes")
       return
     };
@@ -58,15 +63,38 @@ export function useCesaciones() {
     setLoading(true);
 
     try {
-      const payload = buildCesacionPatch(cesacionSeleccionada, formController.state);
+      const toEdit = await graph.Cesaciones.get(cesacionSeleccionada.Id!)
+      const payload = buildCesacionPatch(toEdit, formController.state, );
+      console.log(payload)
 
       if (Object.keys(payload).length === 0) {
         alert("No hay cambios para guardar");
         return;
       }
 
-      await graph.Cesaciones.update(cesacionSeleccionada.Id, payload);
-      alert("Se ha actualizado el registro con éxito");
+      
+      if(!canEdit){
+        await graph.Contratos.update(cesacionSeleccionada.Id, payload);
+        alert("Se ha actualizado el registro con éxito");
+      } else {
+
+        const request = await requestController.createRequest("Cesacion", cesacionSeleccionada.Id)
+        if(!request.created || !request.ok) return
+
+        const realRegister = await graph.Cesaciones.get(cesacionSeleccionada.Id)
+
+        const DetallesPayload = detallePayloadFromCesacion(realRegister, formController.state, request.created.Id!)
+
+        console.log(DetallesPayload)
+
+        requestController.genericProcess("Cesacion", DetallesPayload,)
+
+        const groupMembers = await graph.graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
+        await notifyUpdateRequest(graph.mail, "Cesacion", account?.name ?? "", cesacionSeleccionada.Title, groupMembers,)
+        
+        alert("Se ha enviado la solicitud, se te notificara el resultado")
+        
+      }
     } catch {
       alert("Ha ocurrido un error");
     } finally {
@@ -133,6 +161,8 @@ export function useCesaciones() {
   const deleteCesacion = React.useCallback(async (Id: string) => {
       try {
         await graph.Cesaciones.delete(Id);
+        await registerController.loadBase()
+        alert("Se ha eliminado el registro con exito.")
       } catch {
         throw new Error("Ha ocurrido un error eliminando la cesación");
       }
@@ -140,12 +170,28 @@ export function useCesaciones() {
     []
   );
 
+  const saveMedicalExams = React.useCallback(async (Id: string, fecha: string) => {
+      try {
+        if(!Id || !fecha ) return
+
+        const spDate = toGraphDateTime(fecha)
+        await graph.Cesaciones.update(Id, {FechaExamenesMedicos: spDate});
+        await registerController.loadBase()
+        alert("Se ha guardado la fecha de los examenes medicos con éxito.")
+      } catch {
+        throw new Error("Ha ocurrido un error eliminando la novedad");
+      }
+    },
+    []
+  )
+
   return {
     formController,
     workers,
     workersOptions,
     handleReactivateProcessById,
     handleCancelProcessbyId,
+    saveMedicalExams,
     handleSubmit,
     searchRegister,
     handleEdit,

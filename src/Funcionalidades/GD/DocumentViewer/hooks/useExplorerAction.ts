@@ -49,14 +49,14 @@ export function useExplorerActions({empresa, currentPath,  activeService, setPat
     });
   }, [empresa, setPaths]);
 
-  const handleUploadClick = React.useCallback(async (path: string, file: File) => {
+  const handleUploadClick = React.useCallback(async (path: string, file: File, name?: string) => {
     if (!file) {
       alert("Debes seleccionar un archivo antes de subirlo");
       return;
     }
 
     try {
-      await activeService.uploadFile(path, file);
+      await activeService.uploadFile(path, file, name);
       await reload();
       alert("Archivo subido correctamente");
     } catch (e: any) {

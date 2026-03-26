@@ -20,6 +20,7 @@ export function usePasosRetail() {
     setLoading(true); setError(null);
     try {
       const items = await pasosRetail.getAll({orderby: "fields/Orden asc"})
+
       setRows(items);
     } catch (e: any) {
       setError(e?.message ?? "Error cargando pasos de la promoción");
@@ -153,8 +154,10 @@ export function useDetallesPasosRetail(DetallesSvc: DetallesPasosRetail, selecte
     setLoading(true); setError(null);
     try {
       const items = await DetallesSvc.getAll({filter: `fields/Title eq ${selected}`, orderby: "fields/Paso asc"});
-      setRows(items);
-      return items;
+      const sortItems = items.sort((a,b) => Number(a.NumeroPaso) - Number(b.NumeroPaso))
+      setRows(sortItems);
+          console.log(sortItems)
+      return sortItems;
     } catch (e: any) {
       setError(e?.message ?? "Error cargando pasos de la promoción");
       setRows([]);

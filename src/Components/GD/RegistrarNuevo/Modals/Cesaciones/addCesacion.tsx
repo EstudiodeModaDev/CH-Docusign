@@ -5,8 +5,7 @@ import { useGraphServices } from "../../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../../models/Desplegables";
 import { useAuth } from "../../../../../auth/authProvider";
 import { formatPesosEsCO, numeroATexto, toNumberFromEsCO,  } from "../../../../../utils/Number";
-import { useSalarios } from "../../../../../Funcionalidades/GD/Salario";
-import { useDetallesPasosCesacion, usePasosCesacion } from "../../../../../Funcionalidades/GD/PasosCesacion";
+import { useSalarios } from "../../../../../Funcionalidades/GD/Salario";;
 import { lookOtherInfo } from "../../../../../utils/lookFor";
 import { usePromocion } from "../../../../../Funcionalidades/GD/Promocion";
 import type { Cesacion, CesacionErrors, } from "../../../../../models/Cesaciones";
@@ -23,6 +22,8 @@ import type { DetallesPasos } from "../../../../../models/Pasos";
 import { useContratos } from "../../../../../Funcionalidades/GD/Contratos/hooks/useContratos";
 import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
 import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
+import { createEmptyCesacion } from "../../../../../Funcionalidades/GD/Cesaciones/utils/cesacionesState";
+import { useCesacionStepDetails, useCesacionSteps } from "../../../../../Funcionalidades/GD/Steps/CesacionSteps/useCesacionSteps";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -80,15 +81,15 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormCesacion({sending, temporalLoading, temporalOption, deptoOptions, loadingDeptos, handleReactivateProcessById, title, handleCancelProcessbyId, setState, selectedCesacion, handleEdit, tipo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, dependenciaOptions, loadingDependencias, onClose, state, setField, handleSubmit, errors, searchRegister: searchCesacion }: Props) {
-  const { categorias, Cesaciones, DetallesPasosCesacion, salarios, Promociones, Retail, configuraciones, mail} = useGraphServices();
+  const { categorias, Cesaciones, salarios, Promociones, Retail, configuraciones, mail} = useGraphServices();
   const HabeasController = useHabeasData();
   const contratosController = useContratos();
   const { searchRegister: searchPromocion } = usePromocion(Promociones);
   const { searchRegister: searchRetail } = useRetail(Retail);
   const { loadSpecificSalary } = useSalarios(salarios);
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
-  const { loadPasosCesacion, rows, handleCompleteStep, byId, decisiones, setDecisiones, motivos, setMotivos, loading: loadingPasos, error: errorPasos} = usePasosCesacion()
-  const { loadDetallesCesacion, handleCreateAllSteps, calcPorcentaje, loading: loadingDetalles, rows: rowsDetalles, error: errorDetalles,} = useDetallesPasosCesacion(DetallesPasosCesacion, selectedCesacion?.Id)
+  const { load: loadPasosCesacion, handleCompleteStep, byId, decisiones, setDecisiones, motivos, setMotivos, loading: loadingPasos, error: errorPasos} = useCesacionSteps()
+  const { load: loadDetallesCesacion, handleCreateAllSteps, calcPorcentaje, loading: loadingDetalles, rows: rowsDetalles, error: errorDetalles,} = useCesacionStepDetails(selectedCesacion?.Id)
   const { engine } = usePermissions();
 
   const showCargos = React.useMemo(() => new Set<string>(["31", "42", "9", "33", "793"]), []);
@@ -184,32 +185,6 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
     run();
   }, []);
 
-  /* ================== Nivel por cargo ================== */
-  React.useEffect(() => {
-    let cancelled = false;
-
-    const run = async () => {
-      const salario = await loadSpecificLevel(state.Cargo);
-
-      if (cancelled) return;
-      if (!salario) return;
-
-      const recomendado = String(salario.Categoria ?? "");
-      const actual = String(state.Niveldecargo ?? "");
-
-      // Si ya está igual, no vuelvas a setear (evita loops por "mismo valor")
-      if (recomendado && recomendado !== actual) {
-        setField("Niveldecargo", recomendado as any);
-      }
-    };
-
-    if (state.Cargo) run();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [state.Cargo,]);
-
   /* ================== Usar Novedad ================== */
   React.useEffect(() => {
     if(selectedCesacion) 
@@ -224,12 +199,25 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
 
   }, [selectedCesacion]);
 
+  React.useEffect(() => {
+    if(tipo === "new"){
+      setState(createEmptyCesacion(account?.name ?? ""))
+    } else {
+      
+      const valor = selectedCesacion?.auxConectividadValor ? Number(selectedCesacion.auxConectividadValor) : 0
+      const texto = selectedCesacion?.auxConectividadTexto ? String(selectedCesacion.auxConectividadTexto) : ""
+      setConectividad(valor)
+      setConectividadTexto(texto)
+    }
+  }, [selectedCesacion]);
+
   const handleCreateCesacion = async (e: React.FormEvent) => {
     if(tipo=== "new"){
       const created = await handleSubmit();
       if(created.ok){
-        await loadPasosCesacion()
-        await handleCreateAllSteps(rows, created.created?.Id ?? "", created.created?.Cargo ?? "")
+        const steps = await loadPasosCesacion(false)
+        console.log(steps)
+        await handleCreateAllSteps(steps, created.created?.Id ?? "", created.created?.Cargo ?? "")
         const body = createBody(account?.name ?? "", "Cesaciones", state.Nombre, state.Title, state.Cargo, state.FechaIngreso ?? "")
         await notifyTeam(mail, "Nuevo registro en cesaciones - Gestor documental CH", body)
         await onClose()
@@ -277,14 +265,27 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
 
     if (!cargo) return;
 
-    const salario = await loadSpecificSalary(cargo);
+    //Traer el salario y el nivel de cargo recomendado
+    const [nivelRes, salarioRes] = await Promise.all([loadSpecificLevel(cargo), loadSpecificSalary(cargo),]);
 
-    if (!salario?.Salariorecomendado) return;
+    if (nivelRes?.Categoria) {
+      //Setear el nivel de cargo recomendado
+      setField("Niveldecargo", String(nivelRes.Categoria) as any);
+    }
 
-    setField("Salario", String(salario.Salariorecomendado));
-    setField("SalarioTexto", numeroATexto(Number(salario.Salariorecomendado)).toUpperCase());
+    if (salarioRes?.Salariorecomendado) {
+      const salario = Number(salarioRes.Salariorecomendado);
 
-    handleAuxilioChange(salario.Salariorecomendado)
+      setField("Salario", salario as any);
+      setField("SalarioTexto", numeroATexto(salario).toUpperCase());
+
+      const auxRes = auxilioHandlder(minimo, salario, auxTransporte);
+      if (auxRes) {
+        //Setear salario convertido
+        setField("auxConectividadValor", String(auxRes.valor));
+        setField("auxConectividadTexto", auxRes.texto);
+      }
+    }
   };
 
   const  handleAuxilioChange = async (salario: string) => {
@@ -298,6 +299,23 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
 
     setConectividad(auxRes.valor);
     setConectividadTexto(auxRes.texto.toUpperCase());
+  };
+
+  const handleSalarioChange = (raw: string) => {
+    if (raw === "") {
+      setField("Salario", "" as any);
+      setField("SalarioTexto", "");
+      setField("auxConectividadValor", "");
+      setField("auxConectividadTexto", "");
+      return;
+    }
+
+    const numeric = toNumberFromEsCO(raw);
+
+    setField("Salario", numeric as any);
+    setField("SalarioTexto", numeroATexto(numeric).toUpperCase());
+
+    handleAuxilioChange(raw)
   };
 
   return (
@@ -481,26 +499,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             {/* Salario */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Salario *</label>
-              <input disabled={!canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} required maxLength={300} onChange={(e) => {
-                                                                                                                                                                  const raw = e.target.value;
-
-                                                                                                                                                                  handleAuxilioChange(raw)
-
-                                                                                                                                                                  if (raw === "") {
-                                                                                                                                                                    setDisplaySalario("");
-                                                                                                                                                                    setField("Salario", "" as any);
-                                                                                                                                                                    setField("SalarioTexto", "");
-                                                                                                                                                                    return;
-                                                                                                                                                                  }
-
-                                                                                                                                                                  const numeric = toNumberFromEsCO(raw);
-                                                                                                                                                                  const formatted = formatPesosEsCO(String(numeric));
-
-                                                                                                                                                                  setDisplaySalario(formatted);
-                                                                                                                                                                  setField("Salario", numeric as any);
-                                                                                                                                                                  setField("SalarioTexto", numeroATexto(numeric).toUpperCase());
-                                                                                                                                                                }}
-                                                                                                                                                              />
+              <input disabled={!canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} required maxLength={300} onChange={(e) => {handleSalarioChange(e.target.value)}} autoComplete="off" />
               <small>{errors.Salario}</small>
             </div>
 
@@ -519,7 +518,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             {/* Auxilio de conectividad texto */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Auxilio de tranporte y conectividad en letras *</label>
-              <input disabled={!canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={conectividadTexto} readOnly/>
+              <input disabled={!canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="..." value={conectividadTexto} readOnly/>
             </div>
 
               {/* Dependencia */}

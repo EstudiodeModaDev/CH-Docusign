@@ -27,7 +27,7 @@ export class PasosCesacionService {
   // ---------- mapping ----------
   private toModel(item: any): PasosProceso {
     const f = item?.fields ?? {};
-    const mapped = {
+    const mapped: PasosProceso = {
         Id: String(item?.id ?? ''),
         Title: f.Title,
         NombreEvidencia: f.NombreEvidencia,
@@ -36,7 +36,8 @@ export class PasosCesacionService {
         TipoPaso: f.TipoPaso,
         PlantillaCorreo: f.PlantillaCorreo,
         PlantillaAsunto: f.PlantillaAsunto,
-        Obligatorio: f.Obligatorio
+        Obligatorio: f.Obligatorio,
+        Activado: f.Activado
     };
     return mapped
   }
@@ -101,6 +102,7 @@ export class PasosCesacionService {
     const res = await this.graph.get<any>(
       `/sites/${this.siteId}/lists/${this.listId}/items/${id}?$expand=fields`
     );
+    console.log(res)
     return this.toModel(res);
   }
 
@@ -151,7 +153,10 @@ export class PasosCesacionService {
 
     try {
       const res = await this.graph.get<any>(url);
-      return (res.value ?? []).map((x: any) => this.toModel(x));
+      console.log(res)
+      const mapped = (res.value ?? []).map((x: any) => this.toModel(x));
+      console.log(mapped)
+      return mapped;
     } catch (e: any) {
       // Si la ruta es válida pero el $filter rompe, reintenta sin $filter para diagnóstico
       const code = e?.error?.code ?? e?.code;

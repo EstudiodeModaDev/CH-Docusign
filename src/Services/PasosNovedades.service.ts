@@ -36,7 +36,8 @@ export class PasosNovedadesService {
         TipoPaso: f.TipoPaso,
         PlantillaCorreo: f.PlantillaCorreo,
         PlantillaAsunto: f.PlantillaAsunto,
-        Obligatorio: f.Obligatorio
+        Obligatorio: f.Obligatorio,
+        Activado: f.Activado
     };
   }
   
@@ -116,7 +117,7 @@ export class PasosNovedadesService {
     return this.toModel(res);
   }
 
-  async getAll(opts?: GetAllOpts) {
+  async getAll(opts?: GetAllOpts): Promise<PasosProceso[]> {
     await this.ensureIds()
     // ID -> id, Title -> fields/Title (cuando NO está prefijado con '/')
     const normalizeFieldTokens = (s: string) =>

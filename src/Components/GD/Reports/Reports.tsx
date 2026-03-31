@@ -57,7 +57,7 @@ export const ReporteFiltros: React.FC = () => {
     actions[tipo]?.();
     }, [tipo, range.from, range.to, enviadoPor, destinatario, cargo, ciudad, empresa, plantilla,]);
 
-  const handleGenerar = () => {
+  const  handleGenerar = async () => {
     if(!range.from || !range.to){
         alert("Debe seleccionar como minimo un rango de fechas")
         return
@@ -68,24 +68,27 @@ export const ReporteFiltros: React.FC = () => {
         return
     }
 
-    setGenerando(true)
-    if (tipo === "Envios") {
-      exportEnviosToExcel(enviosController.rows);
-    } else if (tipo === "novedad"){
-        exportNovedadesToExcel(contratosController.rows, DetallesPasosNovedades)
-    } else if (tipo === "Promociones"){
-        exportPromocionesToExcel(rowsPromociones, DetallesPasosPromocion)
-    } else if (tipo === "Habeas"){
-        exportHabeasToExcel(rowsHabeas)
-    } else if (tipo === "cesacion"){
-        exportCesacionesToExcel(cesacionController.rows, DetallesPasosCesacion)
-    } else if (tipo === "retail"){
-        exportRetailToExcel(rowsRetail, detallesPasosRetail)
-    } else {
-        exportAllProcesosToExcel({habeas: rowsHabeas, novedades: contratosController.rows, promociones: rowsPromociones, retail: rowsRetail, cesaciones: cesacionController.rows, detallesPasosCesacionSvc: DetallesPasosCesacion, detallesPasosNovedadSvc: DetallesPasosNovedades, detallesPasosPromocionSvc: DetallesPasosPromocion, detallesPasosRetailSvc: detallesPasosRetail,})
-    }
     
-    setGenerando(false)
+    try{    
+        setGenerando(true)
+        if (tipo === "Envios") {
+           await  exportEnviosToExcel(enviosController.rows);
+        } else if (tipo === "novedad"){
+           await exportNovedadesToExcel(contratosController.rows, DetallesPasosNovedades)
+        } else if (tipo === "Promociones"){
+           await exportPromocionesToExcel(rowsPromociones, DetallesPasosPromocion)
+        } else if (tipo === "Habeas"){
+           await exportHabeasToExcel(rowsHabeas)
+        } else if (tipo === "cesacion"){
+           await exportCesacionesToExcel(cesacionController.rows, DetallesPasosCesacion)
+        } else if (tipo === "retail"){
+           await exportRetailToExcel(rowsRetail, detallesPasosRetail)
+        } else {
+           await exportAllProcesosToExcel({novedades: contratosController.rows, promociones: rowsPromociones, retail: rowsRetail, cesaciones: cesacionController.rows, detallesPasosCesacionSvc: DetallesPasosCesacion, detallesPasosNovedadSvc: DetallesPasosNovedades, detallesPasosPromocionSvc: DetallesPasosPromocion, detallesPasosRetailSvc: detallesPasosRetail,})
+        }
+    } finally {
+        setGenerando(false)
+    }
   };
 
 
@@ -257,7 +260,7 @@ export const ReporteFiltros: React.FC = () => {
             Limpiar
             </button>
 
-            <button type="button" disabled={generando} className="rep-btn primary" onClick={() => {handleGenerar() }}>
+            <button type="button" disabled={generando} className="rep-btn primary" onClick={handleGenerar}>
                 {generando ? "Generando..." : "Generar"}
             </button>
         </div>

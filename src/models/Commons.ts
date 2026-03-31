@@ -71,3 +71,4 @@ export type CommonRegister = {
   direccionResidencia: string;
   Fuente: string
 }
+

@@ -7,11 +7,12 @@ import type { Promocion } from "../../models/Promociones";
 import type { HabeasData } from "../../models/HabeasData";
 import type { Cesacion } from "../../models/Cesaciones";
 import type { Retail } from "../../models/Retail";
-import { buildCesacionesData, buildEnviosData, buildHabeasData, buildNovedadesData, buildPromocionesData, buildRetailData } from "./convertDataToExcel";
+import { buildCesacionesData, buildConsolidadoData, buildEnviosData, buildHabeasData, buildNovedadesData, buildPromocionesData, buildRetailData } from "./convertDataToExcel";
 import type { GetAllSvc, PasoLike } from "../completation";
+import { convertToReportDTO } from "./convertToCommonDTO";
+import type { ReportDTO } from "../../models/DTO";
 
 type ExportAllParams = {
-  habeas?: HabeasData[];
   novedades?: Novedad[];
   promociones?: Promocion[];
   cesaciones?: Cesacion[];
@@ -89,33 +90,35 @@ export async function exportRetailToExcel(rows: Retail[], detallesPasosRetailSvc
   XLSX.writeFile(wb, opts?.fileName ?? "Reporte-Retail.xlsx");
 }
 
-export async function exportAllProcesosToExcel({ habeas = [], novedades = [], promociones = [], cesaciones = [], retail = [], detallesPasosNovedadSvc, detallesPasosPromocionSvc, detallesPasosCesacionSvc, detallesPasosRetailSvc, fileName = "ReporteGeneral.xlsx",}: ExportAllParams) {
+export async function exportAllProcesosToExcel({novedades = [], promociones = [], cesaciones = [], retail = [], detallesPasosNovedadSvc, detallesPasosPromocionSvc, detallesPasosCesacionSvc, detallesPasosRetailSvc,}: ExportAllParams) {
   const wb = XLSX.utils.book_new();
-
-  if (habeas.length > 0) {
-    const data = buildHabeasData(habeas);
-    appendSheet(wb, "Habeas", data);
-  }
+  const allRows: ReportDTO[] = []
 
   if (novedades.length > 0 && detallesPasosNovedadSvc) {
-    const data = await buildNovedadesData(novedades, detallesPasosNovedadSvc);
-    appendSheet(wb, "Novedades", data);
+    for(const novedad of novedades) {
+      allRows.push(convertToReportDTO(novedad));
+    }
   }
 
   if (promociones.length > 0 && detallesPasosPromocionSvc) {
-    const data = await buildPromocionesData(promociones, detallesPasosPromocionSvc);
-    appendSheet(wb, "Promociones", data);
+    for(const promocion of promociones) {
+      allRows.push(convertToReportDTO(promocion));
+    }
   }
 
   if (cesaciones.length > 0 && detallesPasosCesacionSvc) {
-    const data = await buildCesacionesData(cesaciones, detallesPasosCesacionSvc);
-    appendSheet(wb, "Cesaciones", data);
+    for(const cesacion of cesaciones) {
+      allRows.push(convertToReportDTO(cesacion));
+    }
   }
 
   if (retail.length > 0 && detallesPasosRetailSvc) {
-    const data = await buildRetailData(retail, detallesPasosRetailSvc);
-    appendSheet(wb, "Retail", data);
+    for(const r of retail) {
+      allRows.push(convertToReportDTO(r));
+    }
   }
 
-  XLSX.writeFile(wb, fileName);
+  const data = await buildConsolidadoData(allRows, {cesaciones: detallesPasosCesacionSvc, novedades: detallesPasosNovedadSvc, promociones: detallesPasosPromocionSvc, retail: detallesPasosRetailSvc})
+  appendSheet(wb, "Reporte consolidado", data)
+  XLSX.writeFile(wb, "Reporte consolidado.xlsx");
 }

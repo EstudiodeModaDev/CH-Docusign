@@ -6,7 +6,6 @@ import type { desplegablesOption } from "../../../../../models/Desplegables";
 import {formatPesosEsCO, numeroATexto, toNumberFromEsCO,} from "../../../../../utils/Number";
 import { useAuth } from "../../../../../auth/authProvider";
 import { getTodayLocalISO, toISODateFlex } from "../../../../../utils/Date";
-import { useDetallesPasosPromocion, usePasosPromocion } from "../../../../../Funcionalidades/GD/PasosPromocion";
 import { useSalarios } from "../../../../../Funcionalidades/GD/Salario";
 import { lookOtherInfo } from "../../../../../utils/lookFor";
 import { useAutomaticCargo } from "../../../../../Funcionalidades/GD/Niveles";
@@ -23,6 +22,7 @@ import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones/hook
 import { useContratos } from "../../../../../Funcionalidades/GD/Contratos/hooks/useContratos";
 import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
 import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
+import { usePromocionStepDetails, usePromocionSteps } from "../../../../../Funcionalidades/GD/Steps/PromocionSteps/usePromocionSteps";
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
   const { label } = props;
@@ -91,15 +91,15 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormPromocion({ submitting, handleReactivateProcessById, title, handleCancelProcessbyId, setState, selectedPromocion, handleEdit, tipo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, loadingModalidad, especificidadOptions, loadingEspecificdad, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, onClose, state, setField, handleSubmit, errors, searchRegister: searchPromocion, loadFirstPage }: Props) {
-  const { Promociones, DetallesPasosPromocion, salarios, categorias, Retail, configuraciones, mail} = useGraphServices();
+  const { Promociones, salarios, categorias, Retail, configuraciones, mail} = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData();
   const contratosController = useContratos();
   const cesacionesController = useCesaciones();
   const { searchRegister: searchRetail } = useRetail(Retail);
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
   const { loadSpecificSalary } = useSalarios(salarios);
-  const { loadPasosPromocion, rows, loading: loadinPasosPromocion, error: errorPasosPromocion, byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep} = usePasosPromocion()
-  const { handleCreateAllSteps, calcPorcentaje, rows: rowsDetalles, loading: loadingDetalles, error: errorDetalles, loadDetallesPromocion,} = useDetallesPasosPromocion(DetallesPasosPromocion, selectedPromocion?.Id)
+  const { load: loadPasosPromocion, rows, loading: loadinPasosPromocion, error: errorPasosPromocion, byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep} = usePromocionSteps()
+  const { handleCreateAllSteps, calcPorcentaje, rows: rowsDetalles, loading: loadingDetalles, error: errorDetalles, load: loadDetallesPromocion,} = usePromocionStepDetails(selectedPromocion?.Id)
   const { engine } = usePermissions();
 
   const opciones = [

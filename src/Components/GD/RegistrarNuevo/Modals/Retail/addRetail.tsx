@@ -11,7 +11,6 @@ import { usePromocion } from "../../../../../Funcionalidades/GD/Promocion";
 import { useAutomaticCargo } from "../../../../../Funcionalidades/GD/Niveles";
 import type { SetField } from "../Contrato/addContrato";
 import type { Retail, RetailErrors } from "../../../../../models/Retail";
-import { useDetallesPasosRetail, usePasosRetail } from "../../../../../Funcionalidades/GD/PasosRetail";
 import { createBody, notifyTeam } from "../../../../../utils/mail";
 import { safeLower } from "../../../../../utils/text";
 import type { DetallesPasos } from "../../../../../models/Pasos";
@@ -23,6 +22,7 @@ import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones/hook
 import { useContratos } from "../../../../../Funcionalidades/GD/Contratos/hooks/useContratos";
 import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
 import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
+import { useRetailStepDetails, useRetailSteps } from "../../../../../Funcionalidades/GD/Steps/RetailSteps/retailStepts";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -84,15 +84,15 @@ type Props = {
 export default function FormRetail({
   origenOptions, loadingOrigen, submitting, title, selectedRetail, tipo, empresaOptions, loadingEmp, tipoDocOptions, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, loadingTipo, cargoOptions, loadingCargo, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, 
   handleReactivateProcessById, handleCancelProcessbyId, setState, handleEdit, onClose, state, setField, handleSubmit, errors, searchRegister: searchRetail, }: Props) {
-  const { Promociones, detallesPasosRetail, salarios, Cesaciones, categorias, configuraciones, mail,} = useGraphServices();
+  const { Promociones, salarios, Cesaciones, categorias, configuraciones, mail,} = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData();
   const contratosController = useContratos();
   const { searchRegister: searchPromocion } = usePromocion(Promociones);
   const cesacionesController = useCesaciones();
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
   const { loadSpecificSalary } = useSalarios(salarios);
-  const { loadPasosPromocion, rows, loading: loadinPasosPromocion, error: errorPasosPromocion, byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep} = usePasosRetail()
-  const { handleCreateAllSteps, calcPorcentaje, rows: rowsDetalles, loading: loadingDetalles, error: errorDetalles, loadDetallesPromocion,} = useDetallesPasosRetail(detallesPasosRetail, selectedRetail?.Id)
+  const retailStepsController =  useRetailSteps()
+  const retailStepsDetailsController =  useRetailStepDetails(selectedRetail?.Id)
 
   const isView = tipo === "view"
 
@@ -187,52 +187,6 @@ export default function FormRetail({
     run();
   }, []);
 
-  /* ================== Salario recomendado por cargo ================== */
-  React.useEffect(() => {
-    let cancelled = false;
-
-    const run = async () => {
-      const salario = await loadSpecificSalary(state.Cargo);
-
-      if (!cancelled && salario !== null) {
-        setField("Salario", salario.Salariorecomendado);
-        setField("SalarioLetras", numeroATexto(Number(salario.Salariorecomendado)).toUpperCase())
-      }
-    };
-
-    if (state.Cargo) run();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [state.Cargo,]);
-
-  /* ================== Nivel por cargo ================== */
-  React.useEffect(() => {
-    let cancelled = false;
-
-    const run = async () => {
-      const salario = await loadSpecificLevel(state.Cargo);
-
-      if (cancelled) return;
-      if (!salario) return;
-
-      const recomendado = String(salario.Categoria ?? "");
-      const actual = String(state.NivelCargo ?? "");
-
-      // Si ya está igual, no vuelvas a setear (evita loops por "mismo valor")
-      if (recomendado && recomendado !== actual) {
-        setField("NivelCargo", recomendado as any);
-      }
-    };
-
-    if (state.Cargo) run();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [state.Cargo,]);
-
   /* ================== Usar Novedad ================== */
   React.useEffect(() => {
     if(selectedRetail) setState(selectedRetail)
@@ -240,19 +194,32 @@ export default function FormRetail({
 
   React.useEffect(() => {
     (async () => {
-      const pct = await calcPorcentaje();
+      const pct = await retailStepsDetailsController.calcPorcentaje();
       setPorcetanjeCompletacion(pct);
     })();
 
   }, [selectedRetail]);
+
+  /* ================== Limpiar state ================== */
+  React.useEffect(() => {
+    if(tipo !== "new"){
+      const valor = selectedRetail?.Auxiliodetransporte ? Number(selectedRetail.Auxiliodetransporte) : 0
+      const texto = selectedRetail?.Auxiliotransporteletras ? String(selectedRetail.Auxiliotransporteletras) : ""
+      setConectividad(valor)
+      setConectividadTexto(texto)
+    }
+  }, [selectedRetail]);
+
+  
+  /* ================== Handlers ================== */
 
   const handleCreateRetail = async (e: React.FormEvent) => {
     if(tipo=== "new"){
       const created = await handleSubmit();
 
       if(created.ok){
-        await loadPasosPromocion()
-        await handleCreateAllSteps(rows, created.created?.Id ?? "", created.created?.Cargo ?? "")
+        const steps = await retailStepsController.load(false)
+        await retailStepsDetailsController.handleCreateAllSteps(steps, created.created?.Id ?? "", created.created?.Cargo ?? "")
         const body = createBody(account?.name ?? "", "Retail", state.Nombre, state.Title, state.Cargo, state.FechaIngreso ?? "")
         await notifyTeam(mail, "Nuevo registro en el modulo de Retail - Gestor documental CH", body)
         await onClose()
@@ -276,18 +243,17 @@ export default function FormRetail({
   }, []);
 
   const completeStep = React.useCallback( async (detalle: DetallesPasos, estado: string) => {
-      await handleCompleteStep(detalle, estado);
+    await retailStepsController.handleCompleteStep(detalle, estado);
 
-      const porcentaje = await calcPorcentaje(); 
+    const porcentaje = await retailStepsDetailsController.calcPorcentaje(); 
 
-      if (Number(porcentaje) === 100) {
-        const id = selectedRetail?.Id;
-        if (!id) return;
+    if (Number(porcentaje) === 100) {
+      const id = selectedRetail?.Id;
+      if (!id) return;
 
-        await Cesaciones.update(id, { Estado: "Completado" });
-      }
-    },
-    [handleCompleteStep, calcPorcentaje, selectedRetail?.Id, Cesaciones])
+      await Cesaciones.update(id, { Estado: "Completado" });
+    }
+  },[selectedRetail?.Id, Cesaciones])
 
 
   const handleCancel = async (razon: string) => {
@@ -300,14 +266,27 @@ export default function FormRetail({
 
     if (!cargo) return;
 
-    const salario = await loadSpecificSalary(cargo);
+    //Traer el salario y el nivel de cargo recomendado
+    const [nivelRes, salarioRes] = await Promise.all([loadSpecificLevel(cargo), loadSpecificSalary(cargo),]);
 
-    if (!salario?.Salariorecomendado) return;
+    if (nivelRes?.Categoria) {
+      //Setear el nivel de cargo recomendado
+      setField("NivelCargo", String(nivelRes.Categoria) as any);
+    }
 
-    setField("Salario", String(salario.Salariorecomendado));
-    setField("SalarioLetras", numeroATexto(Number(salario.Salariorecomendado)).toUpperCase());
+    if (salarioRes?.Salariorecomendado) {
+      const salario = Number(salarioRes.Salariorecomendado);
 
-    handleAuxilioChange(salario.Salariorecomendado)
+      setField("Salario", salario as any);
+      setField("SalarioLetras", numeroATexto(salario).toUpperCase());
+
+      const auxRes = auxilioHandlder(minimo, salario, auxTransporte);
+      if (auxRes) {
+        //Setear salario convertido
+        setField("Auxiliodetransporte", String(auxRes.valor));
+        setField("Auxiliotransporteletras", auxRes.texto);
+      }
+    }
   };
 
   const  handleAuxilioChange = async (salario: string) => {
@@ -323,6 +302,24 @@ export default function FormRetail({
     setConectividadTexto(auxRes.texto.toUpperCase());
   };
 
+  const handleSalarioChange = (raw: string) => {
+    if (raw === "") {
+      setField("Salario", "" as any);
+      setField("SalarioLetras", "");
+      setField("Auxiliodetransporte", "");
+      setField("Auxiliotransporteletras", "");
+      return;
+    }
+
+    const numeric = toNumberFromEsCO(raw);
+
+    setField("Salario", numeric as any);
+    setField("SalarioLetras", numeroATexto(numeric).toUpperCase());
+
+    handleAuxilioChange(raw)
+  };
+
+
   return (
     <div className="ft-modal-backdrop">
       <section className="ft-scope ft-card" role="region" aria-labelledby="ft_title">
@@ -330,18 +327,18 @@ export default function FormRetail({
                   titulo={"Detalles contratación  de: " + selectedRetail!.Title + " - " + selectedRetail!.Nombre}
                   selectedCesacion={selectedRetail!}
                   onClose={() => setFlow(false)}
-                  loadingPasos={loadinPasosPromocion}
-                  errorPasos={errorPasosPromocion}
-                  pasosById={byId}
-                  decisiones={decisiones}
-                  motivos={motivos}
-                  setMotivos={setMotivos}
-                  setDecisiones={setDecisiones}
-                  handleCompleteStep={(detalle: DetallesPasos, estado: string) => completeStep(detalle, estado)}
-                  detallesRows={rowsDetalles}
-                  loadingDetalles={loadingDetalles}
-                  errorDetalles={errorDetalles}
-                  loadDetalles={() => loadDetallesPromocion()} 
+                  loadingPasos={retailStepsController.loading}
+                  errorPasos={retailStepsController.error}
+                  pasosById={retailStepsController.byId}
+                  decisiones={retailStepsController.decisiones}
+                  motivos={retailStepsController.motivos}
+                  setMotivos={retailStepsController.setMotivos}
+                  setDecisiones={retailStepsController.setDecisiones}
+                  handleCompleteStep={completeStep}
+                  detallesRows={retailStepsDetailsController.rows}
+                  loadingDetalles={retailStepsDetailsController.loading}
+                  errorDetalles={retailStepsDetailsController.error}
+                  loadDetalles={retailStepsDetailsController.load} 
                   proceso={"Nuevo"}/> :
         <>
           <h2 id="ft_title" className="ft-title">{title} {(tipo === "edit" || isView) ? ` - ${porcentajeCompletacion}` : null}</h2>
@@ -470,33 +467,14 @@ export default function FormRetail({
             {/* Salario */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Salario *</label>
-              <input disabled={!canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} required maxLength={300} onChange={(e) => {
-                                                                                                                                                                const raw = e.target.value;
-
-                                                                                                                                                                handleAuxilioChange(raw)
-              
-                                                                                                                                                                if (raw === "") {
-                                                                                                                                                                  setDisplaySalario("");
-                                                                                                                                                                  setField("Salario", "" as any);
-                                                                                                                                                                  setField("SalarioLetras", "");
-                                                                                                                                                                  return;
-                                                                                                                                                                }
-
-                                                                                                                                                                const numeric = toNumberFromEsCO(raw);
-                                                                                                                                                                const formatted = formatPesosEsCO(String(numeric));
-
-                                                                                                                                                                setDisplaySalario(formatted);
-                                                                                                                                                                setField("Salario", numeric as any);
-                                                                                                                                                                setField("SalarioLetras", numeroATexto(numeric).toUpperCase());
-                                                                                                                                                              }}
-                                                                                                                                                            />
+              <input disabled={!canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} required maxLength={300} onChange={(e) => {handleSalarioChange(e.target.value)}}/>
               <small>{errors.Salario}</small>
             </div>
 
             {/* Salario */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Salario en letras *</label>
-              <input disabled={!canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={numeroATexto(Number(state.Salario)).toUpperCase()} readOnly/>
+              <input disabled={!canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Salario en letras" value={numeroATexto(Number(state.Salario)).toUpperCase()} readOnly/>
             </div>
 
             {/* Auxilio de conectividad */}

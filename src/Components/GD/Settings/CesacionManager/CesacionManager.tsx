@@ -11,10 +11,11 @@ type PasoCesacionDraft = Omit<PasosProceso, "Id">;
 
 type Props = {
   onChanged?: () => void;
-  onReload: () => void;
+  onReload: () => Promise<PasosProceso[]>;
   onAdd: (payload: PasosProceso) => void;
   onEdit: (id: string, edited: any) => void;
-  onDelete: (id: string) => void;
+  onDesactivate: (id: string) => Promise<boolean>;
+  onActivate: (id: string) => Promise<boolean>;
   pasos: PasosProceso[];
   tipo: string;
   cargos: desplegablesOption[];
@@ -28,7 +29,7 @@ function toInt(v: any, fallback = 0) {
   return Number.isFinite(n) ? Math.trunc(n) : fallback;
 }
 
-export const ProcesosStepManager: React.FC<Props> = ({loadingCargo, cargos, onChanged, pasos, onReload, tipo, onAdd, onEdit, onDelete,}) => {
+export const ProcesosStepManager: React.FC<Props> = ({loadingCargo, cargos, onChanged, pasos, onReload, tipo, onAdd, onEdit, onDesactivate, onActivate}) => {
   const [state, setState] = React.useState<PasosProceso>({
     NombreEvidencia: "",
     NombrePaso: "",
@@ -38,6 +39,7 @@ export const ProcesosStepManager: React.FC<Props> = ({loadingCargo, cargos, onCh
     PlantillaCorreo: "",
     PlantillaAsunto: "",
     Obligatorio: true,
+    Activado: true
   });
   const [openRulesModalState, setOpenRulesModalState] = React.useState(false);
   const [selectedPasoForRules, setSelectedPasoForRules] = React.useState<PasosProceso | null>(null);
@@ -95,6 +97,7 @@ export const ProcesosStepManager: React.FC<Props> = ({loadingCargo, cargos, onCh
       PlantillaCorreo: s.PlantillaCorreo ?? "",
       PlantillaAsunto: s.PlantillaAsunto ?? "",
       Obligatorio: s.Obligatorio ?? true,
+      Activado: s.Activado ?? true
     });
 
     setEditingId(s.Id!);
@@ -153,21 +156,39 @@ export const ProcesosStepManager: React.FC<Props> = ({loadingCargo, cargos, onCh
     }
   };
 
-  const remove = async (s: PasosProceso) => {
-    if (!s.Id) return;
+const desactivate = async (s: PasosProceso) => {
+  if (!s.Id) return;
 
-    setSaving(true);
-    setError("");
-    try {
-      await onDelete(s.Id);
-      await onReload();
-      onChanged?.();
-    } catch (e: any) {
-      setError(e?.message ?? "No fue posible eliminar el paso.");
-    } finally {
-      setSaving(false);
+  setSaving(true);
+  setError("");
+
+  try {
+    const isActive = s.Activado === true;
+
+    console.log(isActive ? "Desactivando paso" : "Activando paso", s);
+    const ok = isActive
+      ? await onDesactivate(s.Id)
+      : await onActivate(s.Id);
+
+    if (!ok) {
+      setError(isActive
+        ? "No fue posible desactivar el paso."
+        : "No fue posible activar el paso.");
+      return;
     }
-  };
+
+    console.log(isActive ? "Desactivando paso" : "Activando paso");
+
+    const a = await onReload();
+    console.log(a);
+
+    onChanged?.();
+  } catch (e: any) {
+    setError(e?.message ?? "No fue posible actualizar el paso.");
+  } finally {
+    setSaving(false);
+  }
+};
 
   const openRulesModal = (paso: PasosProceso) => {
     setSelectedPasoForRules(paso);
@@ -246,8 +267,8 @@ export const ProcesosStepManager: React.FC<Props> = ({loadingCargo, cargos, onCh
                       Reglas
                     </button>
 
-                    <button type="button" className="btn btn-xs btn-danger" onClick={() => remove(s)} disabled={saving}>
-                      Eliminar
+                    <button type="button" className="btn btn-xs btn-danger" onClick={() => desactivate(s)} disabled={saving}>
+                      {s.Activado ? "Desactivar" : "Activar"}
                     </button>
                   </div>
                 </li>

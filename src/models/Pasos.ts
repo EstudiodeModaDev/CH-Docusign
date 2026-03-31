@@ -8,6 +8,7 @@ export type PasosProceso = {
     PlantillaCorreo: string
     PlantillaAsunto: string;
     Obligatorio: boolean
+    Activado: boolean
 }
 
 export type DetallesPasos = {
@@ -40,4 +41,11 @@ export type pasoUsuarioPermitido = {
 }
 
 export type Procesos = "Contratacion" | "Cesacion" | "Promocion" | "Retail"
+
 export type TipoReglaCargo = "Incluir" | "Excluir"
+
+export type StepDecision = "" | "Aceptado" | "Rechazado";
+
+export type StepDecisionMap = Record<string, StepDecision>;
+
+export type StepReasonMap = Record<string, string>;

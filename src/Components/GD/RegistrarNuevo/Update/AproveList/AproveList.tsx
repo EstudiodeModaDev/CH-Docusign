@@ -103,7 +103,7 @@ export default function SolicitudesAprobacion() {
                 <th>Registro</th>
                 <th>Solicitante</th>
                 <th>Fecha</th>
-                <th>Razón</th>
+                <th>Aprobador</th>
                 <th>Acción</th>
               </tr>
             </thead>
@@ -132,6 +132,7 @@ export default function SolicitudesAprobacion() {
                     <td>{registrosMap[String(solicitud.Id)]?.Cedula}</td>
                     <td>{solicitud.NombreSolicitante}</td>
                     <td>{DDMMYYYY(solicitud.fechaSolicitud)}</td>
+                    <td>{solicitud.Aprobador || "No ha sido aprobado aun"}</td>
                     <td>
                       <button className="sa-btn sa-btn--ghost" onClick={() => {setSelectedRequest(solicitud); setShowDetails(true)}}>
                         Ver detalle

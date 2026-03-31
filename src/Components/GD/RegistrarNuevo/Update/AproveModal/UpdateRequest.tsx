@@ -105,7 +105,7 @@ export default function SolicitudesDetails({selectedSolicitud, onCloseDetail,}: 
                 <>
                   <div className="sa-detailItem">
                     <span className="sa-detailLabel">Aprobador</span>
-                    <span>{selectedSolicitud.NombreSolicitante || "-"}</span>
+                    <span>{selectedSolicitud.Aprobador || "-"}</span>
                   </div>
 
                   <div className="sa-detailItem">

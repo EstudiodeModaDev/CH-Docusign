@@ -29,3 +29,16 @@ export type DocuSignVM = {
   ciudadExpe: string
   departamento: string;
 };
+
+export type ReportDTO = {
+  Id: string
+  Cedula: string;
+  Nombre: string;
+  Cargo: string;
+  Salario: string
+  "Fecha de ingreso": string
+  "Programación de exámenes": string
+  Empresa: string
+  Modulo: string
+  SalarioTexto: string
+}

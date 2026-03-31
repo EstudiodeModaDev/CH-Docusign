@@ -135,7 +135,7 @@ export class ContratosService {
         Coordinadordepracticas: f.Coordinadordepracticas,
         Especialidad: f.Especialidad,
         Etapa: f.Etapa,
-        FechaFinalLectiva: f.FechaInicioLectiva,
+        FechaFinalLectiva: f.FechaFinalLectiva,
         FechaFinalProductiva: f.FechaFinalProductiva,
         FechaInicioLectiva: f.FechaInicioLectiva,
         FechaInicioProductiva: f.FechaInicioProductiva,

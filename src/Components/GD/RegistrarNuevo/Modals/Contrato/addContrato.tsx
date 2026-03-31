@@ -6,7 +6,6 @@ import type { desplegablesOption } from "../../../../../models/Desplegables";
 import { formatPesosEsCO, numeroATexto, toNumberFromEsCO } from "../../../../../utils/Number";
 import { useAuth } from "../../../../../auth/authProvider";
 import { getTodayLocalISO, toISODateFlex } from "../../../../../utils/Date";
-import { useDetallesPasosNovedades, usePasosNoveades } from "../../../../../Funcionalidades/GD/PasosNovedades";
 import { useSalarios } from "../../../../../Funcionalidades/GD/Salario";
 import { lookOtherInfo, } from "../../../../../utils/lookFor";
 import { usePromocion } from "../../../../../Funcionalidades/GD/Promocion";
@@ -22,6 +21,8 @@ import { usePermissions } from "../../../../../Funcionalidades/Permisos";
 import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones/hooks/useCesaciones";
 import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
 import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
+import { createEmptyContratos } from "../../../../../Funcionalidades/GD/Contratos/utils/contratosState";
+import { useNovedadesStepDetails, useNovedadesSteps } from "../../../../../Funcionalidades/GD/Steps/ContratosSteps/useNovedadesSteps";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -91,15 +92,15 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormContratacion({handleReactivateProcessById, title, handleCancelProcessbyId, setState, selectedNovedad, handleEdit, tipo, tipoContratoOptions, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, loadingModalidad, especificidadOptions, loadingEspecificdad, etapasOptions, loadingEtapas, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, origenOptions, loadingOrigen, loadingTipoContrato, tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, onClose, state, setField, handleSubmit, errors, searchRegister: searchNovedad, loadFirstPage }: Props) {
-  const { Contratos, DetallesPasosNovedades, salarios, Promociones, categorias, Retail, configuraciones, mail} = useGraphServices();
+  const { Contratos, salarios, Promociones, categorias, Retail, configuraciones, mail} = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData();
   const { searchRegister: searchPromocion } = usePromocion(Promociones);
   const { searchRegister: searchRetail } = useRetail(Retail);
   const cesacionesController = useCesaciones();
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
   const { loadSpecificSalary } = useSalarios(salarios);
-  const { loadPasosNovedad, rows, handleCompleteStep,  loading: loadingPasos, error: errorPasos, byId, decisiones, setDecisiones, motivos, setMotivos, } = usePasosNoveades();
-  const { handleCreateAllSteps, loading: loadingDetalles, error: errorDetalles, rows: rowsDetalles, loadDetallesNovedades, calcPorcentaje} = useDetallesPasosNovedades(DetallesPasosNovedades, selectedNovedad ? selectedNovedad.Id : "")
+  const stepsController = useNovedadesSteps()
+  const { handleCreateAllSteps, loading: loadingDetalles, error: errorDetalles, rows: rowsDetalles, load: loadDetallesNovedades, calcPorcentaje} = useNovedadesStepDetails(selectedNovedad?.Id)
   const { engine } = usePermissions();
   const opciones = [
     { value: "Escritorio", label: "Escritorio" },
@@ -278,32 +279,6 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
     setField,
   ]);
 
-  /* ================== Nivel por cargo ================== */
-  React.useEffect(() => {
-    let cancelled = false;
-
-    const run = async () => {
-      const salario = await loadSpecificLevel(state.CARGO);
-
-      if (cancelled) return;
-      if (!salario) return;
-
-      const recomendado = String(salario.Categoria ?? "");
-      const actual = String(state.NIVEL_x0020_DE_x0020_CARGO ?? "");
-
-      // Si ya está igual, no vuelvas a setear (evita loops por "mismo valor")
-      if (recomendado && recomendado !== actual) {
-        setField("NIVEL_x0020_DE_x0020_CARGO", recomendado as any);
-      }
-    };
-
-    if (state.CARGO) run();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [state.CARGO,]);
-
   /* ================== Usar Novedad ================== */
   React.useEffect(() => {
     if(selectedNovedad) setState(selectedNovedad)
@@ -329,19 +304,45 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
     run();
   }, []);
 
+  React.useEffect(() => {
+    if(tipo === "new"){
+      setState(createEmptyContratos(account?.name ?? ""))
+    } else {
+      const valor = selectedNovedad?.auxconectividadvalor ? Number(selectedNovedad.auxconectividadvalor) : 0
+      const texto = selectedNovedad?.auxconectividadtexto ? String(selectedNovedad.auxconectividadtexto) : ""
+      console.log("valor", valor)
+      console.log("texto", texto)
+      setConectividad(valor)
+      setConectividadTexto(texto)
+    }
+  }, [selectedNovedad]);
+
   const handleCargoChange = async (cargo: string) => {
     setField("CARGO", cargo);
 
     if (!cargo) return;
 
-    const salario = await loadSpecificSalary(cargo);
+    //Traer el salario y el nivel de cargo recomendado
+    const [nivelRes, salarioRes] = await Promise.all([loadSpecificLevel(cargo), loadSpecificSalary(cargo),]);
 
-    if (!salario?.Salariorecomendado) return;
+    if (nivelRes?.Categoria) {
+      //Setear el nivel de cargo recomendado
+      setField("NIVEL_x0020_DE_x0020_CARGO", String(nivelRes.Categoria) as any);
+    }
 
-    setField("SALARIO", String(salario.Salariorecomendado));
-    setField("salariotexto", numeroATexto(Number(salario.Salariorecomendado)).toUpperCase());
+    if (salarioRes?.Salariorecomendado) {
+      const salario = Number(salarioRes.Salariorecomendado);
 
-    handleAuxilioChange(salario.Salariorecomendado)
+      setField("SALARIO", salario as any);
+      setField("salariotexto", numeroATexto(salario).toUpperCase());
+
+      const auxRes = auxilioHandlder(minimo, salario, auxTransporte);
+      if (auxRes) {
+        //Setear salario convertido
+        setField("auxconectividadvalor", String(auxRes.valor));
+        setField("auxconectividadtexto", auxRes.texto);
+      }
+    }
   };
 
   const  handleAuxilioChange = async (salario: string) => {
@@ -357,14 +358,14 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
     setConectividadTexto(auxRes.texto.toUpperCase());
   };
 
-
   const handleCreateNovedad = async (e: React.FormEvent) => {
     if(tipo=== "new"){
       const created = await handleSubmit();
 
       if (created.ok) {
-        await loadPasosNovedad();
-        await handleCreateAllSteps(rows, created.created?.Id ?? "", created.created?.CARGO ?? "");
+        const pasos = await stepsController.load(false);
+        console.log(pasos)
+        await handleCreateAllSteps(pasos, created.created?.Id ?? "", created.created?.CARGO ?? "");
         const body = createBody(account?.name ?? "", "Contratación", state.NombreSeleccionado, state.Numero_x0020_identificaci_x00f3_, state.CARGO, state.FECHA_x0020_REQUERIDA_x0020_PARA0 ?? "",)
         await notifyTeam(mail, "Nuevo registro en contratación - Gestor documental CH", body)
         await loadFirstPage()
@@ -373,6 +374,23 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
     } else {
       handleEdit(e, state, isView)
     }
+  };
+
+  const handleSalarioChange = (raw: string) => {
+    if (raw === "") {
+      setField("SALARIO", "" as any);
+      setField("salariotexto", "");
+      setField("auxconectividadvalor", "");
+      setField("auxconectividadtexto", "");
+      return;
+    }
+
+    const numeric = toNumberFromEsCO(raw);
+
+    setField("SALARIO", numeric as any);
+    setField("salariotexto", numeroATexto(numeric).toUpperCase());
+
+    handleAuxilioChange(raw)
   };
 
   const searchPeople = React.useCallback(async (cedula: string) => {
@@ -392,19 +410,17 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
   }, []);
 
   const completeStep = React.useCallback( async (detalle: DetallesPasos, estado: string) => {
-      await handleCompleteStep(detalle, estado);
+    await stepsController.handleCompleteStep(detalle, estado);
 
-      const porcentaje = await calcPorcentaje(); 
+    const porcentaje = await calcPorcentaje(); 
 
-      if (Number(porcentaje) === 100) {
-        const id = selectedNovedad?.Id;
-        if (!id) return;
+    if (Number(porcentaje) === 100) {
+      const id = selectedNovedad?.Id;
+      if (!id) return;
 
-        await Contratos.update(id, { Estado: "Finalizado" });
-      }
-    },
-    [handleCompleteStep, calcPorcentaje, selectedNovedad?.Id, Contratos]
-  );
+      await Contratos.update(id, { Estado: "Finalizado" });
+    }
+  },[calcPorcentaje, selectedNovedad?.Id, Contratos]);
 
   const handleCancel = async (razon: string) => {
     await handleCancelProcessbyId(selectedNovedad!.Id ?? "", razon)
@@ -419,13 +435,13 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                   titulo={"Detalles contratación  de: " + selectedNovedad!.Numero_x0020_identificaci_x00f3_ + " - " + selectedNovedad!.NombreSeleccionado}
                   selectedCesacion={selectedNovedad!}
                   onClose={() => setFlow(false)}
-                  loadingPasos={loadingPasos}
-                  errorPasos={errorPasos}
-                  pasosById={byId}
-                  decisiones={decisiones}
-                  motivos={motivos}
-                  setMotivos={setMotivos}
-                  setDecisiones={setDecisiones}
+                  loadingPasos={stepsController.loading}
+                  errorPasos={stepsController.error}
+                  pasosById={stepsController.byId}
+                  decisiones={stepsController.decisiones}
+                  motivos={stepsController.motivos}
+                  setMotivos={stepsController.setMotivos}
+                  setDecisiones={stepsController.setDecisiones}
                   handleCompleteStep={(detalle: DetallesPasos, estado: string) => completeStep(detalle, estado)}
                   detallesRows={rowsDetalles}
                   loadingDetalles={loadingDetalles}
@@ -550,7 +566,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input disabled={isView || !canEditRegister} type="radio" name="aprendiz" value="No" checked={!state.Aprendiz} onChange={() => {setField("Aprendiz", false as any); setFechaFinalizacion(true)}}/>
+                  <input disabled={!canEditRegister} type="radio" name="aprendiz" value="No" checked={!state.Aprendiz} onChange={() => {setField("Aprendiz", false as any); setFechaFinalizacion(true)}}/>
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>
@@ -632,25 +648,25 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
 
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="FechaInicioLectiva">Fecha de inicio de etapa lectiva</label>
-                  <input disabled={isView} id="FechaInicioLectiva" name="FechaInicioLectiva" type="date" value={state.FechaInicioLectiva ? toISODateFlex(state.FechaInicioLectiva) : ""} required aria-required="true" maxLength={300} onChange={(e) => setField("FechaInicioLectiva", e.target.value)}/>
+                  <input disabled={!canEditRegister} id="FechaInicioLectiva" name="FechaInicioLectiva" type="date" value={state.FechaInicioLectiva ? toISODateFlex(state.FechaInicioLectiva) : ""} required aria-required="true" maxLength={300} onChange={(e) => setField("FechaInicioLectiva", e.target.value)}/>
                   <small>{errors.FechaInicioLectiva}</small>
                 </div>
 
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="FechaFinalLectiva">Fecha final de etapa lectiva</label>
-                  <input disabled={isView} id="FechaFinalLectiva" name="FechaFinalLectiva" type="date" value={state.FechaFinalLectiva ? toISODateFlex(state.FechaInicioLectiva) : ""} required aria-required="true" maxLength={300} onChange={(e) => setField("FechaFinalLectiva", e.target.value)}/>
+                  <input disabled={!canEditRegister} id="FechaFinalLectiva" name="FechaFinalLectiva" type="date" value={state.FechaFinalLectiva ? toISODateFlex(state.FechaFinalLectiva) : ""} required aria-required="true" maxLength={300} onChange={(e) => setField("FechaFinalLectiva", e.target.value)}/>
                   <small>{errors.FechaFinalLectiva}</small>
                 </div>
 
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="FechaInicioProductiva">Fecha de inicio de etapa productiva</label>
-                  <input disabled={isView} id="FechaInicioProductiva" name="FechaInicioProductiva" type="date" value={state.FechaInicioProductiva ? toISODateFlex(state.FechaInicioProductiva) : ""} required maxLength={300} onChange={(e) => setField("FechaInicioProductiva", e.target.value)}/>
+                  <input disabled={!canEditRegister} id="FechaInicioProductiva" name="FechaInicioProductiva" type="date" value={state.FechaInicioProductiva ? toISODateFlex(state.FechaInicioProductiva) : ""} required maxLength={300} onChange={(e) => setField("FechaInicioProductiva", e.target.value)}/>
                   <small>{errors.FechaInicioProductiva}</small>
                 </div>
 
                 <div className="ft-field">
                   <label className="ft-label" htmlFor="FechaFinalProductiva">Fecha final de etapa productiva</label>
-                  <input disabled={isView} id="FechaFinalProductiva" name="FechaFinalProductiva" type="date" value={state.FechaFinalProductiva ? toISODateFlex(state.FechaFinalProductiva) : ""}  maxLength={300} onChange={(e) => setField("FechaFinalProductiva", e.target.value)} />
+                  <input disabled={!canEditRegister} id="FechaFinalProductiva" name="FechaFinalProductiva" type="date" value={state.FechaFinalProductiva ? toISODateFlex(state.FechaFinalProductiva) : ""}  maxLength={300} onChange={(e) => setField("FechaFinalProductiva", e.target.value)} />
                   <small>{errors.FechaFinalProductiva}</small>
                 </div>
 
@@ -664,7 +680,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                     value={state.LugarExpedicion ? { value: state.LugarExpedicion, label: state.LugarExpedicion } : null}
                     onChange={(opt) => setField("LugarExpedicion", opt?.value ?? "")}
                     classNamePrefix="rs"
-                    isDisabled={loadingDepto || isView}
+                    isDisabled={loadingDepto || !canEditRegister}
                     isClearable/>
                   <small>{errors.LugarExpedicion}</small>
                 </div>
@@ -755,25 +771,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
             {/* ================= Salario ================= */}
             <div className="ft-field">
               <label className="ft-label" htmlFor="SALARIO">Salario *</label>
-              <input disabled={!canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} required maxLength={300} onChange={(e) => {
-                                                                                                                                                                  const raw = e.target.value;
-                                                                                                                                                                  handleAuxilioChange(raw)
-
-                                                                                                                                                                  if (raw === "") {
-                                                                                                                                                                    setDisplaySalario("");
-                                                                                                                                                                    setField("SALARIO", "" as any);
-                                                                                                                                                                    setField("salariotexto", "");
-                                                                                                                                                                    return;
-                                                                                                                                                                  }
-
-                                                                                                                                                                  const numeric = toNumberFromEsCO(raw);
-                                                                                                                                                                  const formatted = formatPesosEsCO(String(numeric));
-
-                                                                                                                                                                  setDisplaySalario(formatted);
-                                                                                                                                                                  setField("SALARIO", numeric as any);
-                                                                                                                                                                  setField("salariotexto", numeroATexto(numeric).toUpperCase());
-                                                                                                                                                                }}
-                                                                                                                                                              />
+              <input disabled={!canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Ingrese el salario del seleccionado" value={displaySalario} required maxLength={300} onChange={(e) => {handleSalarioChange(e.target.value)}} />
               <small>{errors.SALARIO}</small>
             </div>
 
@@ -841,13 +839,13 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
             <div className="ft-field">
               <label className="ft-label" htmlFor="SALARIO">Auxilio de transporte *</label>
               <input disabled={!canEditRegister} id="SALARIO" name="SALARIO" type="text" placeholder="Auxilio de transporte" value={ formatPesosEsCO(conectividad)} readOnly />
-              <small>{errors.SALARIO}</small>
+              <small>{errors.auxconectividadvalor}</small>
             </div>
 
             {/* Salario en letras */}
             <div className="ft-field">
-              <label className="ft-label" htmlFor="salariotexto">Salario en letras *</label>
-              <input id="salariotexto" name="salariotexto" type="text" placeholder="Salario en letras" value={conectividadTexto} readOnly/>
+              <label className="ft-label" htmlFor="salariotexto">Auxilio de conectividad en letras *</label>
+              <input id="salariotexto" name="salariotexto" type="text" placeholder="Auxilio de conectividad en letras" value={conectividadTexto} readOnly/>
             </div>
 
             {/* ¿Tiene auxilio de rodamiento? */}

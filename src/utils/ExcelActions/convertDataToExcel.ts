@@ -1,4 +1,5 @@
 import type { Cesacion } from "../../models/Cesaciones";
+import type { ReportDTO } from "../../models/DTO";
 import type { Envio } from "../../models/Envios";
 import type { HabeasData } from "../../models/HabeasData";
 import type { Novedad } from "../../models/Novedades";
@@ -7,6 +8,7 @@ import type { Retail } from "../../models/Retail";
 import { computePctById, type GetAllSvc, type PasoLike } from "../completation";
 import { toISODateFlex } from "../Date";
 import { formatPesosEsCO } from "../Number";
+import { computePctByModule } from "./calcPorcentajes";
 
 export function buildEnviosData(rows: Envio[]) {
   return rows.map((row) => ({
@@ -197,6 +199,34 @@ export async function buildRetailData(rows: Retail[], detallesPasosPromocionSvc:
       "Auxilio de conectividad": formatPesosEsCO(row.Auxiliodetransporte) ?? "N/A",
       "Auxilio de conectividad en letras": row.Auxiliotransporteletras ?? "N/A",
       Estado: row.Estado,
+      "% Completación": pct === undefined ? "N/A" : `${pct.toFixed(2)}%`,
+    };
+  });
+}
+
+export async function buildConsolidadoData(rows: ReportDTO[], services: {
+    novedades?: GetAllSvc<PasoLike>;
+    promociones?: GetAllSvc<PasoLike>;
+    cesaciones?: GetAllSvc<PasoLike>;
+    retail?: GetAllSvc<PasoLike>;
+  }) {
+
+  const pctById = await computePctByModule(rows, services);
+
+  return rows.map((row) => {
+    const id = String(row.Id ?? "");
+    const pct = pctById[id];
+
+    return {
+      "Cedula": row.Cedula ?? "N/A",
+      "Nombre": row.Nombre ?? "N/A",
+      "Cargo": row.Cargo ?? "N/A",
+      Salario: row.Salario ? formatPesosEsCO(row.Salario) : "N/A",
+      "Salario en letras": row.SalarioTexto ?? "N/A",
+      "Fecha de ingreso": toISODateFlex(row["Fecha de ingreso"]),
+      "Programación de examenes medicos": row["Programación de exámenes"] ? toISODateFlex(row["Programación de exámenes"]) : "No han sido registrados",
+      "Empresa": row.Empresa ?? "N/A",    
+      Modulo: row.Modulo ?? "N/A",
       "% Completación": pct === undefined ? "N/A" : `${pct.toFixed(2)}%`,
     };
   });

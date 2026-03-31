@@ -218,6 +218,8 @@ export function convertToCommonDTO(original: Cesacion | Novedad | Promocion | Ha
   throw new Error("Tipo de registro no soportado");
 }
 
+
+
 export function convertCommonToOptions(workers: CommonRegister[]): rsOption[] { 
   
   const seen = new Set<string>();

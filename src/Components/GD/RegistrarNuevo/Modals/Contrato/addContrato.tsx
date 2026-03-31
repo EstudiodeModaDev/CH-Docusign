@@ -792,7 +792,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                 </label>
 
                 <label className="ft-radio-custom">
-                  <input disabled={isView || !canEditRegister} type="radio" name="ajuste" value="No" checked={state.Ajustesalario === false} onChange={() => setField("Ajustesalario", false as any)} />
+                  <input disabled={!canEditRegister} type="radio" name="ajuste" value="No" checked={state.Ajustesalario === false} onChange={() => setField("Ajustesalario", false as any)} />
                   <span className="circle"></span>
                   <span className="text">No</span>
                 </label>

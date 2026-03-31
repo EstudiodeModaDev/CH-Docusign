@@ -56,12 +56,23 @@ export function createEngine(set: ReadonlySet<FeatureKey>): PermissionsEngine {
 }
 
 export async function getUserGroupIds(graph: GraphRest): Promise<string[]> {
+
   const res = await graph.get<{ value: Array<{ id: string }> }>(
-    "/me/transitiveMemberOf?$select=id"
+    "/me/transitiveMemberOf/microsoft.graph.group?$select=id"
   );
+  console.log(res);
+  console.log(res.value?.length);
   return (res.value ?? []).map(x => x.id).filter(Boolean);
 }
 
+export async function isUserInGroup(graph: GraphRest, groupId: string): Promise<boolean> {
+  const res = await graph.post<{ value: string[] }>(
+    "/me/checkMemberGroups",
+    { groupIds: [groupId] }
+  );
+
+  return (res.value ?? []).includes(groupId);
+}
 
 
 export async function getAppPermissionsRows(permisosSvc: MatrizPermisosService) {

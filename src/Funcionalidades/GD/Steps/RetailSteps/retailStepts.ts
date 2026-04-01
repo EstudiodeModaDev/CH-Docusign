@@ -17,6 +17,10 @@ export function useRetailSteps() {
     catalog.load();
   }, []);
 
+  React.useEffect(() => {
+    console.log(catalog.byId)
+  }, [catalog.byId]);
+
   const completion = useStepCompletion({
     detailsService: detallesPasosRetail,
     byId: catalog.byId,

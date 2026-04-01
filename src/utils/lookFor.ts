@@ -130,7 +130,21 @@ export function mapCesacionToVM(c: Cesacion): datosBasicos {
   };
 }
 
-export function toDocuSignVM(proceso: Proceso, data: Promocion | Novedad | HabeasData | Cesacion): datosBasicos {
+export function mapRetailToVM(c: Retail): datosBasicos {
+  return {
+    ...emptyDB(),
+    nombre: c.Nombre ?? "",
+    cedula: c.Title ?? "",
+    correo: c.CorreoElectronico ?? "",
+    empresa: c.Empresaalaquepertenece ?? "",
+    tipoDoc: c.TipoDoc ?? "",
+    celular: c.Celular,
+    ciudad: c.Ciudad,
+    departamento: c.Departamento,
+  };
+}
+
+export function toDocuSignVM(proceso: Proceso, data: Promocion | Novedad | HabeasData | Cesacion | Retail): datosBasicos {
   switch (proceso) {
     case "Promocion":
       return mapPromocionToVM(data as Promocion);
@@ -140,6 +154,8 @@ export function toDocuSignVM(proceso: Proceso, data: Promocion | Novedad | Habea
       return mapHabeasToVM(data as HabeasData);
     case "Cesacion":
       return mapCesacionToVM(data as Cesacion);
+    case "Retail":
+      return mapRetailToVM(data as Retail);
   }
 }
 

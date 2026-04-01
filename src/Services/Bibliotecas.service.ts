@@ -17,6 +17,11 @@ function toRelativePath(nextLink: string): string {
 }
 
 function mapToArchivo(item: any): Archivo {
+  const parentPath = item.parentReference?.path ?? "";
+  const fullPath = parentPath
+    ? `${parentPath}/${item.name}`
+    : item.name; 
+
   return {
     id: item.id,
     name: item.name,
@@ -26,6 +31,7 @@ function mapToArchivo(item: any): Archivo {
     lastModified: item.lastModifiedDateTime,
     childCount: item.folder?.childCount ?? undefined,
     created: item.createdDateTime,
+    path: fullPath
   };
 }
 
@@ -184,6 +190,12 @@ class BibliotecaBaseService {
       });
 
       if (folder) {
+
+        const parentPath = folder.parentReference?.path ?? "";
+        const fullPath = parentPath
+          ? `${parentPath}/${folder.name}`
+          : folder.name; 
+
         return {
           id: folder.id,
           name: folder.name,
@@ -193,6 +205,7 @@ class BibliotecaBaseService {
           lastModified: folder.lastModifiedDateTime,
           childCount: folder.folder?.childCount ?? undefined,
           created: folder.createdDateTime,
+          path: fullPath
         };
       }
 
@@ -220,6 +233,11 @@ class BibliotecaBaseService {
       file,
       file.type || "application/octet-stream"
     );
+
+    const parentPath = driveItem.parentReference?.path ?? "";
+    const fullPath = parentPath
+      ? `${parentPath}/${driveItem.name}`
+      : driveItem.name; 
     
     return {
       id: driveItem.id,
@@ -230,6 +248,7 @@ class BibliotecaBaseService {
       lastModified: driveItem.lastModifiedDateTime,
       childCount: driveItem.folder?.childCount ?? undefined,
       created: driveItem.createdDateTime,
+      path: fullPath
     };
 }
 
@@ -252,6 +271,11 @@ class BibliotecaBaseService {
       file.type || "application/octet-stream"
     );
 
+    const parentPath = driveItem.parentReference?.path ?? "";
+    const fullPath = parentPath
+      ? `${parentPath}/${driveItem.name}`
+      : driveItem.name; 
+
     return {
       id: driveItem.id,
       name: driveItem.name,
@@ -261,6 +285,7 @@ class BibliotecaBaseService {
       lastModified: driveItem.lastModifiedDateTime,
       childCount: driveItem.folder?.childCount ?? undefined,
       created: driveItem.createdDateTime,
+      path: fullPath
     };
   }
 
@@ -280,6 +305,11 @@ class BibliotecaBaseService {
       { name: newName }
     );
 
+    const parentPath = item.parentReference?.path ?? "";
+    const fullPath = parentPath
+      ? `${parentPath}/${item.name}`
+      : item.name; 
+
     return {
       id: item.id,
       name: item.name,
@@ -289,6 +319,7 @@ class BibliotecaBaseService {
       lastModified: item.lastModifiedDateTime,
       childCount: item.folder?.childCount ?? undefined,
       created: item.createdDateTime,
+      path: fullPath
     };
   }
 
@@ -328,6 +359,11 @@ class BibliotecaBaseService {
       body
     );
 
+    const parentPath = moved.parentReference?.path ?? "";
+    const fullPath = parentPath
+      ? `${parentPath}/${moved.name}`
+      : moved.name; 
+
     return {
       id: moved.id,
       name: moved.name,
@@ -337,6 +373,7 @@ class BibliotecaBaseService {
       lastModified: moved.lastModifiedDateTime,
       childCount: moved.folder?.childCount ?? undefined,
       created: moved.createdDateTime,
+      path: fullPath
     };
   }
 

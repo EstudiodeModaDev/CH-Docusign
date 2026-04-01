@@ -36,9 +36,8 @@ function withSuffix(name: string, i: number) {
 export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDetalles, errorDetalles, loadDetalles, titulo, selectedCesacion, onClose, loadingPasos, errorPasos, pasosById, decisiones, motivos, setMotivos, setDecisiones, handleCompleteStep, proceso,}) => {
   const {ColaboradoresDH,  ColaboradoresEDM, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta, mail,}: any = useGraphServices();
 
-  const vm = React.useMemo(() => {
-    return toUnifyVM(proceso as Proceso, selectedCesacion as any);
-  }, [proceso, selectedCesacion]);
+  const vm = toUnifyVM(proceso as Proceso, selectedCesacion as any);
+
 
   const [files, setFiles] = React.useState<Record<string, File | null>>({});
   const [destinatario, setDestinatario] = React.useState<string>("");
@@ -124,65 +123,78 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
   const handleUploadAndComplete = async (detalle: DetallesPasos, paso: any) => {
     if (uploadingRef.current) return;
     uploadingRef.current = true;
-
-    const idDetalle = detalle.Id ?? "";
-    const file = files[idDetalle];
-
-    if (!file) {
-      uploadingRef.current = false;
-      alert("Debes seleccionar un archivo antes de subirlo");
-      return;
-    }
-
-    const canon = (s: string) =>
-      (s ?? "")
-        .toString()
-        .normalize("NFKC")
-        .replace(/\u00a0/g, " ")
-        .replace(/[‐-‒–—―]/g, "-")
-        .replace(/\s+/g, " ")
-        .trim();
-
-    const empresa = canon(vm?.empresa?.toLowerCase() ?? "");
-
-    const servicioColaboradores =
-      empresa === "dh retail"
-        ? ColaboradoresDH
-        : empresa === "movimiento"
-        ? ColaboradoresVisual
-        : empresa === "denim head"
-        ? ColaboradoresDenim
-        : empresa === "estudio de moda"
-        ? ColaboradoresEDM
-        : empresa === "metagraphics"
-        ? ColaboradoresMeta
-        : ColaboradoresEDM;
-
-    const ext = (file.name.split(".").pop() ?? "pdf").trim();
-
-    const evidenciaRaw = canon(paso?.NombreEvidencia ?? paso?.NombrePaso ?? "Evidencia");
-    const nombreBaseRaw = canon(`${vm?.numeroDoc ?? ""} - ${evidenciaRaw}`);
-    const baseSafe = sanitizeFileName(nombreBaseRaw);
-
-    const folderName = canon(`${vm.numeroDoc ?? ""} - ${vm.nombre ?? ""}`);
-    const carpetaFallback = `Colaboradores Activos/${folderName}`;
-
     setUploading(true);
 
+    console.log(vm)
+
     try {
+      const idDetalle = detalle.Id ?? "";
+      const file = files[idDetalle];
+
+      if (!file) {
+        alert("Debes seleccionar un archivo antes de subirlo");
+        return;
+      }
+
+      const canon = (s: string) =>
+        (s ?? "")
+          .toString()
+          .normalize("NFKC")
+          .replace(/\u00a0/g, " ")
+          .replace(/[‐-‒–—―]/g, "-")
+          .replace(/\s+/g, " ")
+          .trim();
+
+      const numeroDoc = canon(vm?.numeroDoc ?? "");
+      const nombre = canon(vm?.nombre ?? "");
+      const empresa = canon(vm?.empresa?.toLowerCase() ?? "");
+
+      if (!numeroDoc || !nombre) {
+        alert("Faltan datos del colaborador: número de documento o nombre.");
+        return;
+      }
+
+      const servicioColaboradores =
+        empresa === "dh retail"
+          ? ColaboradoresDH
+          : empresa === "movimiento"
+          ? ColaboradoresVisual
+          : empresa === "denim head"
+          ? ColaboradoresDenim
+          : empresa === "estudio de moda"
+          ? ColaboradoresEDM
+          : empresa === "metagraphics"
+          ? ColaboradoresMeta
+          : null;
+
+      if (!servicioColaboradores) {
+        alert(`Empresa no reconocida para subida de archivos: ${vm?.empresa ?? "sin empresa"}`);
+        return;
+      }
+
+      const ext = (file.name.split(".").pop() ?? "pdf").trim();
+      const evidenciaRaw = canon(paso?.NombreEvidencia ?? paso?.NombrePaso ?? "Evidencia");
+      const nombreBaseRaw = `${numeroDoc} - ${evidenciaRaw}`;
+      const baseSafe = sanitizeFileName(nombreBaseRaw);
+
+      const folderName = `${numeroDoc} - ${nombre}`;
+      const carpetaFallback = `Colaboradores Activos/${folderName}`;
+
       let targetFolderId: string | null = null;
 
       try {
-        const found = await servicioColaboradores.findFolderByDocNumber(vm.numeroDoc);
-
+        const found = await servicioColaboradores.findFolderByDocNumber(numeroDoc);
         if (found?.id) targetFolderId = found.id;
-
       } catch {
-        // no existe o falló la búsqueda → usamos fallback por ruta
         targetFolderId = null;
       }
 
-      console.log("[UPLOAD] folderId:", targetFolderId, "path:", carpetaFallback);
+      console.log("[UPLOAD] vm:", vm);
+      console.log("[UPLOAD] numeroDoc:", numeroDoc);
+      console.log("[UPLOAD] nombre:", nombre);
+      console.log("[UPLOAD] empresa:", empresa);
+      console.log("[UPLOAD] folderId:", targetFolderId);
+      console.log("[UPLOAD] fallbackPath:", carpetaFallback);
 
       let uploadedName: string | null = null;
       let lastErr: any = null;
@@ -224,16 +236,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
       if (!uploadedName) throw lastErr;
 
-      try {
-        await handleSubmit(detalle, "Completado");
-      } catch {
-        alert(
-          `El archivo se subió (${uploadedName}), pero falló completar el paso. ` +
-            `Reintenta completar el paso (no necesitas volver a subir).`
-        );
-        return;
-      }
-
+      await handleSubmit(detalle, "Completado");
       setFiles((prev) => ({ ...prev, [idDetalle]: null }));
       alert("Archivo subido y paso completado correctamente");
     } catch (e: any) {
@@ -244,7 +247,6 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
       uploadingRef.current = false;
     }
   };
-
   /** ======= Notificación ======= */
   const sendNotification = async (toList: string[], subject: string, htmlBody: string) => {
     const payload: GraphSendMailPayload = {
@@ -350,7 +352,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
           const obligatorio = paso?.Obligatorio ?? true;
           const canSkip = !obligatorio && !isDone;
-
+        
           return (
             <article key={idDetalle} className="step-card">
               <div className="step-card__header">

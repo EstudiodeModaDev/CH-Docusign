@@ -7,6 +7,8 @@ import type { Archivo } from "../../../models/archivos";
 import { SimpleFileUpload } from "../../GD/AddFile/AddFile";
 import { usePermissions } from "../../../Funcionalidades/Permisos";
 import { useColaboradoresExplorer } from "../../../Funcionalidades/GD/DocumentViewer/hooks/useColaboradoresExplorer";
+import { useFolderControl } from "../../../Funcionalidades/GD/DocumentViewer/CheckFolderControl/hooks/useFolderControl";
+import type { ControlRevisionCarpetas } from "../../../models/DocumentViewer";
 
 /* ================= Helpers ================= */
 function buildBreadcrumb(currentPath: string) {
@@ -44,6 +46,22 @@ export const ColaboradoresExplorer: React.FC = () => {
   const totalFiles = totalItems - totalFolders;
   const isActivosOrRetirados = viewerController.currentPath.toLowerCase().includes("activos") || viewerController.currentPath.toLowerCase().includes("retirados");
   const isActivosOrCancelados = viewerController.currentPath.toLowerCase().includes("activos") || viewerController.currentPath.toLowerCase().includes("cancelados");
+  const folderInfo = React.useMemo(() => {
+    const path = viewerController.currentPath;
+
+    // ⚠️ Ajusta esto según cómo venga tu path
+    const partes = path.split("/");
+    const nombre = partes[partes.length - 1] || "";
+    
+    return {
+      cedula: nombre,
+      nombre,
+      fullname: nombre,
+      path: selectedFile?.path ?? ""
+    };
+  }, [viewerController.currentPath, selectedFile]);
+
+  const folderController = useFolderControl(folderInfo, viewerController.empresa);
 
   const handleCancel = async () => {
 
@@ -85,6 +103,38 @@ export const ColaboradoresExplorer: React.FC = () => {
     setSelectedFile(item);
     setEdit(true);
   };
+
+  const handleSearchAndCreateControlEntity = async () => {
+    if (!selectedFile?.isFolder) return;
+
+    const nombreCarpeta = selectedFile.name;
+    const [cedula, nombre] = nombreCarpeta.split(" - ");
+
+    if (!cedula || !nombre) return;
+
+    const folderEncontrado = await folderController.searchSpecificFolder(cedula);
+    if (folderEncontrado.founded) return;
+
+    const nextState: ControlRevisionCarpetas = {
+      ...folderController.state,
+      Cedula: cedula,
+      NombreColaborador: nombre,
+      FolderName: nombre,
+      FolderPath: selectedFile.path ?? "",
+      Title: `Control de revisión: ${cedula} - ${nombre}`,
+    };
+
+    folderController.setState(nextState);
+
+    await folderController.createEntity(nextState);
+  };
+
+  //Buscar y crear registro de control en caso de ser necesario
+  React.useEffect(() => {
+    if(selectedFile) {
+      handleSearchAndCreateControlEntity();
+    }
+  }, [selectedFile, viewerController.currentPath]);
 
   return (
     <div className="ce2">
@@ -212,7 +262,7 @@ export const ColaboradoresExplorer: React.FC = () => {
                   const date = parseDateFlex(item.lastModified ?? "")?.toLocaleDateString("es-CO") ?? "";
                   
                   return (
-                    <button key={item.id} type="button" className="ce2-tr ce2-rowBtn" role="row" onClick={() => viewerController.openItem(item)}>
+                    <button key={item.id} type="button" className="ce2-tr ce2-rowBtn" role="row" onClick={() => {setSelectedFile(item); viewerController.openItem(item)}}>
                       <div className="ce2-td ce2-td--seq" role="cell">
                         <span className={"ce2-seq" + (seq === "—" ? " is-ghost" : "")}>{seq}</span>
                       </div>

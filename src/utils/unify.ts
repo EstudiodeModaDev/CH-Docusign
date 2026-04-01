@@ -2,6 +2,7 @@ import type { Cesacion } from "../models/Cesaciones";
 import type { HabeasData } from "../models/HabeasData";
 import type { Novedad } from "../models/Novedades";
 import type { Promocion } from "../models/Promociones";
+import type { Retail } from "../models/Retail";
 
 /* ============================================================================
  * VM
@@ -115,13 +116,14 @@ export function mapToUnifyVM<T>(
 /* ============================================================================
  * Proceso
  * ========================================================================== */
-export type Proceso = "Promocion" | "Nuevo" | "Habeas" | "Cesacion" ;
+export type Proceso = "Promocion" | "Nuevo" | "Habeas" | "Cesacion" | "Retail" ;
 
 type DataByProceso = {
   Promocion: Promocion;
   Nuevo: Novedad;
   Habeas: HabeasData;
   Cesacion: Cesacion;
+  Retail: Retail
 };
 
 /* ============================================================================
@@ -139,6 +141,7 @@ export const UNIFY_MAPPINGS: {
   Nuevo: Mapping<Novedad>;
   Habeas: Mapping<HabeasData>;
   Cesacion: Mapping<Cesacion>;
+  Retail: Mapping<Retail>;
 } = {
   Promocion: {
     nombre: "NombreSeleccionado",
@@ -204,6 +207,23 @@ export const UNIFY_MAPPINGS: {
     numeroDoc: "Title",
     correoElectronico: "Correoelectronico"
   },
+
+  Retail: {
+    nombre: "Nombre",
+    fechaIngreso: "FechaIngreso",
+    cargo: "Cargo",
+    ciudad: "Ciudad",
+    conectividadLetras: "Auxiliodetransporte",
+    conectividadValor: "Auxiliotransporteletras",
+    identificacion: "Title",
+    salarioLetras: "SalarioLetras",
+    salarioValor: "Salario",
+    tipoDoc: "TipoDoc",
+    empresa: { path: "Empresaalaquepertenece", transform: normalizeEmpresa },
+    numeroDoc: "Title",
+    correoElectronico: "CorreoElectronico"
+  },
+
 };
 
 /* ============================================================================

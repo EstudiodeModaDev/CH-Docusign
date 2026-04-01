@@ -40,6 +40,8 @@ import { MoverANSService } from "../Services/moverAns.service"
 import { pasoRestriccionProcesoService } from "../Services/PasoRestriccionProceso.Service";
 import { solicitudService } from "../Services/Solicitud.service";
 import { solicitudDetalleService } from "../Services/SolicitudDetalle.service";
+import { ControlRevisionCarpetasService } from "../Services/ControlRevisionCarpetas.service";
+import { HistorialRevisionCarpetasService } from "../Services/HistorialRevisionCarpetas.service";
 
 
 /* ================== Tipos de config ================== */
@@ -123,6 +125,10 @@ export type UnifiedConfig = {
     //SolicitudActualizacion
     solicitud: string;
     detalle: string;
+
+    //Control Carpetas
+    controlRevisionCarpetas: string;
+    historialRevisionCarpetas: string;  
   };
 };
 
@@ -201,6 +207,10 @@ export type GraphServices = {
   //Solicitud actualizacion
   solicitud: solicitudService
   detalle: solicitudDetalleService
+
+  //Control Carpetas
+  controlRevisionCarpetas: ControlRevisionCarpetasService;
+  historialRevisionCarpetas: HistorialRevisionCarpetasService;
 };
 
 /* ================== Contexto ================== */
@@ -289,7 +299,11 @@ const DEFAULT_CONFIG: UnifiedConfig = {
 
     //SolicitudActualizacion
     solicitud: "Actualizacion - Solicitud Cambio",
-    detalle: "Actualizacion - DetalleSolicitud"
+    detalle: "Actualizacion - DetalleSolicitud",
+
+    //Control Carpetas
+    controlRevisionCarpetas: "Carpetas - ControlRevisionCarpetas",
+    historialRevisionCarpetas: "Carpetas - HistorialRevisionCarpetas",
   },
 };
 
@@ -405,6 +419,10 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
 
     const solicitud               = new solicitudService(graph, ch.hostname, ch.sitePath, lists.solicitud)
     const detalle                 = new solicitudDetalleService(graph, ch.hostname, ch.sitePath, lists.detalle)
+
+    //Control Carpetas
+    const controlRevisionCarpetas = new ControlRevisionCarpetasService(graph, ch.hostname, ch.sitePath, lists.controlRevisionCarpetas)
+    const historialRevisionCarpetas = new HistorialRevisionCarpetasService(graph, ch.hostname, ch.sitePath, lists.historialRevisionCarpetas)
     return {
       graph,
       //Habeas
@@ -437,6 +455,9 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       pasoRestriccion,
 
       solicitud, detalle,
+
+      //Control Carpetas
+      controlRevisionCarpetas, historialRevisionCarpetas,
     };
   }, [graph, cfg]);
 

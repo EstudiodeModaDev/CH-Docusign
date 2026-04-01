@@ -339,7 +339,9 @@ export default function FormRetail({
                   loadingDetalles={retailStepsDetailsController.loading}
                   errorDetalles={retailStepsDetailsController.error}
                   loadDetalles={retailStepsDetailsController.load} 
-                  proceso={"Nuevo"}/> :
+                  proceso={"Retail"}
+                  
+                  /> :
         <>
           <h2 id="ft_title" className="ft-title">{title} {(tipo === "edit" || isView) ? ` - ${porcentajeCompletacion}` : null}</h2>
 

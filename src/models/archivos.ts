@@ -7,4 +7,5 @@ export type Archivo = {
   lastModified?: string;
   childCount?: number
   created?: string;
+  path: string
 };

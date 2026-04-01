@@ -20,8 +20,9 @@ export function useStepCompletion({detailsService, byId, decisiones, motivos,}: 
   //Funcion para completar un paso
   const handleCompleteStep = async (detalle: DetallesPasos, estado: string) => {
     const idDetalle = detalle.Id;
+    console.log(idDetalle)
     if (!idDetalle) return;
-
+    console.log("Paso")
     const paso = byId[detalle.NumeroPaso] ?? null;
     if (!paso) return;
 
@@ -37,6 +38,9 @@ export function useStepCompletion({detailsService, byId, decisiones, motivos,}: 
       return;
     }
 
+    console.log(detalle)
+    console.log(paso)
+    console.log(estado)
     if (tipoPaso === "SubidaDocumento") {
       await detailsService.update(idDetalle, buildCompletedStepPayload(userName, "Archivo subido"));
       alert("Se ha completado con éxito");

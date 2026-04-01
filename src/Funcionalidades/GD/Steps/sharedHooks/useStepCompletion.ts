@@ -4,7 +4,7 @@ import { buildCompletedStepPayload, buildOmitStepPayload } from "../utils/stepPa
 
 
 interface UpdateSvc {
-  update: (id: string, payload: any) => Promise<any>;
+  update: (id: string, payload: Partial<Omit<DetallesPasos, 'ID'>>) => Promise<any>;
 }
 
 interface Params {
@@ -25,7 +25,7 @@ export function useStepCompletion({detailsService, byId, decisiones, motivos,}: 
     console.log("Paso")
     const paso = byId[detalle.NumeroPaso] ?? null;
     if (!paso) return;
-
+    console.log("Paso encontrado", paso)
     const estadoAnterior = detalle.EstadoPaso;
     if (estadoAnterior === "Completado" || estadoAnterior === "Omitido") return;
 
@@ -42,7 +42,8 @@ export function useStepCompletion({detailsService, byId, decisiones, motivos,}: 
     console.log(paso)
     console.log(estado)
     if (tipoPaso === "SubidaDocumento") {
-      await detailsService.update(idDetalle, buildCompletedStepPayload(userName, "Archivo subido"));
+      const a = await detailsService.update(idDetalle, buildCompletedStepPayload(userName, "Archivo subido"));
+      console.log(a)
       alert("Se ha completado con éxito");
       return;
     }

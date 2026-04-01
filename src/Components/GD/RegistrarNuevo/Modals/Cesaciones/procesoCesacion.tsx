@@ -167,6 +167,8 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
           ? ColaboradoresMeta
           : null;
 
+
+
       if (!servicioColaboradores) {
         alert(`Empresa no reconocida para subida de archivos: ${vm?.empresa ?? "sin empresa"}`);
         return;
@@ -184,6 +186,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
       try {
         const found = await servicioColaboradores.findFolderByDocNumber(numeroDoc);
+        console.log(found)
         if (found?.id) targetFolderId = found.id;
       } catch {
         targetFolderId = null;

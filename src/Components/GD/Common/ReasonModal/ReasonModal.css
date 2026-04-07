@@ -1,0 +1,146 @@
+.rfm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+.rfm-modal {
+  width: 100%;
+  max-width: 560px;
+  border-radius: 20px;
+  border: 1px solid var(--bd);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.rfm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--bd);
+}
+
+.rfm-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--ink);
+}
+
+.rfm-close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  background: var(--field-bg);
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rfm-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.rfm-body {
+  padding: 20px;
+  display: grid;
+  gap: 12px;
+}
+
+.rfm-text {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.rfm-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rfm-textarea {
+  width: 100%;
+  min-height: 140px;
+  resize: vertical;
+  border-radius: 14px;
+  border: 1px solid var(--bd);
+  background: var(--field-bg);
+  color: var(--ink);
+  padding: 12px 14px;
+  outline: none;
+  font: inherit;
+}
+
+.rfm-textarea:focus {
+  box-shadow: 0 0 0 4px var(--ring);
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--bd));
+}
+
+.rfm-textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.rfm-meta {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.rfm-error {
+  border: 1px solid color-mix(in oklab, #ff4d4d 35%, var(--bd));
+  background: color-mix(in oklab, #ff4d4d 8%, var(--surface));
+  color: color-mix(in oklab, #ff4d4d 80%, var(--ink));
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-weight: 700;
+}
+
+.rfm-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 20px;
+  border-top: 1px solid var(--bd);
+}
+
+.rfm-btn {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--bd);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.rfm-btn--ghost {
+  background: transparent;
+  color: var(--ink);
+}
+
+.rfm-btn--danger {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: white;
+}
+
+.rfm-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

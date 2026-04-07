@@ -1,3 +1,4 @@
+import type { AccountInfo } from "@azure/msal-browser";
 import type { ControlRevisionCarpetas } from "../../../../../models/DocumentViewer";
 import { toISODateFlex } from "../../../../../utils/Date";
 
@@ -29,5 +30,44 @@ export function buildFirstTimeControlRevisionPayload(state: ControlRevisionCarpe
     UltimaAccion: "Creación de control de revisión",
     Title: `Control de revisión: ${state.Cedula} - ${state.NombreColaborador}`,
     FechaUltimaAccion: toISODateFlex(new Date()),
+  };
+}
+
+export function buildSendRevisionPayload(state: ControlRevisionCarpetas, account: AccountInfo | null): Partial<ControlRevisionCarpetas> {
+  return {
+    CantidadDevoluciones: 0, 
+    CorreoEnviadoRevisionPor: account ? account.username : undefined,
+    EnviadoRevisionPor: account ? account.name : undefined,
+    Estado: "En revisión",
+    FechaEnvioRevision: toISODateFlex(new Date()),
+    UltimaAccion: "Envió a revisión",
+    Title: `Control de revisión: ${state.Cedula} - ${state.NombreColaborador}`,
+    UltimoActor: account ? account.name : undefined,
+  };
+}
+
+export function buildReturnedPayload(state: ControlRevisionCarpetas, account: AccountInfo | null): Partial<ControlRevisionCarpetas> {
+  return {
+    CantidadDevoluciones: Number(state.CantidadDevoluciones) + 1, 
+    DevueltoPor: account ? account.username : undefined,
+    CorreoDevueltoPor: account ? account.name : undefined,
+    Estado: "En construcción",
+    FechaDevolucion: toISODateFlex(new Date()),
+    UltimaAccion: "Devolución de carpeta",
+    Title: `Control de revisión: ${state.Cedula} - ${state.NombreColaborador}`,
+    UltimoActor: account ? account.name : undefined,  
+  };
+}
+
+export function buildApprovePayload(state: ControlRevisionCarpetas, account: AccountInfo | null): Partial<ControlRevisionCarpetas> {
+  return {
+    Estado: "Aprobado",
+    FechaAprobacion: toISODateFlex(new Date()),
+    AprobadoPor: account ? account.username : undefined,
+    CorreoAprobadoPor: account ? account.name : undefined,
+    FechaUltimaAccion: toISODateFlex(new Date()),
+    UltimaAccion: "Aprobación de carpeta",
+    Title: `Control de revisión: ${state.Cedula} - ${state.NombreColaborador}`,
+    UltimoActor: account ? account.name : undefined,  
   };
 }

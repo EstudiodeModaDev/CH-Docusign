@@ -2,6 +2,7 @@ import React from "react";
 import { useGraphServices } from "../../../../../graph/graphContext";
 import type { ControlRevisionCarpetas } from "../../../../../models/DocumentViewer";
 import { buildControlRevisionReportFilter } from "../utils/controlRevisionReport";
+import { buildApprovePayload, buildReturnedPayload, buildSendRevisionPayload } from "../utils/controlRevisionPayload";
 
 export function useFolderControlActions() {
   const graph = useGraphServices()
@@ -14,6 +15,63 @@ export function useFolderControlActions() {
       return created
     } catch {
       throw new Error("Algo ha salido mal")
+    }
+  };
+
+  const handleUpdateSendRevision = async (cedula: string): Promise<{ ok: boolean; data: ControlRevisionCarpetas | null; message: string | null }> => {
+    try {
+      console.log("Buscando carpeta con cédula:", cedula);
+      const carpetas = await graph.controlRevisionCarpetas.getAll({ filter: `fields/Cedula eq '${cedula}'`, top: 1 })
+      console.log(carpetas)
+      const carpeta = carpetas[0]
+      if(carpeta.Id){
+        const created = await graph.controlRevisionCarpetas.update(carpeta.Id, buildSendRevisionPayload(carpeta, null));
+        console.log("Se ha actualizado la entidad de la carpeta con éxito", created)
+        return { ok: true, data: created, message: null }
+      }
+      
+      return { ok: false, data: null, message: "No se encontró la carpeta" }
+
+    } catch(e) {
+      return { ok: false, data: null, message: "Algo ha salido mal" + e }
+    }
+  };
+
+  const handleUpdateReturned = async (cedula: string): Promise<{ ok: boolean; data: ControlRevisionCarpetas | null; message: string | null }> => {
+    try {
+      console.log("Buscando carpeta con cédula:", cedula);
+      const carpetas = await graph.controlRevisionCarpetas.getAll({ filter: `fields/Cedula eq '${cedula}'`, top: 1 })
+      console.log(carpetas)
+      const carpeta = carpetas[0]
+      if(carpeta.Id){
+        const created = await graph.controlRevisionCarpetas.update(carpeta.Id, buildReturnedPayload(carpeta, null));
+        console.log("Se ha actualizado la entidad de la carpeta con éxito", created)
+        return { ok: true, data: created, message: null }
+      }
+      
+      return { ok: false, data: null, message: "No se encontró la carpeta" }
+
+    } catch(e) {
+      return { ok: false, data: null, message: "Algo ha salido mal" + e }
+    }
+  };
+
+  const handleUpdateApprove = async (cedula: string): Promise<{ ok: boolean; data: ControlRevisionCarpetas | null; message: string | null }> => {
+    try {
+      console.log("Buscando carpeta con cédula:", cedula);
+      const carpetas = await graph.controlRevisionCarpetas.getAll({ filter: `fields/Cedula eq '${cedula}'`, top: 1 })
+      console.log(carpetas)
+      const carpeta = carpetas[0]
+      if(carpeta.Id){
+        const created = await graph.controlRevisionCarpetas.update(carpeta.Id, buildApprovePayload(carpeta, null));
+        console.log("Se ha actualizado la entidad de la carpeta con éxito", created)
+        return { ok: true, data: created, message: null }
+      }
+      
+      return { ok: false, data: null, message: "No se encontró la carpeta" }
+
+    } catch(e) {
+      return { ok: false, data: null, message: "Algo ha salido mal" + e }
     }
   };
 
@@ -36,7 +94,7 @@ export function useFolderControlActions() {
 
 
   return {
-    loadToReport, handleSubmitBd,
+    loadToReport, handleSubmitBd, handleUpdateSendRevision, handleUpdateReturned, handleUpdateApprove
 
   };
 }

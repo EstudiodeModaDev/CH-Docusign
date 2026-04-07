@@ -45,7 +45,7 @@ export class HistorialRevisionCarpetasService {
   }
 
   // ---------- CRUD ----------
-  async create(record: Omit<HistorialRevisionCarpetas, 'Id'>) {
+  async create(record: Partial<HistorialRevisionCarpetas>) {
     await this.ensureIds();
     const res = await this.graph.post<any>(
       `/sites/${this.siteId}/lists/${this.listId}/items`,

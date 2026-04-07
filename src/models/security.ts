@@ -1,7 +1,7 @@
 export const FEATURES = {
   Contrataciones: ["contrataciones.inactivate", "contrataciones.add", "contrataciones.delete", "contrataciones.edit", "contrataciones.view",],
   Cesaciones: ["cesaciones.inactivate", "cesaciones.add", "cesaciones.delete", "cesaciones.edit", "cesaciones.view",],
-  Documentos: ["documents.add", "documents.edit", "documents.explore", "documents.retirement", "documents.send", "documents.view", "documents.delete"],
+  Documentos: ["documents.add", "documents.edit", "documents.explore", "documents.retirement", "documents.send", "documents.view", "documents.delete", "documents.check", "documents.approve"],
   Habeas: ["habeas.add", "habeas.delete", "habeas.edit", "habeas.view",],
   Parametros: ["parametros.edit"],
   PazYSalvos: ["paz.send", "paz.view", "paz.viewAll"],
@@ -64,7 +64,9 @@ export const FEATURE_LABELS: Record<FeatureKey, string> = {
 
   "requisiciones.viewAll": "Ver todas las requisiciones",
   "acess.view": "Administrar accesos",
-  "documents.delete": "Eliminar documentos"
+  "documents.delete": "Eliminar documentos",
+  "documents.check": "Enviar a revisión",
+  "documents.approve": "Aprobar carpeta",
 };
 
 export type AppPermissionRow = {

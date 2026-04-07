@@ -216,9 +216,10 @@ export default function FormRetail({
   const handleCreateRetail = async (e: React.FormEvent) => {
     if(tipo=== "new"){
       const created = await handleSubmit();
-
+  
       if(created.ok){
         const steps = await retailStepsController.load(false)
+        console.log(steps)
         await retailStepsDetailsController.handleCreateAllSteps(steps, created.created?.Id ?? "", created.created?.Cargo ?? "")
         const body = createBody(account?.name ?? "", "Retail", state.Nombre, state.Title, state.Cargo, state.FechaIngreso ?? "")
         await notifyTeam(mail, "Nuevo registro en el modulo de Retail - Gestor documental CH", body)

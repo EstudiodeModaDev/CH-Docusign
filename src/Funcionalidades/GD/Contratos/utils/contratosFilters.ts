@@ -1,11 +1,10 @@
 import type { DateRange, GetAllOpts } from "../../../../models/Commons";
 
-
 export function buildContartosServerFilter(estado: string, range: DateRange ): GetAllOpts {
   const filters: string[] = [];
 
   if (estado === "proceso") filters.push(`fields/Estado eq 'En proceso'`);
-  if (estado === "finalizado") filters.push(`fields/Estado eq 'Completado'`);
+  if (estado === "finalizado") filters.push(`fields/Estado eq 'Finalizado'`);
   if (estado === "cancelado") filters.push(`fields/Estado eq 'Cancelado'`);
 
   if (range.from && range.to && range.from <= range.to) {

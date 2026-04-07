@@ -28,10 +28,10 @@ export function buildDetailCreatePayload(entityId: string, paso: PasosProceso) {
     Title: entityId,
     CompletadoPor: "",
     EstadoPaso: "Pendiente",
-    FechaCompletacion: "",
+    FechaCompletacion: null,
     Notas: "",
-    NumeroPaso: paso.Orden ?? "",
-    Paso: Number(paso.NombrePaso),
+    NumeroPaso: String(paso.Orden) ?? "",
+    Paso: Number(paso.Orden),
     TipoPaso: paso.TipoPaso,
   };
 }

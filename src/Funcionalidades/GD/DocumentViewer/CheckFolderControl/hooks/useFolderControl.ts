@@ -5,8 +5,6 @@ import { useSpecificFolderSearch } from "./useControlSearcher";
 import type { ControlRevisionCarpetas } from "../../../../../models/DocumentViewer";
 import { buildFirstTimeControlRevisionPayload } from "../utils/controlRevisionPayload";
 
-
-
 export function useFolderControl(folderInfo: {cedula: string, nombre: string, fullname: string, path: string}, empresa: string) {
   const formController = useFolderControlForm(folderInfo, empresa)
   const actionsController = useFolderControlActions()

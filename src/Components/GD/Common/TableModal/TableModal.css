@@ -1,0 +1,140 @@
+.tm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+.tm-modal {
+  width: 100%;
+  max-width: 980px;
+  border-radius: 20px;
+  border: 1px solid var(--bd);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.tm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--bd);
+}
+
+.tm-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--ink);
+}
+
+.tm-close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  background: var(--field-bg);
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tm-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.tm-body {
+  padding: 20px;
+}
+
+.tm-table-wrapper {
+  width: 100%;
+  overflow: auto;
+  border: 1px solid var(--bd);
+  border-radius: 16px;
+}
+
+.tm-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+  background: var(--surface);
+}
+
+.tm-th {
+  background: color-mix(in oklab, var(--surface) 90%, var(--field-bg));
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--bd);
+  white-space: nowrap;
+}
+
+.tm-td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--bd);
+  color: var(--ink);
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+.tm-tr:hover {
+  background: color-mix(in oklab, var(--primary) 4%, var(--surface));
+}
+
+.tm-align-left {
+  text-align: left;
+}
+
+.tm-align-center {
+  text-align: center;
+}
+
+.tm-align-right {
+  text-align: right;
+}
+
+.tm-state {
+  padding: 22px 16px;
+  text-align: center;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.tm-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 20px;
+  border-top: 1px solid var(--bd);
+}
+
+.tm-btn {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--bd);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.tm-btn--ghost {
+  background: transparent;
+  color: var(--ink);
+}
+
+.tm-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

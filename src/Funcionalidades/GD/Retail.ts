@@ -332,7 +332,7 @@ export function useRetail(RetailSvc: RetailService, ) {
         PerteneceModelo: state.PerteneceModelo,
         Presupuesto: state.Presupuesto,
         Promedio: state.Promedio,
-        Salario: state.Salario,
+        Salario: String(state.Salario),
         SalarioLetras: state.SalarioLetras,
         OrigenSeleccion: state.OrigenSeleccion,
         FechaReporte: state.FechaReporte,

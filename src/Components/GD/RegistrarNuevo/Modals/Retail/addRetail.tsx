@@ -281,12 +281,7 @@ export default function FormRetail({
       setField("Salario", salario as any);
       setField("SalarioLetras", numeroATexto(salario).toUpperCase());
 
-      const auxRes = auxilioHandlder(minimo, salario, auxTransporte);
-      if (auxRes) {
-        //Setear salario convertido
-        setField("Auxiliodetransporte", String(auxRes.valor));
-        setField("Auxiliotransporteletras", auxRes.texto);
-      }
+      await handleAuxilioChange(String(salario))
     }
   };
 

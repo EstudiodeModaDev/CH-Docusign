@@ -61,6 +61,7 @@ export function useCesaciones() {
     }
 
     setLoading(true);
+    console.log(cesacionSeleccionada)
 
     try {
       const toEdit = await graph.Cesaciones.get(cesacionSeleccionada.Id!)
@@ -74,7 +75,7 @@ export function useCesaciones() {
 
       
       if(!canEdit){
-        await graph.Contratos.update(cesacionSeleccionada.Id, payload);
+        await graph.Cesaciones.update(cesacionSeleccionada.Id, payload);
         alert("Se ha actualizado el registro con éxito");
       } else {
 

@@ -336,12 +336,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
       setField("SALARIO", salario as any);
       setField("salariotexto", numeroATexto(salario).toUpperCase());
 
-      const auxRes = auxilioHandlder(minimo, salario, auxTransporte);
-      if (auxRes) {
-        //Setear salario convertido
-        setField("auxconectividadvalor", String(auxRes.valor));
-        setField("auxconectividadtexto", auxRes.texto);
-      }
+      await handleAuxilioChange(String(salario))
     }
   };
 
@@ -1363,9 +1358,9 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
               { canInactivateRegister && (isView || tipo === "edit") ?
                 <button disabled={!canInactivateRegister} type="submit" className="btn btn-xs btn-danger" onClick={() => {
                                                                                                             selectedNovedad?.Estado === "Cancelado" ? 
-                                                                                                              handleReactivateProcessById(selectedNovedad.Id ?? "") : 
-                                                                                                              setCancelProcess(true)}}
-                                                                                                            >
+                                                                                                            handleReactivateProcessById(selectedNovedad.Id ?? "") : 
+                                                                                                            setCancelProcess(true)}}
+                                                                                                          >
                   {
                     !canInactivateRegister ? "No tiene permiso para cancelar este proceso" : 
                     selectedNovedad?.Estado !== "Cancelado" ? "Cancelar proceso" : 

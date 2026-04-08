@@ -279,12 +279,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
       setField("Salario", salario as any);
       setField("SalarioTexto", numeroATexto(salario).toUpperCase());
 
-      const auxRes = auxilioHandlder(minimo, salario, auxTransporte);
-      if (auxRes) {
-        //Setear salario convertido
-        setField("auxConectividadValor", String(auxRes.valor));
-        setField("auxConectividadTexto", auxRes.texto);
-      }
+      await handleAuxilioChange(String(salario))
     }
   };
 

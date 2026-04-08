@@ -55,6 +55,8 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
   const isEstadoDone = (estado?: string | null) => estado === "Completado" || estado === "Omitido";
 
+  const catalogReady = Object.keys(pasosById ?? {}).length > 0
+
   /** ======= PASO ACTUAL (1ero desbloqueado y pendiente) ======= */
   const currentDetalle = React.useMemo(() => {
     if (!detallesRows?.length) return null;
@@ -397,7 +399,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
                                                                                                                                                 }}/>
                             )}
 
-                            <button type="button" className={`step-card__check ${isDone ? "step-card__check--active" : ""}`} disabled={isDone} onClick={() => handleApproveAndComplete(detalle)} title="Completar paso">
+                            <button type="button" className={`step-card__check ${isDone ? "step-card__check--active" : ""}`} disabled={isDone || !catalogReady} onClick={() => handleApproveAndComplete(detalle)} title="Completar paso">
                               ✓
                             </button>
                           </>

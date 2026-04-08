@@ -19,15 +19,30 @@ export function useStepCompletion({detailsService, byId, decisiones, motivos,}: 
 
   //Funcion para completar un paso
   const handleCompleteStep = async (detalle: DetallesPasos, estado: string) => {
+    
     const idDetalle = detalle.Id;
-    console.log(idDetalle)
     if (!idDetalle) return;
     console.log("Paso")
-    const paso = byId[detalle.NumeroPaso] ?? null;
-    if (!paso) return;
-    console.log("Paso encontrado", paso)
+    
+    //Encontrar el paso correspondiente a este detalle para conocer su tipo y aplicar la lógica de completación correspondiente, dependiendo del tipo de paso.
+    const paso = byId[String(detalle.NumeroPaso)] ?? null;
+    console.log("Detalle del paso a completar:", detalle); 
+    
+    if (!paso) {
+      console.error("No se encontró el paso", {
+        numeroPaso: detalle.NumeroPaso,
+        byId,
+        detalle,
+      });
+      alert("No se encontró la configuración del paso.");
+      return;
+    }
+
     const estadoAnterior = detalle.EstadoPaso;
-    if (estadoAnterior === "Completado" || estadoAnterior === "Omitido") return;
+    if (estadoAnterior === "Completado" || estadoAnterior === "Omitido"){
+      alert(`Este paso ya se encuentra en estado ${estadoAnterior}`);
+      return;
+    } 
 
     const userName = account?.name ?? "";
     const tipoPaso = String(paso.TipoPaso ?? "");
@@ -38,9 +53,6 @@ export function useStepCompletion({detailsService, byId, decisiones, motivos,}: 
       return;
     }
 
-    console.log(detalle)
-    console.log(paso)
-    console.log(estado)
     if (tipoPaso === "SubidaDocumento") {
       const a = await detailsService.update(idDetalle, buildCompletedStepPayload(userName, "Archivo subido"));
       console.log(a)
@@ -61,6 +73,8 @@ export function useStepCompletion({detailsService, byId, decisiones, motivos,}: 
         alert("Debe indicar el motivo del rechazo");
         return;
       }
+
+      console.log("Paso todos los returns, procediendo a actualizar el paso con la decisión:", decision, "y motivo:", motivo)
 
       const notas =
         decision === "Rechazado"

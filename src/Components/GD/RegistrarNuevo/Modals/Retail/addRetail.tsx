@@ -84,7 +84,7 @@ type Props = {
 export default function FormRetail({
   origenOptions, loadingOrigen, submitting, title, selectedRetail, tipo, empresaOptions, loadingEmp, tipoDocOptions, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, loadingTipo, cargoOptions, loadingCargo, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, 
   handleReactivateProcessById, handleCancelProcessbyId, setState, handleEdit, onClose, state, setField, handleSubmit, errors, searchRegister: searchRetail, }: Props) {
-  const { Promociones, salarios, Cesaciones, categorias, configuraciones, mail,} = useGraphServices();
+  const { Promociones, salarios, Retail, categorias, configuraciones, mail,} = useGraphServices();
   const { searchRegister: searchHabeas} = useHabeasData();
   const contratosController = useContratos();
   const { searchRegister: searchPromocion } = usePromocion(Promociones);
@@ -244,6 +244,7 @@ export default function FormRetail({
   }, []);
 
   const completeStep = React.useCallback( async (detalle: DetallesPasos, estado: string) => {
+    console.log("Iniciando completación de paso con detalle:", detalle, "y estado:", estado);
     await retailStepsController.handleCompleteStep(detalle, estado);
 
     const porcentaje = await retailStepsDetailsController.calcPorcentaje(); 
@@ -252,10 +253,9 @@ export default function FormRetail({
       const id = selectedRetail?.Id;
       if (!id) return;
 
-      await Cesaciones.update(id, { Estado: "Completado" });
+      await Retail.update(id, { Estado: "Completado" });
     }
-  },[selectedRetail?.Id, Cesaciones])
-
+  },[selectedRetail?.Id, Retail, retailStepsController.handleCompleteStep, retailStepsDetailsController,])
 
   const handleCancel = async (razon: string) => {
     await handleCancelProcessbyId(selectedRetail!.Id ?? "", razon)
@@ -320,6 +320,10 @@ export default function FormRetail({
     handleAuxilioChange(raw)
   };
 
+  const openFlow = async () => {
+    await retailStepsController.load();
+    setFlow(true);
+  }
 
   return (
     <div className="ft-modal-backdrop">
@@ -685,7 +689,7 @@ export default function FormRetail({
               }
             </button> 
             { isView || tipo === "edit" ?
-              <button type="submit" className="btn btn-xs" onClick={() => setFlow(true)}>Detalles</button> : null
+              <button type="submit" className="btn btn-xs" onClick={() => openFlow()}>Detalles</button> : null
             }
             { (canInactivateRegister &&(isView || tipo === "edit")) ?
               <button disabled={!canInactivateRegister} type="submit" className="btn btn-xs btn-danger" onClick={() => {

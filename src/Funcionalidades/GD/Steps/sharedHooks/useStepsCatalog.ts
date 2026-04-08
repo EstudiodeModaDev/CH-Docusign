@@ -69,7 +69,7 @@ export function useStepsCatalog({getAll, update, orderby = "fields/Orden asc", i
     }
   }, []);
 
-  //Construir un mapa de pasos por ID para facilitar la búsqueda y acceso a los datos de cada paso.
+  //Construir un mapa de pasos por Orden para facilitar la búsqueda y acceso a los datos de cada paso.
   const byId = React.useMemo(() => buildStepsMap(rows,), [rows,]);
 
   const searchStep = React.useCallback(

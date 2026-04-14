@@ -90,7 +90,7 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
         const Historialpayload = buildSendRevisionPayload(state,auth.account, "Devolución de carpeta");
         console.log("Payload: ", Historialpayload)
         const historialCreado = await actionsController.handleSubmitBd(Historialpayload);
-        const groupMembers = await graph.graph.getAllGroupMembers("ab969375-7955-40d7-aca6-a1299bfc6e40",)
+        const groupMembers = await graph.graph.getAllGroupMembers("8ba50c1e-ffd3-4906-b50a-3db33b69b868",)
         await notifyReturnedFolder(graph.mail, folderInfo, motivo, groupMembers)
         alert("Se ha devuelto la carpeta correctamente")
         return { ok: true, created: historialCreado };
@@ -134,7 +134,7 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
         const Historialpayload = buildSendRevisionPayload(state,auth.account, "Aprobación de carpeta");
         console.log("Payload: ", Historialpayload)
         const historialCreado = await actionsController.handleSubmitBd(Historialpayload);
-        const groupMembers = await graph.graph.getAllGroupMembers("ab969375-7955-40d7-aca6-a1299bfc6e40",)
+        const groupMembers = await graph.graph.getAllGroupMembers("8ba50c1e-ffd3-4906-b50a-3db33b69b868",)
         await notifyApprovedFolder(graph.mail, folderInfo, historialCreado.RealizadoPor!, groupMembers)
         alert("Se ha aprobado la carpeta correctamente")
         return { ok: true, created: historialCreado };

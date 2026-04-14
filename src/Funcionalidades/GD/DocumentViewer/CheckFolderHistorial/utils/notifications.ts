@@ -1,4 +1,4 @@
-import type { GraphRecipient } from "../../../../../graph/graphRest";
+import type { GraphRecipient, GraphUserLite } from "../../../../../graph/graphRest";
 import type { MailService } from "../../../../../Services/Mail.service";
 
 export async function notifyFolderReady(mail: MailService, folderInfo: {cedula: string, nombre: string, fullname: string, path: string},): Promise<void> {
@@ -73,7 +73,7 @@ export async function notifyFolderReady(mail: MailService, folderInfo: {cedula: 
 
   const to: GraphRecipient[] = [
     {
-      emailAddress: { address: "dpalacios@estudiodemoda.com.co" },
+      emailAddress: { address: "gestiondocumental@estudiodemoda.com.co" },
     },
   ];
 
@@ -89,7 +89,7 @@ export async function notifyFolderReady(mail: MailService, folderInfo: {cedula: 
   });
 }
 
-export async function notifyReturnedFolder(mail: MailService, folderInfo: { cedula: string; nombre: string; fullname: string; path: string }, motivo: string): Promise<void> {
+export async function notifyReturnedFolder(mail: MailService, folderInfo: { cedula: string; nombre: string; fullname: string; path: string }, motivo: string, groupMembers: GraphUserLite[]): Promise<void> {
   const body = `  
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f4f6f8; margin: 0; padding: 30px 0;">
       <tr>
@@ -158,11 +158,19 @@ export async function notifyReturnedFolder(mail: MailService, folderInfo: { cedu
     </table>
   `;
 
-  const to: GraphRecipient[] = [
-    {
-      emailAddress: { address: "dpalacios@estudiodemoda.com.co" },
-    },
-  ];
+  const to: GraphRecipient[] = groupMembers
+    .map((member) => {
+      const address = (member.mail ?? member.userPrincipalName ?? "").trim();
+
+      if (!address) return null;
+
+      return {
+        emailAddress: {
+          address,
+        },
+      };
+    })
+    .filter((recipient): recipient is GraphRecipient => recipient !== null);
 
   await mail.sendEmail({
     message: {
@@ -176,7 +184,7 @@ export async function notifyReturnedFolder(mail: MailService, folderInfo: { cedu
   });
 }
 
-export async function notifyApprovedFolder(mail: MailService, folderInfo: { cedula: string; nombre: string; fullname: string; path: string }, aprobador: string): Promise<void> {
+export async function notifyApprovedFolder(mail: MailService, folderInfo: { cedula: string; nombre: string; fullname: string; path: string }, aprobador: string, groupMembers: GraphUserLite[]): Promise<void> {
   const body = `  
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f4f6f8; margin: 0; padding: 30px 0;">
       <tr>
@@ -252,11 +260,19 @@ export async function notifyApprovedFolder(mail: MailService, folderInfo: { cedu
     </table>
   `;
 
-  const to: GraphRecipient[] = [
-    {
-      emailAddress: { address: "dpalacios@estudiodemoda.com.co" },
-    },
-  ];
+  const to: GraphRecipient[] = groupMembers
+    .map((member) => {
+      const address = (member.mail ?? member.userPrincipalName ?? "").trim();
+
+      if (!address) return null;
+
+      return {
+        emailAddress: {
+          address,
+        },
+      };
+    })
+    .filter((recipient): recipient is GraphRecipient => recipient !== null);
 
   await mail.sendEmail({
     message: {

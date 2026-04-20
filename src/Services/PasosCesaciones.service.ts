@@ -94,6 +94,7 @@ export class PasosCesacionService {
   }
 
   async update(id: string, changed: Partial<Omit<PasosProceso, 'ID'>>) {
+    console.log("Iniciado")
     await this.ensureIds()
     await this.graph.patch<any>(
       `/sites/${this.siteId}/lists/${this.listId}/items/${id}/fields`,

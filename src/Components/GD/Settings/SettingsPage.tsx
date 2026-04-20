@@ -129,7 +129,7 @@ export const ParametrosPage: React.FC = () => {
                                     pasos={cesacionesStepsController.rows} 
                                     tipo={"Cesación"} 
                                     onAdd={(payload: PasosProceso) => PasosCesacion.create(payload)} 
-                                    onEdit={PasosCesacion.update} 
+                                    onEdit={PasosCesacion.update.bind(PasosCesacion)} 
                                     onDesactivate={cesacionesStepsController.desactivate}
                                     cargos={cargosOption} 
                                     loadingCargo={loadingCargo}
@@ -140,7 +140,7 @@ export const ParametrosPage: React.FC = () => {
                                     pasos={novedadesStepsController.rows} 
                                     tipo={"Novedades Administrativas"} 
                                     onAdd={(payload: PasosProceso) => PasosNovedades.create(payload)} 
-                                    onEdit={PasosNovedades.update} 
+                                    onEdit={PasosNovedades.update.bind(PasosNovedades)} 
                                     onDesactivate={novedadesStepsController.desactivate}
                                     cargos={cargosOption} 
                                     loadingCargo={loadingCargo}
@@ -155,13 +155,13 @@ export const ParametrosPage: React.FC = () => {
                                     onDesactivate={promotionStepsController.desactivate}
                                     cargos={cargosOption} 
                                     loadingCargo={loadingCargo}
-                                    onActivate={promotionStepsController.activate}/>}
+                                    onActivate={promotionStepsController.activate.bind(PasosPromocion)}/>}
       {active === "retail" && <ProcesosStepManager 
                                     onReload={retailStepsController.load}
                                     pasos={retailStepsController.rows}
                                     tipo={"Retail"}
                                     onAdd={(payload: PasosProceso) => pasosRetail.create(payload)}
-                                    onEdit={(id: string, changed: Partial<Omit<PasosProceso, "ID">>) => pasosRetail.update(id, changed)}
+                                    onEdit={pasosRetail.update.bind(pasosRetail)}
                                     onDesactivate={retailStepsController.desactivate}
                                     cargos={cargosOption} 
                                     loadingCargo={loadingCargo}

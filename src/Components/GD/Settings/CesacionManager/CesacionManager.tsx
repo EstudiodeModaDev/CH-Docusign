@@ -1,10 +1,10 @@
 import * as React from "react";
 import "./CesacionManager.css";
-import type { PasoRestriccion, PasosProceso } from "../../../../models/Pasos";
+import type { PasosProceso } from "../../../../models/Pasos";
 import RichTextBase64 from "../../../RichText/RichText";
 import PasoActivationRulesModal from "../StepActivationModal/PasosActivacionModal";
 import { useGraphServices } from "../../../../graph/graphContext";
-import { createStepRestriction, toggleUpdateRestriction, updateStepRestriction } from "../../../../Funcionalidades/GD/StepRules/pasoRestriccionAction";
+import { createStepRestriction, toggleUpdateRestriction } from "../../../../Funcionalidades/GD/StepRules/pasoRestriccionAction";
 import type { desplegablesOption } from "../../../../models/Desplegables";
 
 type PasoCesacionDraft = Omit<PasosProceso, "Id">;
@@ -140,7 +140,9 @@ export const ProcesosStepManager: React.FC<Props> = ({loadingCargo, cargos, onCh
     setSaving(true);
     try {
       if (editingId) {
+        console.log("Inicio")
         await onEdit(editingId, state);
+        console.log("Paso")
       } else {
         await onAdd(state);
       }
@@ -389,7 +391,7 @@ const desactivate = async (s: PasosProceso) => {
             });
           } }
           onAddRule={async (payload) => await createStepRestriction(payload, graph)}
-          onEditRule={async (payload: PasoRestriccion) => await updateStepRestriction(payload, graph)}
+          onEditRule={save}
           onToggleRule={async (id, activo) => await toggleUpdateRestriction(id, activo, graph)}
           cargos={cargos} 
           loadingCargo={loadingCargo}        

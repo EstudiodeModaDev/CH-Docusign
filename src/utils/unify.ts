@@ -233,6 +233,7 @@ export function toUnifyVM<P extends Proceso>(
   proceso: P,
   data: DataByProceso[P]
 ): UnifyVM {
+  console.log(proceso)
   const mapping = UNIFY_MAPPINGS[proceso] as Mapping<DataByProceso[P]>;
   return mapToUnifyVM<DataByProceso[P]>(data, mapping);
 }

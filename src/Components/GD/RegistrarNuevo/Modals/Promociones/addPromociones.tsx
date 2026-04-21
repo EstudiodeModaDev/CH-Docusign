@@ -392,7 +392,7 @@ export default function FormPromocion({ submitting, handleReactivateProcessById,
                   loadingDetalles={loadingDetalles}
                   errorDetalles={errorDetalles}
                   loadDetalles={() => loadDetallesPromocion()} 
-                  proceso={"Nuevo"}/> :
+                  proceso={"Promocion"}/> :
         <>
           <h2 id="ft_title" className="ft-title">{title} {(tipo === "edit" || isView) ? ` - ${porcentajeCompletacion}` : null}</h2>
 

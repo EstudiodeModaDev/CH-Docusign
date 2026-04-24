@@ -4,7 +4,7 @@ import type { ansRequisicion, ansRequisionErrors } from "../../../../models/requ
 export function validateANSForm(state: ansRequisicion): ansRequisionErrors {
   const errors: ansRequisionErrors = {};
 
-  if (!state.Cargo?.trim()) {errors.Cargo = "Seleccione un cargo";}
+  if (!state.NivelCargo?.trim()) {errors.NivelCargo = "Seleccione un nivel de cargo";}
 
   if (!state.diasHabiles0 || Number(state.diasHabiles0) <= 0) {errors.diasHabiles0 = "Ingrese cuántos días hábiles tiene este cargo";}
 

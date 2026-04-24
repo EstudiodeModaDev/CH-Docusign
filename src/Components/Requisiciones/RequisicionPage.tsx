@@ -1,8 +1,6 @@
 import * as React from "react";
 import "./requisicionPage.css";
 import MetricsBar from "./KPIs/Kpis";
-import WizardRequisicion3Pasos from "./NuevaRequisicion/NuevaRequisicion";
-import { useRequsiciones } from "../../Funcionalidades/Requisiciones/Requisicion";
 import { useGraphServices } from "../../graph/graphContext";
 import RequisicionesBoard from "./tablaRequisiciones/tablaRequisiciones";
 import type { requisiciones } from "../../models/requisiciones";
@@ -10,16 +8,23 @@ import { gruposCVE, tipoConvocatoria, useCargo, useCentroCostos, useCentroOperat
 import type { desplegablesOption } from "../../models/Desplegables";
 import { EditRequisiciones } from "./editRequisicion.tsx/editRequisicion";
 import { RequisicionesDashboard } from "./Reports/Reports";
+import { useNavigate } from "react-router-dom";
+import { useRequisicionesContext } from "../../Funcionalidades/Requisiciones/RequisicionesContext";
 
 export default function RequisicionPage() {
-    const [open, setOpen] = React.useState(false);
     const [edit, setEdit] = React.useState(false);
     const [show, setShow] = React.useState<string>("requisicion");
     const [displaySalario, setDisplaySalario] = React.useState("")
     const [displayComisiones, setDisplayComisiones] = React.useState("")
+    const navigate = useNavigate();
 
     const { requisiciones, Maestro, DeptosYMunicipios } = useGraphServices();
-    const { año, setAño, cancelarRequisicion, cleanState, reloadAll, setField, handleEdit, setState, state, handleSubmit, notifyAsignacion, notificarMotivo, rows, errors, search, setSearch, estado, setEstado, setCargo, cargo, range, setCumpleANS, cumpleANS, setCiudad, ciudad, setAnalista, analista, setRange} = useRequsiciones(requisiciones);
+    const { año, setAño, cancelarRequisicion, cleanState, reloadAll, setField, handleEdit, setState, state, handleSubmit, notifyAsignacion, notificarMotivo, rows, errors, search, setSearch, estado, setEstado, setCargo, cargo, range, setCumpleANS, cumpleANS, setCiudad, ciudad, setAnalista, analista, setRange} = useRequisicionesContext();
+    void cleanState;
+    void reloadAll;
+    void handleSubmit;
+    void notifyAsignacion;
+    void notificarMotivo;
     const { options: cargoOptions, reload: reloadCargo, loading: loadingCargo } = useCargo(Maestro);
     const { options: deptoOptions,  reload: reloadDeptos, loading: loadingCiudad } = useDeptosMunicipios(DeptosYMunicipios);
     const { options: generoOptions, loading: loadingGenero, reload: reloadGenero } = useGenero(Maestro);
@@ -155,7 +160,7 @@ export default function RequisicionPage() {
             <header className="rq-head">
                 {show === "requisicion" ?
                     <div className="rq-head__right">
-                        <button className="btn btn-primary-final btn-xs" onClick={() => setOpen(true)}>
+                        <button className="btn btn-primary-final btn-xs" onClick={() => navigate("/requisicion/new")}>
                             Solicitar nueva requisición
                         </button>
                     </div> : null
@@ -173,10 +178,6 @@ export default function RequisicionPage() {
                     : <RequisicionesDashboard years={yearsOptions} cargos={cargoOptionsWithAll} ciudades={ciudadesWithAll} profesionales={AnalistasWithAll} rows={rows} cargo={cargo} setCargo={setCargo} año={año} setAño={setAño} ciudad={ciudad} setCiudad={setCiudad} profesional={analista} setProfesional={setAnalista}/>
                 }        
             </section>
-
-            {open && (
-                <WizardRequisicion3Pasos onClose={() => {reloadAll(); setOpen(false); cleanState(); }} state={state} handleSubmit={handleSubmit} notifyAsignacion={notifyAsignacion} notificarMotivo={notificarMotivo} setField={setField} selectedCiudad={selectedCiudad} selectedCargo={selectedCargo} selectedDireccion={selectedDireccion} selectedCentroCostos={selectedCentroCostos} selectedCentroOperativo={selectedCentroOperativo} selectedUnidadNegocio={selectedUnidadNegocio} selectedGenero={selectedGenero} selectedMotivo={selectedMotivo} selectedCVE={selectedCVE} selectedTipoConvocatoria={selectedTipoConvocatoria}/>
-            )}
 
             {edit && (
                     <EditRequisiciones 

@@ -3,9 +3,11 @@ import { useGraphServices } from "../../../../../graph/graphContext";
 import type { ControlRevisionCarpetas } from "../../../../../models/DocumentViewer";
 import { buildControlRevisionReportFilter } from "../utils/controlRevisionReport";
 import { buildApprovePayload, buildReturnedPayload, buildSendRevisionPayload } from "../utils/controlRevisionPayload";
+import { useAuth } from "../../../../../auth/authProvider";
 
 export function useFolderControlActions() {
   const graph = useGraphServices()
+  const auth = useAuth()
 
   const handleSubmitBd = async (state: Partial<ControlRevisionCarpetas>): Promise<ControlRevisionCarpetas> => {
     try {
@@ -25,7 +27,8 @@ export function useFolderControlActions() {
       console.log(carpetas)
       const carpeta = carpetas[0]
       if(carpeta.Id){
-        const created = await graph.controlRevisionCarpetas.update(carpeta.Id, buildSendRevisionPayload(carpeta, null));
+        console.log(carpeta.Id)
+        const created = await graph.controlRevisionCarpetas.update(carpeta.Id, buildSendRevisionPayload(auth.account));
         console.log("Se ha actualizado la entidad de la carpeta con éxito", created)
         return { ok: true, data: created, message: null }
       }
@@ -44,7 +47,7 @@ export function useFolderControlActions() {
       console.log(carpetas)
       const carpeta = carpetas[0]
       if(carpeta.Id){
-        const created = await graph.controlRevisionCarpetas.update(carpeta.Id, buildReturnedPayload(carpeta, null));
+        const created = await graph.controlRevisionCarpetas.update(carpeta.Id, buildReturnedPayload(carpeta, auth.account));
         console.log("Se ha actualizado la entidad de la carpeta con éxito", created)
         return { ok: true, data: created, message: null }
       }
@@ -63,7 +66,7 @@ export function useFolderControlActions() {
       console.log(carpetas)
       const carpeta = carpetas[0]
       if(carpeta.Id){
-        const created = await graph.controlRevisionCarpetas.update(carpeta.Id, buildApprovePayload(carpeta, null));
+        const created = await graph.controlRevisionCarpetas.update(carpeta.Id, buildApprovePayload(carpeta, auth.account));
         console.log("Se ha actualizado la entidad de la carpeta con éxito", created)
         return { ok: true, data: created, message: null }
       }

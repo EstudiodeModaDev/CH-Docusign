@@ -1,10 +1,15 @@
-import type { ParamTab } from "../Components/GD/Settings/SettingsPage";
 import type { Proceso } from "../utils/unify";
 import type { Cesacion,  } from "./Cesaciones";
 import type { Novedad } from "./Novedades";
 import type { DetallesPasos, PasosProceso } from "./Pasos";
 import type { Promocion } from "./Promociones";
 import type { Retail } from "./Retail";
+
+export type ParamTab = {
+  id: string;
+  label: string;
+  to?: string;
+};
 
 export type PropsProceso = {
   titulo: string;
@@ -27,6 +32,6 @@ export type PropsProceso = {
 
 export type TablaParametrosProps = {
   tabs: ParamTab[];
-  value: string;                     // id activo
-  onChange: (id: string) => void;
+  value: string;
+  onChange?: (id: string) => void;
 };

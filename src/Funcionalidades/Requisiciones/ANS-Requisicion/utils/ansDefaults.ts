@@ -3,7 +3,7 @@ import type { ansRequisicion, ansRequisionErrors } from "../../../../models/requ
 export const createDefaultANSState = (): ansRequisicion => ({
   AplicaVDPNuevo: false,
   AplicaVDPPromocion: false,
-  Cargo: "",
+  NivelCargo: "",
   diasHabiles0: 0,
   Title: "",
 });

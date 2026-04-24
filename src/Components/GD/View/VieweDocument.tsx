@@ -37,6 +37,7 @@ export const ColaboradoresExplorer: React.FC = () => {
   const [sending, setSending] = React.useState(false);
 
   const lastAutoCreatedPathRef = React.useRef<string>("");
+  const autoCreatingPathRef = React.useRef<string>("");
   const hayRuta = !!viewerController.currentPath.trim();
   const showActions = viewerController.depth >= 2;
 
@@ -56,6 +57,7 @@ export const ColaboradoresExplorer: React.FC = () => {
 
   const folderController = useFolderControl(folderInfo, viewerController.empresa);
   const folderHistorial = useFolderHistorial(folderInfo);
+  const { searchSpecificFolder, createEntity, state: folderControlState, setState: setFolderControlState } = folderController;
 
   const fileIndexById = React.useMemo(() => {
     const onlyFiles = viewerController.items
@@ -91,7 +93,7 @@ export const ColaboradoresExplorer: React.FC = () => {
 
     setLoading(true);
     try {
-      const result = await folderController.searchSpecificFolder(folderInfo.cedula);
+      const result = await searchSpecificFolder(folderInfo.cedula);
       setFolderState({
         founded: !!result?.founded,
         folders: result?.folders ?? null,
@@ -102,11 +104,11 @@ export const ColaboradoresExplorer: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [folderController, folderInfo.cedula]);
+  }, [folderInfo.cedula, searchSpecificFolder]);
 
   React.useEffect(() => {
     loadFolderState();
-  }, []);
+  }, [loadFolderState]);
 
   const handleCancel = async () => {
     await viewerController.handleCancelProcess();
@@ -131,30 +133,42 @@ export const ColaboradoresExplorer: React.FC = () => {
 
     // Evita recrear varias veces para la misma carpeta en la misma sesión.
     if (lastAutoCreatedPathRef.current === folderPath) return;
+    if (autoCreatingPathRef.current === folderPath) return;
 
-    const folderEncontrado = await folderController.searchSpecificFolder(cedula);
+    autoCreatingPathRef.current = folderPath;
 
-    if (folderEncontrado?.founded) {
-      lastAutoCreatedPathRef.current = folderPath;
-      await loadFolderState();
-      return;
-    }
+    try {
+      const folderEncontrado = await searchSpecificFolder(cedula);
 
-    const nextState: ControlRevisionCarpetas = {
-      ...folderController.state,
-      Cedula: cedula,
-      NombreColaborador: nombre,
-      FolderName: nombreCarpeta,
-      FolderPath: folderPath,
+      if (folderEncontrado?.founded) {
+        lastAutoCreatedPathRef.current = folderPath;
+        await loadFolderState();
+        return;
+      }
+
+      const nextState: ControlRevisionCarpetas = {
+        ...folderControlState,
+        Cedula: cedula,
+        NombreColaborador: nombre,
+        FolderName: nombreCarpeta,
+        FolderPath: folderPath,
       Title: `Control de revisión: ${cedula} - ${nombre}`,
-    };
+      };
 
-    folderController.setState(nextState);
-    await folderController.createEntity(nextState);
+      setFolderControlState(nextState);
+      const created = await createEntity(nextState);
 
-    lastAutoCreatedPathRef.current = folderPath;
-    await loadFolderState();
-  }, [selectedFile, folderController, loadFolderState]);
+      if (created.ok) {
+        lastAutoCreatedPathRef.current = folderPath;
+        await loadFolderState();
+      }
+
+    } finally {
+      if (autoCreatingPathRef.current === folderPath) {
+        autoCreatingPathRef.current = "";
+      }
+    }
+  }, [selectedFile, searchSpecificFolder, folderControlState, setFolderControlState, createEntity, loadFolderState]);
 
   // Busca/crea el control únicamente cuando seleccionas una carpeta válida.
   React.useEffect(() => {

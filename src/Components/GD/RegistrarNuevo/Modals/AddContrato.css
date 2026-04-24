@@ -24,6 +24,7 @@
   --ft-border: 1px solid rgba(148, 163, 184, 0.45);
 
   width: min(1040px, 100%);
+  max-height: calc(100vh - 32px);
 
   background: #ffffff;
   color: #0f172a;
@@ -40,7 +41,7 @@
 }
 
 /* =========================
-   Títulos
+   TÃ­tulos
    ========================= */
 .ft-title {
   margin: 0 0 10px;
@@ -67,6 +68,8 @@
    Formulario interno (grid)
    ========================= */
 .ft-form {
+  flex: 1 1 auto;
+  min-height: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 campos por fila */
   gap: 14px 18px; /* filas / columnas */
@@ -74,6 +77,7 @@
   padding: 4px 2px 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  align-content: start;
 }
 
 /* Scrollbar discreta solo en el form */
@@ -117,7 +121,7 @@
   background: var(--surface, #fff);
   color: var(--ink, #222);
   font: inherit;
-  appearance: auto;          /* importantísimo si habías tocado appearance */
+  appearance: auto;          /* importantÃ­simo si habÃ­as tocado appearance */
   opacity: 1;
   height: auto;
   position: static;
@@ -156,7 +160,7 @@
 /* =========================
    Campos dobles dentro de un mismo field
    (ej: porcentaje + valor de garantizado)
-   Añade la clase ft-field--pair al .ft-field
+   AÃ±ade la clase ft-field--pair al .ft-field
    ========================= */
 .ft-field--pair {
   display: grid;
@@ -184,7 +188,7 @@
   cursor: pointer;
 }
 
-/* ocultamos el input para dibujar el círculo custom */
+/* ocultamos el input para dibujar el cÃ­rculo custom */
 .ft-radio-custom input {
   position: absolute;
   opacity: 0;

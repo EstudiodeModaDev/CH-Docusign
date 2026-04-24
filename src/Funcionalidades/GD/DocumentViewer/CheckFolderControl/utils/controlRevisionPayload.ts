@@ -33,15 +33,13 @@ export function buildFirstTimeControlRevisionPayload(state: ControlRevisionCarpe
   };
 }
 
-export function buildSendRevisionPayload(state: ControlRevisionCarpetas, account: AccountInfo | null): Partial<ControlRevisionCarpetas> {
+export function buildSendRevisionPayload( account: AccountInfo | null): Partial<ControlRevisionCarpetas> {
   return {
-    CantidadDevoluciones: 0, 
-    CorreoEnviadoRevisionPor: account ? account.username : undefined,
+    CorreoEnviadoRevisionPor: account ? account.username : undefined, 
     EnviadoRevisionPor: account ? account.name : undefined,
     Estado: "En revisión",
     FechaEnvioRevision: toISODateFlex(new Date()),
     UltimaAccion: "Envió a revisión",
-    Title: `Control de revisión: ${state.Cedula} - ${state.NombreColaborador}`,
     UltimoActor: account ? account.name : undefined,
   };
 }

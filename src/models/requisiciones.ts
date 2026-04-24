@@ -3,6 +3,9 @@ export type requisiciones = {
     Title: string;
     Ciudad: string;
     tipoRequisicion: string;
+    marca: string;
+    tienda: string;
+    cantidadPersonas: number;
     Area: string;
     descripcionCentroOperativo: string;
     codigoCentroOperativo: string;
@@ -29,7 +32,10 @@ export type requisiciones = {
     ANS: string;
     cumpleANS: string;
     direccion: string;
+    perteneceCVE: string;
     grupoCVE: string;
+    auxilioRodamiento: string;
+    modalidadTeletrabajo: string;
     empresaContratista: string;
     Estado: string;
     fechaTerna: string | null;
@@ -45,7 +51,7 @@ export type ansRequisicion ={
     Title: string;
     AplicaVDPNuevo: boolean;
     AplicaVDPPromocion: boolean;
-    Cargo: string;
+    NivelCargo: string;
     diasHabiles0: number;
 }
 

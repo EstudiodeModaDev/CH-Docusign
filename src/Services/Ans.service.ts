@@ -31,7 +31,7 @@ export class AnsRequisicionService {
         Id: String(item?.id ?? ''),
         AplicaVDPNuevo: f.AplicaVDPNuevo,
         AplicaVDPPromocion: f.AplicaVDPPromocion,
-        Cargo: f.Cargo,
+        NivelCargo: f.NivelCargo,
         diasHabiles0: f.diasHabiles0,
         Title: f.Title,
     };

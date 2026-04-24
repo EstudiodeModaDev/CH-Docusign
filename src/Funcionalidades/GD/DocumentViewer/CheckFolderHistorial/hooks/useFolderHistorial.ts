@@ -8,6 +8,7 @@ import { useAuth } from "../../../../../auth/authProvider";
 import { useFolderControlActions } from "../../CheckFolderControl/hooks/useControlBdACtions";
 import { useGraphServices } from "../../../../../graph/graphContext";
 import { notifyApprovedFolder, notifyFolderReady, notifyReturnedFolder } from "../utils/notifications";
+import { toISODateFlex } from "../../../../../utils/Date";
 
 export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, fullname: string, path: string},) {
   const formController = useFolderControlForm(folderInfo,)
@@ -26,7 +27,7 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
       console.log("Actualizando la entidad con path:", folderInfo.path);
       console.log(folderInfo)
       const entityUpdated = await integration.handleUpdateSendRevision(folderInfo.cedula.trim());
-      
+      console.log(entityUpdated)
       const state: HistorialRevisionCarpetas = {
         Accion: "Envío a revisión",
         Cedula: folderInfo.cedula,
@@ -35,20 +36,19 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
         FolderPath: folderInfo.path,
         NombreColaborador: folderInfo.fullname,
         CorreoRealizadoPor: auth.account?.username ?? "Desconocido",
-        EstadoAnterior: entityUpdated.data?.Estado ?? "",
-        EstadoResultante: "En revisión",
+        EstadoAnterior: "En construcción",
+        EstadoResultante: entityUpdated.data?.Estado ?? "",
         Title: `Control de revisión: ${folderInfo.cedula} - ${folderInfo.fullname}`,
-        FechaAccion: new Date().toISOString(),
+        FechaAccion: toISODateFlex(new Date()),
         RealizadoPor: auth.account?.name ?? "Desconocido"
       }
 
       if(entityUpdated.ok && entityUpdated.data) {
-        const Historialpayload = buildSendRevisionPayload(state,auth.account, "Envío a revisión");
-        console.log("Payload: ", Historialpayload)
-        const historialCreado = await actionsController.handleSubmitBd(Historialpayload);
+        console.log("Payload: ", state)
+        const historialCreado = await actionsController.handleSubmitBd(state);
 
         await notifyFolderReady(graph.mail, folderInfo)
-
+        alert("Se ha enviado la carpeta a revisión con éxito")
         return { ok: true, created: historialCreado };
       }
       
@@ -79,7 +79,7 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
         FolderPath: folderInfo.path,
         NombreColaborador: folderInfo.fullname,
         CorreoRealizadoPor: auth.account?.username ?? "Desconocido",
-        EstadoAnterior: entityUpdated.data?.Estado ?? "",
+        EstadoAnterior: "En revisión",
         EstadoResultante: "En construcción",
         Title: `Control de revisión: ${folderInfo.cedula} - ${folderInfo.fullname}`,
         FechaAccion: new Date().toISOString(),
@@ -91,6 +91,7 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
         console.log("Payload: ", Historialpayload)
         const historialCreado = await actionsController.handleSubmitBd(Historialpayload);
         const groupMembers = await graph.graph.getAllGroupMembers("8ba50c1e-ffd3-4906-b50a-3db33b69b868",)
+        console.log(groupMembers)
         await notifyReturnedFolder(graph.mail, folderInfo, motivo, groupMembers)
         alert("Se ha devuelto la carpeta correctamente")
         return { ok: true, created: historialCreado };
@@ -123,15 +124,15 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
         FolderPath: folderInfo.path,
         NombreColaborador: folderInfo.fullname,
         CorreoRealizadoPor: auth.account?.username ?? "Desconocido",
-        EstadoAnterior: entityUpdated.data?.Estado ?? "",
+        EstadoAnterior:  "En construcción",
         EstadoResultante: "Aprobado",
         Title: `Control de revisión: ${folderInfo.cedula} - ${folderInfo.fullname}`,
-        FechaAccion: new Date().toISOString(),
+        FechaAccion: toISODateFlex(new Date()),
         RealizadoPor: auth.account?.name ?? "Desconocido"
       }
 
       if(entityUpdated.ok && entityUpdated.data) {
-        const Historialpayload = buildSendRevisionPayload(state,auth.account, "Aprobación de carpeta");
+        const Historialpayload = state;
         console.log("Payload: ", Historialpayload)
         const historialCreado = await actionsController.handleSubmitBd(Historialpayload);
         const groupMembers = await graph.graph.getAllGroupMembers("8ba50c1e-ffd3-4906-b50a-3db33b69b868",)

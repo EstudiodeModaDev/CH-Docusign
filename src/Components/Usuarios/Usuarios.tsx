@@ -1,20 +1,15 @@
 import * as React from "react";
 import "../Settings/SettingsPage.css";
-import { ParamTabs } from "../GD/Settings/SettingsPage";
+import { ParamTabs } from "../GD/Settings/Tabs";
+import type { ParamTab } from "../../models/Props";
 
-export type ParamTab = {
-  id: string;
-  label: string;
-};
-
-;
-const TABS = [
+const TABS: ParamTab[] = [
   { id: "perfiles", label: "Perfiles" },
   { id: "usuarios", label: "Usuarios" },
 ];
 
 export const UsuariosPage: React.FC = () => {
-  const [active, setActive] = React.useState<string>("empresas");
+  const [active, setActive] = React.useState<string>("perfiles");
 
   return (
     <section>

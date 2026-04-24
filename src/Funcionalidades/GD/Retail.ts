@@ -530,7 +530,7 @@ export function useRetail(RetailSvc: RetailService, ) {
         if(!Id || !fecha ) return
 
         const spDate = toGraphDateTime(fecha)
-        await graph.Promociones.update(Id, {FechaExamenesMedicos: spDate});
+        await graph.Retail.update(Id, {FechaExamenesMedicos: spDate});
         await loadBase()
         alert("Se ha guardado la fecha de los examenes medicos con éxito.")
       } catch {

@@ -42,6 +42,7 @@ import { solicitudService } from "../Services/Solicitud.service";
 import { solicitudDetalleService } from "../Services/SolicitudDetalle.service";
 import { ControlRevisionCarpetasService } from "../Services/ControlRevisionCarpetas.service";
 import { HistorialRevisionCarpetasService } from "../Services/HistorialRevisionCarpetas.service";
+import { PlantaIdealService } from "../Services/Requisiciones/PlantaIdeal.service";
 
 
 /* ================== Tipos de config ================== */
@@ -203,6 +204,7 @@ export type GraphServices = {
   maestrosMotivos: maestroMotivosService
   moverANS: MoverANSService
   pasoRestriccion: pasoRestriccionProcesoService
+  plantaIdeal: PlantaIdealService
 
   //Solicitud actualizacion
   solicitud: solicitudService
@@ -211,6 +213,7 @@ export type GraphServices = {
   //Control Carpetas
   controlRevisionCarpetas: ControlRevisionCarpetasService;
   historialRevisionCarpetas: HistorialRevisionCarpetasService;
+
 };
 
 /* ================== Contexto ================== */
@@ -414,6 +417,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     const cargoCiudadAnalista     = new cargoCiudadAnalistaService(graph, ch.hostname, ch.sitePath, lists.cargoCiudadAnalista)
     const maestrosMotivos         = new maestroMotivosService(graph, ch.hostname, ch.sitePath, lists.maestroMotivos)
     const moverANS                = new MoverANSService(graph, ch.hostname, ch.sitePath, lists.moverANS)
+    const plantaIdeal             = new PlantaIdealService(graph)
 
     const pasoRestriccion         = new pasoRestriccionProcesoService(graph, ch.hostname, ch.sitePath, lists.pasoRestriccion)
 
@@ -423,6 +427,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     //Control Carpetas
     const controlRevisionCarpetas = new ControlRevisionCarpetasService(graph, ch.hostname, ch.sitePath, lists.controlRevisionCarpetas)
     const historialRevisionCarpetas = new HistorialRevisionCarpetasService(graph, ch.hostname, ch.sitePath, lists.historialRevisionCarpetas)
+    
     return {
       graph,
       //Habeas
@@ -450,7 +455,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       //Tickets
       Tickets, log,
       //Requisiciones
-      requisiciones, ansRequisicion, cargoCiudadAnalista, maestrosMotivos, moverANS,
+      requisiciones, ansRequisicion, cargoCiudadAnalista, maestrosMotivos, moverANS, plantaIdeal,
 
       pasoRestriccion,
 

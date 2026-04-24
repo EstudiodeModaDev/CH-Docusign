@@ -158,6 +158,7 @@ export async function notifyReturnedFolder(mail: MailService, folderInfo: { cedu
     </table>
   `;
 
+  
   const to: GraphRecipient[] = groupMembers
     .map((member) => {
       const address = (member.mail ?? member.userPrincipalName ?? "").trim();

@@ -16,6 +16,7 @@ export function pickValueFromLabel(raw: string, vm: DocuSignVM){
       case "fechacomp":
       case "fecha_de_ingreso":
       case "fechaingreso":
+      case "fechaIngreso":
         return spDateToSpanishLong(vm.fechaIngreso);
 
       case "identificaci_n":

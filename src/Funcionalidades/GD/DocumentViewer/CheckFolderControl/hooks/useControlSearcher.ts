@@ -7,7 +7,7 @@ export function useSpecificFolderSearch() {
 
   const [folders, setFolders] = React.useState<ControlRevisionCarpetas[]>([]);
 
-  const searchSpecificFolder = async (query: string): Promise<{founded: boolean, folders: ControlRevisionCarpetas | null}> => {
+  const searchSpecificFolder = React.useCallback(async (query: string): Promise<{founded: boolean, folders: ControlRevisionCarpetas | null}> => {
     const resp = await graph.controlRevisionCarpetas.getAll({filter: `fields/Cedula eq '${query}'`, top: 1,});
 
     const foundFolders = resp ?? [];
@@ -24,7 +24,7 @@ export function useSpecificFolderSearch() {
       founded: false,
       folders: null
     };
-  };
+  }, [graph]);
 
   return {
     searchSpecificFolder,

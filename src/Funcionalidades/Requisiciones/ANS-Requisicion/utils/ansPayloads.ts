@@ -12,7 +12,7 @@ export function buildEditANSPayload(original: ansRequisicion, draft: ansRequisic
         ? draft.AplicaVDPPromocion
         : original.AplicaVDPPromocion,
 
-    Cargo: original.Cargo !== draft.Cargo ? draft.Cargo : original.Cargo,
+    NivelCargo: original.NivelCargo !== draft.NivelCargo ? draft.NivelCargo : original.NivelCargo,
 
     diasHabiles0:
       Number(original.diasHabiles0) !== Number(draft.diasHabiles0)

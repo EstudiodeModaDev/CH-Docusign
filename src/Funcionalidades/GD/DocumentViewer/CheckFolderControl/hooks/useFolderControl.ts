@@ -13,7 +13,7 @@ export function useFolderControl(folderInfo: {cedula: string, nombre: string, fu
 
   const [loading, setLoading] = React.useState(false);
 
-  const createEntity = async (state: ControlRevisionCarpetas): Promise<{ created: ControlRevisionCarpetas | null; ok: boolean }> => {
+  const createEntity = React.useCallback(async (state: ControlRevisionCarpetas): Promise<{ created: ControlRevisionCarpetas | null; ok: boolean }> => {
     setLoading(true);
 
     try {
@@ -28,7 +28,7 @@ export function useFolderControl(folderInfo: {cedula: string, nombre: string, fu
     } finally {
       setLoading(false);
     }
-  };
+  }, [actionsController]);
 
   return {
     createEntity,

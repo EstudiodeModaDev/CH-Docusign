@@ -44,7 +44,7 @@ export function mapPromocionToVM(p: Promocion): DocuSignVM {
   return {
     ...emptyVM(),
     nombre: p.NombreSeleccionado ?? "",
-    fechaIngreso: p.FechaIngreso ?? "",
+    fechaIngreso: DDMMYYYY(p.FechaIngreso),
     cargo: p.Cargo ?? "",
     ciudad: p.Ciudad ?? "",
     conectividadLetras: p.AuxilioTexto ?? "",
@@ -108,10 +108,12 @@ export function mapHabeasToVM(h: HabeasData): DocuSignVM {
 }
 
 export function mapCesacionToVM(p: Cesacion): DocuSignVM {
+  console.log(p)
+  console.log(p.FechaIngreso)
   return {
     ...emptyVM(),
     nombre: p.Nombre ?? "",
-    fechaIngreso: spDateToSpanishLong(p.FechaIngreso)?? "",
+    fechaIngreso: DDMMYYYY(p.FechaIngreso)?? "",
     cargo: p.Cargo ?? "",
     ciudad: p.Ciudad ?? "",
     conectividadLetras: p.auxConectividadTexto ?? "",
@@ -125,10 +127,12 @@ export function mapCesacionToVM(p: Cesacion): DocuSignVM {
 }
 
 export function mapRetailToVM(r: Retail): DocuSignVM {
+  console.log(r)
+  console.log(r.FechaIngreso)
   return {
     ...emptyVM(),
     nombre: r.Nombre ?? "",
-    fechaIngreso: spDateToSpanishLong(r.FechaIngreso) ?? "",
+    fechaIngreso: DDMMYYYY(r.FechaIngreso) ?? "",
     cargo: r.Cargo ?? "",
     ciudad: r.Ciudad ?? "",
     conectividadLetras: r.Auxiliotransporteletras ?? "",

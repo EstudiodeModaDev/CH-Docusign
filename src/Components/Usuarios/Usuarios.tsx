@@ -1,5 +1,4 @@
 import * as React from "react";
-import "../Settings/SettingsPage.css";
 import { ParamTabs } from "../GD/Settings/Tabs";
 import type { ParamTab } from "../../models/Props";
 

@@ -30,7 +30,8 @@ export class DeptosYMunicipiosService {
     return {
         Id: String(item?.id ?? ''),
         Title: f.Title,
-        Abreviacion: f.Municipio
+        Abreviacion: f.Municipio,
+        Zona: f.ZonaId
     };
   }
 
@@ -109,7 +110,7 @@ export class DeptosYMunicipiosService {
     return this.toModel(res);
   }
 
-  async getAll(opts?: GetAllOpts) {
+  async getAll(opts?: GetAllOpts): Promise<dobleCampo[]> {
     await this.ensureIds();
 
     // ID -> id, Title -> fields/Title (cuando NO está prefijado con '/')

@@ -8,6 +8,7 @@ import RichTextBase64 from "../../../../RichText/RichText";
 import { parseEmails, renderTemplate, safeString } from "../../../../../utils/text";
 import type { PropsProceso } from "../../../../../models/Props";
 import { spDateToDDMMYYYY } from "../../../../../utils/Date";
+import { SimpleFileUpload } from "../../../../GD/AddFile/AddFile";
 
 export type TipoPaso = "Aprobacion" | "Notificacion" | "SubidaDocumento";
 type EstadoFinal = "Completado" | "Omitido";
@@ -46,6 +47,11 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
   const [sending, setSending] = React.useState<boolean>(false);
   const [uploading, setUploading] = React.useState<boolean>(false);
   const [isCustomBody, setIsCustomBody] = React.useState<boolean>(false);
+  const [uploadPicker, setUploadPicker] = React.useState<{
+    idDetalle: string;
+    label: string;
+    accept: string;
+  } | null>(null);
 
   const detectTipoPaso = (paso: any): TipoPaso => {
     const t = paso?.TipoPaso ?? "";
@@ -121,6 +127,12 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
   /** ======= Subida de documento ======= */
   const uploadingRef = React.useRef(false);
+
+  const handleSelectFile = React.useCallback(async (_path: string, file: File) => {
+    if (!uploadPicker?.idDetalle) return;
+    setFiles((prev) => ({ ...prev, [uploadPicker.idDetalle]: file }));
+    setUploadPicker(null);
+  }, [uploadPicker]);
 
   const handleUploadAndComplete = async (detalle: DetallesPasos, paso: any) => {
     if (uploadingRef.current) return;
@@ -454,21 +466,20 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
                         {!isDone ? (
                           <>
                             <div className="step-card__upload-wrapper">
-                              <input
-                                id={`file-${idDetalle}`}
-                                type="file"
+                              <button
+                                type="button"
+                                className="step-card__upload-btn"
                                 disabled={busyUpload}
-                                accept={safeString(paso?.AceptaTipos ?? ".pdf,.jpg,.jpeg,.png")}
-                                className="step-card__file-input"
-                                onChange={(e) => {
-                                  const f = e.target.files?.[0] ?? null;
-                                  setFiles((prev) => ({ ...prev, [idDetalle]: f }));
-                                }}
-                              />
-
-                              <label htmlFor={`file-${idDetalle}`} className="step-card__upload-btn">
+                                onClick={() =>
+                                  setUploadPicker({
+                                    idDetalle,
+                                    label: safeString(paso?.NombreEvidencia ?? paso?.NombrePaso ?? "Documento requerido"),
+                                    accept: safeString(paso?.AceptaTipos ?? ".pdf,.jpg,.jpeg,.png"),
+                                  })
+                                }
+                              >
                                 Seleccionar archivo
-                              </label>
+                              </button>
 
                               {files[idDetalle] && (
                                 <span className="step-card__file-name">{files[idDetalle]?.name}</span>
@@ -509,6 +520,20 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
       <button className="btn btn-xs" onClick={onClose}>
         Cerrar
       </button>
+
+      {uploadPicker ? (
+        <SimpleFileUpload
+          folderPath={uploadPicker.label}
+          pathLabel="Documento requerido:"
+          title="Seleccionar archivo"
+          confirmLabel="Usar archivo"
+          accept={uploadPicker.accept}
+          hideNameInput
+          fileHint={`Formatos permitidos: ${uploadPicker.accept}`}
+          onClose={() => setUploadPicker(null)}
+          handleUploadClick={handleSelectFile}
+        />
+      ) : null}
     </section>
   );
 };

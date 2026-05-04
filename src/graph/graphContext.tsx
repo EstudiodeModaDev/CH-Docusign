@@ -43,6 +43,8 @@ import { solicitudDetalleService } from "../Services/SolicitudDetalle.service";
 import { ControlRevisionCarpetasService } from "../Services/ControlRevisionCarpetas.service";
 import { HistorialRevisionCarpetasService } from "../Services/HistorialRevisionCarpetas.service";
 import { PlantaIdealService } from "../Services/Requisiciones/PlantaIdeal.service";
+import { ZonasService } from "../Services/Zonas.service";
+import { ResponsablesZonasService } from "../Services/Requisiciones/ResponsablesZonas.service";
 
 
 /* ================== Tipos de config ================== */
@@ -214,6 +216,8 @@ export type GraphServices = {
   controlRevisionCarpetas: ControlRevisionCarpetasService;
   historialRevisionCarpetas: HistorialRevisionCarpetasService;
 
+  zona: ZonasService
+  responsableZonas: ResponsablesZonasService
 };
 
 /* ================== Contexto ================== */
@@ -428,6 +432,9 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     const controlRevisionCarpetas = new ControlRevisionCarpetasService(graph, ch.hostname, ch.sitePath, lists.controlRevisionCarpetas)
     const historialRevisionCarpetas = new HistorialRevisionCarpetasService(graph, ch.hostname, ch.sitePath, lists.historialRevisionCarpetas)
     
+    const zona                   = new ZonasService(graph)
+    const responsableZonas        = new ResponsablesZonasService(graph)
+
     return {
       graph,
       //Habeas
@@ -463,6 +470,8 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
 
       //Control Carpetas
       controlRevisionCarpetas, historialRevisionCarpetas,
+      //Zonas
+      zona, responsableZonas
     };
   }, [graph, cfg]);
 

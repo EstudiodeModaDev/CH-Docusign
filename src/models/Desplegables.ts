@@ -18,6 +18,7 @@ export type dobleCampo = {
     Id: string;
     Title: string;
     Abreviacion: string
+    Zona?: string;
 }
 
 export type salario = {

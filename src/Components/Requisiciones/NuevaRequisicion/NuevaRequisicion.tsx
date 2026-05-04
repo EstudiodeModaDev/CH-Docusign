@@ -1,7 +1,7 @@
 import * as React from "react";
 import "./NuevaRequisicion.css";
 import { useGraphServices } from "../../../graph/graphContext";
-import type { cargoCiudadAnalista, requisiciones } from "../../../models/requisiciones";
+import type { requisiciones } from "../../../models/requisiciones";
 import FirstStepForm from "./FormStep1/Step1";
 import { gruposCVE, useCargo, useCentroCostos, useCentroOperativo, useDeptosMunicipios, useDireccion, useGenero, useModalidadTrabajo, useMotivoRequisicion, useTipoVacante, useUnidadNegocio } from "../../../Funcionalidades/Desplegables";
 import Step2Form from "./FormStep2/Step2";
@@ -11,7 +11,7 @@ import Step2Form from "./FormStep2/Step2";
 type Props = {
   onClose: () => void;
   state: requisiciones;
-  handleSubmit: (ans: number, analista: cargoCiudadAnalista) => Promise<{created: requisiciones | null; ok: boolean;}>;
+  handleSubmit: (ans: number,) => Promise<{created: requisiciones | null; ok: boolean;}>;
   notifyAsignacion: (created: requisiciones) => Promise<void>;
   notificarMotivo: (motivo: string, coCodigo: string, coNombre: string) => Promise<void>;
   setField: <K extends keyof requisiciones>(k: K, v: requisiciones[K]) => void;
@@ -22,7 +22,7 @@ function sameText(left: unknown, right: unknown) {
 }
 export default function WizardRequisicion3Pasos({onClose, state, handleSubmit, notifyAsignacion, notificarMotivo, setField,}: Props) {
   
-  const { categorias, ansRequisicion, cargoCiudadAnalista, Maestro, DeptosYMunicipios} = useGraphServices();
+  const { categorias, ansRequisicion, Maestro, DeptosYMunicipios} = useGraphServices();
   const [submitting, setSubmitting] = React.useState(false);
 
   //Desplegables Options
@@ -112,28 +112,17 @@ export default function WizardRequisicion3Pasos({onClose, state, handleSubmit, n
         return
       }
 
-      const [ansRows, analystRows] = await Promise.all([
+      const [ansRows,] = await Promise.all([
         ansRequisicion.getAll({ filter: `fields/NivelCargo eq '${categoriaCargo.Categoria}'`, top: 1 }),
-        cargoCiudadAnalista.getAll({
-          filter: `fields/Cargo eq '${state.Title}' and fields/Ciudad eq '${state.Ciudad}'`,
-          top: 1,
-        }),
       ]);
 
       const ans = ansRows[0];
-      const analyst = analystRows[0];
-
       if (!ans) {
         alert("No se encontró ANS configurado para el cargo seleccionado.");
         return;
       }
 
-      if (!analyst) {
-        alert("No se encontró un analista asignado para la combinación de cargo y ciudad.");
-        return;
-      }
-
-      const result = await handleSubmit(Number(ans.diasHabiles0 ?? 0), analyst);
+      const result = await handleSubmit(Number(ans.diasHabiles0 ?? 0),);
 
       if (!result.ok || !result.created) {
         alert("No fue posible crear la requisición.");
@@ -189,11 +178,12 @@ export default function WizardRequisicion3Pasos({onClose, state, handleSubmit, n
     
     if(cargosRetail.includes(cleanCargo)){
       setTipoRequisicion("Retail")
+      setField("tipoRequisicion", "Retail")
       return
     }
 
     setTipoRequisicion("Administrativa")
-
+    setField("tipoRequisicion", "Administrativa")
   };
 
   return (

@@ -1,12 +1,13 @@
 import React from "react";
 import { useGraphServices } from "../../../../graph/graphContext";
 import { validate } from "../utils/requisicionValidation";
-import type { cargoCiudadAnalista, requisiciones, RequisicionesErrors } from "../../../../models/requisiciones";
+import type { requisiciones, RequisicionesErrors } from "../../../../models/requisiciones";
 import { fetchHolidays } from "../../../../Services/Festivos";
 import { calcularFechaSolucionRequisicion, startDateByCutoff } from "../../../../utils/ansRequisicion";
 import type { Holiday } from "festivos-colombianos";
 import { toGraphDateTime } from "../../../../utils/Date";
 import { buildRequisicionesPatch } from "../utils/requisicionPatch";
+import { chooseFinalResponsible } from "../utils/requisicionResponsible";
 
 type Props = {
   state: requisiciones;
@@ -19,13 +20,14 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
 
   const validateResult = () => {
     const e = validate(state)
+    console.log(e)
     setErrors(e)
 
     return Object.keys(e).length === 0;
   };
 
 
-  const handleSubmit = async (ans: number, analista: cargoCiudadAnalista): Promise<{created: requisiciones | null, ok: boolean}> => {
+  const handleSubmit = async (ans: number,): Promise<{created: requisiciones | null, ok: boolean}> => {
     if (!validateResult()) { 
       alert("Hay campos sin rellenar")
       return {
@@ -39,6 +41,7 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
       const holidays: Holiday[] = await fetchHolidays()
       const fechaInicio = startDateByCutoff(new Date(), holidays)
       const fechaFinal = calcularFechaSolucionRequisicion(fechaInicio, ans, holidays)
+      const responsable = await chooseFinalResponsible(graph.DeptosYMunicipios, graph.responsableZonas, state.Ciudad, state.tipoRequisicion as 'Administrativa' | 'Retail')
       const payload: requisiciones = {
         cedulaEmpleadoVinculado: state.cedulaEmpleadoVinculado,
         ANS: String(ans),
@@ -49,7 +52,7 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
         codigoCentroOperativo: state.codigoCentroOperativo,
         codigoUnidadNegocio: String(state.codigoUnidadNegocio),
         comisiones: String(state.comisiones),
-        correoProfesional: analista.Title,
+        correoProfesional: responsable?.email || '',
         correoSolicitante: state.correoSolicitante,
         cumpleANS: state.cumpleANS,
         descripcionCentroCosto: state.descripcionCentroCosto,
@@ -62,7 +65,7 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
         genero: state.genero,
         marca: state.marca,
         motivo: state.motivo,
-        nombreProfesional: analista.nombreAnalista,
+        nombreProfesional: responsable?.name || '',
         observacionesSalario: state.observacionesSalario,
         razon: state.razon,
         salarioBasico: state.salarioBasico,

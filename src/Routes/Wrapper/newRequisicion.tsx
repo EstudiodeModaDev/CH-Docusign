@@ -5,12 +5,11 @@ import { useRequisicionesContext } from "../../Funcionalidades/Requisiciones/Req
 
 export default function NewRequisicionWrapper() {
     const navigate = useNavigate();
-    const { cleanState, reloadAll, setField,  state, handleSubmit, notifyAsignacion, notificarMotivo, sendNotificationPlantaIdeal} = useRequisicionesContext();
+    const { cleanState, reloadAll, setField,  state, handleSubmit, notifyAsignacion, notificarMotivo,} = useRequisicionesContext();
 
 
     return (
         <>
-            <button onClick={() => sendNotificationPlantaIdeal('101')}>a</button>
             <WizardRequisicion3Pasos
                 onClose={() => {reloadAll(); cleanState(); navigate("/requisicion"); }}
                 state={state}

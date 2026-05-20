@@ -109,6 +109,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
   }, [engine]);
   
   const isView = tipo === "view"
+  const modeLabel = tipo === "new" ? "Nueva solicitud" : isView ? "Consulta" : "Edicion";
 
   const [porcentajeCompletacion, setPorcetanjeCompletacion] = React.useState<number>(0);
   const [cancelProcess, setCancelProcess] = React.useState<boolean>(false);
@@ -120,6 +121,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
   const [auxTransporte, setAuxTransporte] = React.useState<number>(0);
   const [conectividad, setConectividad] = React.useState<number>(0);
   const [conectividadTexto, setConectividadTexto] = React.useState<string>("");
+  const progressValue = Math.max(0, Math.min(100, Number(porcentajeCompletacion) || 0));
 
   const { account } = useAuth();
 
@@ -334,7 +336,34 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
                     loadDetalles={() => loadDetallesCesacion()} 
                     proceso={"Cesacion"}/> :
         <>
-          <h2 id="ft_title" className="ft-title">{title} {(tipo === "edit") ? ` - ${porcentajeCompletacion}` : null}</h2>
+          <header className="ft-header">
+            <div className="ft-header__main">
+              <span className="ft-kicker">Gestor documental</span>
+              <h2 id="ft_title" className="ft-title">{title}</h2>
+              <p className="ft-subtitle">
+                Completa la salida del colaborador con una distribucion clara, consistente y alineada con los tokens de la aplicacion.
+              </p>
+            </div>
+
+            <div className="ft-header__meta">
+              <span className="ft-pill">{modeLabel}</span>
+              <span className={`ft-pill ${canEditRegister ? "" : "ft-pill--muted"}`}>
+                {canEditRegister ? "Edicion habilitada" : "Solo lectura"}
+              </span>
+
+              {(tipo === "edit" || isView) ? (
+                <div className="ft-progress" aria-label={`Progreso del proceso: ${progressValue}%`}>
+                  <div className="ft-progress__label">
+                    <span>Avance del proceso</span>
+                    <strong>{progressValue}%</strong>
+                  </div>
+                  <div className="ft-progress__track" aria-hidden="true">
+                    <span className="ft-progress__value" style={{ width: `${progressValue}%` }} />
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </header>
 
           <form className="ft-form" noValidate>
 

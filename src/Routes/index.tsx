@@ -28,8 +28,9 @@ import { CesacionStepsManager } from "./Wrapper/ProcesoCesacionWrapper";
 import { NovedadesStepsManager } from "./Wrapper/ProcesoNovedadesWrapper";
 import { RetailStepsManager } from "./Wrapper/ProcesoRetailWrapper";
 import { PromocionStepsManager } from "./Wrapper/ProcesoPromocionWrapper";
-import RequisicionPage from "../Components/Requisiciones/RequisicionPage";
 import { RequisicionesProvider } from "../Funcionalidades/Requisiciones/RequisicionesContext";
+import RequisicionesBoardWrapper from "./Wrapper/RequisicionBoardWrapper";
+import RequisicionesMetricasWrapper from "./Wrapper/RequisicionesMetricasWrapper";
 
 
 /**
@@ -70,9 +71,14 @@ export default function AppRoutes() {
       </Route>
       <Route path="/access" element={<GroupUsersManager/>}/>
       <Route path="/support" element={<NuevoTicketForm/>}/>
+      <Route path="/requisiciones" element={<RequisicionesProvider />}>
+        <Route path="metricas" element={<RequisicionesMetricasWrapper/>}/>
+      </Route>
       <Route path="/requisicion" element={<RequisicionesProvider />}>
-        <Route index element={<RequisicionPage />} />
+        <Route index element={null} />
         <Route path="new" element={<NewRequisicionWrapper/>}/>
+        <Route path="view" element={<RequisicionesBoardWrapper/>}/>
+        <Route path="metricas" element={<Navigate to="/requisiciones/metricas" replace />} />
       </Route>
     </Routes>
   );

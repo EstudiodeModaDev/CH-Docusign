@@ -1,7 +1,7 @@
 import React from "react";
 import "./Reports.css";
 import type { desplegablesOption } from "../../../models/Desplegables";
-import type { requisiciones } from "../../../models/requisiciones";
+import type { requisiciones } from "../../../models/Requisiciones/requisiciones";
 import { norm } from "../../../utils/text";
 import { toDateSafe } from "../../../utils/Date";
 
@@ -41,7 +41,7 @@ function isYes(v: any) {
 
 /** toma una fecha confiable de la requisición (SharePoint a veces trae strings raros) */
 function pickDate(r: requisiciones): Date | null {
-  const raw = (r.fechaInicioProceso ?? r.Created ?? "").toString().trim();
+  const raw = (r.fechaInicioProceso ?? "").toString().trim();
   if (!raw) return null;
 
   // 1) helper del proyecto

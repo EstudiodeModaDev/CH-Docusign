@@ -95,6 +95,7 @@ export default function FormRetail({
   const retailStepsDetailsController =  useRetailStepDetails(selectedRetail?.Id)
 
   const isView = tipo === "view"
+  const modeLabel = tipo === "new" ? "Nueva solicitud" : isView ? "Consulta" : "Edicion";
 
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
@@ -106,6 +107,7 @@ export default function FormRetail({
   const [porcentajeCompletacion, setPorcetanjeCompletacion] = React.useState<number>(0);
   const [cancelProcess, setCancelProcess] = React.useState<boolean>(false);
   const [flow, setFlow] = React.useState<boolean>(false)
+  const progressValue = Math.max(0, Math.min(100, Number(porcentajeCompletacion) || 0));
   const { account } = useAuth();
   const { engine } = usePermissions();
 
@@ -343,7 +345,34 @@ export default function FormRetail({
                   
                   /> :
         <>
-          <h2 id="ft_title" className="ft-title">{title} {(tipo === "edit" || isView) ? ` - ${porcentajeCompletacion}` : null}</h2>
+          <header className="ft-header">
+            <div className="ft-header__main">
+              <span className="ft-kicker">Gestor documental</span>
+              <h2 id="ft_title" className="ft-title">{title}</h2>
+              <p className="ft-subtitle">
+                Organiza la informacion del proceso retail con una lectura mas clara y una estructura visual consistente entre modulos.
+              </p>
+            </div>
+
+            <div className="ft-header__meta">
+              <span className="ft-pill">{modeLabel}</span>
+              <span className={`ft-pill ${canEditRegister ? "" : "ft-pill--muted"}`}>
+                {canEditRegister ? "Edicion habilitada" : "Solo lectura"}
+              </span>
+
+              {(tipo === "edit" || isView) ? (
+                <div className="ft-progress" aria-label={`Progreso del proceso: ${progressValue}%`}>
+                  <div className="ft-progress__label">
+                    <span>Avance del proceso</span>
+                    <strong>{progressValue}%</strong>
+                  </div>
+                  <div className="ft-progress__track" aria-hidden="true">
+                    <span className="ft-progress__value" style={{ width: `${progressValue}%` }} />
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </header>
 
           <form className="ft-form" noValidate>
 

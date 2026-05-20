@@ -1,6 +1,6 @@
 import * as React from "react";
 import "./log.css";
-import type { moverAns,} from "../../../models/requisiciones";
+import type { moverAns,} from "../../../models/Requisiciones/requisiciones";
 import { spDateToDDMMYYYY } from "../../../utils/Date";
 
 type Props = {

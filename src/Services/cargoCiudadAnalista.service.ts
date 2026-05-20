@@ -1,6 +1,6 @@
 import type { GraphRest } from "../graph/graphRest";
 import type { GetAllOpts } from "../models/Commons";
-import type { cargoCiudadAnalista } from "../models/requisiciones";
+import type { cargoCiudadAnalista } from "../models/Requisiciones/requisiciones";
 import { esc } from "../utils/text";
 
 export class cargoCiudadAnalistaService {

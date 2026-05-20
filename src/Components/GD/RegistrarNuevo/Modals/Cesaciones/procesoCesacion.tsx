@@ -35,7 +35,7 @@ function withSuffix(name: string, i: number) {
 }
 
 export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDetalles, errorDetalles, loadDetalles, titulo, selectedCesacion, onClose, loadingPasos, errorPasos, pasosById, decisiones, motivos, setMotivos, setDecisiones, handleCompleteStep, proceso,}) => {
-  const {ColaboradoresDH,  ColaboradoresEDM, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta, mail,}: any = useGraphServices();
+  const {ColaboradoresDH,  ColaboradoresEDM, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta, ColaboradoresBroken, mail,} = useGraphServices();
 
   const vm = toUnifyVM(proceso as Proceso, selectedCesacion as any);
 
@@ -179,6 +179,8 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
           ? ColaboradoresEDM
           : empresa === "metagraphics"
           ? ColaboradoresMeta
+          : empresa === "broken"
+          ? ColaboradoresBroken
           : null;
 
 

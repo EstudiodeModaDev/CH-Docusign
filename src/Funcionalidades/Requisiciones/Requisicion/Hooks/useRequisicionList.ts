@@ -1,6 +1,6 @@
 import React from "react";
 import { useGraphServices } from "../../../../graph/graphContext";
-import type { requisiciones } from "../../../../models/requisiciones";
+import type { requisiciones } from "../../../../models/Requisiciones/requisiciones";
 import type { useRequisicionFilters } from "./useRequisicionFilters";
 import { useAuth } from "../../../../auth/authProvider";
 import type { useNewRequisicionPagination } from "./useRequisicionPagination";

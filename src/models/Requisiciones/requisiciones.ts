@@ -1,33 +1,25 @@
 export type requisiciones = {
+    //Comunes
     Id?: string;
-    Title: string;
+    Title: string; //Cargo
     Ciudad: string;
     tipoRequisicion: string;
-    marca: string;
-    tienda: string;
-    cantidadPersonas: number;
-    Area: string;
-    descripcionCentroOperativo: string;
-    codigoCentroOperativo: string;
-    descripcionCentroCosto: string;
-    codigoCentroCosto: string;
     codigoUnidadNegocio: string;
     descripcionUnidadNegocio: string;
     genero: string;
     motivo: string;
-    razon: string;
     tipoConvocatoria: string;
     salarioBasico: string;
     comisiones: string;
-    observacionesSalario: string;
     fechaInicioProceso: string | null;
+    fechaLimite: string | null;
     solicitante: string;
+    diasHabiles: number;
     correoSolicitante: string;
     correoProfesional: string;
     nombreProfesional: string;
-    fechaLimite: string | null;
-    diasHabiles: number;
-    Created?: string
+    descripcionCentroCosto: string; //Area o marca
+    codigoCentroCosto: string;
     fechaIngreso: string | null;
     ANS: string;
     cumpleANS: string;
@@ -44,6 +36,11 @@ export type requisiciones = {
     Identificador: string;
     cedulaEmpleadoVinculado: string;
     nuevoPromocion: string
+    NivelCargo: string
+
+    //Retail
+    tienda?: string; //Centro operativo
+    codigoCentroOperativo?: string;
 }
 
 export type ansRequisicion ={

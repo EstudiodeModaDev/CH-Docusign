@@ -1,4 +1,4 @@
-import type { ansRequisicion, ansRequisionErrors } from "../../../../models/requisiciones";
+import type { ansRequisicion, ansRequisionErrors } from "../../../../models/Requisiciones/requisiciones";
 
 export const createDefaultANSState = (): ansRequisicion => ({
   AplicaVDPNuevo: false,

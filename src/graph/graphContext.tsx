@@ -45,6 +45,7 @@ import { HistorialRevisionCarpetasService } from "../Services/HistorialRevisionC
 import { PlantaIdealService } from "../Services/Requisiciones/PlantaIdeal.service";
 import { ZonasService } from "../Services/Zonas.service";
 import { ResponsablesZonasService } from "../Services/Requisiciones/ResponsablesZonas.service";
+import { ResponsablesNivelService } from "../Services/Requisiciones/ResponsablesNivel.service";
 
 
 /* ================== Tipos de config ================== */
@@ -218,6 +219,7 @@ export type GraphServices = {
 
   zona: ZonasService
   responsableZonas: ResponsablesZonasService
+  responsablesNivel: ResponsablesNivelService
 };
 
 /* ================== Contexto ================== */
@@ -434,6 +436,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
     
     const zona                   = new ZonasService(graph)
     const responsableZonas        = new ResponsablesZonasService(graph)
+    const responsablesNivel      = new ResponsablesNivelService(graph)  
 
     return {
       graph,
@@ -471,7 +474,7 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
       //Control Carpetas
       controlRevisionCarpetas, historialRevisionCarpetas,
       //Zonas
-      zona, responsableZonas
+      zona, responsableZonas, responsablesNivel
     };
   }, [graph, cfg]);
 

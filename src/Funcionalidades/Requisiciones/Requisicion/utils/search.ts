@@ -1,4 +1,4 @@
-import type { requisiciones } from "../../../../models/requisiciones";
+import type { requisiciones } from "../../../../models/Requisiciones/requisiciones";
 import { norm } from "../../../../utils/text";
 
 export function includesSearch(row: requisiciones, q: string) {

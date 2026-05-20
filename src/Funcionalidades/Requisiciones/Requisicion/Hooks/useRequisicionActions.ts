@@ -1,13 +1,16 @@
 import React from "react";
 import { useGraphServices } from "../../../../graph/graphContext";
 import { validate } from "../utils/requisicionValidation";
-import type { requisiciones, RequisicionesErrors } from "../../../../models/requisiciones";
+import type { requisiciones, RequisicionesErrors } from "../../../../models/Requisiciones/requisiciones";
 import { fetchHolidays } from "../../../../Services/Festivos";
 import { calcularFechaSolucionRequisicion, startDateByCutoff } from "../../../../utils/ansRequisicion";
 import type { Holiday } from "festivos-colombianos";
 import { toGraphDateTime } from "../../../../utils/Date";
 import { buildRequisicionesPatch } from "../utils/requisicionPatch";
 import { chooseFinalResponsible } from "../utils/requisicionResponsible";
+import { lookPlantaIdeal } from "../utils/requisicionesGetPlantaIdeal";
+import { getContractsByCO } from "../../../../Services/Requisiciones/VistaContratos.Service";
+import { useNotifyRequisiciones } from "./useRequisicionNotifications";
 
 type Props = {
   state: requisiciones;
@@ -16,6 +19,7 @@ type Props = {
 
 export function useRequisicionesActions({ state, setErrors }: Props) {
   const [loading, setLoading] = React.useState<boolean>(false)
+  const notifications = useNotifyRequisiciones()
   const graph = useGraphServices()
 
   const validateResult = () => {
@@ -24,6 +28,34 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
     setErrors(e)
 
     return Object.keys(e).length === 0;
+  };
+
+  const sendNotificationPlantaIdeal = async (co: string, motivo: string, nombreTienda: string): Promise<{message: string | null, sent: boolean}> => {
+    setLoading(true);
+    try {
+      const [plantaIdeal, resultado] = await Promise.all([
+        lookPlantaIdeal(graph.plantaIdeal, co),
+        getContractsByCO(co)
+      ]);
+      console.log(plantaIdeal)
+      console.log(resultado)
+
+      if(plantaIdeal ?? 0 <= Number(resultado.lenght?? 0)){
+        await notifications.notificarMotivo(motivo, co, nombreTienda)
+      }
+
+      return{
+        message: "Se ha enviado con exito la advertencia",
+        sent: true
+      }
+    }catch (e){
+      return {
+        message: "No se ha podido enviar la advertencia " + e,
+        sent: false        
+        }
+      }finally {
+        setLoading(false);
+      }
   };
 
 
@@ -35,19 +67,26 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
         ok: false        
       }
     };
-    console.log(state)
+    const payload = state
     setLoading(true);
     try {
+      const categoriaCargo = (await graph.categorias.getAll({ filter: `fields/Title eq '${state.Title}'`, top: 1 }))[0]
       const holidays: Holiday[] = await fetchHolidays()
       const fechaInicio = startDateByCutoff(new Date(), holidays)
       const fechaFinal = calcularFechaSolucionRequisicion(fechaInicio, ans, holidays)
-      const responsable = await chooseFinalResponsible(graph.DeptosYMunicipios, graph.responsableZonas, state.Ciudad, state.tipoRequisicion as 'Administrativa' | 'Retail')
+      const responsable = await chooseFinalResponsible(
+        graph.DeptosYMunicipios,
+        graph.responsableZonas,
+        graph.responsablesNivel,
+        graph.requisiciones,
+        state.Ciudad,
+        state.tipoRequisicion as "Administrativa" | "Retail",
+        categoriaCargo?.Categoria || state.NivelCargo
+      )
       const payload: requisiciones = {
         cedulaEmpleadoVinculado: state.cedulaEmpleadoVinculado,
         ANS: String(ans),
-        Area: state.Area,
         Ciudad: state.Ciudad,
-        cantidadPersonas: Number(state.cantidadPersonas ?? 0),
         codigoCentroCosto: state.codigoCentroCosto,
         codigoCentroOperativo: state.codigoCentroOperativo,
         codigoUnidadNegocio: String(state.codigoUnidadNegocio),
@@ -56,25 +95,20 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
         correoSolicitante: state.correoSolicitante,
         cumpleANS: state.cumpleANS,
         descripcionCentroCosto: state.descripcionCentroCosto,
-        descripcionCentroOperativo: state.descripcionCentroOperativo,
         descripcionUnidadNegocio: state.descripcionUnidadNegocio,
         diasHabiles: Number(ans),
         fechaIngreso: toGraphDateTime(state.fechaIngreso) ?? null,
         fechaInicioProceso: toGraphDateTime(fechaInicio) ?? null,
         fechaLimite: toGraphDateTime(fechaFinal) ?? null,
         genero: state.genero,
-        marca: state.marca,
         motivo: state.motivo,
         nombreProfesional: responsable?.name || '',
-        observacionesSalario: state.observacionesSalario,
-        razon: state.razon,
         salarioBasico: state.salarioBasico,
         solicitante: state.solicitante,
         tienda: state.tienda,
         tipoConvocatoria: state.tipoConvocatoria,
         tipoRequisicion: state.tipoRequisicion,
         Title: state.Title,
-        Created: state.Created,
         auxilioRodamiento: state.auxilioRodamiento,
         direccion: state.direccion,
         grupoCVE: state.grupoCVE,
@@ -87,6 +121,7 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
         motivoNoCumplimiento: state.motivoNoCumplimiento,
         nombreEmpleadoVinculado: state.nombreEmpleadoVinculado,
         nuevoPromocion: state.nuevoPromocion,
+        NivelCargo: categoriaCargo?.Categoria || state.NivelCargo
       }; 
       const created = await graph.requisiciones.create(payload);
       alert("Se ha creado el registro con éxito")
@@ -100,8 +135,11 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
         ok: false        
       }
     }finally {
-        setLoading(false);
+      setLoading(false);
+      if(payload.tipoRequisicion === "Retail"){
+        await sendNotificationPlantaIdeal(state.codigoCentroCosto, state.motivo, state.descripcionCentroCosto)
       }
+    }
   };
 
   const handleEdit = async (requisicionSeleccionada: requisiciones) => {
@@ -136,7 +174,7 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
   }
 
   return {
-    loading, state, handleSubmit, handleEdit, cancelarBD
+    loading, state, handleSubmit, handleEdit, cancelarBD, sendNotificationPlantaIdeal
   }
 }
 

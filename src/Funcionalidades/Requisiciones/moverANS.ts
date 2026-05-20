@@ -1,6 +1,6 @@
 import React from "react";
 import type { DateRange, SortDir, SortField, } from "../../models/Commons";
-import type { moverAns, moverANSErrors, requisiciones, } from "../../models/requisiciones";
+import type { moverAns, moverANSErrors, requisiciones, } from "../../models/Requisiciones/requisiciones";
 import type { MoverANSService } from "../../Services/moverAns.service";
 import { toISODateTimeFlex } from "../../utils/Date";
 

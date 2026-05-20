@@ -1,6 +1,6 @@
 import React from "react";
 import type { DateRange, SortDir, SortField, } from "../../models/Commons";
-import type { cargoCiudadAnalista, cargoCiudadAnalistaErrors, } from "../../models/requisiciones";
+import type { cargoCiudadAnalista, cargoCiudadAnalistaErrors, } from "../../models/Requisiciones/requisiciones";
 import type { cargoCiudadAnalistaService } from "../../Services/cargoCiudadAnalista.service";
 
 export function useCargoCiudadAnalista(requisicionSvc: cargoCiudadAnalistaService,) {

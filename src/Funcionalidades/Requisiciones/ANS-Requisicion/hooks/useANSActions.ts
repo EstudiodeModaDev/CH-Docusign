@@ -3,7 +3,7 @@ import React from "react";
 import { buildEditANSPayload } from "../utils/ansPayloads";
 import { ANS_MESSAGES } from "../utils/ansMessages";
 import type { AnsRequisicionService } from "../../../../Services/Ans.service";
-import type { ansRequisicion } from "../../../../models/requisiciones";
+import type { ansRequisicion } from "../../../../models/Requisiciones/requisiciones";
 
 type UseANSActionsParams = {
   service: AnsRequisicionService;

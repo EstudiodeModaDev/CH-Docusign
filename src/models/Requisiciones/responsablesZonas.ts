@@ -5,3 +5,10 @@ export type resposableZonas = {
     zonaId: string;
     
 }
+
+export type responsablesNivel = {
+    Id?: string;
+    Title: string;
+    correoResponsable: string;
+    NivelCargo: string;   
+}

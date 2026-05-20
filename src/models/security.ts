@@ -8,7 +8,7 @@ export const FEATURES = {
   Promociones: ["promociones.inactivate", "promociones.add", "promociones.delete", "promociones.edit", "promociones.view",],
   Retail: ["retail.inactivate", "retail.add", "retail.delete", "retail.edit", "retail.view",],
   Reportes: ["reports.view"],
-  Requisiciones: ["requisiciones.viewAll"],
+  Requisiciones: ["requisiciones.viewAll", "requisiciones.view", "requisiciones.add"],
   Accesos: ["acess.view"]
 } as const;
 
@@ -36,6 +36,9 @@ export const FEATURE_LABELS: Record<FeatureKey, string> = {
   "documents.edit": "Editar",
   "documents.send": "Enviar",
   "documents.retirement": "Retiro",
+  "documents.delete": "Eliminar documentos",
+  "documents.check": "Enviar a revisión",
+  "documents.approve": "Aprobar carpeta",
 
   "habeas.view": "Ver",
   "habeas.add": "Crear",
@@ -63,10 +66,11 @@ export const FEATURE_LABELS: Record<FeatureKey, string> = {
   "reports.view": "Ver reportes",
 
   "requisiciones.viewAll": "Ver todas las requisiciones",
+  "requisiciones.view": "Ver requisiciones",
+  "requisiciones.add": "Crear requisiciones",
+
   "acess.view": "Administrar accesos",
-  "documents.delete": "Eliminar documentos",
-  "documents.check": "Enviar a revisión",
-  "documents.approve": "Aprobar carpeta",
+
 };
 
 export type AppPermissionRow = {

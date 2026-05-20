@@ -1,5 +1,5 @@
 import React from "react";
-import type { requisiciones, RequisicionesErrors } from "../../../../models/requisiciones";
+import type { requisiciones, RequisicionesErrors } from "../../../../models/Requisiciones/requisiciones";
 import type { SortDir, SortField } from "../../../../models/Commons";
 import { cleanStateRequisicion } from "../utils/requisicionState";
 import { useAuth } from "../../../../auth/authProvider";

@@ -51,6 +51,7 @@ type Props = {
 /* ================== Formulario ================== */
 export default function FormHabeas({sending, title, setState, selectedHabeasData, handleEdit, tipo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, deptoOptions, loadingDepto, onClose, state, setField, handleSubmit, errors, loadFirstPage }: Props) {
   const isView = tipo === "view"
+  const modeLabel = tipo === "new" ? "Nueva solicitud" : isView ? "Consulta" : "Edicion";
 
   const [selectedDepto, setSelectedDepto] = React.useState<string>("");
   const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>("");
@@ -128,7 +129,22 @@ export default function FormHabeas({sending, title, setState, selectedHabeasData
   return (
     <div className="ft-modal-backdrop">
       <section className="ft-scope ft-card" role="region" aria-labelledby="ft_title">
-        <h2 id="ft_title" className="ft-title">{title}</h2>
+        <header className="ft-header">
+          <div className="ft-header__main">
+            <span className="ft-kicker">Gestor documental</span>
+            <h2 id="ft_title" className="ft-title">{title}</h2>
+            <p className="ft-subtitle">
+              Registra la autorizacion de tratamiento de datos en una vista clara, compacta y consistente con el resto de formularios.
+            </p>
+          </div>
+
+          <div className="ft-header__meta">
+            <span className="ft-pill">{modeLabel}</span>
+            <span className={`ft-pill ${isView ? "ft-pill--muted" : ""}`}>
+              {isView ? "Solo lectura" : "Edicion habilitada"}
+            </span>
+          </div>
+        </header>
 
         <form className="ft-form" noValidate>
 

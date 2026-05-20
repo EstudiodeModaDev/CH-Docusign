@@ -1,6 +1,6 @@
 import type { GraphRest } from "../graph/graphRest";
 import type { GetAllOpts } from "../models/Commons";
-import type { moverAns } from "../models/requisiciones";
+import type { moverAns } from "../models/Requisiciones/requisiciones";
 import { esc } from "../utils/text";
 
 export class MoverANSService {

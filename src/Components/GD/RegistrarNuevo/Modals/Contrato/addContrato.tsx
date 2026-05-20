@@ -140,6 +140,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
   const [porcentajeCompletacion, setPorcetanjeCompletacion] = React.useState<number>(0);
   const [cancelProcess, setCancelProcess] = React.useState<boolean>(false);
   const [flow, setFlow] = React.useState<boolean>(false)
+  const progressValue = Math.max(0, Math.min(100, Number(porcentajeCompletacion) || 0));
 
   const { account } = useAuth();
   const today = getTodayLocalISO();
@@ -444,7 +445,29 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                   loadDetalles={() => loadDetallesNovedades()} 
                   proceso={"Nuevo"}/> :
         <>
-          <h2 id="ft_title" className="ft-title">{title} {(tipo === "edit" || isView) ? ` - ${porcentajeCompletacion}` : null}</h2>
+          <header className="ft-header">
+            <div className="ft-header__main">
+              <span className="ft-kicker">Gestor documental</span>
+              <h2 id="ft_title" className="ft-title">{title}</h2>
+              <p className="ft-subtitle">
+                Organiza la informacion del colaborador con una vista mas clara, moderna y alineada con los tokens de la aplicacion.
+              </p>
+            </div>
+
+            <div className="ft-header__meta">
+              {(tipo === "edit" || isView) ? (
+                <div className="ft-progress" aria-label={`Progreso del proceso: ${progressValue}%`}>
+                  <div className="ft-progress__label">
+                    <span>Avance del proceso</span>
+                    <strong>{progressValue}%</strong>
+                  </div>
+                  <div className="ft-progress__track" aria-hidden="true">
+                    <span className="ft-progress__value" style={{ width: `${progressValue}%` }} />
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </header>
 
           <form className="ft-form" noValidate>
 

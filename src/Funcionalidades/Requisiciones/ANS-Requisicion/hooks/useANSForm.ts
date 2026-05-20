@@ -2,7 +2,7 @@ import React from "react";
 
 import { createDefaultANSErrors, createDefaultANSState,} from "../utils/ansDefaults";
 import { isANSFormValid, validateANSForm } from "../utils/ansValidation";
-import type { ansRequisicion, ansRequisionErrors } from "../../../../models/requisiciones";
+import type { ansRequisicion, ansRequisionErrors } from "../../../../models/Requisiciones/requisiciones";
 
 export function useANSForm() {
   const [state, setState] = React.useState<ansRequisicion>(createDefaultANSState());

@@ -1,294 +1,205 @@
 import * as React from "react";
-import type { DateRange } from "../../../models/Commons";
 import type { desplegablesOption } from "../../../models/Desplegables";
-import type { requisiciones } from "../../../models/requisiciones";
+import type { requisiciones } from "../../../models/Requisiciones/requisiciones";
 import { spDateToDDMMYYYY, toISODateFlex } from "../../../utils/Date";
-import "./tablaRequisiciones.css";
+import "./tablaRequisiciones.css"
+import { useRequisicion } from "../../../Funcionalidades/Requisiciones/Requisicion/Hooks/requisicion";
+import FiltersRequisicionesTable from "./filtersRequisicionesTable";
 
 type Props = {
-  rows: requisiciones[];
-
-  id: string;
-  estado: string;
-  cargo: string;
-  rango: DateRange;
-  cumple: string;
-  ciudad: string;
-  analista: string;
-
-  setId: (id: string) => void;
-  setEstado: (estado: string) => void;
-  setCargo: (cargo: string) => void;
-  setRange: (next: DateRange) => void;
-  setCumple: (cumple: string) => void;
-  setCiudad: (ciudad: string) => void;
-  setAnalista: (analista: string) => void;
-
   cargoOptions: desplegablesOption[];
-  ciudadOptions: desplegablesOption[];
-
-  labels?: Partial<{
-    id: string;
-    estado: string;
-    cargo: string;
-    ciudad: string;
-    analista: string;
-    cumpleANS: string;
-    fechaDesde: string;
-    fechaHasta: string;
-  }>;
-
   onOpenRow: (row: requisiciones) => void;
-
   className?: string;
   emptyText?: string;
 };
 
+type RowTone = "active" | "closed" | "cancel" | "neutral";
+
+type RowViewModel = {
+  row: requisiciones;
+  id: string;
+  estadoLabel: string;
+  tone: RowTone;
+  cargoLine: string;
+  ciudad: string;
+  analista: string;
+  solicitante: string;
+  cumpleLabel: string;
+  ansTone: "ok" | "bad" | "wait";
+  fechaInicio: string;
+  fechaLimite: string;
+  urgencyLabel: string;
+  urgencyTone: "danger" | "warn" | "muted" | "ok";
+};
+
+type seguimiento = {
+  urgencyLabel: string;
+  urgencyTone: "danger" | "warn" | "muted" | "ok";
+  tone: RowTone;
+};
+
 export default function RequisicionesBoard(props: Props) {
-  const {rows, id, estado, cargo, rango, cumple, ciudad, analista,  setId, setEstado, setCargo, setRange, setCumple, setCiudad, setAnalista, cargoOptions, ciudadOptions, onOpenRow, className, emptyText = "No hay requisiciones para los filtros seleccionados.",} = props;
+  const {
+    cargoOptions, onOpenRow, className, emptyText = "No hay requisiciones para los filtros seleccionados.",} = props;
 
-  const L = {
-    id: "ID",
-    estado: "Estado",
-    cargo: "Cargo",
-    ciudad: "Ciudad",
-    analista: "Analista",
-    cumpleANS: "¿Cumple ANS?",
-    fechaDesde: "Fecha desde",
-    fechaHasta: "Fecha hasta",
-    ...(props.labels ?? {}),
-  };
+  const  requisicionesController = useRequisicion()
 
-  const cumpleAnsOptions: desplegablesOption[] = [
-    { value: "all", label: "*Todos*" },
-    { value: "Si", label: "Sí" },
-    { value: "No", label: "Sí" },
-    { value: "pendiente", label: "Pendiente" },
-  ];
+  const stats = React.useMemo(() => {
+    let active = 0;
+    let closed = 0;
+    let cancel = 0;
+    let overdue = 0;
 
-  const estadoOptions: desplegablesOption[] = [
-    { value: "all", label: "*Todos*" },
-    { value: "Activo", label: "Activo" },
-    { value: "Cancelado", label: "Cancelado" },
-    { value: "Cerrado", label: "Cerrado" },
-  ];
+    for (const item of requisicionesController.rows) {
+      if (calcDayDifference(item).tone === "active") active += 1;
+      if (calcDayDifference(item).tone === "closed") closed += 1;
+      if (calcDayDifference(item).tone=== "cancel") cancel += 1;
+      if (calcDayDifference(item).urgencyTone === "danger") overdue += 1;
+    }
 
-  const analistaFilterOptions: desplegablesOption[] = React.useMemo(() => {
-    const set = new Set<string>();
-    (rows ?? []).forEach((r) => {
-      const name = String((r as any)?.nombreProfesional ?? "").trim();
-      if (name) set.add(name);
-    });
-    return Array.from(set)
-      .sort((a, b) => a.localeCompare(b, "es"))
-      .map((name) => ({ value: name, label: name }));
-  }, [rows]);
-
-  const cargoOptionsWithAll = React.useMemo<desplegablesOption[]>(
-    () => [{ value: "all", label: "*Todos*" }, ...(cargoOptions ?? [])],
-    [cargoOptions]
-  );
-
-  const ciudadOptionsWithAll = React.useMemo<desplegablesOption[]>(
-    () => [{ value: "all", label: "*Todos*" }, ...(ciudadOptions ?? [])],
-    [ciudadOptions]
-  );
+    return { total: requisicionesController.rows.length, active, closed, cancel, overdue };
+  }, [requisicionesController.rows]);
 
   return (
-    <div className={`rb-wrap ${className ?? ""}`.trim()}>
-      {/* FILTERS */}
-      <section className="rb-filters rb-filters--layout" aria-label="Filtros requisiciones">
-        <div className="rb-field rb-a-id">
-          <label className="rb-label">{L.id}</label>
-          <input type="number" className="rb-input" value={id} placeholder="Ingrese ID" onChange={(e) => setId(e.target.value)}/>
-        </div>
+    <div className={`rb-shell ${className ?? ""}`.trim()}>
+      <section className="rb-toolbar" aria-label="Resumen y filtros">
+        <div className="rb-toolbar__top">
+          <div>
+            <span className="rb-section-tag">Listado</span>
+            <h2 className="rb-section-title">Requisiciones</h2>
+            <p className="rb-section-copy">Vista tabular para seguimiento operativo con filtros compactos y lectura rapida.</p>
+          </div>
 
-        <div className="rb-field rb-a-cargo">
-          <label className="rb-label">{L.cargo}</label>
-          <select className="rb-select" value={cargo} onChange={(e) => setCargo(e.target.value)}>
-            {cargoOptionsWithAll.map((o) => (
-              <option key={String(o.value)} value={String(o.label)}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="rb-field rb-a-desde">
-          <label className="rb-label">{L.fechaDesde}</label>
-          <div className="rb-date">
-            <input className="rb-input" type="date" value={String(rango?.from ?? "")} onChange={(e) => setRange({ ...rango, from: e.target.value })}/>
+          <div className="rb-stats-inline" role="list" aria-label="Metricas rapidas">
+            <StatPill label="Total" value={stats.total} tone="neutral" />
+            <StatPill label="Activas" value={stats.active} tone="success" />
+            <StatPill label="Retraso" value={stats.overdue} tone="danger" />
+            <StatPill label="Cerradas" value={stats.closed} tone="info" />
+            <StatPill label="Canceladas" value={stats.cancel} tone="warn" />
           </div>
         </div>
 
-        <div className="rb-field rb-a-hasta">
-          <label className="rb-label">{L.fechaHasta}</label>
-          <div className="rb-date">
-            <input className="rb-input" type="date" value={String(rango?.to ?? "")} onChange={(e) => setRange({ ...rango, to: e.target.value })}/>
-          </div>
-        </div>
-
-        <div className="rb-field rb-a-cumple">
-          <label className="rb-label">{L.cumpleANS}</label>
-          <select className="rb-select" value={cumple} onChange={(e) => setCumple(e.target.value)}>
-            {cumpleAnsOptions.map((o) => (
-              <option key={String(o.value)} value={String(o.value)}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="rb-field rb-a-ciudad">
-          <label className="rb-label">{L.ciudad}</label>
-          <select className="rb-select" value={ciudad} onChange={(e) => setCiudad(e.target.value)}>
-            {ciudadOptionsWithAll.map((o) => (
-              <option key={String(o.value)} value={String(o.value)}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="rb-field rb-a-analista">
-          <label className="rb-label">{L.analista}</label>
-          <select className="rb-select" value={analista} onChange={(e) => setAnalista(e.target.value)}>
-            <option value="all">*Todos*</option>
-            {analistaFilterOptions.map((o) => (
-              <option key={String(o.value)} value={String(o.value)}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="rb-field rb-a-estado">
-          <label className="rb-label">{L.estado}</label>
-          <select className="rb-select" value={estado} onChange={(e) => setEstado(e.target.value)}>
-            {estadoOptions.map((o) => (
-              <option key={String(o.value)} value={String(o.value)}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <FiltersRequisicionesTable 
+          cargoOptions={cargoOptions} 
+          rows={requisicionesController.rows} 
+          setSearch={requisicionesController.setSearch} 
+          setEstado={requisicionesController.setEstado} 
+          setCargo={requisicionesController.setCargo} 
+          setCiudad={requisicionesController.setCiudad} 
+          setAnalista={requisicionesController.setAnalista} 
+          setMes={requisicionesController.setMes} 
+          search={requisicionesController.search} 
+          estado={requisicionesController.estado} 
+          cargo={requisicionesController.cargo} 
+          ciudad={requisicionesController.ciudad} 
+          analista={requisicionesController.analista} 
+          mes={requisicionesController.mes} 
+        />
       </section>
 
-      {/* LIST */}
-      <section className="rb-list" aria-label="Listado requisiciones">
-        {rows.length === 0 ? (
-          <div className="rb-empty">{emptyText}</div>
+      <section className="rb-table-wrap" aria-label="Tabla de requisiciones">
+        {requisicionesController.rows.length === 0 ? (
+          <div className="rb-empty">
+            <strong>Sin coincidencias</strong>
+            <p>{emptyText}</p>
+          </div>
         ) : (
-          rows.map((r) => {
-            const tone = getToneByEstado(String((r as any).Estado ?? (r as any).estado ?? ""));
-            const cumpleStr = String((r as any).cumpleANS ?? "").trim().toLowerCase();
-
-            const showAns = cumpleStr !== "" && cumpleStr !== "pendiente";
-            const ansOk = cumpleStr === "si" || cumpleStr === "sí" || cumpleStr === "true";
-            const ansNo = cumpleStr === "no" || cumpleStr === "false" || cumpleStr === "0";
-            const showDias = r.Estado.toLocaleLowerCase() === "Activo";
-            const hoy = new Date();
-            hoy.setHours(0, 0, 0, 0);
-
-            const limite = new Date(toISODateFlex(r.fechaLimite));
-            limite.setHours(0, 0, 0, 0);
-
-            const msPorDia = 1000 * 60 * 60 * 24;
-
-            const diffDias = Math.round((+limite - +hoy) / msPorDia); 
-            // >0: faltan días, <0: atraso, 0: hoy
-
-            let texto = "";
-            if (r.Estado === "Activo") {
-              if (diffDias < 0) {
-                texto = `${Math.abs(diffDias)} días de retraso!`;
-              } else {
-                texto = `Quedan ${diffDias} días!`;
-              }
-            }
-
-            const idRow = String((r as any).Id ?? (r as any).ID ?? "");
-            const estadoRow = r.Estado
-            const correo = String((r as any).correoSolicitante ?? (r as any)["Mail solicitante"] ?? "");
-            const cargoRow = String((r as any).Title ?? "") +  " EN " + r.Ciudad.toUpperCase();
-            const fIni = spDateToDDMMYYYY((r as any).fechaInicioProceso) ?? "—";
-            const fLim = spDateToDDMMYYYY((r as any).fechaLimite) ?? "—";
-
-            return (
-              <button key={idRow || crypto.randomUUID()} type="button" className={`rb-row rb-tone-${tone}`} onClick={() => onOpenRow(r)} title="Ver detalle">
-                <div className="rb-row__main">
-                  <div className="rb-row__left">
-                    <div className="rb-row__id">
-                      <span className="rb-row__idlabel">ID:</span> {idRow || "—"}{" "}
-                      <span className="rb-row__estado">{estadoRow || "—"}</span>
-                    </div>
-
-                    <div className="rb-row__meta">
-                      <div className="rb-row__metaCol">
-                        <div>
-                          <span className="rb-row__metaLabel">Fecha inicio:</span>{" "}
-                          <span className="rb-row__metaVal">{fIni}</span>
-                        </div>
-                        <div>
-                          <span className="rb-row__metaLabel">Correo:</span>{" "}
-                          <span className="rb-row__metaVal">{correo || "—"}</span>
-                        </div>
-                      </div>
-
-                      <div className="rb-row__metaCol">
-                        <div className="rb-row__cargo">{cargoRow || "—"}</div>
-                        <div>
-                          <span className="rb-row__metaLabel">Fecha límite:</span>{" "}
-                          <span className="rb-row__metaVal">{fLim}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rb-row__right">
-                    <div className="rb-row__ans">
-                      {!showAns ? (
-                        <span className="rb-emoji rb-emoji--na" aria-label="Pendiente">
-                          {texto}
-                        </span>
-                      ) : ansOk ? (
-                        <span className="rb-emoji rb-emoji--ok" aria-label="Cumple ANS">
-                          🙂
-                        </span>
-                      ) : ansNo ? (
-                        <span className="rb-emoji rb-emoji--bad" aria-label="No cumple ANS">
-                          🙁
-                        </span>
-                      ) : (
-                        <span className="rb-emoji rb-emoji--na" aria-label="Sin dato">
-                          —
-                        </span>
-                      )}
-
-                      {!showDias ? (
-                        <span className="rb-emoji rb-emoji--na" aria-label="Pendiente">
-                          
-                        </span>
-                      ) : (
-                        null
-                      )}
-                    </div>
-
-                    <div className="rb-row__arrow" aria-hidden>
-                      ❯
-                    </div>
-                  </div>
-                </div>
-              </button>
-            );
-          })
+          <div className="rb-table-scroll">
+            <table className="rb-table">
+              <thead>
+                <tr>
+                  <th>{"ID"}</th>
+                  <th>{"Fase"}</th>
+                  <th>{"Cargo"}</th>
+                  <th>{"Analista"}</th>
+                  <th>Solicitante</th>
+                  <th>{"Fecha inicio"}</th>
+                  <th>{"Fecha hasta"}</th>
+                  <th>Seguimiento</th>
+                </tr>
+              </thead>
+              <tbody>
+                {requisicionesController.rows.map((item) => (
+                  <tr key={item.Id} className={`rb-tr rb-tr--${calcDayDifference(item).tone}`} onClick={() => onOpenRow(item)}>
+                    <td>
+                      <span className="rb-id">#{item.Id || "—"}</span>
+                    </td>
+                    <td>
+                      {/*TODO: INtegrar la fase segun el checklist*/}
+                    </td>
+                    <td>
+                      <div className="rb-cell-main">{item.Title}</div>
+                    </td>
+                    <td>{item.nombreProfesional || "Sin asignar"}</td>
+                    <td className="rb-break">{item.solicitante || "—"}</td>
+                    <td>{spDateToDDMMYYYY(item.fechaInicioProceso)}</td>
+                    <td>{spDateToDDMMYYYY(item.fechaLimite)}</td>
+                    <td>
+                      <span className={`rb-chip rb-chip--${calcDayDifference(item).urgencyTone}`}>{calcDayDifference(item).urgencyLabel}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </div>
   );
 }
 
-function getToneByEstado(estado: string) {
+
+function StatPill({ label, value, tone }: { label: string; value: number; tone: "neutral" | "success" | "danger" | "info" | "warn" }) {
+  return (
+    <div className={`rb-stat-pill rb-stat-pill--${tone}`} role="listitem">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+
+function calcDayDifference(row: requisiciones): seguimiento {
+  const estado = String(row.Estado ?? "").trim();
+  const tone = getToneByEstado(estado);
+
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  const limite = new Date(toISODateFlex(row.fechaLimite));
+  limite.setHours(0, 0, 0, 0);
+
+  const msPorDia = 1000 * 60 * 60 * 24;
+  const diffDias = Number.isNaN(limite.getTime()) ? null : Math.round((+limite - +hoy) / msPorDia);
+
+  let urgencyLabel = "Sin fecha limite";
+  let urgencyTone: RowViewModel["urgencyTone"] = "muted";
+
+  if (tone !== "cancel" && tone !== "closed" && diffDias !== null) {
+    if (diffDias < 0) {
+      urgencyLabel = `${Math.abs(diffDias)} dias retraso`;
+      urgencyTone = "danger";
+    } else if (diffDias <= 2) {
+      urgencyLabel = diffDias === 0 ? "Vence hoy" : `Vence en ${diffDias} dias`;
+      urgencyTone = "warn";
+    } else {
+      urgencyLabel = `${diffDias} dias restantes`;
+      urgencyTone = "ok";
+    }
+  } else if (tone === "closed") {
+    urgencyLabel = "Cerrada";
+  } else if (tone === "cancel") {
+    urgencyLabel = "Cancelada";
+  }
+
+  return {
+    urgencyLabel,
+    urgencyTone,
+    tone
+  };
+}
+
+function getToneByEstado(estado: string): RowTone {
   const s = String(estado ?? "").trim().toLowerCase();
   if (s.includes("cancel")) return "cancel";
   if (s.includes("cerr")) return "closed";

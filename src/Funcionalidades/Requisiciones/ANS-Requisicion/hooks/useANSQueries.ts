@@ -1,6 +1,6 @@
 import React from "react";
 import { ANS_MESSAGES } from "../utils/ansMessages";
-import type { ansRequisicion } from "../../../../models/requisiciones";
+import type { ansRequisicion } from "../../../../models/Requisiciones/requisiciones";
 import type { AnsRequisicionService } from "../../../../Services/Ans.service";
 
 type UseANSQueriesParams = {

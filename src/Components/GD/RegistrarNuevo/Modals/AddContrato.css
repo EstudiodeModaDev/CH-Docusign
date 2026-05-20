@@ -1,194 +1,430 @@
-/* =========================
-   Backdrop del modal
-   ========================= */
 .ft-modal-backdrop {
   position: fixed;
   inset: 0;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 16px;
-  background: var(--surface);
-  backdrop-filter: blur(4px);
+  padding: 20px;
+  background:
+    radial-gradient(1200px 520px at 0% 0%, color-mix(in oklab, var(--primary) 14%, transparent) 0%, transparent 60%),
+    radial-gradient(900px 480px at 100% 0%, color-mix(in oklab, var(--ink) 10%, transparent) 0%, transparent 65%),
+    color-mix(in oklab, var(--surface) 74%, black 26%);
+  backdrop-filter: blur(10px);
   z-index: 999;
   overflow-y: auto;
 }
 
-/* =========================
-   Tarjeta / contenedor modal
-   ========================= */
 .ft-scope.ft-card {
-  --ft-radius: 18px;
-  --ft-pad: 18px;
-  --ft-gap: 14px;
-  --ft-border: 1px solid rgba(148, 163, 184, 0.45);
+  --ft-radius: var(--radius-3xl, 26px);
+  --ft-pad: 22px;
+  --ft-gap: 16px;
+  --ft-border: 1px solid color-mix(in oklab, var(--primary) 20%, var(--bd) 80%);
 
-  width: min(1040px, 100%);
-  max-height: calc(100vh - 32px);
-
-  background: #ffffff;
-  color: #0f172a;
-  border-radius: var(--ft-radius);
-  border: var(--ft-border);
-  box-shadow:
-    0 22px 45px rgba(15, 23, 42, 0.26),
-    0 0 0 1px rgba(15, 23, 42, 0.03);
-
+  position: relative;
+  width: min(1220px, 100%);
+  max-height: calc(100vh - 40px);
   display: flex;
   flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
   padding: var(--ft-pad);
-  overflow: hidden; /* el scroll va dentro del form */
+  border-radius: var(--ft-radius);
+  border: var(--ft-border);
+  color: var(--ink);
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--surface) 94%, transparent), var(--surface)),
+    var(--surface);
+  box-shadow: var(--shadow);
 }
 
-/* =========================
-   TÃ­tulos
-   ========================= */
-.ft-title {
-  margin: 0 0 10px;
-  font-size: 1.35rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+.ft-scope.ft-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 140px;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--primary) 22%, transparent), transparent 60%);
+  opacity: 0.9;
 }
 
-.ft-scope h3 {
-  margin: 18px 0 8px;
-  font-size: 0.98rem;
-  font-weight: 600;
+.ft-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 2px 4px 14px;
+  border-bottom: 1px solid color-mix(in oklab, var(--primary) 14%, var(--bd) 86%);
+}
+
+.ft-header__main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ft-kicker {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--primary) 24%, var(--bd) 76%);
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
+  color: color-mix(in oklab, var(--primary) 78%, var(--ink) 22%);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #475569;
 }
 
-/* H3 que debe ocupar toda la fila del grid */
+.ft-title {
+  margin: 0;
+  font-size: clamp(1.25rem, 1.05rem + 0.7vw, 1.8rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.ft-subtitle {
+  max-width: 680px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.ft-header__meta {
+  min-width: min(320px, 100%);
+  display: grid;
+  gap: 10px;
+  justify-items: stretch;
+}
+
+.ft-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--primary) 22%, var(--bd) 78%);
+  background: color-mix(in oklab, var(--surface-elev) 84%, var(--primary) 16%);
+  color: var(--ink);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.ft-pill--muted {
+  background: color-mix(in oklab, var(--surface-elev) 88%, var(--ink) 12%);
+  color: var(--muted);
+}
+
+.ft-progress {
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in oklab, var(--primary) 20%, var(--bd) 80%);
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--primary) 10%, transparent), transparent 70%),
+    color-mix(in oklab, var(--surface-elev) 88%, var(--surface) 12%);
+}
+
+.ft-progress__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.ft-progress__label strong {
+  color: var(--ink);
+  font-size: 0.98rem;
+}
+
+.ft-progress__track {
+  overflow: hidden;
+  height: 10px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--field-bg) 82%, transparent);
+  border: 1px solid color-mix(in oklab, var(--primary) 10%, var(--bd) 90%);
+}
+
+.ft-progress__value {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--primary) 78%, white 22%), var(--primary));
+  box-shadow: 0 10px 18px -12px color-mix(in oklab, var(--primary) 70%, transparent);
+}
+
 .full-fila {
   grid-column: 1 / -1;
 }
 
-/* =========================
-   Formulario interno (grid)
-   ========================= */
-.ft-form {
+.ft-scope h3 {
+  margin: 10px 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: color-mix(in oklab, var(--primary) 64%, var(--ink) 36%);
+}
+
+.ft-scope h3::before {
+  content: "";
+  width: 38px;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary), color-mix(in oklab, var(--primary) 20%, transparent));
+}
+
+.ft-scope h3::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--primary) 24%, var(--bd) 76%), transparent);
+}
+
+.ft-scope .ft-form {
+  position: relative;
+  z-index: 1;
   flex: 1 1 auto;
   min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 campos por fila */
-  gap: 14px 18px; /* filas / columnas */
+  width: 100%;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-auto-rows: max-content;
+  justify-items: stretch;
+  align-items: start;
+  gap: 16px;
   margin: 0;
-  padding: 4px 2px 0;
+  padding: 18px 4px 2px;
   overflow-y: auto;
   overscroll-behavior: contain;
   align-content: start;
-}
-
-/* Scrollbar discreta solo en el form */
-.ft-form::-webkit-scrollbar {
-  width: 6px;
-}
-.ft-form::-webkit-scrollbar-track {
   background: transparent;
 }
-.ft-form::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.9);
+
+.ft-scope .ft-form::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ft-scope .ft-form::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ft-scope .ft-form::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--muted) 50%, transparent);
   border-radius: 999px;
 }
 
-/* =========================
-   Campos
-   ========================= */
-.ft-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.ft-scope .ft-field {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: max-content;
+  align-content: start;
+  align-self: start;
+  justify-self: stretch;
+  gap: 7px;
+  padding: 0;
 }
 
-/* Si quieres que un campo ocupe la fila completa */
-.ft-field--full {
+.ft-scope .ft-field--full {
   grid-column: 1 / -1;
 }
 
 .ft-label {
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: #64748b;
-}
-
-.ft-native-select {
   display: block;
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: var(--radius, 8px);
-  border: 1px solid var(--bd, #ccd);
-  background: var(--surface, #fff);
-  color: var(--ink, #222);
-  font: inherit;
-  appearance: auto;          /* importantÃ­simo si habÃ­as tocado appearance */
-  opacity: 1;
-  height: auto;
-  position: static;
+  margin: 0;
+  padding-left: 2px;
+  line-height: 1.2;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  color: color-mix(in oklab, var(--ink) 82%, var(--muted) 18%);
 }
 
-
-/* Inputs base */
+.ft-native-select,
 .ft-field input[type="text"],
 .ft-field input[type="number"],
 .ft-field input[type="email"],
 .ft-field input[type="date"],
 .ft-field select {
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  padding: 8px 10px;
-  font-size: 0.9rem;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in oklab, var(--bd) 82%, var(--primary) 18%);
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--field-bg) 88%, white 12%), color-mix(in oklab, var(--field-bg) 96%, transparent));
+  color: var(--ink);
+  font: inherit;
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease,
-    background-color 0.15s ease;
-  background: #f8fafc;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, transform 0.16s ease;
+  appearance: auto;
+}
+
+.ft-field input::placeholder {
+  color: color-mix(in oklab, var(--muted) 78%, transparent);
 }
 
 .ft-field input:focus,
-.ft-field select:focus {
-  border-color: #0f766e;
-  box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.25);
-  background: #ffffff;
+.ft-field select:focus,
+.ft-native-select:focus {
+  border-color: color-mix(in oklab, var(--primary) 56%, var(--bd) 44%);
+  box-shadow: 0 0 0 4px var(--ring);
+  background: color-mix(in oklab, var(--surface) 90%, white 10%);
 }
 
-/* Errores */
+.ft-field input[readonly],
+.ft-field input:disabled,
+.ft-field select:disabled,
+.ft-native-select:disabled {
+  cursor: not-allowed;
+  color: color-mix(in oklab, var(--ink) 74%, var(--muted) 26%);
+  background: color-mix(in oklab, var(--surface-elev) 82%, var(--field-bg) 18%);
+}
+
 .ft-field small {
-  font-size: 0.78rem;
-  color: #b91c1c;
+  display: block;
+  min-height: 16px;
+  margin: 0;
+  padding-left: 2px;
+  line-height: 1.2;
+  font-size: 0.74rem;
+  color: color-mix(in oklab, #ef4444 72%, var(--ink) 28%);
 }
 
-/* =========================
-   Campos dobles dentro de un mismo field
-   (ej: porcentaje + valor de garantizado)
-   AÃ±ade la clase ft-field--pair al .ft-field
-   ========================= */
-.ft-field--pair {
+.ft-scope .ft-field--pair {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
-.ft-field--pair .ft-label {
-  grid-column: 1 / -1; /* label arriba de los dos campos */
+
+.ft-scope .ft-field--pair .ft-label {
+  grid-column: 1 / -1;
 }
 
-/* =========================
-   Radios
-   ========================= */
+.ft-scope .rs__control {
+  display: flex !important;
+  width: 100% !important;
+  min-height: 46px !important;
+  margin: 0 !important;
+  border-radius: 14px !important;
+  border-color: color-mix(in oklab, var(--bd) 82%, var(--primary) 18%) !important;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--field-bg) 88%, white 12%), color-mix(in oklab, var(--field-bg) 96%, transparent)) !important;
+  box-shadow: none !important;
+}
+
+.ft-scope .rs__control--is-focused {
+  border-color: color-mix(in oklab, var(--primary) 56%, var(--bd) 44%) !important;
+  box-shadow: 0 0 0 4px var(--ring) !important;
+  background: color-mix(in oklab, var(--surface) 90%, white 10%) !important;
+}
+
+.ft-scope .rs__value-container {
+  padding: 4px 10px !important;
+}
+
+.ft-scope .rs__single-value,
+.ft-scope .rs__input-container,
+.ft-scope .rs__menu,
+.ft-scope .rs__option,
+.ft-scope .rs__placeholder,
+.ft-scope .rs__multi-value__label {
+  color: var(--ink) !important;
+}
+
+.ft-scope .rs__placeholder {
+  color: color-mix(in oklab, var(--muted) 78%, transparent) !important;
+}
+
+.ft-scope .rs__indicator-separator {
+  background: color-mix(in oklab, var(--muted) 35%, transparent) !important;
+}
+
+.ft-scope .rs__multi-value {
+  border-radius: 999px !important;
+  background: color-mix(in oklab, var(--primary) 18%, transparent) !important;
+  border: 1px solid color-mix(in oklab, var(--primary) 20%, var(--bd) 80%) !important;
+}
+
+.ft-scope .rs__menu {
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--primary) 18%, var(--bd) 82%) !important;
+  border-radius: calc(var(--radius, 18px) - 4px) !important;
+  background: color-mix(in oklab, var(--surface) 96%, var(--surface-elev) 4%) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.ft-scope .rs__option--is-focused {
+  background: color-mix(in oklab, var(--primary) 10%, transparent) !important;
+}
+
+.ft-scope .rs__option--is-selected {
+  background: color-mix(in oklab, var(--primary) 16%, transparent) !important;
+  color: color-mix(in oklab, var(--primary) 68%, var(--ink) 32%) !important;
+}
+
+.rs-opt {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+.rs-opt__title {
+  font-weight: 600;
+}
+
 .ft-radio-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 18px;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .ft-radio-custom {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.88rem;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in oklab, var(--primary) 10%, var(--bd) 90%);
+  background: color-mix(in oklab, var(--field-bg) 90%, transparent);
   cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
 }
 
-/* ocultamos el input para dibujar el cÃ­rculo custom */
+.ft-radio-custom:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in oklab, var(--primary) 24%, var(--bd) 76%);
+}
+
+.ft-radio-custom:focus-within {
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
 .ft-radio-custom input {
   position: absolute;
   opacity: 0;
@@ -196,82 +432,123 @@
 }
 
 .ft-radio-custom .circle {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  border: 2px solid #cbd5f5;
+  border: 2px solid color-mix(in oklab, var(--primary) 26%, var(--bd) 74%);
+  background: transparent;
   box-sizing: border-box;
   position: relative;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.16s ease, background 0.16s ease;
 }
 
 .ft-radio-custom .text {
   font-size: 0.88rem;
-  color: #0f172a;
+  font-weight: 600;
+  color: var(--ink);
 }
 
-/* Estado checked usando el hermano anterior (input) */
 .ft-radio-custom input:checked + .circle {
-  border-color: #0f766e;
-  background: radial-gradient(circle at center, #0f766e 45%, transparent 47%);
+  border-color: var(--primary);
+  background: radial-gradient(circle at center, var(--primary) 48%, transparent 50%);
 }
 
-/* =========================
-   Footer de acciones
-   ========================= */
+.ft-radio-custom:has(input:checked) {
+  border-color: color-mix(in oklab, var(--primary) 42%, var(--bd) 58%);
+  background: linear-gradient(135deg, color-mix(in oklab, var(--primary) 12%, transparent), color-mix(in oklab, var(--field-bg) 86%, transparent));
+  box-shadow: 0 16px 28px -26px color-mix(in oklab, var(--primary) 70%, transparent);
+}
+
 .ft-actions {
-  margin-top: 12px;
-  padding-top: 10px;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-top: 16px;
+  padding: 16px 4px 2px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 8px;
-  background: linear-gradient(to top, #ffffff 75%, rgba(255, 255, 255, 0));
+  gap: 10px;
+  border-top: 1px solid color-mix(in oklab, var(--primary) 14%, var(--bd) 86%);
+  background:
+    linear-gradient(180deg, transparent, color-mix(in oklab, var(--surface) 92%, var(--surface-elev) 8%) 28%);
 }
 
 .ft-actions .btn {
+  min-height: 40px;
+  padding: 9px 16px;
   border-radius: 999px;
-  padding: 7px 14px;
-  font-size: 0.88rem;
-  border: 1px solid #cbd5e1;
-  background: #e2e8f0;
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease,
-    box-shadow 0.15s ease;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.ft-actions .btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 26px -22px color-mix(in oklab, var(--ink) 68%, transparent);
 }
 
 .ft-actions .btn-primary {
-  background: #0f766e;
-  border-color: #0f766e;
-  color: #f9fafb;
+  box-shadow: 0 16px 28px -24px color-mix(in oklab, var(--primary) 78%, transparent);
 }
 
-.ft-actions .btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
-}
+@media (max-width: 1280px) {
+  .ft-header {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
 
-/* =========================
-   Responsivo
-   ========================= */
-@media (max-width: 1024px) {
-  .ft-form {
+  .ft-header__meta {
+    min-width: 0;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
 
-@media (max-width: 640px) {
-  .ft-scope.ft-card {
-    width: 100%;
-    max-height: 95vh;
-    padding: 14px;
+  .ft-progress {
+    grid-column: 1 / -1;
   }
 
-  .ft-form {
+  .ft-scope .ft-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .ft-modal-backdrop {
+    padding: 10px;
+  }
+
+  .ft-scope.ft-card {
+    max-height: calc(100vh - 20px);
+    padding: 14px;
+    border-radius: calc(var(--radius, 18px) + 2px);
+  }
+
+  .ft-header {
+    gap: 14px;
+    padding-bottom: 14px;
+  }
+
+  .ft-header__meta {
     grid-template-columns: 1fr;
-    gap: 10px;
+  }
+
+  .ft-scope .ft-form {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+    padding-top: 14px;
+  }
+
+  .ft-scope .ft-field {
+    padding: 0;
+  }
+
+  .ft-scope .ft-field--pair {
+    grid-template-columns: 1fr;
   }
 
   .ft-actions {
-    justify-content: space-between;
+    justify-content: stretch;
+  }
+
+  .ft-actions .btn {
+    flex: 1 1 100%;
   }
 }

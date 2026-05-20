@@ -1,4 +1,4 @@
-import type { ansRequisicion } from "../../../../models/requisiciones";
+import type { ansRequisicion } from "../../../../models/Requisiciones/requisiciones";
 
 export function buildEditANSPayload(original: ansRequisicion, draft: ansRequisicion): ansRequisicion {
   return {

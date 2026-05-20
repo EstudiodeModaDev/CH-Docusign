@@ -1,13 +1,11 @@
 import type { AccountInfo } from "@azure/msal-browser";
-import type { requisiciones } from "../../../../models/requisiciones";
+import type { requisiciones } from "../../../../models/Requisiciones/requisiciones";
 import { toISODateFlex } from "../../../../utils/Date";
 
 export function cleanStateRequisicion(account: AccountInfo | null): requisiciones{
   return {
-     nuevoPromocion: "",
-    Area: "",
+    nuevoPromocion: "",
     Ciudad: "",
-    cantidadPersonas: 1,
     codigoCentroCosto: "",
     codigoCentroOperativo: "",
     codigoUnidadNegocio: "",
@@ -15,17 +13,13 @@ export function cleanStateRequisicion(account: AccountInfo | null): requisicione
     correoProfesional: "",
     correoSolicitante: account?.username ?? "",
     descripcionCentroCosto:  "",
-    descripcionCentroOperativo: "",
     descripcionUnidadNegocio: "",
     diasHabiles: 0,
     fechaInicioProceso: toISODateFlex(new Date()),
     fechaLimite: null,
     genero: "",
-    marca: "",
     motivo: "",
     nombreProfesional: "",
-    observacionesSalario: "",
-    razon: "",
     salarioBasico: "",
     solicitante: account?.name ?? "",
     tipoConvocatoria: "",
@@ -46,7 +40,8 @@ export function cleanStateRequisicion(account: AccountInfo | null): requisicione
     tienda: "",
     motivoNoCumplimiento: "",
     nombreEmpleadoVinculado: "",
-    cedulaEmpleadoVinculado: ""
+    cedulaEmpleadoVinculado: "",
+    NivelCargo: ""
   }
 } 
  

@@ -15,22 +15,24 @@ export class PlantaIdealService extends BaseSharePointListService<plantaIdeal> {
   protected toModel(item: any): plantaIdeal {
     const f = item?.fields ?? {};
 
+    console.log(f)
+
     return {
       Id: String(item?.id ?? ""),
       Title: f.Title,
       Tienda: f.Tienda,
-      "1": Number(f["1"] ?? 0),
-      "2": Number(f["2"] ?? 0),
-      "3": Number(f["3"] ?? 0),
-      "4": Number(f["4"] ?? 0),
-      "5": Number(f["5"] ?? 0),
-      "6": Number(f["6"] ?? 0),
-      "7": Number(f["7"] ?? 0),
-      "8": Number(f["8"] ?? 0),
-      "9": Number(f["9"] ?? 0),
-      "10": Number(f["10"] ?? 0),
-      "11": Number(f["11"] ?? 0),
-      "12": Number(f["12"] ?? 0),
+      "_x0031_": Number(f._x0031_ ?? 0),
+      "_x0032_": Number(f._x0032_ ?? 0),
+      "_x0033_": Number(f._x0033_ ?? 0),
+      "_x0034_": Number(f._x0034_ ?? 0),
+      "_x0035_": Number(f._x0035_ ?? 0),
+      "_x0036_": Number(f._x0036_ ?? 0),
+      "_x0037_": Number(f._x0037_ ?? 0),
+      "_x0038_": Number(f._x0038_ ?? 0),
+      "_x0039_": Number(f._x0039_ ?? 0),
+      "_x0031_0": Number(f._x0031_0 ?? 0),
+      "_x0031_1": Number(f._x0031_1 ?? 0),
+      "_x0031_2": Number(f._x0031_2 ?? 0),
     };
   }
 }

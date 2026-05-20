@@ -5,7 +5,7 @@ import { useNewRequisicionForm } from "./useRequisicionForm";
 import { useRequisicionesList } from "./useRequisicionList";
 import { useNewRequisicionPagination } from "./useRequisicionPagination";
 import { useNotifyRequisiciones } from "./useRequisicionNotifications";
-import type { requisiciones } from "../../../../models/requisiciones";
+import type { requisiciones } from "../../../../models/Requisiciones/requisiciones";
 
 export function useRequisicion() {
   const formController = useNewRequisicionForm()

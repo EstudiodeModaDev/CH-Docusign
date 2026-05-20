@@ -1,7 +1,7 @@
 import { GraphRest } from '../graph/graphRest';
 import type { GetAllOpts, PageResult } from '../models/Commons';
 import type { Novedad } from '../models/Novedades';
-import type { requisiciones } from '../models/requisiciones';
+import type { requisiciones } from '../models/Requisiciones/requisiciones';
 import { esc } from '../utils/text';
 
 
@@ -76,9 +76,7 @@ export class RequisicionesService {
       ANS: f.ANS,
       grupoCVE: f.grupoCVE,
       perteneceCVE: f.perteneceCVE,
-      Area: f.Area,
       Ciudad: f.Ciudad,
-      cantidadPersonas: Number(f.cantidadPersonas ?? 0),
       codigoCentroCosto: f.codigoCentroCosto,
       codigoCentroOperativo: f.codigoCentroOperativo,
       codigoUnidadNegocio: f.codigoUnidadNegocio,
@@ -87,7 +85,6 @@ export class RequisicionesService {
       correoSolicitante: f.correoSolicitante,
       cumpleANS: f.cumpleANS,
       descripcionCentroCosto: f.descripcionCentroCosto,
-      descripcionCentroOperativo: f.descripcionCentroOperativo,
       descripcionUnidadNegocio: f.descripcionUnidadNegocioNS,
       diasHabiles: f.diasHabiles,
       fechaIngreso: f.fechaIngreso,
@@ -96,16 +93,12 @@ export class RequisicionesService {
       genero: f.genero,
       motivo: f.motivo,
       nombreProfesional: f.nombreProfesional,
-      observacionesSalario: f.observacionesSalario,
-      razon: f.razon,
       salarioBasico: f.salarioBasico,
       solicitante: f.solicitante,
-      marca: f.marca,
       tienda: f.tienda,
       tipoConvocatoria: f.tipoConvocatoria,
       tipoRequisicion: f.tipoRequisicion,
       Title: f.Title,
-      Created: f.Created,
       auxilioRodamiento: f.auxilioRodamiento,
       direccion: f.direccion,
       empresaContratista: f.empresaContratista,
@@ -116,7 +109,8 @@ export class RequisicionesService {
       motivoNoCumplimiento: f.motivoNoCumplimiento,
       nombreEmpleadoVinculado: f.nombreEmpleadoVinculado,
       nuevoPromocion: f.nuevoPromocion,
-      cedulaEmpleadoVinculado: f.cedulaEmpleadoVinculado
+      cedulaEmpleadoVinculado: f.cedulaEmpleadoVinculado,
+      NivelCargo: f.NivelCargo ?? ""
     };
   }
 

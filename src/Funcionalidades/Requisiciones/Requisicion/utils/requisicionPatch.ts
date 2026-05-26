@@ -3,7 +3,7 @@ import type { requisiciones } from "../../../../models/Requisiciones/requisicion
 import { normalize, } from "../../../../utils/Date";
 
 const fields: (keyof requisiciones)[] = [
-  "Ciudad", "Title", "auxilioRodamiento", "cedulaEmpleadoVinculado", "codigoCentroCosto", 
+  "Ciudad", "Title", "auxilioRodamiento", "codigoCentroCosto", 
   "codigoCentroOperativo","codigoCentroOperativo", "codigoUnidadNegocio", "comisiones", "descripcionCentroCosto", 
   "descripcionUnidadNegocio", "direccion", "empresaContratista", "genero", "grupoCVE", "modalidadTeletrabajo",
 ];

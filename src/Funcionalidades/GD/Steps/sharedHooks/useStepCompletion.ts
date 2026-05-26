@@ -1,6 +1,7 @@
 import { useAuth } from "../../../../auth/authProvider";
 import type { DetallesPasos, PasosProceso, StepDecisionMap, StepReasonMap } from "../../../../models/Pasos";
 import { buildCompletedStepPayload, buildOmitStepPayload } from "../utils/stepPayloads";
+import { notify } from '../../../../utils/notify';
 
 
 interface UpdateSvc {
@@ -34,13 +35,13 @@ export function useStepCompletion({detailsService, byId, decisiones, motivos,}: 
         byId,
         detalle,
       });
-      alert("No se encontró la configuración del paso.");
+      notify.auto("No se encontró la configuración del paso.");
       return;
     }
 
     const estadoAnterior = detalle.EstadoPaso;
     if (estadoAnterior === "Completado" || estadoAnterior === "Omitido"){
-      alert(`Este paso ya se encuentra en estado ${estadoAnterior}`);
+      notify.auto(`Este paso ya se encuentra en estado ${estadoAnterior}`);
       return;
     } 
 
@@ -49,14 +50,14 @@ export function useStepCompletion({detailsService, byId, decisiones, motivos,}: 
 
     if (estado === "Omitido") {
       await detailsService.update(idDetalle, buildOmitStepPayload(userName));
-      alert("Paso omitido");
+      notify.auto("Paso omitido");
       return;
     }
 
     if (tipoPaso === "SubidaDocumento") {
       const a = await detailsService.update(idDetalle, buildCompletedStepPayload(userName, "Archivo subido"));
       console.log(a)
-      alert("Se ha completado con éxito");
+      notify.auto("Se ha completado con éxito");
       return;
     }
 
@@ -65,12 +66,12 @@ export function useStepCompletion({detailsService, byId, decisiones, motivos,}: 
       const motivo = (motivos[idDetalle] ?? "").toString();
 
       if (!decision) {
-        alert("Debe seleccionar un estado");
+        notify.auto("Debe seleccionar un estado");
         return;
       }
 
       if (decision === "Rechazado" && !motivo.trim()) {
-        alert("Debe indicar el motivo del rechazo");
+        notify.auto("Debe indicar el motivo del rechazo");
         return;
       }
 
@@ -82,19 +83,20 @@ export function useStepCompletion({detailsService, byId, decisiones, motivos,}: 
           : "Aceptado";
 
       await detailsService.update(idDetalle, buildCompletedStepPayload(userName, notas));
-      alert("Se ha completado con éxito");
+      notify.auto("Se ha completado con éxito");
       return;
     }
 
     if (tipoPaso === "Notificacion") {
       await detailsService.update(idDetalle, buildCompletedStepPayload(userName, "Notificación enviada"));
-      alert("Se ha completado con éxito");
+      notify.auto("Se ha completado con éxito");
       return;
     }
 
     await detailsService.update(idDetalle, buildCompletedStepPayload(userName));
-    alert("Se ha completado con éxito");
+    notify.auto("Se ha completado con éxito");
   };
 
   return { handleCompleteStep };
 }
+

@@ -1,13 +1,14 @@
 import * as React from "react";
 import "../Empresas.css";
-import { useGraphServices } from "../../../../graph/graphContext";
+import { useCoreGraphServices } from "../../../../graph/graphContext";
 import { useCargo, useNivelCargo } from "../../../../Funcionalidades/Desplegables";
 import type { maestro } from "../../../../models/Desplegables";
 import { useSalarios } from "../../../../Funcionalidades/GD/Salario";
 import { useAutomaticCargo } from "../../../../Funcionalidades/GD/Niveles";
+import { notify } from '../../../../utils/notify';
 
 export const CargosManager: React.FC = () => {
-  const { Maestro, salarios, categorias } = useGraphServices();
+  const { Maestro, salarios, categorias } = useCoreGraphServices();
 
   const { items, add, editItem, reload, remove } = useCargo(Maestro);
   const { reload: reloadNiveles, items: nivelesCargo } = useNivelCargo(Maestro);
@@ -108,7 +109,7 @@ export const CargosManager: React.FC = () => {
   const handleAddNew = React.useCallback(async (): Promise<maestro | null> => {
     const cargo = (state.T_x00ed_tulo1 ?? "").trim();
     if (!cargo) {
-      alert("Rellene todos los campos");
+      notify.auto("Rellene todos los campos");
       return null;
     }
 
@@ -339,7 +340,7 @@ export const CargosManager: React.FC = () => {
                   onClick={async () => {
                     const cargo = (state?.T_x00ed_tulo1?.toUpperCase() ?? "").trim();
                     if (!cargo) {
-                      alert("Rellene todos los campos");
+                      notify.auto("Rellene todos los campos");
                       return;
                     }
 
@@ -355,13 +356,13 @@ export const CargosManager: React.FC = () => {
                       await handleAddEditSalary();
                       await handleEditNivelCargo();
 
-                      alert("Se ha actualizado el cargo con éxito");
+                      notify.auto("Se ha actualizado el cargo con éxito");
                       reload();
                       setIsEditing(false);
                       resetForm();
                     } catch (e: any) {
                       console.error(e);
-                      alert(e?.message ?? String(e));
+                      notify.auto(e?.message ?? String(e));
                     } finally {
                       setSaving(false);
                     }
@@ -404,7 +405,7 @@ export const CargosManager: React.FC = () => {
                       await handleAddEditSalary();
                       await handleEditNivelCargo();
 
-                      alert("Se ha creado el cargo con éxito");
+                      notify.auto("Se ha creado el cargo con éxito");
                       reload();
                       setIsAdding(false);
 
@@ -412,7 +413,7 @@ export const CargosManager: React.FC = () => {
                       resetForm();
                     } catch (e: any) {
                       console.error(e);
-                      alert(e?.message ?? String(e));
+                      notify.auto(e?.message ?? String(e));
                     } finally {
                       setSaving(false);
                     }
@@ -428,3 +429,5 @@ export const CargosManager: React.FC = () => {
     </div>
   );
 };
+
+

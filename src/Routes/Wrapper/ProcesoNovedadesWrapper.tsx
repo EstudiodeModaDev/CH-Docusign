@@ -1,11 +1,12 @@
 import * as React from "react";
-import { useGraphServices } from "../../graph/graphContext";
+import { useGestorServices, useCoreGraphServices} from "../../graph/graphContext";
 import { useCargo } from "../../Funcionalidades/Desplegables";
 import { ProcesosStepManager } from "../../Components/GD/Settings/CesacionManager/CesacionManager";
 import { useNovedadesSteps } from "../../Funcionalidades/GD/Steps/ContratosSteps/useNovedadesSteps";
 
 export const NovedadesStepsManager: React.FC = () => {
-  const { PasosNovedades, Maestro } = useGraphServices();
+  const { PasosNovedades,  } = useGestorServices();
+  const {Maestro} = useCoreGraphServices()
   const novedadesStepsController = useNovedadesSteps();
   const { options: cargosOption, loading: loadingCargo, reload: reloadCargo } = useCargo(Maestro);
 

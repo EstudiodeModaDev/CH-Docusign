@@ -3,6 +3,7 @@ import "./ModalCampos.css"
 import { updateEnvelopeRecipients, } from "../../../../Services/DocusignAPI.service";
 import type { DocGenFormFieldResponse, DocusignRecipient, PrefillTabsResponse } from "../../../../models/Docusign";
 import { useDocusignTemplates } from "../../../../Funcionalidades/GD/Docusing/Templates/hooks/useDocusingTemplates";
+import { notify } from '../../../../utils/notify';
 
 export type CampoActual = {
   label: string;
@@ -69,10 +70,10 @@ export const PreviewEnvioModal: React.FC<PreviewEnvioModalProps> = ({open, onClo
         try {
                 setLoading(true);
                 await updateEnvelopeRecipients(envelopeId, { signers: destinatarios }, {resendEnvelope: true});
-                alert("El sobre ha sido reenviado correctamente.");
+                notify.auto("El sobre ha sido reenviado correctamente.");
             } catch (e) {
                 console.error("Ha ocurrido un error reenviando el error:", e);
-                alert("Ha ocurrido un error reenviando el sobre.");
+                notify.auto("Ha ocurrido un error reenviando el sobre.");
             } finally {
             setLoading(false);
         }
@@ -165,4 +166,6 @@ export const PreviewEnvioModal: React.FC<PreviewEnvioModalProps> = ({open, onClo
         </div>
     );
 };
+
+
 

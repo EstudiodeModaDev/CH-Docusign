@@ -1,6 +1,5 @@
 import React from "react";
 import type {  rsOption,} from "../../../../models/Commons";
-import { useGraphServices } from "../../../../graph/graphContext";
 import type { Cesacion, } from "../../../../models/Cesaciones";
 import { useAuth } from "../../../../auth/authProvider";
 import { buildCesacionCreatePayload } from "../utils/cesacionesPayload";
@@ -12,12 +11,15 @@ import { useRequestActions } from "../../UpdateRequest/hooks/useRequestActions";
 import { detallePayloadFromCesacion } from "../../UpdateRequestDetails/utils/requestPayload";
 import { notifyUpdateRequest } from "../../../../utils/mail";
 import { toGraphDateTime } from "../../../../utils/Date";
+import { useCoreGraphServices, useGestorServices } from "../../../../graph/graphContext";
+import { notify } from '../../../../utils/notify';
 
 export function useCesaciones() {
   const { account } = useAuth();
-  const graph = useGraphServices()
+  const {Cesaciones} = useGestorServices()
+  const {mail, graph} = useCoreGraphServices()
   const formController = useCesacionForm(account?.username ?? "")
-  const registerController = useCesacionesTable(graph.Cesaciones, account?.username)
+  const registerController = useCesacionesTable(Cesaciones, account?.username)
   const requestController = useRequestActions()
   const [workers, setWorkers] = React.useState<Cesacion[]>([]);
   const [workersOptions, setWorkersOptions] = React.useState<rsOption[]>([]);
@@ -27,7 +29,7 @@ export function useCesaciones() {
     const validationErrors = formController.validate()
 
     if (!validationErrors) {
-      alert("Hay campos sin rellenar");
+      notify.auto("Hay campos sin rellenar");
       return { ok: false, created: null };
     }
 
@@ -35,9 +37,9 @@ export function useCesaciones() {
 
     try {
       const payload = buildCesacionCreatePayload(formController.state);
-      const creado = await graph.Cesaciones.create(payload);
+      const creado = await Cesaciones.create(payload);
       registerController.loadFirstPage();
-      alert("Se ha creado el registro con éxito");
+      notify.auto("Se ha creado el registro con éxito");
       return { ok: true, created: creado };
     } catch {
       return { ok: false, created: null };
@@ -52,11 +54,11 @@ export function useCesaciones() {
     const validationErrors = formController.validate()
 
     if (!validationErrors) {
-      alert("Hay algunos campos faltantes")
+      notify.auto("Hay algunos campos faltantes")
       return
     };
     if (!cesacionSeleccionada.Id) {
-      alert("Registro sin Id");
+      notify.auto("Registro sin Id");
       return;
     }
 
@@ -64,25 +66,25 @@ export function useCesaciones() {
     console.log(cesacionSeleccionada)
 
     try {
-      const toEdit = await graph.Cesaciones.get(cesacionSeleccionada.Id!)
+      const toEdit = await Cesaciones.get(cesacionSeleccionada.Id!)
       const payload = buildCesacionPatch(toEdit, formController.state, );
       console.log(payload)
 
       if (Object.keys(payload).length === 0) {
-        alert("No hay cambios para guardar");
+        notify.auto("No hay cambios para guardar");
         return;
       }
 
       
       if(!canEdit){
-        await graph.Cesaciones.update(cesacionSeleccionada.Id, payload);
-        alert("Se ha actualizado el registro con éxito");
+        await Cesaciones.update(cesacionSeleccionada.Id, payload);
+        notify.auto("Se ha actualizado el registro con éxito");
       } else {
 
         const request = await requestController.createRequest("Cesacion", cesacionSeleccionada.Id)
         if(!request.created || !request.ok) return
 
-        const realRegister = await graph.Cesaciones.get(cesacionSeleccionada.Id)
+        const realRegister = await Cesaciones.get(cesacionSeleccionada.Id)
 
         const DetallesPayload = detallePayloadFromCesacion(realRegister, formController.state, request.created.Id!)
 
@@ -90,21 +92,21 @@ export function useCesaciones() {
 
         requestController.genericProcess("Cesacion", DetallesPayload,)
 
-        const groupMembers = await graph.graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
-        await notifyUpdateRequest(graph.mail, "Cesacion", account?.name ?? "", cesacionSeleccionada.Title, groupMembers,)
+        const groupMembers = await graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
+        await notifyUpdateRequest(mail, "Cesacion", account?.name ?? "", cesacionSeleccionada.Title, groupMembers,)
         
-        alert("Se ha enviado la solicitud, se te notificara el resultado")
+        notify.auto("Se ha enviado la solicitud, se te notificara el resultado")
         
       }
     } catch {
-      alert("Ha ocurrido un error");
+      notify.auto("Ha ocurrido un error");
     } finally {
       setLoading(false);
     }
   };
 
   const searchWorker = async (query: string): Promise<Cesacion[]> => {
-    const resp = await graph.Cesaciones.getAll({filter: `fields/Title eq '${query}'`, top: 200,});
+    const resp = await Cesaciones.getAll({filter: `fields/Title eq '${query}'`, top: 200,});
 
     const foundWorkers = resp.items ?? [];
     setWorkers(foundWorkers);
@@ -116,7 +118,7 @@ export function useCesaciones() {
   };
 
   const searchRegister = async (query: string): Promise<Cesacion | null> => {
-    const resp = await graph.Cesaciones.findLastByTitle(query);
+    const resp = await Cesaciones.findLastByTitle(query);
 
     return resp ? resp : null;
   };
@@ -124,15 +126,15 @@ export function useCesaciones() {
   const handleCancelProcessbyId = React.useCallback(
     async (Id: string, RazonCancelacion: string) => {
       try {
-        const proceso = await graph.Cesaciones.get(Id);
+        const proceso = await Cesaciones.get(Id);
 
         if (proceso) {
-          await graph.Cesaciones.update(Id, {
+          await Cesaciones.update(Id, {
             CanceladoPor: account?.name,
             Estado: "Cancelado",
             RazonCancelacion,
           });
-          alert("Se ha cancelado este proceso con éxito");
+          notify.auto("Se ha cancelado este proceso con éxito");
           registerController.loadFirstPage();
         }
       } catch {
@@ -145,11 +147,11 @@ export function useCesaciones() {
   const handleReactivateProcessById = React.useCallback(
     async (Id: string) => {
       try {
-        const proceso = await graph.Cesaciones.get(Id);
+        const proceso = await Cesaciones.get(Id);
 
         if (proceso) {
-          await graph.Cesaciones.update(Id, { Estado: "En proceso" });
-          alert("Se ha reactivado este proceso con éxito");
+          await Cesaciones.update(Id, { Estado: "En proceso" });
+          notify.auto("Se ha reactivado este proceso con éxito");
           registerController.loadFirstPage();
         }
       } catch {
@@ -161,9 +163,9 @@ export function useCesaciones() {
 
   const deleteCesacion = React.useCallback(async (Id: string) => {
       try {
-        await graph.Cesaciones.delete(Id);
+        await Cesaciones.delete(Id);
         await registerController.loadBase()
-        alert("Se ha eliminado el registro con exito.")
+        notify.auto("Se ha eliminado el registro con exito.")
       } catch {
         throw new Error("Ha ocurrido un error eliminando la cesación");
       }
@@ -176,9 +178,9 @@ export function useCesaciones() {
         if(!Id || !fecha ) return
 
         const spDate = toGraphDateTime(fecha)
-        await graph.Cesaciones.update(Id, {FechaExamenesMedicos: spDate});
+        await Cesaciones.update(Id, {FechaExamenesMedicos: spDate});
         await registerController.loadBase()
-        alert("Se ha guardado la fecha de los examenes medicos con éxito.")
+        notify.auto("Se ha guardado la fecha de los examenes medicos con éxito.")
       } catch {
         throw new Error("Ha ocurrido un error eliminando la novedad");
       }
@@ -203,3 +205,4 @@ export function useCesaciones() {
     loading
   };
 }
+

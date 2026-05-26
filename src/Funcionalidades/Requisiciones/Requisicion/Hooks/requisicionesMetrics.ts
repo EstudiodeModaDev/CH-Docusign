@@ -1,4 +1,5 @@
 import React from "react";
+import type { detalleRequisicion, pasoRequisicion } from "../../../../models/Requisiciones/pasos";
 import type { requisiciones } from "../../../../models/Requisiciones/requisiciones";
 
 export type MetricTone = "good" | "warn" | "risk";
@@ -75,15 +76,31 @@ const EMPTY_METRICS: RequisicionesMetrics = {
   porAnalista: [],
 };
 
-export function useRequisicionesMetrics(rows: requisiciones[], now = new Date()): RequisicionesMetrics {
-  return React.useMemo(() => buildRequisicionesMetrics(rows, now), [rows, now]);
+type DetailsByRequisicion = Record<string, detalleRequisicion[]>;
+type TemplatesById = Record<string, pasoRequisicion>;
+
+export function useRequisicionesMetrics(
+  rows: requisiciones[],
+  detailsByRequisicion: DetailsByRequisicion,
+  templatesById: TemplatesById,
+  now = new Date()
+): RequisicionesMetrics {
+  return React.useMemo(
+    () => buildRequisicionesMetrics(rows, detailsByRequisicion, templatesById, now),
+    [rows, detailsByRequisicion, templatesById, now]
+  );
 }
 
-export function buildRequisicionesMetrics(rows: requisiciones[], now = new Date()): RequisicionesMetrics {
+export function buildRequisicionesMetrics(
+  rows: requisiciones[],
+  detailsByRequisicion: DetailsByRequisicion,
+  templatesById: TemplatesById,
+  now = new Date()
+): RequisicionesMetrics {
   if (!rows.length) return EMPTY_METRICS;
 
   const resumen = buildSummaryMetrics(rows, now);
-  const embudo = buildFunnelMetrics(rows);
+  const embudo = buildFunnelMetrics(rows, detailsByRequisicion, templatesById);
   const tendenciaMensual = buildMonthlyMetrics(rows);
 
   return {
@@ -114,13 +131,67 @@ function buildSummaryMetrics(rows: requisiciones[], now: Date): SummaryMetrics {
   };
 }
 
-function buildFunnelMetrics(rows: requisiciones[]): FunnelMetrics {
+function buildFunnelMetrics(rows: requisiciones[], detailsByRequisicion: DetailsByRequisicion, templatesById: TemplatesById): FunnelMetrics {
+  let entrevistas = 0;
+  let finalistas = 0;
+  let seleccionadas = 0;
+  let recibidas = 0
+
+  rows.forEach((row) => {
+    const requisicionId = String(row.Id ?? "").trim();
+    if (!requisicionId) return;
+
+    const details = detailsByRequisicion[requisicionId] ?? [];
+
+    details.forEach((detail) => {
+      if (!isCompletedDetail(detail)) return;
+
+      const templateId = String(detail.Title ?? "").trim();
+      const template = templatesById[templateId];
+      const stage = resolveFunnelStage(template);
+
+      if (stage === "entrevista"){entrevistas += Number(detail.Notas)}
+      if (stage === "recibidas"){recibidas += Number(detail.Notas)}
+      if (stage === "finalista") finalistas += Number(detail.Notas)      
+      if (stage === "seleccionada") seleccionadas += Number(detail.Notas);
+    });
+
+
+  });
+
   return {
-    recibidas: rows.length,
-    entrevistas: 0,
-    finalistas: 0,
-    seleccionadas: 0,
+    recibidas,
+    entrevistas,
+    finalistas,
+    seleccionadas,
   };
+}
+
+function isCompletedDetail(detail: detalleRequisicion): boolean {
+  const estado = normalize(detail.Estado);
+  return estado === "completado" || estado === "omitido";
+}
+
+function resolveFunnelStage(template?: pasoRequisicion): "entrevista" | "finalista" | "seleccionada" | "recibidas" | null {
+  if (!template) return null;
+
+  if (template.Id === "4") {
+    return "seleccionada";
+  }
+
+  if (template.Id === "7") {
+    return "finalista";
+  }
+
+  if (template.Id === "5") {
+    return "entrevista";
+  }
+
+  if (template.Id === "3") {
+    return "recibidas";
+  }
+
+  return null;
 }
 
 function buildMonthlyMetrics(rows: requisiciones[]): MonthlyMetricRow[] {

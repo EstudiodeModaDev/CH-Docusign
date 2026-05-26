@@ -1,7 +1,6 @@
 import * as React from "react";
 import "../Contratos/Contratos.css";
 import type { DateRange, SortDir, SortField } from "../../../../models/Commons";
-import { useGraphServices } from "../../../../graph/graphContext";
 import type { Cesacion, CesacionErrors } from "../../../../models/Cesaciones";
 import { toISODateFlex } from "../../../../utils/Date";
 import FormCesacion from "../Modals/Cesaciones/addCesacion";
@@ -10,6 +9,7 @@ import type { desplegablesOption } from "../../../../models/Desplegables";
 import { usePermissions } from "../../../../Funcionalidades/Permisos";
 import { useEnvios } from "../../../../Funcionalidades/GD/Envios/hooks/useEnvios";
 import MedicalExamDateModal from "../Modals/Common/SetFechaExamenes/MedicalExam";
+import { useGestorServices } from "../../../../graph/graphContext";
 //import { id } from "date-fns/locale";
 
 function renderSortIndicator(field: SortField, sorts: Array<{field: SortField; dir: SortDir}>) {
@@ -89,7 +89,7 @@ export type PropsPagination = {
 };
 
 export default function CesacionesTabla({saveMedicalExams, deleteCesacion, deptoOptions, loadingDeptos, temporalLoading, temporalOption, UNOptions, loadingUN, COOptions, loadingCO, CentroCostosOptions, loadingCC, dependenciaOptions, loadingDependencias, nivelCargoOptions, loadinNivelCargo, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, empresaOptions, loadingEmp, sending, handleReactivateProcessById, handleCancelProcessbyId, setState, searchRegister, errors, handleEdit, handleSubmit, setField, state, rows, loading: loadingCesacion, error, pageSize: pageSizeCesacion, pageIndex: pageIndexCesacion, hasNext: hasNextCesacion, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageCesacion, reloadAll: reloadAllCesacion, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
-  const { DetallesPasosCesacion, } = useGraphServices();
+  const { DetallesPasosCesacion, } = useGestorServices();
   const { canEdit } = useEnvios();
   const [visible, setVisible] = React.useState(false);
   const [novedadSeleccionada, setNovedadSeleccionada] = React.useState<Cesacion | null>(null);

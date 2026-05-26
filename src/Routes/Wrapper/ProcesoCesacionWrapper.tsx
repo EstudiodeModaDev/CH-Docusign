@@ -1,12 +1,13 @@
 import * as React from "react";
-import { useGraphServices } from "../../graph/graphContext";
+import { useCoreGraphServices, useGestorServices } from "../../graph/graphContext";
 import { useCesacionSteps } from "../../Funcionalidades/GD/Steps/CesacionSteps/useCesacionSteps";
 import { useCargo } from "../../Funcionalidades/Desplegables";
 import { ProcesosStepManager } from "../../Components/GD/Settings/CesacionManager/CesacionManager";
 
 
 export const CesacionStepsManager: React.FC = () => {
-  const {PasosCesacion,  Maestro} = useGraphServices()
+  const {PasosCesacion,} = useGestorServices()
+   const {Maestro} = useCoreGraphServices()
   const cesacionesStepsController = useCesacionSteps()
   const { options: cargosOption, loading: loadingCargo, reload: reloadCargo } = useCargo(Maestro);
 

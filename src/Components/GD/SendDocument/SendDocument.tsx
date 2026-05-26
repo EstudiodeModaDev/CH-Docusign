@@ -1,6 +1,6 @@
 import React from "react";
 import "./SendDocument.css";
-import { useGraphServices } from "../../../graph/graphContext";
+import { useGestorServices } from "../../../graph/graphContext";
 import { usePromocion } from "../../../Funcionalidades/GD/Promocion";
 import { ElegirColaboradorModal } from "./ModalSelect/ModalSelect";
 import { getEnvelopeDocGenFormFields, getEnvelopeDocumentTabs, sendEnvelope, updateEnvelopeDocGenFormFields, updateEnvelopePrefillTextTabs, updateEnvelopeRecipients, } from "../../../Services/DocusignAPI.service";
@@ -21,6 +21,7 @@ import { SignersModal } from "./SignerModal/SignerModal";
 import { pickValueFromLabel } from "../../../Funcionalidades/GD/Docusing/Templates/utils/getDocusignObject";
 import { convertToCommonDTO } from "../../../Funcionalidades/Common/parseOptions";
 import { validateFields } from "../../../Funcionalidades/GD/Docusing/Templates/utils/validateTemplate";
+import { notify } from '../../../utils/notify';
 
 
 export interface EnviarFormatoValues {
@@ -42,7 +43,7 @@ const EnviarFormatoCard: React.FC = () => {
   const [varColaborador, setVarColaborador] = React.useState<Promocion | Novedad | HabeasData | Cesacion | Retail | null>(null);
   const [elegir, setElegir] = React.useState<boolean>(false);
   const docusignController = useDocusignTemplates();
-  const { Promociones, Retail } = useGraphServices();
+  const { Promociones, Retail } = useGestorServices();
   const enviosController = useEnvios();
   const { searchWorker: searchWorkerHabeas, workers: workersHabeas, workersOptions: workerOptionsHabeas,} = useHabeasData();
   const contratosController = useContratos();
@@ -64,11 +65,11 @@ const EnviarFormatoCard: React.FC = () => {
     const canContinue = validateFields({proceso, templateId, Cedula, receptor, asunto, correoReceptor })
 
     if(!canContinue.ok){
-      alert(canContinue.message)
+      notify.auto(canContinue.message)
     }
 
     if (!varColaborador) {
-      alert("No se encontró información del colaborador.");
+      notify.auto("No se encontró información del colaborador.");
       return;
     }
 
@@ -117,7 +118,7 @@ const EnviarFormatoCard: React.FC = () => {
       setSegundoPaso(true);
     } catch (err) {
       console.error(err);
-      alert("Ocurrió un error creando el sobre. Revisa consola.");
+      notify.auto("Ocurrió un error creando el sobre. Revisa consola.");
     } finally {
       setLoading(false);
     }
@@ -156,7 +157,7 @@ const EnviarFormatoCard: React.FC = () => {
     const cantidad = results.length;
 
     if (cantidad === 0) {
-      alert("No se encontró el colaborador");
+      notify.auto("No se encontró el colaborador");
       return;
     }
 
@@ -274,10 +275,10 @@ const EnviarFormatoCard: React.FC = () => {
       enviosController.setField("Recipients", JSON.stringify(recipients.signers));
       await sendEnvelope(envelopeId);
       enviosController.handleSubmit();
-      alert("Se ha enviado con exito el sobre");
+      notify.auto("Se ha enviado con exito el sobre");
     } catch (err) {
       console.error(err);
-      alert("Ha ocurrido un error por favor vuelva a intentarlo");
+      notify.auto("Ha ocurrido un error por favor vuelva a intentarlo");
       setLoading(false);
     }
   };
@@ -362,3 +363,5 @@ const EnviarFormatoCard: React.FC = () => {
 
 
 export default EnviarFormatoCard;
+
+

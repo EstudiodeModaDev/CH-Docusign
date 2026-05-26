@@ -1,7 +1,6 @@
 import React from "react";
 import "./RespuestaPazSalvo.css";
 import RichTextBase64 from "../RichText/RichText";
-import { useGraphServices } from "../../../graph/graphContext";
 import { useRespuestasPazSalvos } from "../../../Funcionalidades/PazSalvos/Respuesta";
 import type { PazSalvo } from "../../../models/PazSalvo";
 import { useFirmaUsuario } from "../../../Funcionalidades/PazSalvos/Firmas";
@@ -10,6 +9,7 @@ import { usePazSalvo } from "../../../Funcionalidades/PazSalvos/PazSalvos";
 import Select, { components, type OptionProps } from "react-select";
 import type { desplegablesOption } from "../../../models/Desplegables";
 import { useCentroCostos, } from "../../../Funcionalidades/Desplegables";
+import { useCoreGraphServices, usePazSalvoServices } from "../../../graph/graphContext";
 
 type Props = {
   IdPazSalvo: PazSalvo;
@@ -31,7 +31,8 @@ export const Option = (props: OptionProps<desplegablesOption, false>) => {
 };
 
 export const MotivoAdjuntosForm: React.FC<Props> = ({ IdPazSalvo, onBack }) => {
-  const { Respuesta, Firmas, PazSalvos, mail, Maestro } = useGraphServices();
+  const { Respuesta, Firmas, PazSalvos,} = usePazSalvoServices();
+  const { mail, Maestro } = useCoreGraphServices();
   const { options: COOptions, loading: loadingCO, reload: reloadCC} = useCentroCostos(Maestro);
   const [files, setFiles] = React.useState<FileList | null>(null)
   const { state, setField, handleSubmit, loading } = useRespuestasPazSalvos(Respuesta, IdPazSalvo);

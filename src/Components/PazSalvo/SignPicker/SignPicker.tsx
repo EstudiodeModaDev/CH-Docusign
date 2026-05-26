@@ -1,5 +1,6 @@
 import * as React from "react";
 import "./SingPicker.css";
+import { notify } from '../../../utils/notify';
 
 type Props = {
   /** URL de la imagen actual (Firma.medium.url, por ejemplo) */
@@ -95,7 +96,7 @@ export const FirmaPicker: React.FC<Props> = ({ src, onChangeFile, disabled }) =>
 
       await onChangeFile(selectedFile);
 
-      alert("Se guardo su firma con éxito, por favor recargue la página")
+      notify.auto("Se guardo su firma con éxito, por favor recargue la página")
       setSelectedFile(null);
     } catch (err: any) {
       console.error(err);
@@ -134,3 +135,5 @@ export const FirmaPicker: React.FC<Props> = ({ src, onChangeFile, disabled }) =>
     </div>
   );
 };
+
+

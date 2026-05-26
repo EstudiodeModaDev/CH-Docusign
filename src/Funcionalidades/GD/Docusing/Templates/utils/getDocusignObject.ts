@@ -1,5 +1,5 @@
 import type { DocuSignVM } from "../../../../../models/DTO";
-import { spDateToSpanishLong } from "../../../../../utils/Date";
+import { DDMMYYYY, spDateToSpanishLong } from "../../../../../utils/Date";
 import { formatPesosEsCO } from "../../../../../utils/Number";
 
 export function pickValueFromLabel(raw: string, vm: DocuSignVM){
@@ -71,22 +71,22 @@ export function pickValueFromLabel(raw: string, vm: DocuSignVM){
         return vm.coordinador;
 
       case "fechanac":
-        return vm.fechaNac;
+        return spDateToSpanishLong(vm.fechaNac);
 
       case "fechafin":
-        return vm.fechaFinal;
+        return spDateToSpanishLong(vm.fechaFinal);
 
       case "fechainiciolectiva":
-        return vm.fechaInicioLectiva;
+        return DDMMYYYY(vm.fechaInicioLectiva);
 
       case "fechafinallectiva":
-        return vm.fechaFinalLectiva;
+        return DDMMYYYY(vm.fechaFinalLectiva);
 
       case "fechainicioproductiva":
-        return vm.fechaInicioProductiva;
+        return DDMMYYYY(vm.fechaInicioProductiva);
 
       case "fechafinalproductiva":
-        return vm.fechaFinalProductiva;
+        return DDMMYYYY(vm.fechaFinalProductiva);
 
       case "etapa":
         return vm.etapa;

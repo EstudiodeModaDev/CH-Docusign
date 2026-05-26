@@ -3,20 +3,20 @@ import { useANSFilters } from "./useANSFilters";
 import { useANSForm } from "./useANSForm";
 import { useANSQueries } from "./useANSQueries";
 import { useANSActions } from "./useANSActions";
-import { useGraphServices } from "../../../../graph/graphContext";
+
 import { useAuth } from "../../../../auth/authProvider";
+import { useRequisicionesServices } from "../../../../graph/graphContext";
 
 export function useANSRequisicion() {
-
-  const graph = useGraphServices()
+  const {ansRequisicion} = useRequisicionesServices()
   const { account } = useAuth();
 
   const filters = useANSFilters();
   const form = useANSForm();
 
-  const queries = useANSQueries({service: graph.ansRequisicion, enabled: !!account?.username,});
+  const queries = useANSQueries({service: ansRequisicion, enabled: !!account?.username,});
 
-  const actions = useANSActions({service:  graph.ansRequisicion, state: form.state, validate: form.validate, setLoading: queries.setLoading,});
+  const actions = useANSActions({service:  ansRequisicion, state: form.state, validate: form.validate, setLoading: queries.setLoading,});
 
   const applyRange = React.useCallback(() => {
     queries.loadANS();

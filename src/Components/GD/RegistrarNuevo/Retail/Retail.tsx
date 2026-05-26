@@ -1,7 +1,7 @@
 import * as React from "react";
 import "../Contratos/Contratos.css";
 import type { DateRange, SortDir, SortField } from "../../../../models/Commons";
-import { useGraphServices } from "../../../../graph/graphContext";
+import { useGestorServices } from "../../../../graph/graphContext";
 import { toISODateFlex } from "../../../../utils/Date";
 import type { Retail, RetailErrors } from "../../../../models/Retail";
 import FormRetail from "../Modals/Retail/addRetail";
@@ -86,7 +86,7 @@ export type PropsPagination = {
 };
 
 export default function RetailTabla({saveExamenesMedicos, deleteRetail, dependenciaOptions, loadingDependencias, deptoOptions, loadingDepto, origenOptions, loadingOrigen, CentroCostosOptions, loadingCC, UNOptions, loadingUN, COOptions, loadingCO, nivelCargoOptions, loadinNivelCargo, cargoOptions, loadingCargo, tipoDocOptions, loadingTipo, empresaOptions, loadingEmp, submitting, handleCancelProcessbyId, handleReactivateProcessById, setState, searchRegister, errors, handleSubmit, handleEdit, setField, state, rows, loading: loadingRetail, error, pageSize: pageSizeRetail, pageIndex: pageIndexRetail, hasNext: hasNextRetail, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageRetail, reloadAll: reloadAllRetail, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
-  const { detallesPasosRetail, } = useGraphServices();
+  const { detallesPasosRetail, } = useGestorServices();
   const { canEdit } = useEnvios();
   const [visible, setVisible] = React.useState(false);
   const [examenesMedicos, setExamenesMedicos] = React.useState(false);

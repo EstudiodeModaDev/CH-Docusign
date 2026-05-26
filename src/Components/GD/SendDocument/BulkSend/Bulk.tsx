@@ -4,7 +4,7 @@ import "./Bulk.css";
 
 import {createEnvelopeFromTemplateDraft, getEnvelopeDocumentTabs, getEnvelopeDocGenFormFields, updateEnvelopePrefillTextTabs, updateEnvelopeDocGenFormFields, sendEnvelope,} from "../../../../Services/DocusignAPI.service";
 import type { DocGenUpdateDocPayload, UpdatePrefillTextTabPayload } from "../../../../models/Docusign";
-import { useGraphServices } from "../../../../graph/graphContext";
+import { useCoreGraphServices, useGestorServices } from "../../../../graph/graphContext";
 import type { EnviosService } from "../../../../Services/Envios.service";
 import { useAuth } from "../../../../auth/authProvider";
 import type { AccountInfo } from "@azure/msal-browser";
@@ -12,6 +12,7 @@ import { useEmpresasSelect } from "../../../../Funcionalidades/Desplegables";
 import type { maestro } from "../../../../models/Desplegables";
 import { generateCsvForTemplate } from "../../../../Funcionalidades/GD/Docusing/bulk/functions/bulkTemplateBuilder";
 import { useDocusignTemplates } from "../../../../Funcionalidades/GD/Docusing/Templates/hooks/useDocusingTemplates";
+import { notify } from '../../../../utils/notify';
 
 type Row = Record<string, string>;
 
@@ -406,7 +407,8 @@ export function BulkGrid(props: {columns: string[]; rows: Row[]; onRowsChange: (
 export const EnvioMasivoUI: React.FC = () => {
   const docusingController = useDocusignTemplates();
   const { account } = useAuth();
-  const { Envios, Maestro } = useGraphServices();
+  const { Envios,} = useGestorServices();
+  const { Maestro } = useCoreGraphServices();
   const { items, reload } = useEmpresasSelect(Maestro);
 
   const [templateId, setTemplateId] = React.useState("");
@@ -452,7 +454,7 @@ export const EnvioMasivoUI: React.FC = () => {
   };
 
   const handleGenerateGrid = async () => {
-    if (!templateId) return alert("Selecciona una plantilla");
+    if (!templateId) return notify.auto("Selecciona una plantilla");
 
     setLoading(true);
     try {
@@ -477,14 +479,14 @@ export const EnvioMasivoUI: React.FC = () => {
       setBulkResults([]);
     } catch (e) {
       console.error(e);
-      alert(e instanceof Error ? e.message : "Error generando tabla");
+      notify.auto(e instanceof Error ? e.message : "Error generando tabla");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDownloadExcel = () => {
-    if (!columns.length) return alert("Primero genera la tabla");
+    if (!columns.length) return notify.auto("Primero genera la tabla");
     const safeName = (plantillaSelected?.label ?? "Template").replace(/[^\w\- ]/g, "").replace(/\s+/g, "_");
     exportRowsToXlsx(columns, rows, `Bulk_${safeName}.xlsx`);
   };
@@ -504,7 +506,7 @@ export const EnvioMasivoUI: React.FC = () => {
       const ref = safeRef(rowsToValidate[i], i);
       const comp = getCell(rowsToValidate[i], compHeader).trim();
       if (!comp) {
-        alert(`Falta "compañía" en la fila ${i + 1} (${ref}).`);
+        notify.auto(`Falta "compañía" en la fila ${i + 1} (${ref}).`);
         return false;
       }
     }
@@ -555,8 +557,8 @@ export const EnvioMasivoUI: React.FC = () => {
   };
 
   const handleSendMasivoOpcionB = async (envios: EnviosService, account: AccountInfo | null) => {
-    if (!templateId) return alert("Selecciona una plantilla.");
-    if (!rows.length || !columns.length) return alert("Primero genera la tabla y agrega filas.");
+    if (!templateId) return notify.auto("Selecciona una plantilla.");
+    if (!rows.length || !columns.length) return notify.auto("Primero genera la tabla y agrega filas.");
     if (!validateRowsBeforeSend(rows, columns)) return;
 
     setSending(true);
@@ -617,10 +619,10 @@ export const EnvioMasivoUI: React.FC = () => {
         2
       );
 
-      alert("Proceso finalizado.");
+      notify.auto("Proceso finalizado.");
     } catch (e) {
       console.error(e);
-      alert(e instanceof Error ? e.message : "Error enviando masivo");
+      notify.auto(e instanceof Error ? e.message : "Error enviando masivo");
     } finally {
       setSending(false);
     }
@@ -823,3 +825,5 @@ export const EnvioMasivoUI: React.FC = () => {
 };
 
 export default EnvioMasivoUI;
+
+

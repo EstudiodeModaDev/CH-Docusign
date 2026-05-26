@@ -1,8 +1,8 @@
 import React from "react";
-import type { useGraphServices } from "../../../../graph/graphContext";
 import type { Envio } from "../../../../models/Envios";
+import type { EnviosService } from "../../../../Services/Envios.service";
 
-export function useEnviosPagintation(servicio: ReturnType<typeof useGraphServices>) {
+export function useEnviosPagintation(servicio: EnviosService) {
   const [pageSize, setPageSize] = React.useState<number>(10); 
   const [pageIndex, setPageIndex] = React.useState<number>(1);
   const [nextLink, setNextLink] = React.useState<string | null>(null);
@@ -16,7 +16,7 @@ export function useEnviosPagintation(servicio: ReturnType<typeof useGraphService
   const nextPageBd = React.useCallback(async (): Promise<Envio[] | null> => {
     if (!hasNext) return null;
     try {
-      const { items, nextLink: n2 } = await servicio.Envios.getByNextLink(nextLink ?? "");
+      const { items, nextLink: n2 } = await servicio.getByNextLink(nextLink ?? "");
       setNextLink(n2 ?? null);     
       setPageIndex(i => i + 1);
       return items

@@ -1,7 +1,7 @@
 // src/Funcionalidades/Users.ts (o donde lo tengas)
 import * as React from "react";
 import { resolveUserRole, type GroupRule } from "../utils/roles";
-import { useGraphServices } from "../graph/graphContext";
+import { useCoreGraphServices, } from "../graph/graphContext";
 
 type UseRoleOpts =
   | { singleGroup: { groupId: string; role: string }; groupRules?: never }
@@ -43,7 +43,7 @@ export function useUserRole(email?: string | null) {
     groupRules: [],
   };
 
-  const { Usuarios, Graph, Perfiles } = useGraphServices() as {
+  const { Usuarios, Graph, Perfiles } = useCoreGraphServices () as {
     Usuarios: any;
     Graph?: any;
     Perfiles: any;

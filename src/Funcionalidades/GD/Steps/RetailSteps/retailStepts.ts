@@ -1,13 +1,13 @@
 import React from "react";
-import { useGraphServices } from "../../../../graph/graphContext";
 import { useStepCompletion } from "../sharedHooks/useStepCompletion";
 import { useStepDecisionState } from "../sharedHooks/useStepDecisionState";
 import { useStepDetails } from "../sharedHooks/useStepDetails";
 import { useStepsCatalog } from "../sharedHooks/useStepsCatalog";
+import { useGestorServices } from "../../../../graph/graphContext";
 
 //Todo el hook para retail usando funciones reutilizables
 export function useRetailSteps() {
-  const { pasosRetail, detallesPasosRetail } = useGraphServices();
+  const { pasosRetail, detallesPasosRetail } = useGestorServices();
 
   const decisionState = useStepDecisionState();
 
@@ -37,14 +37,15 @@ export function useRetailSteps() {
 
 //Hook para los detalles de los pasos de retail, usando el hook genérico de detalles de pasos
 export function useRetailStepDetails(selected?: string) {
-  const { detallesPasosRetail } = useGraphServices();
-  const graph = useGraphServices();
+  const { detallesPasosRetail, pasoRestriccion } = useGestorServices();
 
   return useStepDetails({
     detailsService: detallesPasosRetail,
     selected,
     activationModule: "Retail",
-    graph,
+    service: {
+      pasoRestriccion
+    },
     sortItems: items => items.sort((a, b) => Number(a.NumeroPaso) - Number(b.NumeroPaso)),
   });
 }

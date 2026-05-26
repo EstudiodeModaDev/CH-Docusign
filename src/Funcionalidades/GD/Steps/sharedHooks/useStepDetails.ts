@@ -4,6 +4,8 @@ import type { DetallesPasos, PasosProceso, Procesos } from "../../../../models/P
 import { shouldActivate } from "../../StepRules/pasoActivationResolver";
 import { buildDetailCreatePayload } from "../utils/stepPayloads";
 import { calculateCompletedPercentage } from "../utils/stepProgress";
+import type { pasoRestriccionProcesoService } from "../../../../Services/PasoRestriccionProceso.Service";
+import { notify } from '../../../../utils/notify';
 
 
 interface DetailsService {
@@ -16,11 +18,13 @@ interface Params {
   selected?: string;
   activationModule: Procesos;
   entityLabel?: string;
-  graph: any;
+  service: {
+    pasoRestriccion: pasoRestriccionProcesoService
+  };
   sortItems?: (items: DetallesPasos[]) => DetallesPasos[];
 }
 
-export function useStepDetails({detailsService, selected, activationModule, graph, sortItems,}: Params) {
+export function useStepDetails({detailsService, selected, activationModule, service, sortItems,}: Params) {
   const [rows, setRows] = React.useState<DetallesPasos[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -48,7 +52,7 @@ export function useStepDetails({detailsService, selected, activationModule, grap
   //Crear todos los detalles pasos para un proceso dado, aplicando las reglas de activación
   const handleCreateAllSteps = async (pasos: PasosProceso[], entityId: string, cargoNegocio: string) => {
     if (!pasos || pasos.length === 0) {
-      alert("No hay un proceso definido");
+      notify.auto("No hay un proceso definido");
       return;
     }
 
@@ -57,7 +61,7 @@ export function useStepDetails({detailsService, selected, activationModule, grap
 
       for (const paso of pasos) {
         const idPaso = String(paso.Id ?? "");
-        const aplica = await shouldActivate(activationModule, idPaso, cargoNegocio, graph);
+        const aplica = await shouldActivate({proceso: activationModule, idPaso, cargo: cargoNegocio, service});
 
         if (!aplica) continue;
 
@@ -65,14 +69,14 @@ export function useStepDetails({detailsService, selected, activationModule, grap
       }
 
       if (creates.length === 0) {
-        alert("No hay pasos aplicables para este cargo.");
+        notify.auto("No hay pasos aplicables para este cargo.");
         return;
       }
 
       await Promise.all(creates);
     } catch (e) {
       console.error("Error creando pasos", e);
-      alert("Ha ocurrido un error");
+      notify.auto("Ha ocurrido un error");
     }
   };
 
@@ -90,3 +94,4 @@ export function useStepDetails({detailsService, selected, activationModule, grap
     calcPorcentaje,
   };
 }
+

@@ -1,12 +1,13 @@
 import * as React from "react";
 import "../Empresas.css";
-import { useGraphServices } from "../../../../graph/graphContext";
 import { useUnidadNegocio, } from "../../../../Funcionalidades/Desplegables";
 import type { withCode } from "../../../../models/Maestros";
 import type { maestro } from "../../../../models/Desplegables";
+import { useCoreGraphServices } from "../../../../graph/graphContext";
+import { notify } from '../../../../utils/notify';
 
 export const UnidadNegocioManager: React.FC = () => {
-    const { Maestro, } = useGraphServices();
+    const { Maestro, } = useCoreGraphServices();
     const { items, add, editItem, reload, remove} = useUnidadNegocio(Maestro);
     const [isEditing, setIsEditing] = React.useState(false);
     const [state, setState] = React.useState<withCode>({ Title: "", Codigo: ""})
@@ -14,7 +15,7 @@ export const UnidadNegocioManager: React.FC = () => {
 
     const handleAddNew = () => {
         if(!state.Title){
-            alert("Rellene todos los campos")
+            notify.auto("Rellene todos los campos")
         }
         const payload: maestro = {
             Abreviacion: "",
@@ -86,7 +87,7 @@ export const UnidadNegocioManager: React.FC = () => {
                                                                                             console.table(state)
                                                                                             if(editItem){
                                                                                                 await editItem({Title: "Unidad de negocio", T_x00ed_tulo1: state?.Title}, state!.Id ?? "", );
-                                                                                                alert("Se ha editado la unidad de negocio con éxito")
+                                                                                                notify.auto("Se ha editado la unidad de negocio con éxito")
                                                                                                 setIsAdding(false)
                                                                                                 setIsEditing(false)
                                                                                                 reload()
@@ -105,12 +106,12 @@ export const UnidadNegocioManager: React.FC = () => {
                                                                                                     if (!payload?.T_x00ed_tulo1?.trim()) return;
 
                                                                                                     await add(payload); // ✅ esperar
-                                                                                                    alert("Se ha agregado con éxito la UN");
+                                                                                                    notify.auto("Se ha agregado con éxito la UN");
                                                                                                     setIsEditing(false)
                                                                                                     setIsAdding(false)
                                                                                                     } catch (e: any) {
                                                                                                     console.error(e);
-                                                                                                    alert("Error agregando el cargo: " + (e?.message ?? e));
+                                                                                                    notify.auto("Error agregando el cargo: " + (e?.message ?? e));
                                                                                                     }
                                                                                                 }}>✔</button>
                                 </div>
@@ -122,3 +123,5 @@ export const UnidadNegocioManager: React.FC = () => {
         </div>
     );
 };
+
+

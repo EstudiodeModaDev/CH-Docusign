@@ -1,11 +1,12 @@
 import * as React from "react";
 import "../Empresas.css";
-import { useGraphServices } from "../../../../graph/graphContext";
+import { useCoreGraphServices } from "../../../../graph/graphContext";
 import { useNivelCargo, } from "../../../../Funcionalidades/Desplegables";
 import type { maestro } from "../../../../models/Desplegables";
+import { notify } from '../../../../utils/notify';
 
 export const NivelCargosManager: React.FC = () => {
-    const { Maestro, } = useGraphServices();
+    const { Maestro, } = useCoreGraphServices();
     const { items, add, editItem, reload, remove} = useNivelCargo(Maestro);
     const [isEditing, setIsEditing] = React.useState(false);
     const [state, setState] = React.useState<maestro>({ T_x00ed_tulo1: "", Abreviacion: "", Title: "", Codigo: ""})
@@ -13,7 +14,7 @@ export const NivelCargosManager: React.FC = () => {
 
     const handleAddNew = () => {
         if(!state.T_x00ed_tulo1){
-            alert("Rellene todos los campos")
+            notify.auto("Rellene todos los campos")
         }
         const payload: maestro = {
             Abreviacion: state?.Abreviacion,
@@ -22,7 +23,7 @@ export const NivelCargosManager: React.FC = () => {
             T_x00ed_tulo1: state.T_x00ed_tulo1.toUpperCase()
         }
         setState({ T_x00ed_tulo1: "", Abreviacion: "", Title: "", Codigo: ""})
-        alert("Se ha añadido con éxito")
+        notify.auto("Se ha añadido con éxito")
         return payload
     };
 
@@ -84,7 +85,7 @@ export const NivelCargosManager: React.FC = () => {
                                                                                             console.table(state)
                                                                                             if(editItem){
                                                                                                 await editItem({Title: "Nivel de cargos", T_x00ed_tulo1: state?.T_x00ed_tulo1}, state!.Id ?? "", );
-                                                                                                alert("Se ha editado con exito el nivel de cargo")
+                                                                                                notify.auto("Se ha editado con exito el nivel de cargo")
                                                                                                 setIsAdding(false)
                                                                                                 setIsEditing(false)
                                                                                                 reload()
@@ -103,12 +104,12 @@ export const NivelCargosManager: React.FC = () => {
                                                                                                     if (!payload?.T_x00ed_tulo1?.trim()) return;
 
                                                                                                     await add(payload); // ✅ esperar
-                                                                                                    alert("Se ha agregado con éxito el nivel de cargo");
+                                                                                                    notify.auto("Se ha agregado con éxito el nivel de cargo");
                                                                                                     setIsEditing(false)
                                                                                                     setIsAdding(false)
                                                                                                     } catch (e: any) {
                                                                                                     console.error(e);
-                                                                                                    alert("Error agregando el cargo: " + (e?.message ?? e));
+                                                                                                    notify.auto("Error agregando el cargo: " + (e?.message ?? e));
                                                                                                     }
                                                                                                 }}>✔</button>
                                 </div>
@@ -120,3 +121,5 @@ export const NivelCargosManager: React.FC = () => {
         </div>
     );
 };
+
+

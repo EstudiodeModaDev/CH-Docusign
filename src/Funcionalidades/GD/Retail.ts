@@ -5,12 +5,13 @@ import { useAuth } from "../../auth/authProvider";
 import type { RetailService } from "../../Services/Retail.service";
 import type { Retail, RetailErrors } from "../../models/Retail";
 import { norm } from "../../utils/text";
-import { useGraphServices } from "../../graph/graphContext";
 import { useDebouncedValue } from "../Common/debounce";
 import { buildRetailPatch } from "./Retail/utils/RetailPatch";
 import { useRequestActions } from "./UpdateRequest/hooks/useRequestActions";
 import { detallePayloadFromRetail } from "./UpdateRequestDetails/utils/requestPayload";
 import { notifyUpdateRequest } from "../../utils/mail";
+import { useCoreGraphServices, useGestorServices } from "../../graph/graphContext";
+import { notify } from '../../utils/notify';
 
 function includesSearch(row: Retail, q: string) {
   const qq = norm(q);
@@ -133,7 +134,8 @@ export function useRetail(RetailSvc: RetailService, ) {
   const [errors, setErrors] = React.useState<RetailErrors>({});
   const setField = <K extends keyof Retail>(k: K, v: Retail[K]) => setState((s) => ({ ...s, [k]: v }));
   const debouncedSearch = useDebouncedValue(search, 250);
-  const graph = useGraphServices()
+  const {Retail, pasosRetail} = useGestorServices()
+  const {mail, graph} = useCoreGraphServices()
   const requestController = useRequestActions()
 
  const buildServerFilter = React.useCallback((): GetAllOpts => {
@@ -297,7 +299,7 @@ export function useRetail(RetailSvc: RetailService, ) {
   const handleSubmit = async (): Promise<{created: Retail | null, ok: boolean}> => {
     if (!validate()) { 
       console.log(state)
-      alert("Hay campos vacios")
+      notify.auto("Hay campos vacios")
       return{
         created: null,
         ok: false
@@ -343,7 +345,7 @@ export function useRetail(RetailSvc: RetailService, ) {
         FechaExamenesMedicos: null
     };
       const created = await RetailSvc.create(payload);
-      alert("Se ha creado el registro con éxito")
+      notify.auto("Se ha creado el registro con éxito")
       return {
         created: created,
         ok: true
@@ -359,11 +361,11 @@ export function useRetail(RetailSvc: RetailService, ) {
     const validationErrors = validate()
 
     if (!validationErrors) {
-      alert("Hay algunos campos faltantes")
+      notify.auto("Hay algunos campos faltantes")
       return
     };
     if (!retailSeleccionado.Id) {
-      alert("Registro sin Id");
+      notify.auto("Registro sin Id");
       return;
     }
 
@@ -375,26 +377,26 @@ export function useRetail(RetailSvc: RetailService, ) {
       if(!canEdit){
         const payload = buildRetailPatch(toEdit, state);
         await RetailSvc.update(retailSeleccionado.Id, payload);
-        alert("Se ha actualizado el registro con éxito");
+        notify.auto("Se ha actualizado el registro con éxito");
       } else {
 
         const request = await requestController.createRequest("Retail", retailSeleccionado.Id)
         if(!request.created || !request.ok) return
 
-        const realRegister = await graph.Retail.get(retailSeleccionado.Id)
+        const realRegister = await Retail.get(retailSeleccionado.Id)
 
         const DetallesPayload = detallePayloadFromRetail(realRegister, state, request.created.Id!)
 
         requestController.genericProcess("Retail", DetallesPayload,)
 
-        const groupMembers = await graph.graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
-        await notifyUpdateRequest(graph.mail, "Retail", account?.name ?? "", retailSeleccionado.Title, groupMembers,)
+        const groupMembers = await graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
+        await notifyUpdateRequest(mail, "Retail", account?.name ?? "", retailSeleccionado.Title, groupMembers,)
         
-        alert("Se ha enviado la solicitud, se te notificara el resultado")
+        notify.auto("Se ha enviado la solicitud, se te notificara el resultado")
         
       }
     } catch {
-      alert("Ha ocurrido un error");
+      notify.auto("Ha ocurrido un error");
     } finally {
       setLoading(false);
     }
@@ -484,7 +486,7 @@ export function useRetail(RetailSvc: RetailService, ) {
 
       if(proceso){
         await RetailSvc.update(Id, {CanceladoPor: account?.name, Estado: "Cancelado", razonCancelacion: RazonCancelacion})
-        alert("Se ha cancelado este proceso con éxito")
+        notify.auto("Se ha cancelado este proceso con éxito")
         reloadAll()
       }
     } catch {
@@ -499,7 +501,7 @@ export function useRetail(RetailSvc: RetailService, ) {
 
       if(proceso){
         await RetailSvc.update(Id, {Estado: "En proceso",})
-        alert("Se ha reactivado este proceso con éxito")
+        notify.auto("Se ha reactivado este proceso con éxito")
         reloadAll()
       }
     } catch {
@@ -509,15 +511,15 @@ export function useRetail(RetailSvc: RetailService, ) {
 
   const deleteRetail = React.useCallback(async (Id: string) => {
     setLoading(true)
-    const pasos = await graph.pasosRetail.getAll({filter: `fields/Title eq '${Id}'`})
+    const pasos = await pasosRetail.getAll({filter: `fields/Title eq '${Id}'`})
     try{
       for (const paso of pasos) {
-        await graph.PasosCesacion.delete(paso.Id!);
+        await pasosRetail.delete(paso.Id!);
       }
 
       await RetailSvc.delete(Id)
       await loadBase()
-      alert("Se ha eliminado el registro con exito.")
+      notify.auto("Se ha eliminado el registro con exito.")
     } catch {
       throw new Error("Ha ocurrido un error reactivando el proceso");
     } finally {
@@ -530,9 +532,9 @@ export function useRetail(RetailSvc: RetailService, ) {
         if(!Id || !fecha ) return
 
         const spDate = toGraphDateTime(fecha)
-        await graph.Retail.update(Id, {FechaExamenesMedicos: spDate});
+        await Retail.update(Id, {FechaExamenesMedicos: spDate});
         await loadBase()
-        alert("Se ha guardado la fecha de los examenes medicos con éxito.")
+        notify.auto("Se ha guardado la fecha de los examenes medicos con éxito.")
       } catch {
         throw new Error("Ha ocurrido un error eliminando la novedad");
       }
@@ -545,3 +547,5 @@ export function useRetail(RetailSvc: RetailService, ) {
     saveMedicalExams, deleteRetail, handleReactivateProcessById, setState, handleCancelProcessbyId, setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage, searchRegister
   };
 }
+
+

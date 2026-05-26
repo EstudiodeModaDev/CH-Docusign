@@ -1,14 +1,14 @@
 import React from "react";
-import { useGraphServices } from "../../../../graph/graphContext";
 import type { PasosProceso } from "../../../../models/Pasos";
 import { useStepDecisionState } from "../sharedHooks/useStepDecisionState";
 import { useStepsCatalog } from "../sharedHooks/useStepsCatalog";
 import { useStepCompletion } from "../sharedHooks/useStepCompletion";
 import { useStepDetails } from "../sharedHooks/useStepDetails";
+import {  useGestorServices } from "../../../../graph/graphContext";
 
 
 export function useNovedadesSteps() {
-  const { PasosNovedades, DetallesPasosNovedades } = useGraphServices();
+  const { PasosNovedades, DetallesPasosNovedades } = useGestorServices();
 
   const decisionState = useStepDecisionState();
 
@@ -55,13 +55,14 @@ export function useNovedadesSteps() {
 }
 
 export function useNovedadesStepDetails(selected?: string) {
-  const { DetallesPasosNovedades } = useGraphServices();
-  const graph = useGraphServices();
+  const { DetallesPasosNovedades, pasoRestriccion } = useGestorServices();
 
   return useStepDetails({
     detailsService: DetallesPasosNovedades,
     selected,
     activationModule: "Contratacion",
-    graph,
+    service: {
+      pasoRestriccion
+    },
   });
 }

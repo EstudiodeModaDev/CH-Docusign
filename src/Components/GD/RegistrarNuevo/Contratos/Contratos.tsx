@@ -2,7 +2,7 @@ import * as React from "react";
 import "./Contratos.css";
 import type { DateRange, SortDir, SortField } from "../../../../models/Commons";
 import type { Novedad, NovedadErrors } from "../../../../models/Novedades";
-import { useGraphServices } from "../../../../graph/graphContext";
+import { useGestorServices } from "../../../../graph/graphContext";
 import { toISODateFlex } from "../../../../utils/Date";
 import { formatPesosEsCO } from "../../../../utils/Number";
 import type { desplegablesOption } from "../../../../models/Desplegables";
@@ -109,7 +109,7 @@ export type PropsPagination = {
 };
 
 export default function TablaContratos({saveMedicalExams, deleteContratacion, handleReactivatProcessbyId, tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias,CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, origenOptions, loadingOrigen, tipoContratoOptions, loadingTipoContrato, errors, searchRegister, setState, loadingModalidad, especificidadOptions, loadingEspecificdad, etapasOptions, loadingEtapas, nivelCargoOptions, loadinNivelCargo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, state, setField, handleSubmit, handleCancelProcessbyId, handleEdit,  rows, loading: loadingContratos, error, pageSize: pageSizeContratos, pageIndex: pageIndexContratos, hasNext: hasNextContratos, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPageContratos, reloadAll: reloadAllContratos, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
-  const { DetallesPasosNovedades, } = useGraphServices();
+  const { DetallesPasosNovedades, } = useGestorServices();
   const { canEdit } = useEnvios();
   const { engine } = usePermissions();
 

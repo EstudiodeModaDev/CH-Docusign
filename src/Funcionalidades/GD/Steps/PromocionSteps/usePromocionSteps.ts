@@ -1,13 +1,13 @@
 import React from "react";
-import { useGraphServices } from "../../../../graph/graphContext";
 import { useStepCompletion } from "../sharedHooks/useStepCompletion";
 import { useStepDecisionState } from "../sharedHooks/useStepDecisionState";
 import { useStepDetails } from "../sharedHooks/useStepDetails";
 import { useStepsCatalog } from "../sharedHooks/useStepsCatalog";
+import { useGestorServices } from "../../../../graph/graphContext";
 
 //Todo el hook para promoción usando funciones reutilizables
 export function usePromocionSteps() {
-  const { PasosPromocion, DetallesPasosPromocion } = useGraphServices();
+  const { PasosPromocion, DetallesPasosPromocion } = useGestorServices();
 
   const decisionState = useStepDecisionState();
 
@@ -38,13 +38,14 @@ export function usePromocionSteps() {
 
 //Hook para los detalles de los pasos de promoción, usando el hook genérico de detalles de pasos
 export function usePromocionStepDetails(selected?: string) {
-  const { DetallesPasosPromocion } = useGraphServices();
-  const graph = useGraphServices();
+  const { DetallesPasosPromocion, pasoRestriccion } = useGestorServices();
 
   return useStepDetails({
     detailsService: DetallesPasosPromocion,
     selected,
     activationModule: "Promocion",
-    graph,
+    service: {
+      pasoRestriccion
+    },
   });
 }

@@ -1,7 +1,7 @@
 import * as React from "react";
 import "../Contratos/Contratos.css";
 import type { DateRange, SortDir, SortField } from "../../../../models/Commons";
-import { useGraphServices } from "../../../../graph/graphContext";
+import { useGestorServices } from "../../../../graph/graphContext";
 import { toISODateFlex } from "../../../../utils/Date";
 import type { Promocion, PromocionErrors } from "../../../../models/Promociones";
 import { formatPesosEsCO } from "../../../../utils/Number";
@@ -98,7 +98,7 @@ export type PropsPagination = {
 };
 
 export default function TablaPromociones({saveMedicalExams, deletePromocion, submmiting, origenOptions, nivelCargoOptions, tipoVacanteOptions, tipoContratoOptions, loadingEspecificdad, loadingCC, loadingCO, loadingDependencias, loadingDepto, loadingEtapas, loadingOrigen, loadingTipoContrato, loadingTipoVacante, loadingUN, loadingCargo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, modalidadOptions, loadingModalidad, deptoOptions, etapasOptions, COOptions, CentroCostosOptions, UNOptions, dependenciaOptions, loadinNivelCargo, especificidadOptions, errors, handleEdit, setState, handleCancelProcessbyId,searchRegister,  handleReactivateProcessById, setField, handleSubmit, state, rows, loading: loadingPromociones, error, pageSize: pageSizePromociones, pageIndex: pageIndexPromociones, hasNext: hasNextPromociones, sorts, estado, setRange, setEstado, setPageSize, nextPage: nextPagePromociones, reloadAll: reloadAllPromociones, toggleSort, range, setSearch, search, loadFirstPage,}: Props) {
-  const { DetallesPasosPromocion,} = useGraphServices();
+  const { DetallesPasosPromocion,} = useGestorServices();
   const { canEdit } = useEnvios();
   const { engine } = usePermissions();
   

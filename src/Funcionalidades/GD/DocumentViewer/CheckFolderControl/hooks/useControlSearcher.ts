@@ -1,14 +1,14 @@
 import React from "react";
-import { useGraphServices } from "../../../../../graph/graphContext";
 import type { ControlRevisionCarpetas } from "../../../../../models/DocumentViewer";
+import { useGestorServices } from "../../../../../graph/graphContext";
 
 export function useSpecificFolderSearch() {
-  const graph = useGraphServices()
+  const {controlRevisionCarpetas} = useGestorServices()
 
   const [folders, setFolders] = React.useState<ControlRevisionCarpetas[]>([]);
 
   const searchSpecificFolder = React.useCallback(async (query: string): Promise<{founded: boolean, folders: ControlRevisionCarpetas | null}> => {
-    const resp = await graph.controlRevisionCarpetas.getAll({filter: `fields/Cedula eq '${query}'`, top: 1,});
+    const resp = await controlRevisionCarpetas.getAll({filter: `fields/Cedula eq '${query}'`, top: 1,});
 
     const foundFolders = resp ?? [];
     setFolders(foundFolders);
@@ -24,7 +24,7 @@ export function useSpecificFolderSearch() {
       founded: false,
       folders: null
     };
-  }, [graph]);
+  }, [controlRevisionCarpetas]);
 
   return {
     searchSpecificFolder,

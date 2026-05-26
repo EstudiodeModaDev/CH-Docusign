@@ -2,6 +2,7 @@ import * as React from "react";
 import { appendSegment, parentPathOf } from "../utils/explorerPath";
 import type { EmpresaKey, PathsState } from "../../../../models/DocumentViewer";
 import type { Archivo } from "../../../../models/archivos";
+import { notify } from '../../../../utils/notify';
 
 type Params = {
   empresa: EmpresaKey;
@@ -51,24 +52,24 @@ export function useExplorerActions({empresa, currentPath,  activeService, setPat
 
   const handleUploadClick = React.useCallback(async (path: string, file: File, name?: string) => {
     if (!file) {
-      alert("Debes seleccionar un archivo antes de subirlo");
+      notify.auto("Debes seleccionar un archivo antes de subirlo");
       return;
     }
 
     try {
       await activeService.uploadFile(path, file, name);
       await reload();
-      alert("Archivo subido correctamente");
+      notify.auto("Archivo subido correctamente");
     } catch (e: any) {
       console.error(e);
-      alert("Error subiendo archivo: " + e.message);
+      notify.auto("Error subiendo archivo: " + e.message);
     }
   }, [activeService, reload]);
 
 
   const handleDelete = React.useCallback(async (itemId: string, nombre: string) => {
     if (!itemId) {
-      alert("No se puede eliminar");
+      notify.auto("No se puede eliminar");
       return;
     }
 
@@ -81,10 +82,10 @@ export function useExplorerActions({empresa, currentPath,  activeService, setPat
     try {
       await activeService.deleteArchivoById(itemId);
       await reload();
-      alert("Archivo eliminado correctamente");
+      notify.auto("Archivo eliminado correctamente");
     } catch (e: any) {
       console.error(e);
-      alert("Error eliminando archivo: " + e.message);
+      notify.auto("Error eliminando archivo: " + e.message);
     }
   }, [activeService, reload]);
 
@@ -132,3 +133,4 @@ export function useExplorerActions({empresa, currentPath,  activeService, setPat
     handleDelete
   };
 }
+

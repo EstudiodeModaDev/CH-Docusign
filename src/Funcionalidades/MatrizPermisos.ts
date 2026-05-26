@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useGraphServices } from "../graph/graphContext";
+import { useCoreGraphServices,  } from "../graph/graphContext";
 import { FEATURES, type AppPermissionRow, type FeatureKey, type ModuleKey } from "../models/security";
 import { normalizeFeatureKey, type GroupOption } from "../utils/security";
 
@@ -13,7 +13,7 @@ type ModulePermissions = {
 };
 
 export function useGroupPermissionsAdmin(selectedGroup: GroupOption | null) {
-  const { MatrizPermisos } = useGraphServices();
+  const { MatrizPermisos } = useCoreGraphServices();
 
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);

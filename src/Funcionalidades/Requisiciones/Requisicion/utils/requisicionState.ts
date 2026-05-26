@@ -39,8 +39,7 @@ export function cleanStateRequisicion(account: AccountInfo | null): requisicione
     Identificador: "",
     tienda: "",
     motivoNoCumplimiento: "",
-    nombreEmpleadoVinculado: "",
-    cedulaEmpleadoVinculado: "",
+    porceranje: 0,
     NivelCargo: ""
   }
 } 

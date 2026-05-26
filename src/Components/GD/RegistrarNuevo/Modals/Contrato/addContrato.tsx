@@ -1,7 +1,6 @@
 import * as React from "react";
 import "../AddContrato.css";
 import Select, { components, type OptionProps } from "react-select";
-import { useGraphServices } from "../../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../../models/Desplegables";
 import { formatPesosEsCO, numeroATexto, toNumberFromEsCO } from "../../../../../utils/Number";
 import { useAuth } from "../../../../../auth/authProvider";
@@ -23,6 +22,7 @@ import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/us
 import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
 import { createEmptyContratos } from "../../../../../Funcionalidades/GD/Contratos/utils/contratosState";
 import { useNovedadesStepDetails, useNovedadesSteps } from "../../../../../Funcionalidades/GD/Steps/ContratosSteps/useNovedadesSteps";
+import { useCoreGraphServices, useGestorServices } from "../../../../../graph/graphContext";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -92,7 +92,8 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormContratacion({handleReactivateProcessById, title, handleCancelProcessbyId, setState, selectedNovedad, handleEdit, tipo, tipoContratoOptions, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, loadingModalidad, especificidadOptions, loadingEspecificdad, etapasOptions, loadingEtapas, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, origenOptions, loadingOrigen, loadingTipoContrato, tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, onClose, state, setField, handleSubmit, errors, searchRegister: searchNovedad, loadFirstPage }: Props) {
-  const { Contratos, salarios, Promociones, categorias, Retail, configuraciones, mail} = useGraphServices();
+  const { Contratos, Promociones, Retail,} = useGestorServices();
+  const {salarios, categorias, configuraciones, mail} = useCoreGraphServices()
   const { searchRegister: searchHabeas} = useHabeasData();
   const { searchRegister: searchPromocion } = usePromocion(Promociones);
   const { searchRegister: searchRetail } = useRetail(Retail);

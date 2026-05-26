@@ -1,10 +1,11 @@
 import * as React from "react";
+import { useRequisicion } from "../../../Funcionalidades/Requisiciones/Requisicion/Hooks/requisicion";
 import type { desplegablesOption } from "../../../models/Desplegables";
 import type { requisiciones } from "../../../models/Requisiciones/requisiciones";
 import { spDateToDDMMYYYY, toISODateFlex } from "../../../utils/Date";
-import "./tablaRequisiciones.css"
-import { useRequisicion } from "../../../Funcionalidades/Requisiciones/Requisicion/Hooks/requisicion";
+import ProcesoRequisicionModal from "./Proceso/ProcesoRequisicionModal";
 import FiltersRequisicionesTable from "./filtersRequisicionesTable";
+import "./tablaRequisiciones.css";
 
 type Props = {
   cargoOptions: desplegablesOption[];
@@ -16,19 +17,6 @@ type Props = {
 type RowTone = "active" | "closed" | "cancel" | "neutral";
 
 type RowViewModel = {
-  row: requisiciones;
-  id: string;
-  estadoLabel: string;
-  tone: RowTone;
-  cargoLine: string;
-  ciudad: string;
-  analista: string;
-  solicitante: string;
-  cumpleLabel: string;
-  ansTone: "ok" | "bad" | "wait";
-  fechaInicio: string;
-  fechaLimite: string;
-  urgencyLabel: string;
   urgencyTone: "danger" | "warn" | "muted" | "ok";
 };
 
@@ -39,10 +27,9 @@ type seguimiento = {
 };
 
 export default function RequisicionesBoard(props: Props) {
-  const {
-    cargoOptions, onOpenRow, className, emptyText = "No hay requisiciones para los filtros seleccionados.",} = props;
-
-  const  requisicionesController = useRequisicion()
+  const { cargoOptions, onOpenRow, className, emptyText = "No hay requisiciones para los filtros seleccionados." } = props;
+  const requisicionesController = useRequisicion();
+  const [selectedProcessRow, setSelectedProcessRow] = React.useState<requisiciones | null>(null);
 
   const stats = React.useMemo(() => {
     let active = 0;
@@ -51,10 +38,11 @@ export default function RequisicionesBoard(props: Props) {
     let overdue = 0;
 
     for (const item of requisicionesController.rows) {
-      if (calcDayDifference(item).tone === "active") active += 1;
-      if (calcDayDifference(item).tone === "closed") closed += 1;
-      if (calcDayDifference(item).tone=== "cancel") cancel += 1;
-      if (calcDayDifference(item).urgencyTone === "danger") overdue += 1;
+      const seguimiento = calcDayDifference(item);
+      if (seguimiento.tone === "active") active += 1;
+      if (seguimiento.tone === "closed") closed += 1;
+      if (seguimiento.tone === "cancel") cancel += 1;
+      if (seguimiento.urgencyTone === "danger") overdue += 1;
     }
 
     return { total: requisicionesController.rows.length, active, closed, cancel, overdue };
@@ -79,21 +67,21 @@ export default function RequisicionesBoard(props: Props) {
           </div>
         </div>
 
-        <FiltersRequisicionesTable 
-          cargoOptions={cargoOptions} 
-          rows={requisicionesController.rows} 
-          setSearch={requisicionesController.setSearch} 
-          setEstado={requisicionesController.setEstado} 
-          setCargo={requisicionesController.setCargo} 
-          setCiudad={requisicionesController.setCiudad} 
-          setAnalista={requisicionesController.setAnalista} 
-          setMes={requisicionesController.setMes} 
-          search={requisicionesController.search} 
-          estado={requisicionesController.estado} 
-          cargo={requisicionesController.cargo} 
-          ciudad={requisicionesController.ciudad} 
-          analista={requisicionesController.analista} 
-          mes={requisicionesController.mes} 
+        <FiltersRequisicionesTable
+          cargoOptions={cargoOptions}
+          rows={requisicionesController.rows}
+          setSearch={requisicionesController.setSearch}
+          setEstado={requisicionesController.setEstado}
+          setCargo={requisicionesController.setCargo}
+          setCiudad={requisicionesController.setCiudad}
+          setAnalista={requisicionesController.setAnalista}
+          setMes={requisicionesController.setMes}
+          search={requisicionesController.search}
+          estado={requisicionesController.estado}
+          cargo={requisicionesController.cargo}
+          ciudad={requisicionesController.ciudad}
+          analista={requisicionesController.analista}
+          mes={requisicionesController.mes}
         />
       </section>
 
@@ -108,46 +96,78 @@ export default function RequisicionesBoard(props: Props) {
             <table className="rb-table">
               <thead>
                 <tr>
-                  <th>{"ID"}</th>
-                  <th>{"Fase"}</th>
-                  <th>{"Cargo"}</th>
-                  <th>{"Analista"}</th>
+                  <th>ID</th>
+                  <th>Cargo</th>
+                  <th>Analista</th>
                   <th>Solicitante</th>
-                  <th>{"Fecha inicio"}</th>
-                  <th>{"Fecha hasta"}</th>
+                  <th>Fecha hasta</th>
                   <th>Seguimiento</th>
+                  <th>Porcetanje</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {requisicionesController.rows.map((item) => (
-                  <tr key={item.Id} className={`rb-tr rb-tr--${calcDayDifference(item).tone}`} onClick={() => onOpenRow(item)}>
-                    <td>
-                      <span className="rb-id">#{item.Id || "—"}</span>
-                    </td>
-                    <td>
-                      {/*TODO: INtegrar la fase segun el checklist*/}
-                    </td>
-                    <td>
-                      <div className="rb-cell-main">{item.Title}</div>
-                    </td>
-                    <td>{item.nombreProfesional || "Sin asignar"}</td>
-                    <td className="rb-break">{item.solicitante || "—"}</td>
-                    <td>{spDateToDDMMYYYY(item.fechaInicioProceso)}</td>
-                    <td>{spDateToDDMMYYYY(item.fechaLimite)}</td>
-                    <td>
-                      <span className={`rb-chip rb-chip--${calcDayDifference(item).urgencyTone}`}>{calcDayDifference(item).urgencyLabel}</span>
-                    </td>
-                  </tr>
-                ))}
+                {requisicionesController.rows.map((item) => {
+                  const seguimiento = calcDayDifference(item);
+
+                  return (
+                    <tr key={item.Id} className={`rb-tr rb-tr--${seguimiento.tone}`} onClick={() => onOpenRow(item)}>
+                      <td data-label="ID">
+                        <span className="rb-id">#{item.Id || "-"}</span>
+                      </td>
+                      <td data-label="Cargo">
+                        <div className="rb-cell-main">{item.Title}</div>
+                      </td>
+                      <td data-label="Analista">{item.nombreProfesional || "Sin asignar"}</td>
+                      <td data-label="Solicitante" className="rb-break">{item.solicitante || "-"}</td>
+                      <td data-label="Fecha hasta">{spDateToDDMMYYYY(item.fechaLimite)}</td>
+                      <td data-label="Seguimiento">
+                        <span className={`rb-chip rb-chip--${seguimiento.urgencyTone}`}>
+                          {item.Estado === "Completada" ? "Finalizada" :seguimiento.urgencyLabel}
+                        </span>
+                      </td>
+                      <td data-label="Porcentaje">{item.porceranje ?? 0}%</td>
+                      <td data-label="Acciones">
+                        <div className="rq-actions-cell">
+                          <button
+                            type="button"
+                            className="rq-action-btn rq-action-btn--ghost"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onOpenRow(item);
+                            }}
+                          >
+                            Ver
+                          </button>
+                          <button
+                            type="button"
+                            className="rq-action-btn rq-action-btn--primary"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedProcessRow(item);
+                            }}
+                          >
+                            Checklist
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </section>
+
+      <ProcesoRequisicionModal
+        open={Boolean(selectedProcessRow)}
+        row={selectedProcessRow}
+        onClose={() => setSelectedProcessRow(null)}
+      />
     </div>
   );
 }
-
 
 function StatPill({ label, value, tone }: { label: string; value: number; tone: "neutral" | "success" | "danger" | "info" | "warn" }) {
   return (
@@ -157,7 +177,6 @@ function StatPill({ label, value, tone }: { label: string; value: number; tone: 
     </div>
   );
 }
-
 
 function calcDayDifference(row: requisiciones): seguimiento {
   const estado = String(row.Estado ?? "").trim();
@@ -195,14 +214,14 @@ function calcDayDifference(row: requisiciones): seguimiento {
   return {
     urgencyLabel,
     urgencyTone,
-    tone
+    tone,
   };
 }
 
 function getToneByEstado(estado: string): RowTone {
   const s = String(estado ?? "").trim().toLowerCase();
   if (s.includes("cancel")) return "cancel";
-  if (s.includes("cerr")) return "closed";
+  if (s.includes("completa")) return "closed";
   if (s.includes("activo") || s.includes("abiert")) return "active";
   return "neutral";
 }

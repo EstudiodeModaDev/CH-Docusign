@@ -1,9 +1,9 @@
 import React from "react";
-import { useGraphServices } from "../../../../graph/graphContext";
+import { useGestorServices,  } from "../../../../graph/graphContext";
 import type { solicitud } from "../../../../models/solicitudCambio";
 
 export function useRequestSearches() {
-  const graph = useGraphServices()
+  const {solicitud} = useGestorServices()
 
   const [request, setRequest] = React.useState<solicitud[]>([])
   const [loading, setLoading] = React.useState<boolean>(false)
@@ -11,7 +11,7 @@ export function useRequestSearches() {
   const getRequests = async (): Promise<solicitud[]> => {
     setLoading(true)
     try {
-      const requestResponse = await graph.solicitud.getAll()
+      const requestResponse = await solicitud.getAll()
       setRequest(requestResponse)
       return request
     } catch {

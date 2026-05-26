@@ -1,15 +1,16 @@
-import { useGraphServices } from "../../../../graph/graphContext";
+import { useGestorServices, } from "../../../../graph/graphContext";
 import { useRequestDetailsForm, } from "./useRequestForm";
 import type { detalle, } from "../../../../models/solicitudCambio";
+import { notify } from '../../../../utils/notify';
 
 export function useRequestDetailsActions() {
-  const graph = useGraphServices()
+  const {detalle} = useGestorServices()
   const formController = useRequestDetailsForm()
 
   const createDetails = async (payload: detalle): Promise<{ created: detalle | null; ok: boolean }> => {
 
     if(!payload) {
-      alert("No se ha enviado la solicitud")
+      notify.auto("No se ha enviado la solicitud")
       return{
         created: null,
         ok: false
@@ -17,7 +18,7 @@ export function useRequestDetailsActions() {
     }
     
     try {
-      const creado = await graph.detalle.create(payload);
+      const creado = await detalle.create(payload);
       return { ok: true, created: creado };
     } catch {
       return { ok: false, created: null };
@@ -31,3 +32,4 @@ export function useRequestDetailsActions() {
     createDetails
   };
 }
+

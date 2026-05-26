@@ -1,8 +1,16 @@
-import type { useGraphServices } from "../../../graph/graphContext";
 import type { PasoRestriccion } from "../../../models/Pasos";
+import type { pasoRestriccionProcesoService } from "../../../Services/PasoRestriccionProceso.Service";
 import { validatePasoRestriccionCargoConsistency, validatePasoRestriccionCargoInput } from "./validatePasoRestriccion";
+import { notify } from '../../../utils/notify';
 
-export async function createStepRestriction(data: Omit<PasoRestriccion, "Id">, service: ReturnType<typeof useGraphServices>) {
+type createStepRestrictionProps = {
+  data: Omit<PasoRestriccion, "Id">,
+  service: {
+    pasoRestriccion: pasoRestriccionProcesoService
+  }
+}
+
+export async function createStepRestriction({data, service}: createStepRestrictionProps) {
   const validInputs = validatePasoRestriccionCargoInput({CargoNegocio: data.CargoNombre, IdPaso: data.Title, Proceso: data.Proceso, TipoRegla: data.TipoRegla});
 
   if(validInputs.ok){
@@ -11,14 +19,21 @@ export async function createStepRestriction(data: Omit<PasoRestriccion, "Id">, s
     if(validConsistency.ok) {
       return await service.pasoRestriccion.create(data);
     } else{
-      alert(validConsistency.message)
+      notify.auto(validConsistency.message)
     }
   } else {
-    alert(validInputs.message)
+    notify.auto(validInputs.message)
   }  
 }
 
-export async function updateStepRestriction(data: PasoRestriccion, service: ReturnType<typeof useGraphServices>) {
+type updateStepRestrictionProps = {
+  data: PasoRestriccion,
+  service: {
+    pasoRestriccion: pasoRestriccionProcesoService
+  }
+}
+
+export async function updateStepRestriction({data, service}: updateStepRestrictionProps) {
   const validInputs = validatePasoRestriccionCargoInput({CargoNegocio: data.CargoNombre, IdPaso: data.Title, Proceso: data.Proceso, TipoRegla: data.TipoRegla});
 
   if(validInputs.ok){
@@ -27,14 +42,24 @@ export async function updateStepRestriction(data: PasoRestriccion, service: Retu
     if(validConsistency.ok) {
       return await service.pasoRestriccion.update(data.Id!, data);
     } else{
-      alert(validConsistency.message)
+      notify.auto(validConsistency.message)
     }
   } else {
-    alert(validInputs.message)
+    notify.auto(validInputs.message)
   }  
 }
 
-export async function toggleUpdateRestriction(id: string, activo: boolean, service: ReturnType<typeof useGraphServices>) {
+type toggleUpdateRestrictionProps = {
+  id: string,
+  activo: boolean,
+  service: {
+    pasoRestriccion: pasoRestriccionProcesoService
+  }
+}
+
+export async function toggleUpdateRestriction({id, activo, service}: toggleUpdateRestrictionProps) {
   return await service.pasoRestriccion.update(id, { Activo: activo });
 }
+
+
 

@@ -2,7 +2,7 @@ import type { EmpresaKey, PathsState } from "../../../../models/DocumentViewer";
 import type { ColaboradoresBrokenService, ColaboradoresDenimService, ColaboradoresDHService, ColaboradoresEDMService, ColaboradoresMetaService, ColaboradoresVisualService } from "../../../../Services/Bibliotecas.service";
 
 
-type GraphServices = {
+export type GraphServicesArgument = {
   ColaboradoresEDM: ColaboradoresEDMService;
   ColaboradoresDH: ColaboradoresDHService;
   ColaboradoresDenim: ColaboradoresDenimService;
@@ -11,7 +11,7 @@ type GraphServices = {
   ColaboradoresBroken: ColaboradoresBrokenService;
 };
 
-export function buildExplorerServiceMap(services: GraphServices) {
+export function buildExplorerServiceMap(services: GraphServicesArgument) {
   return {
     estudio: services.ColaboradoresEDM,
     dh: services.ColaboradoresDH,

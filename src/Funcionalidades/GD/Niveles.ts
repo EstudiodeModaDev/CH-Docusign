@@ -2,6 +2,7 @@ import React from "react";
 import type { salario, salarioErrors } from "../../models/Desplegables";
 import type { CategoriaCargosService } from "../../Services/CategoriaCargos.service";
 import type { CargoCategoria } from "../../models/Maestros";
+import { notify } from '../../utils/notify';
 
 export function useAutomaticCargo(nivelSvc: CategoriaCargosService) {
     const [rows, setRows] = React.useState<CargoCategoria[]>([]);
@@ -66,7 +67,7 @@ export function useAutomaticCargo(nivelSvc: CategoriaCargosService) {
         Title: state.Title
       };
       await nivelSvc.create(payload);
-      alert("Se ha creado el registro con éxito");
+      notify.auto("Se ha creado el registro con éxito");
       loadAll()
     } finally {
         setLoading(false);
@@ -82,7 +83,7 @@ export function useAutomaticCargo(nivelSvc: CategoriaCargosService) {
         Title: categoriaSeleccionado.Title !== state.Title ? state.Title : categoriaSeleccionado.Title,
       };
       await nivelSvc.update(categoriaSeleccionado.Id!, payload);
-      alert("Se ha actualizado el registro con éxito");
+      notify.auto("Se ha actualizado el registro con éxito");
       loadAll()
     } finally {
         setLoading(false);
@@ -94,3 +95,4 @@ export function useAutomaticCargo(nivelSvc: CategoriaCargosService) {
      applyRange, reloadAll, setField, handleSubmit, handleEdit, loadSpecificLevel, loadAll, setState
   };
 }
+

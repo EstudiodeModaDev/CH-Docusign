@@ -1,6 +1,7 @@
 import React from "react";
 import type { SalariosService } from "../../Services/Salarios.service";
 import type { salario, salarioErrors } from "../../models/Desplegables";
+import { notify } from '../../utils/notify';
 
 export function useSalarios(salariosSvc: SalariosService) {
     const [rows, setRows] = React.useState<salario[]>([]);
@@ -65,7 +66,7 @@ export function useSalarios(salariosSvc: SalariosService) {
         Title: state.Title
       };
       await salariosSvc.create(payload);
-      alert("Se ha creado el registro con éxito");
+      notify.auto("Se ha creado el registro con éxito");
       loadAll()
     } finally {
         setLoading(false);
@@ -81,7 +82,7 @@ export function useSalarios(salariosSvc: SalariosService) {
         Title: salarioSeleccionado.Title !== state.Title ? state.Title : salarioSeleccionado.Title,
       };
       await salariosSvc.update(salarioSeleccionado.Id!, payload);
-      alert("Se ha actualizado el registro con éxito");
+      notify.auto("Se ha actualizado el registro con éxito");
       loadAll()
     } finally {
         setLoading(false);
@@ -93,4 +94,6 @@ export function useSalarios(salariosSvc: SalariosService) {
      applyRange, reloadAll, setField, handleSubmit, handleEdit, loadSpecificSalary, loadAll, setState
   };
 }
+
+
 

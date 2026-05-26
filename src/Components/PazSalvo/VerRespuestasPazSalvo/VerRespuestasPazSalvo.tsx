@@ -1,7 +1,7 @@
 import * as React from "react";
 import "./VerRespuestasPazSalvo.css";
 import type { PazSalvo, respuestas } from "../../../models/PazSalvo";
-import { useGraphServices } from "../../../graph/graphContext";
+import { usePazSalvoServices } from "../../../graph/graphContext";
 import { useRespuestasPazSalvos } from "../../../Funcionalidades/PazSalvos/Respuesta";
 import { RespuestasDetalleModal } from "./DetalleModal/DetalleModal";
 
@@ -13,7 +13,7 @@ type Props = {
 const LABEL_SIN_RESPUESTA = "No se ha dado una respuesta aun";
 
 export const PazSalvoRespuestasTable: React.FC<Props> = ({ pazSalvo, onBack }) => {
-  const { Respuesta } = useGraphServices();
+  const { Respuesta } = usePazSalvoServices();
   const { loadPazSalvoRespuestas, rows, } = useRespuestasPazSalvos(Respuesta, pazSalvo);
 
   const [detalle, setDetalle] = React.useState(false);

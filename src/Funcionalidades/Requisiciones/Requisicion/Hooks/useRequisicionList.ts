@@ -1,5 +1,5 @@
 import React from "react";
-import { useGraphServices } from "../../../../graph/graphContext";
+import { useRequisicionesServices } from "../../../../graph/graphContext";
 import type { requisiciones } from "../../../../models/Requisiciones/requisiciones";
 import type { useRequisicionFilters } from "./useRequisicionFilters";
 import { useAuth } from "../../../../auth/authProvider";
@@ -11,7 +11,7 @@ type Props = {
 };
 
 export function useRequisicionesList({filters, pagination}: Props) {
-  const graph = useGraphServices()
+  const {requisiciones} = useRequisicionesServices()
   const {account} = useAuth()
   
   const [rows, setRows] = React.useState<requisiciones[]>([]);
@@ -25,7 +25,7 @@ export function useRequisicionesList({filters, pagination}: Props) {
     setError(null);
 
     try {
-      const { items, nextLink: serverNextLink } = await graph.requisiciones.getAll(filters.buildFilter());
+      const { items, nextLink: serverNextLink } = await requisiciones.getAll(filters.buildFilter());
       setRows(items ?? []);
       pagination.setNextLink(serverNextLink ?? null);
       pagination.setPageIndex(1);
@@ -37,7 +37,7 @@ export function useRequisicionesList({filters, pagination}: Props) {
     } finally {
       setLoading(false);
     }
-  }, [account?.username, filters.buildFilter, pagination.pageSize, graph, ]);
+  }, [account?.username, filters.buildFilter, pagination.pageSize, requisiciones]);
 
 
   // =========================
@@ -55,7 +55,7 @@ export function useRequisicionesList({filters, pagination}: Props) {
     if (!pagination.nextLink) return;
     setLoading(true); setError(null);
     try {
-      const { items, nextLink: n2 } = await graph.requisiciones.getByNextLink(pagination.nextLink);
+      const { items, nextLink: n2 } = await requisiciones.getByNextLink(pagination.nextLink);
       setRows(items); 
       pagination.nextPage(n2)
     } catch (e: any) {

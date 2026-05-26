@@ -2,6 +2,7 @@ import React from "react";
 import type { DateRange, SortDir, SortField, } from "../../models/Commons";
 import type { cargoCiudadAnalista, cargoCiudadAnalistaErrors, } from "../../models/Requisiciones/requisiciones";
 import type { cargoCiudadAnalistaService } from "../../Services/cargoCiudadAnalista.service";
+import { notify } from '../../utils/notify';
 
 export function useCargoCiudadAnalista(requisicionSvc: cargoCiudadAnalistaService,) {
   const [rows, setRows] = React.useState<cargoCiudadAnalista[]>([]);
@@ -56,7 +57,7 @@ export function useCargoCiudadAnalista(requisicionSvc: cargoCiudadAnalistaServic
 
   const handleCreate = async (payload: cargoCiudadAnalista): Promise<{created: string | null, ok: boolean}> => {
     if (!validate()) { 
-      alert("Hay campos sin rellenar")
+      notify.auto("Hay campos sin rellenar")
       console.log(errors)
       return {
         created: null,
@@ -68,14 +69,14 @@ export function useCargoCiudadAnalista(requisicionSvc: cargoCiudadAnalistaServic
     try {
       const exists = await requisicionSvc.getAll({filter: `fields/Cargo eq '${state.Cargo}' and fields/Ciudad eq '${state.Ciudad}'`});
       if(exists.length > 0){
-        alert("Ya existe la combinacion de este cargo y ciudad")
+        notify.auto("Ya existe la combinacion de este cargo y ciudad")
         return{
             created: null,
             ok: false
         }
       }
       const created = await requisicionSvc.create(payload);
-      alert("Se ha creado el registro con éxito")
+      notify.auto("Se ha creado el registro con éxito")
       return {
         created: created.Id ?? "",
         ok: true        
@@ -104,7 +105,7 @@ export function useCargoCiudadAnalista(requisicionSvc: cargoCiudadAnalistaServic
       };
 
       await requisicionSvc.update(cargoSeleccionado.Id!, payload);
-      alert("Se ha actualizado el registro con éxito")
+      notify.auto("Se ha actualizado el registro con éxito")
     } finally {
         setLoading(false);
       }
@@ -122,10 +123,10 @@ export function useCargoCiudadAnalista(requisicionSvc: cargoCiudadAnalistaServic
     setLoading(true);
     try {
       await requisicionSvc.delete(cargoSeleccionado);
-      alert("Registro eliminado con éxito");
+      notify.auto("Registro eliminado con éxito");
     } catch (err) {
       console.error(err);
-      alert("No se pudo eliminar el registro. Intenta de nuevo.");
+      notify.auto("No se pudo eliminar el registro. Intenta de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -142,3 +143,4 @@ export function useCargoCiudadAnalista(requisicionSvc: cargoCiudadAnalistaServic
     applyRange, reloadAll, setRange, setPageSize, setSearch, setSorts, setField, handleCreate, cleanState, setEstado, handleDelete, setState, lookForAnalistaEncargado
   };
 }
+

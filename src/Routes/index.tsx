@@ -73,11 +73,14 @@ export default function AppRoutes() {
       <Route path="/support" element={<NuevoTicketForm/>}/>
       <Route path="/requisiciones" element={<RequisicionesProvider />}>
         <Route path="metricas" element={<RequisicionesMetricasWrapper/>}/>
+        <Route path="tableaRequisiciones" element={<RequisicionesBoardWrapper/>}/>
+        <Route path="tableaRequisiciones/visualizacionDetalle" element={<RequisicionesBoardWrapper/>}/>
       </Route>
       <Route path="/requisicion" element={<RequisicionesProvider />}>
         <Route index element={null} />
         <Route path="new" element={<NewRequisicionWrapper/>}/>
         <Route path="view" element={<RequisicionesBoardWrapper/>}/>
+          <Route path="view/visualizacionDetalle" element={<RequisicionesBoardWrapper/>}/>
         <Route path="metricas" element={<Navigate to="/requisiciones/metricas" replace />} />
       </Route>
     </Routes>

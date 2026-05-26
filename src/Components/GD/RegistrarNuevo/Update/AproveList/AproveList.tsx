@@ -7,7 +7,7 @@ import { useRequestDetailsSearches } from "../../../../../Funcionalidades/GD/Upd
 import SolicitudesDetails from "../AproveModal/UpdateRequest";
 import type { CommonRegister } from "../../../../../models/Commons";
 import { getRegistroReal } from "../../../../../Funcionalidades/Common/allTablesSearches";
-import { useGraphServices } from "../../../../../graph/graphContext";
+import { useGestorServices, } from "../../../../../graph/graphContext";
 
 function getEstadoClass(estado: string) {
   const normalized = estado.toLowerCase();
@@ -22,7 +22,7 @@ export default function SolicitudesAprobacion() {
   const [selectedRequest, setSelectedRequest] = React.useState<solicitud | null>(null)
   const [showDetails, setShowDetails] = React.useState<boolean>(false)
   const [registrosMap, setRegistrosMap] = React.useState<Record<string, CommonRegister>>({});
-  const graph = useGraphServices()
+  const gestor = useGestorServices()
 
   const requestController = useRequestSearches()
   const requestDetailsController = useRequestDetailsSearches()
@@ -40,7 +40,7 @@ export default function SolicitudesAprobacion() {
       for (const s of requestController.request) {
         if (!s.Id) continue;
 
-        const reg = await getRegistroReal(s, graph);
+        const reg = await getRegistroReal(s, gestor);
         console.log(reg)
         if (reg) {
           nuevos[String(s.Id)] = reg;
@@ -53,7 +53,7 @@ export default function SolicitudesAprobacion() {
     if (requestController.request.length > 0) {
       loadRegistros();
     }
-  }, [requestController.request, graph]);
+  }, [requestController.request, gestor]);
 
   const filteredSolicitudes = React.useMemo(() => {
     return requestController.request.filter((s) => {

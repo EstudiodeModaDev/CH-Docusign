@@ -1,6 +1,6 @@
 import * as React from "react";
 import "./NewPazSalvo.css";
-import { useGraphServices } from "../../../graph/graphContext";
+import { useCoreGraphServices, usePazSalvoServices } from "../../../graph/graphContext";
 import { usePazSalvo } from "../../../Funcionalidades/PazSalvos/PazSalvos";
 import { useWorkers } from "../../../Funcionalidades/PazSalvos/Workers";
 import Select from "react-select";
@@ -10,13 +10,15 @@ import { useCargo, useCentroOperativo, useEmpresasSelect } from "../../../Funcio
 import { useRenovar } from "../../../Funcionalidades/PazSalvos/Renovar";
 import { useFirmaUsuario } from "../../../Funcionalidades/PazSalvos/Firmas";
 import { useAuth } from "../../../auth/authProvider";
+import { notify } from '../../../utils/notify';
 
 type Props = {
   onBack: () => void;
 };
 
 export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
-  const {PazSalvos, Maestro, Renovar, Firmas, mail, configuraciones} = useGraphServices()
+  const {PazSalvos, Renovar, Firmas,} = usePazSalvoServices()
+  const {Maestro, mail, configuraciones} = useCoreGraphServices()
   const {account} = useAuth()
   const {getFirmaInline} = useFirmaUsuario(Firmas, account?.username!)
   const {state, setField, handleSubmit, errors, loading} = usePazSalvo(PazSalvos,mail);
@@ -166,7 +168,7 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
     e.preventDefault();
 
     if (!correo) {
-      alert("Hay campos vacios");
+      notify.auto("Hay campos vacios");
       return;
     }
 
@@ -179,7 +181,7 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
     }
 
     if (!encuestaFinal) {
-      alert("No se pudo cargar el link de la encuesta. Intenta de nuevo.");
+      notify.auto("No se pudo cargar el link de la encuesta. Intenta de nuevo.");
       return;
     }
 
@@ -420,3 +422,5 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
     </div>
   );
 };
+
+

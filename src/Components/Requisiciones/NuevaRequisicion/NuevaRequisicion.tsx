@@ -1,17 +1,29 @@
 import * as React from "react";
 import "./NuevaRequisicion.css";
-import { useGraphServices } from "../../../graph/graphContext";
 import type { requisiciones } from "../../../models/Requisiciones/requisiciones";
 import FirstStepForm from "./FormStep1/Step1";
-import { gruposCVE, useCargo, useCentroCostos, useCentroOperativo, useDeptosMunicipios, useDireccion, useGenero, useModalidadTrabajo, useMotivoRequisicion, useTipoVacante, useUnidadNegocio } from "../../../Funcionalidades/Desplegables";
+import {
+  gruposCVE,
+  useCargo,
+  useCentroCostos,
+  useCentroOperativo,
+  useDeptosMunicipios,
+  useDireccion,
+  useGenero,
+  useModalidadTrabajo,
+  useMotivoRequisicion,
+  useTipoVacante,
+  useUnidadNegocio,
+} from "../../../Funcionalidades/Desplegables";
 import Step2Form from "./FormStep2/Step2";
+import { useCoreGraphServices, useRequisicionesServices } from "../../../graph/graphContext";
+import { notify } from '../../../utils/notify';
 
 type Props = {
   onClose: () => void;
   state: requisiciones;
   handleSubmit: (ans: number) => Promise<{ created: requisiciones | null; ok: boolean }>;
   notifyAsignacion: (created: requisiciones) => Promise<void>;
-  notificarMotivo: (motivo: string, coCodigo: string, coNombre: string) => Promise<void>;
   setField: <K extends keyof requisiciones>(k: K, v: requisiciones[K]) => void;
 };
 
@@ -24,10 +36,10 @@ export default function WizardRequisicion3Pasos({
   state,
   handleSubmit,
   notifyAsignacion,
-  notificarMotivo,
   setField,
 }: Props) {
-  const { categorias, ansRequisicion, Maestro, DeptosYMunicipios, } = useGraphServices();
+  const { ansRequisicion } = useRequisicionesServices();
+  const { categorias, Maestro, DeptosYMunicipios } = useCoreGraphServices();
   const [submitting, setSubmitting] = React.useState(false);
 
   const { reload: loadCargos, options: cargoOptions } = useCargo(Maestro);
@@ -94,7 +106,7 @@ export default function WizardRequisicion3Pasos({
 
   const handleSubmitRequest = async () => {
     if (!state.Title || !state.Ciudad) {
-      alert("Debes seleccionar el cargo y la ciudad para asignar el ANS y el analista.");
+      notify.auto("Debes seleccionar el cargo y la ciudad para asignar el ANS y el analista.");
       return;
     }
 
@@ -102,10 +114,9 @@ export default function WizardRequisicion3Pasos({
 
     try {
       const categoriaCargo = state.NivelCargo;
-      console.log(categoriaCargo);
 
       if (!categoriaCargo) {
-        alert("Este cargo no ha sido configurado, por favor comuniquese con capital humano");
+        notify.auto("Este cargo no ha sido configurado, por favor comuniquese con capital humano");
         return;
       }
 
@@ -115,26 +126,18 @@ export default function WizardRequisicion3Pasos({
 
       const ans = ansRows[0];
       if (!ans) {
-        alert("No se encontro ANS configurado para el cargo seleccionado.");
+        notify.auto("No se encontro ANS configurado para el cargo seleccionado.");
         return;
       }
 
       const result = await handleSubmit(Number(ans.diasHabiles0 ?? 0));
 
       if (!result.ok || !result.created) {
-        alert("No fue posible crear la requisicion.");
+        notify.auto("No fue posible crear la requisicion.");
         return;
       }
 
       await notifyAsignacion(result.created);
-
-      if (result.created.motivo && result.created.codigoCentroOperativo) {
-        await notificarMotivo(
-          result.created.motivo,
-          result.created.codigoCentroOperativo,
-          result.created.tienda ?? ""
-        );
-      }
 
       onClose();
     } finally {
@@ -145,12 +148,12 @@ export default function WizardRequisicion3Pasos({
   const handleNext = async () => {
     if (step === 1) {
       if (!state.Title) {
-        alert("Debes seleccionar un cargo");
+        notify.auto("Debes seleccionar un cargo");
         return;
       }
 
       if (!state.Ciudad) {
-        alert("Debes seleccionar una ciudad");
+        notify.auto("Debes seleccionar una ciudad");
         return;
       }
 
@@ -171,7 +174,6 @@ export default function WizardRequisicion3Pasos({
   const handleCargoChange = async (cargo: string) => {
     const cleanCargo = cargo.toLocaleLowerCase().trim();
     setField("Title", cargo);
-    console.log("Started");
 
     if (cargosRetail.includes(cleanCargo)) {
       setTipoRequisicion("Retail");
@@ -180,7 +182,6 @@ export default function WizardRequisicion3Pasos({
     }
 
     const categoriaCargo = (await categorias.getAll({ filter: `fields/Title eq '${cargo}'` }))[0];
-    console.log(categoriaCargo)
     setField("NivelCargo", categoriaCargo?.Categoria || "");
 
     setTipoRequisicion("Administrativa");
@@ -188,32 +189,31 @@ export default function WizardRequisicion3Pasos({
   };
 
   const currentStep = step === 1 ? 1 : 2;
-  const isLastStep = currentStep === 2;
+  const stepTone = currentStep === 1 ? "Definicion inicial" : "Configuracion final";
 
   return (
-    <div className="rqw-page-shell">
-      <section className="ft-scope ft-card rqw-card rqw-card--page">
-        <header className="ft-head rqw-head">
-          <div className="rqw-head__content">
-            <div className="rqw-kicker-row">
-              <span className="rqw-kicker">Nueva requisicion</span>
-              <span className="rqw-kicker rqw-kicker--soft">{tipoRequisicion}</span>
-            </div>
-            <h2 className="ft-title">Solicitud de requisicion</h2>
-            <p className="rqw-subtitle">Completa la informacion del cargo y los datos operativos para crear la requisicion.</p>
+    <div className="rqw-shell">
+      <section className="rqw-frame">
+        <header className="rqw-hero">
+          <div className="rqw-hero__copy">
+            <span className="rqw-badge">Nueva vacante</span>
+            <h2 className="rqw-hero__title">Crear requisicion</h2>
+            <p className="rqw-hero__subtitle">
+              Registra la vacante paso a paso y valida la informacion clave antes de enviarla al flujo.
+            </p>
           </div>
 
-          <div className="rqw-stepper" aria-label="Progreso del formulario">
-            <div className={`rqw-step ${currentStep >= 1 ? "is-active" : ""}`}>
-              <span className="rqw-step__index">1</span>
-              <div className="rqw-step__meta">
+          <div className="rqw-progress">
+            <div className={`rqw-progress__step ${currentStep === 1 ? "is-current" : currentStep > 1 ? "is-done" : ""}`}>
+              <span className="rqw-progress__index">1</span>
+              <div>
                 <strong>Base</strong>
                 <span>Cargo y ciudad</span>
               </div>
             </div>
-            <div className={`rqw-step ${currentStep >= 2 ? "is-active" : ""}`}>
-              <span className="rqw-step__index">2</span>
-              <div className="rqw-step__meta">
+            <div className={`rqw-progress__step ${currentStep === 2 ? "is-current" : ""}`}>
+              <span className="rqw-progress__index">2</span>
+              <div>
                 <strong>Detalle</strong>
                 <span>Datos operativos</span>
               </div>
@@ -221,63 +221,86 @@ export default function WizardRequisicion3Pasos({
           </div>
         </header>
 
-        <section className="rqw-overview" aria-label="Resumen de la requisicion">
-          <div className="rqw-overview__item">
-            <span className="rqw-overview__label">Cargo</span>
-            <strong>{state.Title || "Pendiente por definir"}</strong>
-          </div>
-          <div className="rqw-overview__item">
-            <span className="rqw-overview__label">Ciudad</span>
-            <strong>{state.Ciudad || "Pendiente por definir"}</strong>
-          </div>
-          <div className="rqw-overview__item">
-            <span className="rqw-overview__label">Paso actual</span>
-            <strong>{currentStep} de 2</strong>
-          </div>
-        </section>
+        <div className="rqw-layout">
+          <aside className="rqw-sidebar">
+            <div className="rqw-sidebar-card rqw-sidebar-card--accent">
+              <span className="rqw-sidebar-card__eyebrow">Estado</span>
+              <strong className="rqw-sidebar-card__title">{stepTone}</strong>
+              <p className="rqw-sidebar-card__copy">
+                {currentStep === 1
+                  ? "Primero definimos la identidad de la vacante."
+                  : "Ahora completamos la estructura y las condiciones de la solicitud."}
+              </p>
+            </div>
 
-        <form className="ft-form" noValidate>
-          {step === 1 ? (
-            <FirstStepForm
-              selectedCargo={selectedCargo}
-              onChangeCargo={handleCargoChange}
-              selectedCiudad={selectedCiudad}
-              cargosOptions={cargoOptions}
-              ciudadesAllOptions={ciudadesAllOptions}
-              setField={setField}
-              state={state}
-            />
-          ) : null}
+            <div className="rqw-sidebar-card">
+              <span className="rqw-sidebar-card__eyebrow">Resumen</span>
+              <div className="rqw-sidebar-list">
+                <div className="rqw-sidebar-list__item">
+                  <span>Cargo</span>
+                  <strong>{state.Title || "Pendiente"}</strong>
+                </div>
+                <div className="rqw-sidebar-list__item">
+                  <span>Ciudad</span>
+                  <strong>{state.Ciudad || "Pendiente"}</strong>
+                </div>
+                <div className="rqw-sidebar-list__item">
+                  <span>Tipo</span>
+                  <strong>{state.tipoRequisicion || tipoRequisicion}</strong>
+                </div>
+                <div className="rqw-sidebar-list__item">
+                  <span>Paso</span>
+                  <strong>{currentStep} de 2</strong>
+                </div>
+              </div>
+            </div>
+          </aside>
 
-          {step === 2 ? (
-            <Step2Form
-              state={state}
-              setField={setField}
-              tipoConvocatoria={tipoRequisicion}
-              tipoConvocatoriaOptions={tipoConvocatoriaOptions}
-              selectedTipoConvocatoria={selectedTipoConvocatoria}
-              generoOptions={generoOptions}
-              selectedGenero={selectedGenero}
-              motivoOptions={motivosOptions}
-              selectedMotivo={selectedMotivo}
-              centroOperativoOptions={centroOperativoOptions}
-              selectedCentroOperativo={selectedCentroOperativo}
-              centroCostosOptions={centroCostosOptioons}
-              selectedCentroCostos={selectedCentroCostos}
-              unidadNegocioOptions={unidadNegocioOptions}
-              selectedUnidadNegocio={selectedUnidadNegocio}
-              direccionOptions={direccionOptions}
-              selectedDireccion={selectedDireccion}
-              cveOptions={cveOptions}
-              selectedCve={selectedCVE}
-              modalidadOptions={modalidadOptions}
-              selectedModalidad={selectedModalidad}
-            />
-          ) : null}
-        </form>
+          <main className="rqw-main">
+            <form className="rqw-form" noValidate>
+              {step === 1 ? (
+                <FirstStepForm
+                  selectedCargo={selectedCargo}
+                  onChangeCargo={handleCargoChange}
+                  selectedCiudad={selectedCiudad}
+                  cargosOptions={cargoOptions}
+                  ciudadesAllOptions={ciudadesAllOptions}
+                  setField={setField}
+                  state={state}
+                />
+              ) : null}
 
-        <footer className="ft-foot rqw-foot">
-          <div className="ft-foot__left">
+              {step === 2 ? (
+                <Step2Form
+                  state={state}
+                  setField={setField}
+                  tipoConvocatoria={tipoRequisicion}
+                  tipoConvocatoriaOptions={tipoConvocatoriaOptions}
+                  selectedTipoConvocatoria={selectedTipoConvocatoria}
+                  generoOptions={generoOptions}
+                  selectedGenero={selectedGenero}
+                  motivoOptions={motivosOptions}
+                  selectedMotivo={selectedMotivo}
+                  centroOperativoOptions={centroOperativoOptions}
+                  selectedCentroOperativo={selectedCentroOperativo}
+                  centroCostosOptions={centroCostosOptioons}
+                  selectedCentroCostos={selectedCentroCostos}
+                  unidadNegocioOptions={unidadNegocioOptions}
+                  selectedUnidadNegocio={selectedUnidadNegocio}
+                  direccionOptions={direccionOptions}
+                  selectedDireccion={selectedDireccion}
+                  cveOptions={cveOptions}
+                  selectedCve={selectedCVE}
+                  modalidadOptions={modalidadOptions}
+                  selectedModalidad={selectedModalidad}
+                />
+              ) : null}
+            </form>
+          </main>
+        </div>
+
+        <footer className="rqw-actions">
+          <div className="rqw-actions__left">
             {step === 2 ? (
               <button type="button" className="btn btn-secondary-final btn-xs" disabled={submitting} onClick={() => setStep(1)}>
                 Volver
@@ -288,12 +311,14 @@ export default function WizardRequisicion3Pasos({
             </button>
           </div>
 
-          <div className="ft-foot__right">
-            <p className="rqw-summary">
-              {isLastStep ? "Revisa la informacion antes de crear la requisicion." : "Primero definimos el cargo, la ciudad y el tipo de requisicion."}
+          <div className="rqw-actions__right">
+            <p className="rqw-actions__hint">
+              {currentStep === 1
+                ? "Define el cargo y la ciudad para habilitar el siguiente paso."
+                : "Verifica la informacion antes de crear la requisicion."}
             </p>
             <button type="button" className="btn btn-primary-final btn-xs" disabled={submitting} onClick={handleNext}>
-              {submitting ? "Creando..." : step === 2 ? "Crear requisicion" : "Siguiente paso"}
+              {submitting ? "Creando..." : step === 2 ? "Crear requisicion" : "Continuar"}
             </button>
           </div>
         </footer>
@@ -301,3 +326,5 @@ export default function WizardRequisicion3Pasos({
     </div>
   );
 }
+
+

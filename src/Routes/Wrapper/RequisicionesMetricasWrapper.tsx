@@ -3,22 +3,26 @@ import RequisicionesMetricasPage from "../../Components/Requisiciones/Metricas/R
 import { useCargo, useDeptosMunicipios, useDireccion } from "../../Funcionalidades/Desplegables";
 import { useRequisicionesContext } from "../../Funcionalidades/Requisiciones/RequisicionesContext";
 import { useRequisicionesMetrics } from "../../Funcionalidades/Requisiciones/Requisicion/Hooks/requisicionesMetrics";
-import { useGraphServices } from "../../graph/graphContext";
 import type { desplegablesOption } from "../../models/Desplegables";
+import type { detalleRequisicion, pasoRequisicion } from "../../models/Requisiciones/pasos";
 import type { requisiciones } from "../../models/Requisiciones/requisiciones";
+import { useCoreGraphServices, useRequisicionesServices } from "../../graph/graphContext";
 
 const ALL_OPTION: desplegablesOption = { value: "all", label: "*Todos*" };
 const ALL_FEMALE_OPTION: desplegablesOption = { value: "all", label: "*Todas*" };
 
 export default function RequisicionesMetricasWrapper() {
   const requisicionesController = useRequisicionesContext();
-  const { Maestro, DeptosYMunicipios, requisiciones } = useGraphServices();
+  const { Maestro, DeptosYMunicipios } = useCoreGraphServices();
+  const { requisiciones, detalleRequisicion, pasosVacante } = useRequisicionesServices();
   const { options: cargoOptions, reload: reloadCargo } = useCargo(Maestro);
   const { options: ciudadOptions, reload: reloadCiudades } = useDeptosMunicipios(DeptosYMunicipios);
   const { options: direccionOptions, reload: reloadDirecciones } = useDireccion(Maestro);
 
   const [direccion, setDireccion] = React.useState<string>("all");
   const [metricsRows, setMetricsRows] = React.useState<requisiciones[]>([]);
+  const [detailsRows, setDetailsRows] = React.useState<detalleRequisicion[]>([]);
+  const [templateRows, setTemplateRows] = React.useState<pasoRequisicion[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -49,14 +53,26 @@ export default function RequisicionesMetricasWrapper() {
         nextLink = nextPage.nextLink;
       }
 
+      const [detailItems, templateItems] = await Promise.all([
+        detalleRequisicion.getAllPlain({ top: 5000 }),
+        pasosVacante.getAllPlain({
+          filter: "fields/Activo eq 1",
+          orderby: "fields/OrdenPaso asc",
+        }),
+      ]);
+
       setMetricsRows(allRows);
+      setDetailsRows(detailItems);
+      setTemplateRows(templateItems);
     } catch (e: any) {
-      setError(e?.message ?? "No fue posible cargar las métricas de requisiciones.");
+      setError(e?.message ?? "No fue posible cargar las metricas de requisiciones.");
       setMetricsRows([]);
+      setDetailsRows([]);
+      setTemplateRows([]);
     } finally {
       setLoading(false);
     }
-  }, [requisicionesController.buildFilter, requisiciones]);
+  }, [detalleRequisicion, pasosVacante, requisiciones, requisicionesController]);
 
   React.useEffect(() => {
     loadMetricsRows();
@@ -130,8 +146,45 @@ export default function RequisicionesMetricasWrapper() {
     return metricsRows.filter((row) => String(row.direccion ?? "").trim().toLowerCase() === selected);
   }, [metricsRows, direccion]);
 
+  const dashboardRowIds = React.useMemo(() => {
+    return new Set(
+      dashboardRows
+        .map((row) => String(row.Id ?? "").trim())
+        .filter(Boolean)
+    );
+  }, [dashboardRows]);
+
+  const detailsByRequisicion = React.useMemo<Record<string, detalleRequisicion[]>>(() => {
+    const grouped: Record<string, detalleRequisicion[]> = {};
+
+    detailsRows.forEach((detail) => {
+      const requisicionId = String(detail.IdRequisicion ?? "").trim();
+      if (!requisicionId || !dashboardRowIds.has(requisicionId)) return;
+
+      if (!grouped[requisicionId]) {
+        grouped[requisicionId] = [];
+      }
+
+      grouped[requisicionId].push(detail);
+    });
+
+    return grouped;
+  }, [dashboardRowIds, detailsRows]);
+
+  const templatesById = React.useMemo<Record<string, pasoRequisicion>>(() => {
+    const grouped: Record<string, pasoRequisicion> = {};
+
+    templateRows.forEach((template) => {
+      const templateId = String(template.Id ?? "").trim();
+      if (!templateId) return;
+      grouped[templateId] = template;
+    });
+
+    return grouped;
+  }, [templateRows]);
+
   const now = React.useMemo(() => new Date(), []);
-  const metrics = useRequisicionesMetrics(dashboardRows, now);
+  const metrics = useRequisicionesMetrics(dashboardRows, detailsByRequisicion, templatesById, now);
 
   return (
     <RequisicionesMetricasPage

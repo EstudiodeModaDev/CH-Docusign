@@ -1,7 +1,7 @@
 import * as React from "react";
 import "./App.css";
 import { AuthProvider, useAuth } from "./auth/authProvider";
-import { GraphServicesProvider, useGraphServices } from "./graph/graphContext";
+import { GraphServicesProvider, useCoreGraphServices,  } from "./graph/graphContext";
 import type { User } from "./models/User";
 import Welcome from "./Components/Welcome/Welcome";
 import { AppHeader } from "./Components/Header/Header";
@@ -166,7 +166,7 @@ function ShellWithPerms() {
 }
 
 function AuthedPermsShell() {
-  const { graph, MatrizPermisos } = useGraphServices();
+  const { graph, MatrizPermisos } = useCoreGraphServices();
 
   return (
     <PermissionsProvider

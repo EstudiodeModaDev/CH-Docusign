@@ -5,12 +5,13 @@ import type { PromocionesService } from "../../Services/Promociones.service";
 import type { Promocion, PromocionErrors } from "../../models/Promociones";
 import { useAuth } from "../../auth/authProvider";
 import { norm } from "../../utils/text";
-import { useGraphServices } from "../../graph/graphContext";
 import { useDebouncedValue } from "../Common/debounce";
 import { useRequestActions } from "./UpdateRequest/hooks/useRequestActions";
 import { buildPromocionesPatch } from "./Habeas/utils/habeasPatch";
 import { detallePayloadFromPromocion } from "./UpdateRequestDetails/utils/requestPayload";
 import { notifyUpdateRequest } from "../../utils/mail";
+import { useCoreGraphServices, useGestorServices } from "../../graph/graphContext";
+import { notify } from '../../utils/notify';
 
 function includesSearch(row: Promocion, q: string) {
   const qq = norm(q);
@@ -151,7 +152,8 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
   const [errors, setErrors] = React.useState<PromocionErrors>({});
   const setField = <K extends keyof Promocion>(k: K, v: Promocion[K]) => setState((s) => ({ ...s, [k]: v }));
   const debouncedSearch = useDebouncedValue(search, 250);
-  const graph = useGraphServices()
+  const {Promociones, PasosPromocion} = useGestorServices()
+  const {mail, graph} = useCoreGraphServices()
   const requestController = useRequestActions()
 
  const buildServerFilter = React.useCallback((): GetAllOpts => {
@@ -318,7 +320,7 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
   const handleSubmit = async (): Promise<{created: Promocion | null, ok: boolean}> => {
     if (!validate()) { 
       console.log(state)
-      alert("Hay campos vacios")
+      notify.auto("Hay campos vacios")
       return{
         created: null,
         ok: false
@@ -390,7 +392,7 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
       };
       const created = await PromocionesSvc.create(payload);
       console.log(created)
-      alert("Se ha creado el registro con éxito")
+      notify.auto("Se ha creado el registro con éxito")
       return {
         created: created,
         ok: true
@@ -406,11 +408,11 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
     const validationErrors = validate()
 
     if (!validationErrors) {
-      alert("Hay algunos campos faltantes")
+      notify.auto("Hay algunos campos faltantes")
       return
     };
     if (!promocionSeleccionada.Id) {
-      alert("Registro sin Id");
+      notify.auto("Registro sin Id");
       return;
     }
 
@@ -422,13 +424,13 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
       if(!canEdit){
         const payload = buildPromocionesPatch(toEdit, state);
         await PromocionesSvc.update(promocionSeleccionada.Id, payload);
-        alert("Se ha actualizado el registro con éxito");
+        notify.auto("Se ha actualizado el registro con éxito");
       } else {
 
         const request = await requestController.createRequest("Promocion", promocionSeleccionada.Id)
         if(!request.created || !request.ok) return
 
-        const realRegister = await graph.Promociones.get(promocionSeleccionada.Id)
+        const realRegister = await Promociones.get(promocionSeleccionada.Id)
 
         const DetallesPayload = detallePayloadFromPromocion(realRegister, state, request.created.Id!)
 
@@ -436,14 +438,14 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
 
         requestController.genericProcess("Promocion", DetallesPayload,)
 
-        const groupMembers = await graph.graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
-        await notifyUpdateRequest(graph.mail, "Promocion", account?.name ?? "", promocionSeleccionada.NumeroDoc, groupMembers,)
+        const groupMembers = await graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
+        await notifyUpdateRequest(mail, "Promocion", account?.name ?? "", promocionSeleccionada.NumeroDoc, groupMembers,)
         
-        alert("Se ha enviado la solicitud, se te notificara el resultado")
+        notify.auto("Se ha enviado la solicitud, se te notificara el resultado")
         
       }
     } catch {
-      alert("Ha ocurrido un error");
+      notify.auto("Ha ocurrido un error");
     } finally {
       setLoading(false);
     }
@@ -454,9 +456,9 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
         if(!Id || !fecha ) return
 
         const spDate = toGraphDateTime(fecha)
-        await graph.Promociones.update(Id, {FechaExamenesMedicos: spDate});
+        await Promociones.update(Id, {FechaExamenesMedicos: spDate});
         await loadBase()
-        alert("Se ha guardado la fecha de los examenes medicos con éxito.")
+        notify.auto("Se ha guardado la fecha de los examenes medicos con éxito.")
       } catch {
         throw new Error("Ha ocurrido un error eliminando la novedad");
       }
@@ -549,7 +551,7 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
 
       if(proceso){
         await PromocionesSvc.update(Id, {CanceladoPor: account?.name, Estado: "Cancelado", razonCancelacion: RazonCancelacion})
-        alert("Se ha cancelado este proceso con éxito")
+        notify.auto("Se ha cancelado este proceso con éxito")
         reloadAll()
       }
     } catch {
@@ -564,7 +566,7 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
 
       if(proceso){
         await PromocionesSvc.update(Id, {Estado: "En proceso",})
-        alert("Se ha reactivado este proceso con éxito")
+        notify.auto("Se ha reactivado este proceso con éxito")
         reloadAll()
       }
     } catch {
@@ -574,15 +576,15 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
 
   const deletePromocion = React.useCallback(async (Id: string) => {
     setLoading(true)
-    const pasos = await graph.PasosPromocion.getAll({filter: `fields/Title eq '${Id}'`})
+    const pasos = await PasosPromocion.getAll({filter: `fields/Title eq '${Id}'`})
     try{
       for (const paso of pasos) {
-        await graph.PasosCesacion.delete(paso.Id!);
+        await PasosPromocion.delete(paso.Id!);
       }
 
       await PromocionesSvc.delete(Id)
       await loadBase()
-      alert("Se ha eliminado el registro con exito.")
+      notify.auto("Se ha eliminado el registro con exito.")
     } catch {
       throw new Error("Ha ocurrido un error reactivando el proceso");
     } finally {
@@ -595,3 +597,5 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
     saveMedicalExams, deletePromocion, handleReactivateProcessById, handleCancelProcessbyId, setEstado, nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, handleEdit, handleSubmit, setField, searchWorker, loadToReport, loadFirstPage, searchRegister
   };
 }
+
+

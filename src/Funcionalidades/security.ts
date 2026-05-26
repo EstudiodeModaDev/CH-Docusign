@@ -1,6 +1,6 @@
 import React from "react";
 import type { GraphUserLite } from "../graph/graphRest";
-import { useGraphServices } from "../graph/graphContext";
+import { useCoreGraphServices } from "../graph/graphContext";
 import type { GroupOption } from "../utils/security";
 
 
@@ -10,7 +10,7 @@ type MembersResponse = {
 };
 
 export function useSecurity(groups: GroupOption[]) {
-  const { graph } = useGraphServices();
+  const { graph } = useCoreGraphServices();
 
   const initialGroup = React.useMemo(() => {
     if (!groups?.length) return null;

@@ -1,6 +1,5 @@
 import React from "react";
 import type {  rsOption,} from "../../../../models/Commons";
-import { useGraphServices } from "../../../../graph/graphContext";
 import { useAuth } from "../../../../auth/authProvider";
 import { convertCommonToOptions, convertToCommonDTO } from "../../../Common/parseOptions";
 import { contratosPayload } from "../utils/contratosPayload";
@@ -13,12 +12,15 @@ import { useRequestDetailsActions } from "../../UpdateRequestDetails/hooks/useRe
 import { detallePayloadFromContrato } from "../../UpdateRequestDetails/utils/requestPayload";
 import { notifyUpdateRequest } from "../../../../utils/mail";
 import { toGraphDateTime } from "../../../../utils/Date";
+import { useCoreGraphServices, useGestorServices } from "../../../../graph/graphContext";
+import { notify } from '../../../../utils/notify';
 
 export function useContratos() {
   const { account } = useAuth();
-  const graph = useGraphServices()
+  const {Contratos} = useGestorServices()
+  const {graph, mail} = useCoreGraphServices()
   const formController = useContratosForm(account?.name ?? "")
-  const registerController = useContratosTable(graph.Contratos, account?.username)
+  const registerController = useContratosTable(Contratos, account?.username)
   const requestController = useRequestActions()
   const requestDetailsController = useRequestDetailsActions()
   const [workers, setWorkers] = React.useState<Novedad[]>([]);
@@ -29,7 +31,7 @@ export function useContratos() {
     const validationErrors = formController.validate()
 
     if (!validationErrors) {
-      alert("Hay campos sin rellenar");
+      notify.auto("Hay campos sin rellenar");
       return { ok: false, created: null };
     }
 
@@ -37,9 +39,9 @@ export function useContratos() {
 
     try {
       const payload = contratosPayload(formController.state);
-      const creado = await graph.Contratos.create(payload);
+      const creado = await Contratos.create(payload);
       registerController.loadFirstPage();
-      alert("Se ha creado el registro con éxito");
+      notify.auto("Se ha creado el registro con éxito");
       return { ok: true, created: creado };
     } catch {
       return { ok: false, created: null };
@@ -54,55 +56,55 @@ export function useContratos() {
     const validationErrors = formController.validate()
 
     if (!validationErrors) {
-      alert("Hay algunos campos faltantes")
+      notify.auto("Hay algunos campos faltantes")
       return
     };
     if (!contratoToEdit.Id) {
-      alert("Registro sin Id");
+      notify.auto("Registro sin Id");
       return;
     }
 
     setLoading(true);
 
     try {
-      const toEdit = await graph.Contratos.get(contratoToEdit.Id!)
+      const toEdit = await Contratos.get(contratoToEdit.Id!)
       const payload = buildContratosPatch(contratoToEdit, toEdit,);
 
       if (Object.keys(payload).length === 0) {
-        alert("No hay cambios para guardar");
+        notify.auto("No hay cambios para guardar");
         return;
       }
 
       
       if(!canEdit){
-        await graph.Contratos.update(contratoToEdit.Id, payload);
-        alert("Se ha actualizado el registro con éxito");
+        await Contratos.update(contratoToEdit.Id, payload);
+        notify.auto("Se ha actualizado el registro con éxito");
       } else {
 
         const request = await requestController.createRequest("Contratacion", contratoToEdit.Id)
         if(!request.created || !request.ok) return
-        const realRegister = await graph.Contratos.get(contratoToEdit.Id)
+        const realRegister = await Contratos.get(contratoToEdit.Id)
         
         const DetallesPayload = detallePayloadFromContrato(realRegister, formController.state, request.created?.Id ?? "", )
 
         for(const detalle of DetallesPayload){
           await requestDetailsController.createDetails(detalle)
         }
-        const groupMembers = await graph.graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
-        await notifyUpdateRequest(graph.mail, "Contrato", account?.name ?? "", contratoToEdit.Numero_x0020_identificaci_x00f3_, groupMembers,)
-        alert("Se ha enviado la solicitud, se te notificara el resultado")
+        const groupMembers = await graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
+        await notifyUpdateRequest(mail, "Contrato", account?.name ?? "", contratoToEdit.Numero_x0020_identificaci_x00f3_, groupMembers,)
+        notify.auto("Se ha enviado la solicitud, se te notificara el resultado")
         
       }
 
     } catch {
-      alert("Ha ocurrido un error");
+      notify.auto("Ha ocurrido un error");
     } finally {
       setLoading(false);
     }
   };
 
   const searchWorker = async (query: string): Promise<Novedad[]> => {
-    const resp = await graph.Contratos.getAll({filter: `fields/Numero_x0020_identificaci_x00f3_ eq '${query}'`, top: 200,});
+    const resp = await Contratos.getAll({filter: `fields/Numero_x0020_identificaci_x00f3_ eq '${query}'`, top: 200,});
 
     const foundWorkers = resp.items ?? [];
     setWorkers(foundWorkers);
@@ -114,7 +116,7 @@ export function useContratos() {
   };
 
   const searchRegister = async (query: string): Promise<Novedad | null> => {
-    const resp = await graph.Contratos.findLastByDoc(query);
+    const resp = await Contratos.findLastByDoc(query);
 
     return resp ? resp : null;
   };
@@ -122,15 +124,15 @@ export function useContratos() {
   const handleCancelProcessbyId = React.useCallback(
     async (Id: string, RazonCancelacion: string) => {
       try {
-        const proceso = await graph.Contratos.get(Id);
+        const proceso = await Contratos.get(Id);
 
         if (proceso) {
-          await graph.Contratos.update(Id, {
+          await Contratos.update(Id, {
             CanceladoPor: account?.name,
             Estado: "Cancelado",
             RazonCancelacion,
           });
-          alert("Se ha cancelado este proceso con éxito");
+          notify.auto("Se ha cancelado este proceso con éxito");
           registerController.loadFirstPage();
         }
       } catch {
@@ -143,11 +145,11 @@ export function useContratos() {
   const handleReactivateProcessById = React.useCallback(
     async (Id: string) => {
       try {
-        const proceso = await graph.Contratos.get(Id);
+        const proceso = await Contratos.get(Id);
 
         if (proceso) {
-          await graph.Contratos.update(Id, { Estado: "En proceso" });
-          alert("Se ha reactivado este proceso con éxito");
+          await Contratos.update(Id, { Estado: "En proceso" });
+          notify.auto("Se ha reactivado este proceso con éxito");
           registerController.loadFirstPage();
         }
       } catch {
@@ -159,9 +161,9 @@ export function useContratos() {
 
   const deleteContrato = React.useCallback(async (Id: string) => {
       try {
-        await graph.Contratos.delete(Id);
+        await Contratos.delete(Id);
         await registerController.loadBase()
-        alert("Se ha eliminado el registro con exito.")
+        notify.auto("Se ha eliminado el registro con exito.")
       } catch {
         throw new Error("Ha ocurrido un error eliminando la novedad");
       }
@@ -174,9 +176,9 @@ export function useContratos() {
         if(!Id || !fecha ) return
 
         const spDate = toGraphDateTime(fecha)
-        await graph.Contratos.update(Id, {FechaExamenesMedicos: spDate});
+        await Contratos.update(Id, {FechaExamenesMedicos: spDate});
         await registerController.loadBase()
-        alert("Se ha guardado la fecha de los examenes medicos con éxito.")
+        notify.auto("Se ha guardado la fecha de los examenes medicos con éxito.")
       } catch {
         throw new Error("Ha ocurrido un error eliminando la novedad");
       }
@@ -201,3 +203,4 @@ export function useContratos() {
     loading
   };
 }
+

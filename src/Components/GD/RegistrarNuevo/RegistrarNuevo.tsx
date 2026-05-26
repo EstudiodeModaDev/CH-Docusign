@@ -8,7 +8,7 @@ import FormHabeas from "./Modals/HabeasData/addHabeasData";
 import FormPromociones from "./Modals/Promociones/addPromociones";
 import CesacionesTabla from "./Cesaciones/Cesaciones";
 import FormCesacion from "./Modals/Cesaciones/addCesacion";
-import { useGraphServices } from "../../../graph/graphContext";
+import { useCoreGraphServices, useGestorServices } from "../../../graph/graphContext";
 import { usePromocion } from "../../../Funcionalidades/GD/Promocion";
 import RetailTabla from "./Retail/Retail";
 import FormRetail from "./Modals/Retail/addRetail";
@@ -21,7 +21,8 @@ import { useContratos } from "../../../Funcionalidades/GD/Contratos/hooks/useCon
 import { useHabeasData } from "../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
 
 export default function RegistrarNuevoPage() {
-  const { Promociones, Retail, Maestro, DeptosYMunicipios} = useGraphServices();
+  const { Promociones, Retail, } = useGestorServices();
+  const { Maestro, DeptosYMunicipios} = useCoreGraphServices();
   const contratosController = useContratos();
   const habeasController = useHabeasData()
   const cesacionesController = useCesaciones()

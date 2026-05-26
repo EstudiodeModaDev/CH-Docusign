@@ -3,6 +3,7 @@ import type { DateRange, SortDir, SortField, } from "../../models/Commons";
 import type { moverAns, moverANSErrors, requisiciones, } from "../../models/Requisiciones/requisiciones";
 import type { MoverANSService } from "../../Services/moverAns.service";
 import { toISODateTimeFlex } from "../../utils/Date";
+import { notify } from '../../utils/notify';
 
 export function useMoverANS(requisicionSvc: MoverANSService, requisicion?: requisiciones) {
   const [rows, setRows] = React.useState<moverAns[]>([]);
@@ -66,7 +67,7 @@ export function useMoverANS(requisicionSvc: MoverANSService, requisicion?: requi
 
   const handleCreate = async (): Promise<{created: string | null, ok: boolean}> => {
     if (!validate()) { 
-      alert("Hay campos sin rellenar")
+      notify.auto("Hay campos sin rellenar")
       console.log(errors)
       return {
         created: null,
@@ -84,7 +85,7 @@ export function useMoverANS(requisicionSvc: MoverANSService, requisicion?: requi
     }
     try {
       const created = await requisicionSvc.create(payload);
-      alert("Se ha creado el registro con éxito")
+      notify.auto("Se ha creado el registro con éxito")
       return {
         created: created.Id ?? "",
         ok: true        
@@ -113,7 +114,7 @@ export function useMoverANS(requisicionSvc: MoverANSService, requisicion?: requi
       };
 
       await requisicionSvc.update(cargoSeleccionado.Id!, payload);
-      alert("Se ha actualizado el registro con éxito")
+      notify.auto("Se ha actualizado el registro con éxito")
     } finally {
         setLoading(false);
       }
@@ -125,3 +126,4 @@ export function useMoverANS(requisicionSvc: MoverANSService, requisicion?: requi
     applyRange, reloadAll, setRange, setPageSize, setSearch, setSorts, setField, handleCreate, cleanState, setEstado, setState,
   };
 }
+

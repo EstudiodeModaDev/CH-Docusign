@@ -1,18 +1,19 @@
 import React from "react";
-import { useGraphServices } from "../../../../graph/graphContext";
 import { buildHabeasCreatePayload } from "../utils/habeasPayload";
 import type { HabeasData } from "../../../../models/HabeasData";
 import { buildHabeasReportFilter } from "../utils/habeasFilters";
 import { buildHabeasPatch } from "../utils/habeasPatch";
+import { useGestorServices } from "../../../../graph/graphContext";
+import { notify } from '../../../../utils/notify';
 
 export function useHabeasActions() {
-  const graph = useGraphServices()
+  const {HabeasData} = useGestorServices()
 
   const handleSubmitBd = async (state: HabeasData): Promise<HabeasData> => {
     try {
       const payload = buildHabeasCreatePayload(state)
-      const created = await graph.HabeasData.create(payload);
-      alert("Se ha creado el registro con éxito")
+      const created = await HabeasData.create(payload);
+      notify.auto("Se ha creado el registro con éxito")
       return created
     } catch {
       throw new Error("Algo ha salido mal")
@@ -21,7 +22,7 @@ export function useHabeasActions() {
 
   const loadToReport = React.useCallback(async (from: string, to: string, EnviadoPor?: string, destinatario?: string, plantilla?: string): Promise<{ok: boolean, data: HabeasData[], message: string | null}> => {
     try {
-      const { items, } = await graph.HabeasData.getAll(buildHabeasReportFilter(from, to, EnviadoPor, destinatario, plantilla),); 
+      const { items, } = await HabeasData.getAll(buildHabeasReportFilter(from, to, EnviadoPor, destinatario, plantilla),); 
       return {
         data: items,
         message: null,
@@ -41,15 +42,15 @@ export function useHabeasActions() {
       const payload = buildHabeasPatch(habeasSeleccionado, state);
 
       if (Object.keys(payload).length === 0) {
-        alert("No hay cambios para guardar");
+        notify.auto("No hay cambios para guardar");
         return{
           data: null,
           message: "Exitoso",
           ok: true,
         }
       }
-      const updated = await graph.HabeasData.update(habeasSeleccionado.Id!, payload);
-      alert("Se ha actualizado el registro con éxito")
+      const updated = await HabeasData.update(habeasSeleccionado.Id!, payload);
+      notify.auto("Se ha actualizado el registro con éxito")
       return {
         data: updated,
         message: "Exitoso",
@@ -62,7 +63,7 @@ export function useHabeasActions() {
 
   const deleteHabeasDataBd = React.useCallback(async (Id: string) => {
       try {
-        await graph.HabeasData.delete(Id);
+        await HabeasData.delete(Id);
       } catch {
         throw new Error("Ha ocurrido un error eliminando la cesación");
       }
@@ -75,6 +76,8 @@ export function useHabeasActions() {
 
   };
 }
+
+
 
 
 

@@ -1,7 +1,7 @@
 import * as React from "react";
 import "../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
-import { useGraphServices } from "../../../../../graph/graphContext";
+import { useCoreGraphServices, useGestorServices } from "../../../../../graph/graphContext";
 import type { desplegablesOption } from "../../../../../models/Desplegables";
 import { useAuth } from "../../../../../auth/authProvider";
 import { formatPesosEsCO, numeroATexto, toNumberFromEsCO,  } from "../../../../../utils/Number";
@@ -81,7 +81,8 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormCesacion({sending, temporalLoading, temporalOption, deptoOptions, loadingDeptos, handleReactivateProcessById, title, handleCancelProcessbyId, setState, selectedCesacion, handleEdit, tipo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, dependenciaOptions, loadingDependencias, onClose, state, setField, handleSubmit, errors, searchRegister: searchCesacion }: Props) {
-  const { categorias, Cesaciones, salarios, Promociones, Retail, configuraciones, mail} = useGraphServices();
+  const { Cesaciones, Promociones, Retail} = useGestorServices();
+  const {categorias, salarios, configuraciones, mail} = useCoreGraphServices()
   const HabeasController = useHabeasData();
   const contratosController = useContratos();
   const { searchRegister: searchPromocion } = usePromocion(Promociones);

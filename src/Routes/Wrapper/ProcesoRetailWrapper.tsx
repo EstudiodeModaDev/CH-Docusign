@@ -1,11 +1,12 @@
 import * as React from "react";
-import { useGraphServices } from "../../graph/graphContext";
+import { useCoreGraphServices, useGestorServices, } from "../../graph/graphContext";
 import { useCargo } from "../../Funcionalidades/Desplegables";
 import { ProcesosStepManager } from "../../Components/GD/Settings/CesacionManager/CesacionManager";
 import { useRetailSteps } from "../../Funcionalidades/GD/Steps/RetailSteps/retailStepts";
 
 export const RetailStepsManager: React.FC = () => {
-  const { pasosRetail, Maestro } = useGraphServices();
+  const { pasosRetail,  } = useGestorServices();
+  const {Maestro} = useCoreGraphServices()
   const retailStepsController = useRetailSteps();
   const { options: cargosOption, loading: loadingCargo, reload: reloadCargo } = useCargo(Maestro);
 

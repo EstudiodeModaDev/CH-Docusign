@@ -1,9 +1,10 @@
-import type { RequisicionesService } from "../../../../Services/Requisiciones.service";
+
 import type { DeptosYMunicipiosService } from "../../../../Services/DeptosYMunicipios.service";
+import type { RequisicionesService } from "../../../../Services/Requisiciones/Requisiciones.service";
 import type { ResponsablesNivelService } from "../../../../Services/Requisiciones/ResponsablesNivel.service";
 import type { ResponsablesZonasService } from "../../../../Services/Requisiciones/ResponsablesZonas.service";
 
-type Responsible = { name: string; email: string };
+export type Responsible = { name: string; email: string };
 
 function toResponsible(row?: { Title?: string; correoResponsable?: string }): Responsible {
   return {

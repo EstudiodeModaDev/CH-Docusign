@@ -1,12 +1,12 @@
 import React from "react";
-import { useGraphServices } from "../../../../graph/graphContext";
+import { useGestorServices, } from "../../../../graph/graphContext";
 import type { Envio } from "../../../../models/Envios";
 import type { DateRange, SortDir, SortField } from "../../../../models/Commons";
 import { buildEnviosFilter } from "../utils/enviosFilters";
 import { resolveNextSort } from "../../../Common/resolveSorts";
 
 export function useEnviosList(pageSize: number) {
-  const graph = useGraphServices()
+  const {Envios} = useGestorServices()
 
   const [rows, setRows] = React.useState<Envio[]>([]);
   const [sorts, setSorts] = React.useState<Array<{field: SortField; dir: SortDir}>>([{ field: 'id', dir: 'desc' }]);
@@ -15,7 +15,7 @@ export function useEnviosList(pageSize: number) {
 
   const loadFirstPage = React.useCallback(async (): Promise<{nextLink: string | null, ok: boolean, message: string}> => {
     try {
-      const { items, nextLink } = await graph.Envios.getAll(buildEnviosFilter(range, pageSize, search, sorts)); 
+      const { items, nextLink } = await Envios.getAll(buildEnviosFilter(range, pageSize, search, sorts)); 
       setRows(items);
       return {
         nextLink,
@@ -31,7 +31,7 @@ export function useEnviosList(pageSize: number) {
       }
     } finally {
     }
-  }, [sorts, search, range, graph, pageSize]);
+  }, [sorts, search, range, pageSize]);
 
   const toggleSort = React.useCallback((field: SortField, additive = false) => {
     setSorts(prev => resolveNextSort(prev, field, additive));

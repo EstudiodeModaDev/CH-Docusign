@@ -32,11 +32,10 @@ export type requisiciones = {
     Estado: string;
     fechaTerna: string | null;
     motivoNoCumplimiento: string;
-    nombreEmpleadoVinculado: string
     Identificador: string;
-    cedulaEmpleadoVinculado: string;
     nuevoPromocion: string
     NivelCargo: string
+    porceranje: number
 
     //Retail
     tienda?: string; //Centro operativo

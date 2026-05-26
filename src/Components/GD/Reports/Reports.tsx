@@ -1,7 +1,6 @@
 import React from "react";
 import "./Reports.css";
 import type { DateRange, rsOption } from "../../../models/Commons";
-import { useGraphServices } from "../../../graph/graphContext";
 import { usePromocion } from "../../../Funcionalidades/GD/Promocion";
 import { exportAllProcesosToExcel, exportCesacionesToExcel, exportEnviosToExcel, exportHabeasToExcel, exportNovedadesToExcel, exportPromocionesToExcel, exportRetailToExcel } from "../../../utils/ExcelActions/exportExcel";
 import { useRetail } from "../../../Funcionalidades/GD/Retail";
@@ -9,6 +8,8 @@ import { useCesaciones } from "../../../Funcionalidades/GD/Cesaciones/hooks/useC
 import { useContratos } from "../../../Funcionalidades/GD/Contratos/hooks/useContratos";
 import { useEnvios } from "../../../Funcionalidades/GD/Envios/hooks/useEnvios";
 import { useHabeasData } from "../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
+import { useGestorServices } from "../../../graph/graphContext";
+import { notify } from '../../../utils/notify';
 
 export const ReporteFiltros: React.FC = () => {
   const [range, setRange] = React.useState<DateRange>({
@@ -24,7 +25,7 @@ export const ReporteFiltros: React.FC = () => {
   const [cargo, setCargo] = React.useState<string>("");
   const [empresa, setEmpresa] = React.useState<string>("");
   const [generando, setGenerando] = React.useState<boolean>(false)
-  const { Promociones, DetallesPasosCesacion, DetallesPasosNovedades, detallesPasosRetail, DetallesPasosPromocion, Retail } = useGraphServices();
+  const { Promociones, DetallesPasosCesacion, DetallesPasosNovedades, detallesPasosRetail, DetallesPasosPromocion, Retail } = useGestorServices();
   const enviosController = useEnvios();
   const contratosController = useContratos();
   const { rows: rowsPromociones, loadToReport: loadPromocionesToReport } = usePromocion(Promociones);
@@ -59,12 +60,12 @@ export const ReporteFiltros: React.FC = () => {
 
   const  handleGenerar = async () => {
     if(!range.from || !range.to){
-        alert("Debe seleccionar como minimo un rango de fechas")
+        notify.auto("Debe seleccionar como minimo un rango de fechas")
         return
     }
 
     if(range.from > range.to){
-        alert("Debe seleccionar un rango valido")
+        notify.auto("Debe seleccionar un rango valido")
         return
     }
 
@@ -268,3 +269,5 @@ export const ReporteFiltros: React.FC = () => {
     </div>
   );
 };
+
+

@@ -1,7 +1,7 @@
 import * as React from "react";
 import "./ChangeName.css";
-import { useGraphServices } from "../../../../graph/graphContext";
 import type { Archivo } from "../../../../models/archivos";
+import { useGestorServices } from "../../../../graph/graphContext";
 
 type Props = {
   open: boolean;
@@ -13,23 +13,25 @@ type Props = {
 
 export const RenameModal: React.FC<Props> = ({open, selectedFile, onClose, biblioteca, recargar}) => {
   const [value, setValue] = React.useState("");
-  const {ColaboradoresDH, ColaboradoresEDM, ColaboradoresDenim, ColaboradoresMeta, ColaboradoresVisual} = useGraphServices()
+  const {ColaboradoresDH, ColaboradoresEDM, ColaboradoresDenim, ColaboradoresMeta, ColaboradoresVisual, ColaboradoresBroken} = useGestorServices()
   
 
     const rename = React.useCallback(async (newName: string) => {
-        if(!selectedFile) return
+      if(!selectedFile) return
         try {
-            if(biblioteca === "estudio"){
-                await ColaboradoresEDM.renameArchivo(selectedFile, newName)
-            } else if(biblioteca === "dh"){
-                await ColaboradoresDH.renameArchivo(selectedFile, newName)
-            } else if(biblioteca === "denim"){
-                await  ColaboradoresDenim.renameArchivo(selectedFile, newName)
-            } else if(biblioteca === "meta"){
-                await ColaboradoresMeta.renameArchivo(selectedFile, newName)
-            } else if(biblioteca === "visual"){
-                await ColaboradoresVisual.renameArchivo(selectedFile, newName)
-            } 
+          if(biblioteca === "estudio"){
+            await ColaboradoresEDM.renameArchivo(selectedFile, newName)
+          } else if(biblioteca === "dh"){
+            await ColaboradoresDH.renameArchivo(selectedFile, newName)
+          } else if(biblioteca === "denim"){
+            await  ColaboradoresDenim.renameArchivo(selectedFile, newName)
+          } else if(biblioteca === "meta"){
+            await ColaboradoresMeta.renameArchivo(selectedFile, newName)
+          } else if(biblioteca === "visual"){
+            await ColaboradoresVisual.renameArchivo(selectedFile, newName)
+          } else if(biblioteca === "broken"){
+            await ColaboradoresBroken.renameArchivo(selectedFile, newName)
+          }
           await recargar()
         } catch (e: any) {
         console.error(e?.message ?? "Error actualizando elemento de la carpeta.");

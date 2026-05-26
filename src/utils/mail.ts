@@ -2,6 +2,7 @@ import type { GraphRecipient, GraphUserLite } from "../graph/graphRest";
 import type { solicitud } from "../models/solicitudCambio";
 import type { MailService } from "../Services/Mail.service";
 import { spDateToDDMMYYYY } from "./Date";
+import { notify } from './notify';
 
 export function createBody(user: string, modulo: string, nombre: string, cedula: string, cargo: string, fechaIngreso: string){
     const body = `<div style="font-family:Segoe UI, Roboto, Arial, sans-serif; background:#f6f7fb; padding:24px;">
@@ -174,7 +175,7 @@ export async function notifyUpdateRequest(mail: MailService, modulo: string, usu
       },
     });
   } catch {
-    alert("Fallo el correo")
+    notify.auto("Fallo el correo")
   }
 }
 
@@ -283,3 +284,4 @@ export async function notifyRejectedRequest(mail: MailService, modulo: string, s
     },
   });
 }
+

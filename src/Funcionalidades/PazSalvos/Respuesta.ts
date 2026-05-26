@@ -4,7 +4,9 @@ import type { RespuestaService } from "../../Services/Respuesta.service";
 import { useAuth } from "../../auth/authProvider";
 import { FlowClient } from "../FlowClient";
 import type { FirmaInline } from "../../models/Imagenes";
-import { useGraphServices } from "../../graph/graphContext";
+import { useCoreGraphServices } from "../../graph/graphContext";
+import { notify } from '../../utils/notify';
+
 
 export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalvo?: PazSalvo) {
   const [rows, setRows] = React.useState<respuestas[]>([]);
@@ -15,7 +17,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
   const [state, setState] = React.useState<respuestas>({Title: account?.name ?? "", Correo: account?.username ?? "", Area: "", Estado: "", IdPazSalvo: IdPazSalvo?.Id ?? "", Respuesta: "",});
 
   const [errors, setErrors] = React.useState<respuestaErrors>({});
-  const { graph } = useGraphServices();
+  const { graph } = useCoreGraphServices();
 
   const setField = <K extends keyof respuestas>(k: K, v: respuestas[K]) =>
     setState((s) => ({ ...s, [k]: v }));
@@ -271,7 +273,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
 
   const handleSubmit = async (filesArray: FileList | null, firma: FirmaInline | null): Promise<{ created: respuestas | null; cerrar: boolean }> => {
     if (!IdPazSalvo?.Id) {
-      alert("No hay paz y salvo seleccionado.");
+      notify.auto("No hay paz y salvo seleccionado.");
       return { created: null, cerrar: false };
     }
 
@@ -363,17 +365,17 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
           });
         } catch (flowErr: any) {
           console.error("[finalizeFlow] error:", flowErr);
-          alert("Se cerró el paz y salvo, pero falló el flujo final: " + (flowErr?.message ?? flowErr));
+          notify.auto("Se cerró el paz y salvo, pero falló el flujo final: " + (flowErr?.message ?? flowErr));
         }
       }
 
-      alert("Se ha registrado la respuesta con éxito");
+      notify.auto("Se ha registrado la respuesta con éxito");
       cleanState();
 
       return { created, cerrar };
     } catch (e: any) {
       console.error(e);
-      alert("Error registrando la respuesta: " + (e?.message ?? e));
+      notify.auto("Error registrando la respuesta: " + (e?.message ?? e));
       return { created: null, cerrar: false };
     } finally {
       setLoading(false);
@@ -418,3 +420,5 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
     getAttachments,
   };
 }
+
+

@@ -1,322 +1,21 @@
 import * as React from "react";
 import { useAuth } from "../auth/authProvider";
 import { GraphRest } from "./graphRest";
-import { HabeasDataService } from "../Services/HabeasData.service";
-import { UsuariosSPService } from "../Services/Usuarios.service";
-import { PerfilesService } from "../Services/Perfiles.service";
-import { ContratosService } from "../Services/Contratos.service";
-import { PromocionesService } from "../Services/Promociones.service";
-import { MaestrosService } from "../Services/Maestros.service";
-import { DeptosYMunicipiosService } from "../Services/DeptosYMunicipios.service";
-import { EnviosService } from "../Services/Envios.service";
-import { PasosPromocionService } from "../Services/PasosPromocion.service";
-import { DetallesPasosPromocionService } from "../Services/DetallesPasosPromocion.service";
-import { ColaboradoresBrokenService, ColaboradoresDenimService, ColaboradoresDHService, ColaboradoresEDMService, ColaboradoresMetaService, ColaboradoresVisualService } from "../Services/Bibliotecas.service";
-import { PazSalvosService } from "../Services/PazSalvos.service";
-import { PermisosPazSalvosService } from "../Services/PermisosPazSalvos.service";
-import { RenovarService } from "../Services/Renovar.service";
-import { FirmasService } from "../Services/Firmas.service";
-import { RespuestaService } from "../Services/Respuesta.service";
-import { CesacionesService } from "../Services/Cesaciones.service";
-import { SalariosService } from "../Services/Salarios.service";
-import { PasosCesacionService } from "../Services/PasosCesaciones.service";
-import { DetallesPasosCesacionService } from "../Services/DetallesPasosCesacion.service";
-import { MailService } from "../Services/Mail.service";
-import { PasosNovedadesService } from "../Services/PasosNovedades.service";
-import { DetallesPasosNovedadesService } from "../Services/DetallesPasosNovedades.service";
-import { CategoriaCargosService } from "../Services/CategoriaCargos.service";
-import { RetailService } from "../Services/Retail.service";
-import { PasosRetailService } from "../Services/PasosRetail.service";
-import { DetallesPasosRetail } from "../Services/DetallesPasosRetail.service";
-import { TicketsService } from "../Services/Tickets.service";
-import { LogService } from "../Services/Log.service";
-import { ConfiguracionesService } from "../Services/Configuraciones.service";
-import { MatrizPermisosService } from "../Services/MatrizPermisos.service";
-import { RequisicionesService } from "../Services/Requisiciones.service";
-import { AnsRequisicionService } from "../Services/Ans.service";
-import { cargoCiudadAnalistaService } from "../Services/cargoCiudadAnalista.service";
-import { maestroMotivosService } from "../Services/maestroMotivos.service";
-import { MoverANSService } from "../Services/moverAns.service"
-import { pasoRestriccionProcesoService } from "../Services/PasoRestriccionProceso.Service";
-import { solicitudService } from "../Services/Solicitud.service";
-import { solicitudDetalleService } from "../Services/SolicitudDetalle.service";
-import { ControlRevisionCarpetasService } from "../Services/ControlRevisionCarpetas.service";
-import { HistorialRevisionCarpetasService } from "../Services/HistorialRevisionCarpetas.service";
-import { PlantaIdealService } from "../Services/Requisiciones/PlantaIdeal.service";
-import { ZonasService } from "../Services/Zonas.service";
-import { ResponsablesZonasService } from "../Services/Requisiciones/ResponsablesZonas.service";
-import { ResponsablesNivelService } from "../Services/Requisiciones/ResponsablesNivel.service";
+import { buildGraphDomainServices } from "./graphDomains";
+import type {
+  CoreServices,
+  GestorServices,
+  PazSalvoServices,
+  RequisicionesServices,
+} from "./graphDomains";
+import { mergeGraphConfig } from "./graphConfig";
+import type { UnifiedConfig } from "./graphConfig";
 
+const CoreGraphServicesContext = React.createContext<CoreServices | null>(null);
+const GestorServicesContext = React.createContext<GestorServices | null>(null);
+const PazSalvoServicesContext = React.createContext<PazSalvoServices | null>(null);
+const RequisicionesServicesContext = React.createContext<RequisicionesServices | null>(null);
 
-/* ================== Tipos de config ================== */
-export type SiteConfig = {
-  hostname: string;
-  sitePath: string; 
-};
-
-export type UnifiedConfig = {
-  ch: SiteConfig;    // sitio principal (CH)
-  test: SiteConfig;  // sitio de pruebas (Paz y salvos)
-  helpDesk: SiteConfig;  
-  lists: {
-    // Habeas Data
-    HabeasData: string;
-
-    //Novedades
-    Contratos: string;
-    PasosNovedades: string;
-    DetallesPasosNovedad: string;
-
-    //Promociones
-    Promociones: string;
-    PasosPromocion: string;
-    DetallesPasosPromocion: string;
-
-    //Cesaciones
-    Cesaciones: string
-    PasosCesacion: string
-    DetallesPasosCesacion: string;
-
-    //Retail
-    Retail: string;
-    pasosRetail: string;
-    detallesPasosRetail: string;
-
-    //Desplegables
-    DeptosYMunicipios: string;
-    Maestros: string;
-    salarios: string;
-    categorias: string
-    configuraciones: string
-
-    //Seguridad
-    Usuarios: string;
-    Perfiles: string;
-    MatrizPermisos: string
-
-    //Envios
-    Envios: string;
-
-    //Bibliotecas
-    ColaboradoresEDM: string;
-    ColaboradoresDH: string;
-    ColaboradoresDenim: string;
-    ColaboradoresVisual: string;
-    ColaboradoresMeta: string;
-    ColaboradoresBroken: string
-
-    // Paz Salvos
-    PazSalvos: string;
-    PermisosPaz: string;
-    renovar: string;
-    Firma: string;
-    Respuesta: string;
-
-    //Tickets
-    tickets: string
-    log: string
-
-    //Requisiciones
-    requisiciones: string
-    ansRequisicion: string
-    cargoCiudadAnalista: string
-    maestroMotivos: string
-    moverANS: string
-
-    //RestriccionesPasos
-    pasoRestriccion: string;
-
-    //SolicitudActualizacion
-    solicitud: string;
-    detalle: string;
-
-    //Control Carpetas
-    controlRevisionCarpetas: string;
-    historialRevisionCarpetas: string;  
-  };
-};
-
-/* ================== Tipos del contexto ================== */
-export type GraphServices = {
-  graph: GraphRest;
-
-  // Habeas
-  HabeasData: HabeasDataService;
-
-  //Novedades
-  Contratos: ContratosService;
-  PasosNovedades: PasosNovedadesService,
-  DetallesPasosNovedades: DetallesPasosNovedadesService,
-
-  //Promociones
-  Promociones: PromocionesService
-  PasosPromocion: PasosPromocionService;
-  DetallesPasosPromocion: DetallesPasosPromocionService,
-
-  //Cesaciones
-  Cesaciones: CesacionesService
-  PasosCesacion: PasosCesacionService
-  DetallesPasosCesacion: DetallesPasosCesacionService
-
-  //Retail
-  Retail: RetailService;
-  pasosRetail: PasosRetailService;
-  detallesPasosRetail: DetallesPasosRetail
-
-  //Desplegables
-  Maestro: MaestrosService
-  DeptosYMunicipios: DeptosYMunicipiosService;
-  salarios: SalariosService
-  categorias: CategoriaCargosService
-  configuraciones: ConfiguracionesService
-
-  // Seguridad
-  Usuarios: UsuariosSPService;
-  Perfiles: PerfilesService;
-  MatrizPermisos: MatrizPermisosService
-
-  //Envios
-  Envios: EnviosService;
-
-  //Envio correo
-  mail: MailService
-
-  //Bibliotecas
-  ColaboradoresEDM: ColaboradoresEDMService,
-  ColaboradoresDH: ColaboradoresDHService,
-  ColaboradoresDenim: ColaboradoresDenimService,
-  ColaboradoresVisual: ColaboradoresVisualService
-  ColaboradoresMeta: ColaboradoresMetaService
-  ColaboradoresBroken: ColaboradoresBrokenService
-
-  // Paz Salvos
-  PazSalvos: PazSalvosService;
-  PermisosPaz: PermisosPazSalvosService;
-  Renovar: RenovarService;
-  Firmas: FirmasService;
-  Respuesta: RespuestaService
-
-  //Tickets
-  Tickets: TicketsService
-  log: LogService
-
-  //Requisiciones
-  requisiciones: RequisicionesService
-  ansRequisicion: AnsRequisicionService
-  cargoCiudadAnalista: cargoCiudadAnalistaService
-  maestrosMotivos: maestroMotivosService
-  moverANS: MoverANSService
-  pasoRestriccion: pasoRestriccionProcesoService
-  plantaIdeal: PlantaIdealService
-
-  //Solicitud actualizacion
-  solicitud: solicitudService
-  detalle: solicitudDetalleService
-
-  //Control Carpetas
-  controlRevisionCarpetas: ControlRevisionCarpetasService;
-  historialRevisionCarpetas: HistorialRevisionCarpetasService;
-
-  zona: ZonasService
-  responsableZonas: ResponsablesZonasService
-  responsablesNivel: ResponsablesNivelService
-};
-
-/* ================== Contexto ================== */
-const GraphServicesContext = React.createContext<GraphServices | null>(null);
-
-/* ================== Default config (puedes cambiar paths) ================== */
-const DEFAULT_CONFIG: UnifiedConfig = {
-  ch: {
-    hostname: "estudiodemoda.sharepoint.com",
-    sitePath: "/sites/TransformacionDigital/IN/CH",
-  },
-  test: {
-    hostname: "estudiodemoda.sharepoint.com",
-    sitePath: "/sites/TransformacionDigital/IN/Test",
-  },
-  helpDesk: {
-    hostname: "estudiodemoda.sharepoint.com",
-    sitePath: "/sites/TransformacionDigital/IN/HD",
-  },
-  lists: {
-    // Habeas Data
-    HabeasData: "Habeas Data",
-
-    //Novedades
-    Contratos: "Novedades - Novedades Administrativas",
-    PasosNovedades: "Novedades - Pasos",
-    DetallesPasosNovedad: "Novedades - Detalles Pasos",
-
-    //Promociones
-    Promociones: "Promocion - Promociones",
-    PasosPromocion: "Promocion - Pasos",
-    DetallesPasosPromocion: "Promocion - Detalles Pasos",
-
-    //Cesaciones
-    Cesaciones: "Cesasion - Cesaciones",
-    PasosCesacion: "Cesacion - Pasos",
-    DetallesPasosCesacion: "Cesacion - Detalles Pasos",
-
-    //Retail
-    Retail: "Retail - Novedades Retail",
-    pasosRetail: "Retail - Pasos",
-    detallesPasosRetail: "Retail - DetallesPasos",
-
-    //Desplegables
-    Maestros: "Maestros",
-    DeptosYMunicipios: "DeptosyMunicipios",
-    salarios: "Cargos - Salarios Recomendados",
-    categorias: "Cargos - CategoriaCargos",
-    configuraciones: "Configuraciones",
-
-    //Seguridad
-    Usuarios: "Permisos Docu",
-    Perfiles: "Perfiles Novedades",
-    MatrizPermisos: "Permisos - Matriz Funcionamiento",
-
-    //Envios
-    Envios: "Envios",
-
-    //Bibliotecas
-    ColaboradoresEDM: "Colaboradores EDM",
-    ColaboradoresDH: "Colaboradores DH",
-    ColaboradoresDenim: "Colaboradores DENIM",
-    ColaboradoresVisual: "Colaboradores Visual",
-    ColaboradoresMeta: "Colaboradores METAGRAPHICS",
-    ColaboradoresBroken: "Colaboradores BROKEN",
-
-    // Paz y salvos
-    PazSalvos: "Paz y salvos",
-    PermisosPaz: "Permisos PazSalvos",
-    renovar: "Renovar",
-    Firma: "Firma",
-    Respuesta: "Respuestas",
-
-    //Tickets
-    tickets: "Tickets",
-    log: "Log",
-
-    //Requisiciones
-    requisiciones: "Requisiciones - Requisiciones",
-    ansRequisicion: "Requisiciones - ANS",
-    cargoCiudadAnalista: "ANS - CargoCiudadAnalista",
-    maestroMotivos: "Requisiciones - MaestroMotivos",
-    moverANS: "Requisiciones - Historico Fechas",
-
-    pasoRestriccion: "PasoRestriccionProceso",
-
-    //SolicitudActualizacion
-    solicitud: "Actualizacion - Solicitud Cambio",
-    detalle: "Actualizacion - DetalleSolicitud",
-
-    //Control Carpetas
-    controlRevisionCarpetas: "Carpetas - ControlRevisionCarpetas",
-    historialRevisionCarpetas: "Carpetas - HistorialRevisionCarpetas",
-  },
-};
-
-/* ================== Provider ================== */
 type ProviderProps = {
   children: React.ReactNode;
   config?: Partial<UnifiedConfig>;
@@ -325,169 +24,52 @@ type ProviderProps = {
 export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, config }) => {
   const { getToken } = useAuth();
 
-  // Mergeo de config
-  const cfg: UnifiedConfig = React.useMemo(() => {
-    const base = DEFAULT_CONFIG;
-
-    const normPath = (p: string) => (p.startsWith("/") ? p : `/${p}`);
-
-    const ch: SiteConfig = {
-      hostname: config?.ch?.hostname ?? base.ch.hostname,
-      sitePath: normPath(config?.ch?.sitePath ?? base.ch.sitePath),
-    };
-
-    const test: SiteConfig = {
-      hostname: config?.test?.hostname ?? base.test.hostname,
-      sitePath: normPath(config?.test?.sitePath ?? base.test.sitePath),
-    };
-
-    const helpDesk: SiteConfig = {
-      hostname: config?.helpDesk?.hostname ?? base.helpDesk.hostname,
-      sitePath: normPath(config?.helpDesk?.sitePath ?? base.helpDesk.sitePath),
-    };
-
-    const lists = { ...base.lists, ...(config?.lists ?? {}) };
-
-    return { ch, test, helpDesk, lists };
-  }, [config]);
-
-  // Cliente Graph
+  const cfg = React.useMemo(() => mergeGraphConfig(config), [config]);
   const graph = React.useMemo(() => new GraphRest(getToken), [getToken]);
-
-  const services = React.useMemo<GraphServices>(() => {
-    const { ch, lists, helpDesk } = cfg;
-
-    // Habeas Data
-    const HabeasData              = new HabeasDataService(graph, ch.hostname,  ch.sitePath,  lists.HabeasData);
-
-    //Novedades
-    const Contratos               = new ContratosService(graph, ch.hostname, ch.sitePath, lists.Contratos)
-    const PasosNovedades          = new PasosNovedadesService(graph, ch.hostname, ch.sitePath, lists.PasosNovedades)
-    const DetallesPasosNovedades  = new DetallesPasosNovedadesService(graph, ch.hostname, ch.sitePath, lists.DetallesPasosNovedad)
-
-    //Promociones
-    const Promociones             = new PromocionesService(graph, ch.hostname, ch.sitePath, lists.Promociones);
-    const PasosPromocion          = new PasosPromocionService(graph, ch.hostname, ch.sitePath, lists.PasosPromocion);
-    const DetallesPasosPromocion  = new DetallesPasosPromocionService(graph, ch.hostname, ch.sitePath, lists.DetallesPasosPromocion);
-
-    //Cesaciones
-    const Cesaciones              = new CesacionesService(graph, ch.hostname, ch.sitePath, lists.Cesaciones)
-    const PasosCesacion           = new PasosCesacionService(graph, ch.hostname, ch.sitePath, lists.PasosCesacion)
-    const DetallesPasosCesacion   = new DetallesPasosCesacionService(graph, ch.hostname, ch.sitePath, lists.DetallesPasosCesacion)
-
-    //Retail
-    const Retail                  = new RetailService(graph, ch.hostname, ch.sitePath, lists.Retail)  
-    const pasosRetail             = new PasosRetailService(graph, ch.hostname, ch.sitePath, lists.pasosRetail)
-    const detallesPasosRetail     = new DetallesPasosRetail(graph, ch.hostname, ch.sitePath, lists.detallesPasosRetail)
-
-    //Desplegables
-    const Maestro                 = new MaestrosService(graph, ch.hostname, ch.sitePath, lists.Maestros)
-    const DeptosYMunicipios       = new DeptosYMunicipiosService(graph, ch.hostname, ch.sitePath, lists.DeptosYMunicipios)
-    const salarios                = new SalariosService(graph, ch.hostname, ch.sitePath, lists.salarios)
-    const categorias              = new CategoriaCargosService(graph, ch.hostname, ch.sitePath, lists.categorias)
-    const configuraciones         = new ConfiguracionesService(graph, ch.hostname, ch.sitePath, lists.configuraciones)
-
-    //Seguridad
-    const Usuarios                = new UsuariosSPService(graph, ch.hostname, ch.sitePath, lists.Usuarios);
-    const Perfiles                = new PerfilesService(graph, ch.hostname, ch.sitePath, lists.Perfiles);
-    const MatrizPermisos          = new MatrizPermisosService(graph, ch.hostname, ch.sitePath, lists.MatrizPermisos);
-    
-    //Envios
-    const Envios                  = new EnviosService(graph, ch.hostname, ch.sitePath, lists.Envios);
-
-    //Enviar correo
-    const mail                    = new MailService(graph)
-
-    //Bibliotecas
-    const ColaboradoresEDM        = new ColaboradoresEDMService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresEDM);
-    const ColaboradoresDH         = new ColaboradoresDHService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresDH);
-    const ColaboradoresDenim      = new ColaboradoresDenimService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresDenim)
-    const ColaboradoresVisual     = new ColaboradoresVisualService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresVisual);
-    const ColaboradoresMeta       = new ColaboradoresMetaService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresMeta)
-    const ColaboradoresBroken     = new ColaboradoresBrokenService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresBroken)
-    
-    //Paz y salvos
-    const PazSalvos               = new PazSalvosService(graph, ch.hostname, ch.sitePath, lists.PazSalvos);
-    const PermisosPaz             = new PermisosPazSalvosService(graph, ch.hostname, ch.sitePath, lists.PermisosPaz);
-    const Renovar                 = new RenovarService(graph, ch.hostname, ch.sitePath, lists.renovar);  
-    const Firmas                  = new FirmasService (graph, ch.hostname, ch.sitePath, lists.Firma); 
-    const Respuesta               = new RespuestaService(graph, ch.hostname, ch.sitePath, lists.Respuesta)
-
-    //Tickets
-    const Tickets                 = new TicketsService(graph, helpDesk.hostname, helpDesk.sitePath, lists.tickets)
-    const log                     = new LogService(graph, helpDesk.hostname, helpDesk.sitePath, lists.log)
-
-    //Rrequisiciones
-    const requisiciones           = new RequisicionesService(graph, ch.hostname, ch.sitePath, lists.requisiciones)
-    const ansRequisicion          = new AnsRequisicionService(graph, ch.hostname, ch.sitePath, lists.ansRequisicion)
-    const cargoCiudadAnalista     = new cargoCiudadAnalistaService(graph, ch.hostname, ch.sitePath, lists.cargoCiudadAnalista)
-    const maestrosMotivos         = new maestroMotivosService(graph, ch.hostname, ch.sitePath, lists.maestroMotivos)
-    const moverANS                = new MoverANSService(graph, ch.hostname, ch.sitePath, lists.moverANS)
-    const plantaIdeal             = new PlantaIdealService(graph)
-
-    const pasoRestriccion         = new pasoRestriccionProcesoService(graph, ch.hostname, ch.sitePath, lists.pasoRestriccion)
-
-    const solicitud               = new solicitudService(graph, ch.hostname, ch.sitePath, lists.solicitud)
-    const detalle                 = new solicitudDetalleService(graph, ch.hostname, ch.sitePath, lists.detalle)
-
-    //Control Carpetas
-    const controlRevisionCarpetas = new ControlRevisionCarpetasService(graph, ch.hostname, ch.sitePath, lists.controlRevisionCarpetas)
-    const historialRevisionCarpetas = new HistorialRevisionCarpetasService(graph, ch.hostname, ch.sitePath, lists.historialRevisionCarpetas)
-    
-    const zona                   = new ZonasService(graph)
-    const responsableZonas        = new ResponsablesZonasService(graph)
-    const responsablesNivel      = new ResponsablesNivelService(graph)  
-
-    return {
-      graph,
-      //Habeas
-      HabeasData, 
-      //Novedades
-      Contratos, PasosNovedades, DetallesPasosNovedades,
-      //Promociones
-      Promociones, PasosPromocion, DetallesPasosPromocion, 
-      //Cesaciones
-      Cesaciones, PasosCesacion, DetallesPasosCesacion, 
-      //Retail
-      Retail, pasosRetail, detallesPasosRetail,
-      //Desplegables
-      Maestro, DeptosYMunicipios, salarios, categorias, configuraciones,
-      //Seguridad
-      Usuarios, Perfiles, MatrizPermisos,
-      //Envios
-      Envios,
-      //Enviar Correo
-      mail,
-      //Bibliotecas
-      ColaboradoresEDM, ColaboradoresDH, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta, ColaboradoresBroken,
-      //paz salvos
-      PazSalvos, PermisosPaz, Renovar, Firmas, Respuesta,
-      //Tickets
-      Tickets, log,
-      //Requisiciones
-      requisiciones, ansRequisicion, cargoCiudadAnalista, maestrosMotivos, moverANS, plantaIdeal,
-
-      pasoRestriccion,
-
-      solicitud, detalle,
-
-      //Control Carpetas
-      controlRevisionCarpetas, historialRevisionCarpetas,
-      //Zonas
-      zona, responsableZonas, responsablesNivel
-    };
-  }, [graph, cfg]);
+  const domains = React.useMemo(() => buildGraphDomainServices(cfg, graph), [cfg, graph]);
 
   return (
-    <GraphServicesContext.Provider value={services}>
-      {children}
-    </GraphServicesContext.Provider>
+      <CoreGraphServicesContext.Provider value={domains.core}>
+        <GestorServicesContext.Provider value={domains.gestor}>
+          <PazSalvoServicesContext.Provider value={domains.pazSalvo}>
+            <RequisicionesServicesContext.Provider value={domains.requisiciones}>
+              {children}
+            </RequisicionesServicesContext.Provider>
+          </PazSalvoServicesContext.Provider>
+        </GestorServicesContext.Provider>
+      </CoreGraphServicesContext.Provider>
   );
 };
 
-/* ================== Hook de consumo ================== */
-export function useGraphServices(): GraphServices {
-  const ctx = React.useContext(GraphServicesContext);
-  if (!ctx) throw new Error("useGraphServices debe usarse dentro de <GraphServicesProvider>.");
+export function useCoreGraphServices(): CoreServices {
+  const ctx = React.useContext(CoreGraphServicesContext);
+  if (!ctx) throw new Error("useCoreGraphServices debe usarse dentro de <GraphServicesProvider>.");
   return ctx;
 }
+
+export function useGestorServices(): GestorServices {
+  const ctx = React.useContext(GestorServicesContext);
+  if (!ctx) throw new Error("useGestorServices debe usarse dentro de <GraphServicesProvider>.");
+  return ctx;
+}
+
+export function usePazSalvoServices(): PazSalvoServices {
+  const ctx = React.useContext(PazSalvoServicesContext);
+  if (!ctx) throw new Error("usePazSalvoServices debe usarse dentro de <GraphServicesProvider>.");
+  return ctx;
+}
+
+export function useRequisicionesServices(): RequisicionesServices {
+  const ctx = React.useContext(RequisicionesServicesContext);
+  if (!ctx) throw new Error("useRequisicionesServices debe usarse dentro de <GraphServicesProvider>.");
+  return ctx;
+}
+
+export type {
+  CoreServices,
+  GestorServices,
+  GraphServices,
+  PazSalvoServices,
+  RequisicionesServices,
+} from "./graphDomains";
+export type { SiteConfig, UnifiedConfig } from "./graphConfig";

@@ -11,6 +11,7 @@ import { calcularFechaSolucion, calculoANS } from "../utils/ans";
 import { fetchHolidays } from "../Services/Festivos";
 import { useAuth } from "../auth/authProvider";
 import type { LogService } from "../Services/Log.service";
+import { notify } from '../utils/notify';
 
 
 type Svc = {
@@ -78,7 +79,7 @@ export function useNuevoTicketForm(services: Svc) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) {
-      alert("Hay campos sin llenar correctamente.");
+      notify.auto("Hay campos sin llenar correctamente.");
       return
     };
 
@@ -212,6 +213,8 @@ export function useNuevoTicketForm(services: Svc) {
     handleSubmit, setField,
   };
 }
+
+
 
 
 

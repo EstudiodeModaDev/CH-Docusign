@@ -4,6 +4,7 @@ import { useFolderControlActions } from "./useControlBdACtions";
 import { useSpecificFolderSearch } from "./useControlSearcher";
 import type { ControlRevisionCarpetas } from "../../../../../models/DocumentViewer";
 import { buildFirstTimeControlRevisionPayload } from "../utils/controlRevisionPayload";
+import { notify } from '../../../../../utils/notify';
 
 export function useFolderControl(folderInfo: {cedula: string, nombre: string, fullname: string, path: string}, empresa: string) {
   const formController = useFolderControlForm(folderInfo, empresa)
@@ -23,7 +24,7 @@ export function useFolderControl(folderInfo: {cedula: string, nombre: string, fu
       const creado = await actionsController.handleSubmitBd(payload);
       return { ok: true, created: creado };
     } catch {
-      alert("Algo ha salido mal creando el registro");
+      notify.auto("Algo ha salido mal creando el registro");
       return { ok: false, created: null };
     } finally {
       setLoading(false);
@@ -38,3 +39,5 @@ export function useFolderControl(folderInfo: {cedula: string, nombre: string, fu
     loading
   };
 }
+
+

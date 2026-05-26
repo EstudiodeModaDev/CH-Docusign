@@ -1,7 +1,6 @@
 import * as React from "react";
 import { PazSalvosEnviados } from "./PazSalvosHome/PazSalvo";
 import { PazSalvoForm } from "./SolicitarPazSalvo/NewPazSalvo";
-import { useGraphServices } from "../../graph/graphContext";
 import { usePermisosPazSalvos } from "../../Funcionalidades/PazSalvos/PermisosPaz";
 import { useAuth } from "../../auth/authProvider";
 import { useRenovar } from "../../Funcionalidades/PazSalvos/Renovar";
@@ -11,6 +10,7 @@ import "./PazSalvo.css";
 import { MotivoAdjuntosForm } from "./RespuestaPazSalvo/RespuestaPazSalvo";
 import type { PazSalvo } from "../../models/PazSalvo";
 import { PazSalvoRespuestasTable } from "./VerRespuestasPazSalvo/VerRespuestasPazSalvo";
+import { usePazSalvoServices } from "../../graph/graphContext";
 
 export const PazSalvoPage: React.FC = () => {
   const [selectedModule, setSelectedModule] = React.useState<string>("home");
@@ -18,7 +18,7 @@ export const PazSalvoPage: React.FC = () => {
   const [selectedPazSalvo, setSelectedPazSalvo] = React.useState<PazSalvo | null>(null);
   const { account } = useAuth();
   const username = account?.username || ""; 
-  const { PermisosPaz, Renovar, Firmas } = useGraphServices();
+  const { PermisosPaz, Renovar, Firmas } = usePazSalvoServices();
   const { isAdmin, checkAdmin } = usePermisosPazSalvos(PermisosPaz);
   const { loadRenovables, updateState } = useRenovar(Renovar);
   const { firmaItem, refresh } = useFirmaUsuario(Firmas, username);

@@ -7,6 +7,7 @@ import { useAuth } from "../../auth/authProvider";
 import type { FirmaInline } from "../../models/Imagenes";
 import type { MailService } from "../../Services/Mail.service";
 import { buildRecipients } from "../../utils/mail";
+import { notify } from '../../utils/notify';
 
 export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, isAdmin?: boolean,) {
   const [rows, setRows] = React.useState<PazSalvo[]>([]);
@@ -190,7 +191,7 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
     e.preventDefault();
 
     if (!validate()) {
-      alert("Hay campos sin llenar");
+      notify.auto("Hay campos sin llenar");
       return;
     }
 
@@ -266,7 +267,7 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
         firmaBase64 = stripDataUrl(firma!.contentBytes).replace(/\s+/g, "");
 
         if (firmaBase64.length < 50) {
-          alert("[DEBUG] Firma base64 muy corta. Probable error al obtener la firma.");
+          notify.auto("[DEBUG] Firma base64 muy corta. Probable error al obtener la firma.");
         }
       } else {
         console.warn("[DEBUG] No hay firma para enviar.");
@@ -379,11 +380,11 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
 
       console.log(correo + " ", link)
 
-      alert("Se ha creado el registro con éxito y se enviaron las notificaciones.");
+      notify.auto("Se ha creado el registro con éxito y se enviaron las notificaciones.");
       cleanState();
     } catch (err: any) {
       console.error(err);
-      alert(`[DEBUG] Error al enviar/crear: ${err?.message ?? String(err)}`);
+      notify.auto(`[DEBUG] Error al enviar/crear: ${err?.message ?? String(err)}`);
     } finally {
       setLoading(false);
     }
@@ -396,7 +397,7 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
 
       await pazSalvoSvc.update(IdPazSalvo, {Estado: "Finalizado"});
     
-      alert("Se ha finalizado el paz y salvo con éxito");
+      notify.auto("Se ha finalizado el paz y salvo con éxito");
       cleanState();
     } finally {
         setLoading(false);
@@ -471,5 +472,7 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
     nextPage, applyRange, reloadAll, toggleSort, setRange, setPageSize, setSearch, setSorts, setField, handleSubmit, cleanState, loadFirstPage, setYear, setEstado, updatePazSalvo
   };
 }
+
+
 
 

@@ -1,4 +1,4 @@
-import { useGraphServices } from "../../../../graph/graphContext";
+
 import type { EnvioErrors } from "../../../../models/Envios";
 import { useEnviosForm } from "./useEnviosForm";
 import { validateEnvio } from "../utils/enviosValidations";
@@ -6,12 +6,14 @@ import { useEnviosList } from "./useEnviosList";
 import { useEnviosActions } from "./useEnviosActions";
 import React from "react";
 import { useEnviosPagintation } from "./useEnviosPagintation";
+import { useGestorServices } from "../../../../graph/graphContext";
+import { notify } from '../../../../utils/notify';
 
 
 export function useEnvios() {
-  const graph = useGraphServices()
+  const {Envios} = useGestorServices()
   const formController = useEnviosForm()
-  const paginationController = useEnviosPagintation(graph)
+  const paginationController = useEnviosPagintation(Envios)
   const listController = useEnviosList(paginationController.pageSize)
   const actionsController = useEnviosActions()
 
@@ -24,7 +26,7 @@ export function useEnvios() {
     setErrors(errors)
     
     if (!(Object.keys(errors).length === 0)){
-      alert("Hay algunos campos obligatorios vacios")
+      notify.auto("Hay algunos campos obligatorios vacios")
       return
     };
     setLoading(true);
@@ -41,7 +43,7 @@ export function useEnvios() {
     try {
       const action = await actionsController.loadToReport(from, to, EnviadoPor, destinatario, plantilla)
       if(!action.ok){
-        alert(action.message)
+        notify.auto(action.message)
         throw new Error(action.message!)
       }
 
@@ -95,6 +97,8 @@ export function useEnvios() {
     loading, errors, handleSubmit, ...formController, ...paginationController, nextPage, ...listController, ...actionsController, loadToReport, error, reload
   };
 }
+
+
 
 
 

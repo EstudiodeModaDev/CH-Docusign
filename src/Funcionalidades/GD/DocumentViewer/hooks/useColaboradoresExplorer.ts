@@ -3,16 +3,48 @@ import { calculateDepth } from "../utils/explorerPath";
 import { buildVisibleItems } from "../utils/explorerSort";
 import { useExplorerState } from "./useExplorerState";
 import { useExplorerData } from "./useExplorerData";
-import { useGraphServices } from "../../../../graph/graphContext";
-import { buildExplorerServiceMap, getCurrentPath } from "../utils/empresaExplorerMap";
+
+import { buildExplorerServiceMap, getCurrentPath, type GraphServicesArgument } from "../utils/empresaExplorerMap";
 import { useExplorerActions } from "./useExplorerAction";
+import { useGestorServices } from "../../../../graph/graphContext";
 
 export function useColaboradoresExplorer() {
-  const graph = useGraphServices();
+  const {
+    ColaboradoresBroken, 
+    ColaboradoresDH, 
+    ColaboradoresDenim, 
+    ColaboradoresEDM, 
+    ColaboradoresMeta, 
+    ColaboradoresVisual,
+  } = useGestorServices();
 
-  const {empresa, paths, rawItems, loading, error, search, organizacion, setEmpresa, setPaths, setRawItems, setLoading, setError, setSearch, setOrganizacion,} = useExplorerState();
+  const {
+    empresa, 
+    paths, 
+    rawItems, 
+    loading, 
+    error, 
+    search, 
+    organizacion, 
+    setEmpresa, 
+    setPaths, 
+    setRawItems, 
+    setLoading, 
+    setError, 
+    setSearch, 
+    setOrganizacion,
+  } = useExplorerState();
 
-  const serviceMap = React.useMemo(() => buildExplorerServiceMap(graph), [graph]);
+  const servicios: GraphServicesArgument = {
+    ColaboradoresBroken: ColaboradoresBroken,
+    ColaboradoresDenim: ColaboradoresDenim,
+    ColaboradoresDH: ColaboradoresDH,
+    ColaboradoresEDM: ColaboradoresEDM,
+    ColaboradoresMeta: ColaboradoresMeta,
+    ColaboradoresVisual: ColaboradoresVisual,
+  }
+
+  const serviceMap = React.useMemo(() => buildExplorerServiceMap(servicios), [servicios]);
   const activeService = serviceMap[empresa];
   const currentPath = getCurrentPath(paths, empresa);
 

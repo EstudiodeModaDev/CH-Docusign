@@ -3,6 +3,7 @@ import type { desplegablesOption } from "../../../../models/Desplegables";
 import { formatPesosEsCO } from "../../../../utils/Number";
 import type { requisiciones } from "../../../../models/Requisiciones/requisiciones";
 import Select, { components, type OptionProps } from "react-select";
+import { notify } from '../../../../utils/notify';
 
 const selectMenuProps = {
   menuPortalTarget: typeof document !== "undefined" ? document.body : null,
@@ -82,23 +83,47 @@ export default function Step2Form({
   }, [state.salarioBasico]);
 
   return (
-    <>
-      <section className="rqw-section">
-        <div className="rqw-section__head">
+    <div className="rqw-stage-stack">
+      <section className="rqw-stage">
+        <div className="rqw-stage__intro">
+          <span className="rqw-stage__eyebrow">Paso 2</span>
+          <h3 className="rqw-stage__title">Configuracion de la solicitud</h3>
+          <p className="rqw-stage__copy">
+            Completa la compensacion, los datos organizacionales y la informacion complementaria para crear la vacante.
+          </p>
+        </div>
+
+        <div className="rqw-summary-band">
+          <div className="rqw-summary-band__item">
+            <span>Tipo</span>
+            <strong>{state.tipoRequisicion || "Pendiente"}</strong>
+          </div>
+          <div className="rqw-summary-band__item">
+            <span>Cargo</span>
+            <strong>{state.Title || "Sin definir"}</strong>
+          </div>
+          <div className="rqw-summary-band__item">
+            <span>Ciudad</span>
+            <strong>{state.Ciudad || "Sin definir"}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section className="rqw-stage">
+        <div className="rqw-block-head">
           <div>
-            <span className="rqw-section__eyebrow">Paso 2</span>
-            <h3 className="rqw-section__title">Configuracion operativa</h3>
-            <p className="rqw-section__copy">Completa la compensacion, la estructura organizacional y los datos necesarios para despachar la requisicion.</p>
+            <span className="rqw-block-head__kicker">Compensacion</span>
+            <h4 className="rqw-block-head__title">Datos principales</h4>
           </div>
         </div>
 
-        <div className="rqw-grid">
-          <div className="ft-field rqw-panel-field">
+        <div className="rqw-fields-grid">
+          <div className="ft-field rqw-field-card">
             <label className="ft-label">Salario *</label>
             <input type="text" value={displaySalario} onChange={(e) => { setField("salarioBasico", e.target.value); }} />
           </div>
 
-          <div className="ft-field rqw-panel-field">
+          <div className="ft-field rqw-field-card">
             <label className="ft-label">Tipo de convocatoria *</label>
             <Select<desplegablesOption, false>
               inputId="tipoConvocatoria"
@@ -112,7 +137,7 @@ export default function Step2Form({
             />
           </div>
 
-          <div className="ft-field rqw-panel-field">
+          <div className="ft-field rqw-field-card">
             <label className="ft-label">Genero *</label>
             <Select<desplegablesOption, false>
               inputId="genero"
@@ -126,7 +151,7 @@ export default function Step2Form({
             />
           </div>
 
-          <div className="ft-field rqw-panel-field">
+          <div className="ft-field rqw-field-card">
             <label className="ft-label">Motivo *</label>
             <Select<desplegablesOption, false>
               inputId="motivo"
@@ -139,50 +164,59 @@ export default function Step2Form({
               {...selectMenuProps}
             />
           </div>
+
+          <div className="ft-field rqw-field-card">
+            <label className="ft-label">Gerencia *</label>
+            <Select<desplegablesOption, false>
+              inputId="gerencia"
+              options={direccionOptions}
+              value={selectedDireccion}
+              onChange={(option) => setField("direccion", option?.label ?? "")}
+              classNamePrefix="rs"
+              components={{ Option }}
+              placeholder="Selecciona la gerencia"
+              {...selectMenuProps}
+            />
+          </div>
         </div>
       </section>
 
-      <section className="rqw-section">
-        <div className="rqw-section__head">
+      <section className="rqw-stage">
+        <div className="rqw-block-head">
           <div>
-            <span className="rqw-section__eyebrow">Operacion</span>
-            <h3 className="rqw-section__title">Ubicacion y estructura</h3>
-            <p className="rqw-section__copy">Relaciona la requisicion con su centro operativo, area o marca y unidad de negocio.</p>
+            <span className="rqw-block-head__kicker">Operacion</span>
+            <h4 className="rqw-block-head__title">Ubicacion y estructura</h4>
           </div>
         </div>
 
-        <div className="rqw-grid">
-          {state.tipoRequisicion === "Retail" &&
+        <div className="rqw-fields-grid">
+          {state.tipoRequisicion === "Retail" ? (
             <>
-              <div className="ft-field rqw-panel-field">
-                <label className="ft-label">{"Tienda *"}</label>
+              <div className="ft-field rqw-field-card">
+                <label className="ft-label">Tienda *</label>
                 <Select<desplegablesOption, false>
                   inputId="centroOperativo"
                   options={centroOperativoOptions}
                   value={selectedCentroOperativo}
                   onChange={(option) => {
                     setField("codigoCentroOperativo", option?.value ?? "");
-                    if (state.tipoRequisicion === "Retail") {
-                      setField("tienda", option?.label ?? "");
-                    }
+                    setField("tienda", option?.label ?? "");
                   }}
                   classNamePrefix="rs"
                   components={{ Option }}
-                  placeholder="Selecciona el centro operativo"
+                  placeholder="Selecciona la tienda"
                   {...selectMenuProps}
                 />
-            
               </div>
-          
-              <div className="ft-field rqw-panel-field">
-                <label className="ft-label">Codigo centro operativo *</label>
+
+              <div className="ft-field rqw-field-card">
+                <label className="ft-label">Codigo centro operativo</label>
                 <input type="text" readOnly value={state.codigoCentroOperativo} placeholder="Se completa automaticamente" />
-                <small className="rqw-field-hint">Valor derivado del centro operativo o tienda seleccionada.</small>
               </div>
             </>
-          }
+          ) : null}
 
-          <div className="ft-field rqw-panel-field">
+          <div className="ft-field rqw-field-card">
             <label className="ft-label">{tipoConvocatoria === "Administrativa" ? "Area *" : "Marca *"}</label>
             <Select<desplegablesOption, false>
               inputId="centroCostos"
@@ -191,7 +225,6 @@ export default function Step2Form({
               onChange={(option) => {
                 setField("codigoCentroCosto", option?.value ?? "");
                 setField("descripcionCentroCosto", option?.label ?? "");
-                console.log(option);
               }}
               classNamePrefix="rs"
               components={{ Option }}
@@ -200,12 +233,12 @@ export default function Step2Form({
             />
           </div>
 
-          <div className="ft-field rqw-panel-field">
+          <div className="ft-field rqw-field-card">
             <label className="ft-label">Codigo centro de costos</label>
             <input type="text" readOnly value={state.codigoCentroCosto} placeholder="Se completa automaticamente" />
           </div>
 
-          <div className="ft-field rqw-panel-field">
+          <div className="ft-field rqw-field-card">
             <label className="ft-label">Unidad de negocio *</label>
             <Select<desplegablesOption, false>
               inputId="unidadNegocio"
@@ -225,41 +258,25 @@ export default function Step2Form({
       </section>
 
       {state.tipoRequisicion === "Administrativa" ? (
-        <section className="rqw-section">
-          <div className="rqw-section__head">
+        <section className="rqw-stage">
+          <div className="rqw-block-head">
             <div>
-              <span className="rqw-section__eyebrow">Administrativa</span>
-              <h3 className="rqw-section__title">Configuracion complementaria</h3>
-              <p className="rqw-section__copy">Estos campos solo aplican para requisiciones administrativas.</p>
+              <span className="rqw-block-head__kicker">Complementario</span>
+              <h4 className="rqw-block-head__title">Configuracion administrativa</h4>
             </div>
           </div>
 
-          <div className="rqw-grid">
-            <div className="ft-field rqw-panel-field">
-              <label className="ft-label">Gerencia *</label>
-              <Select<desplegablesOption, false>
-                inputId="gerencia"
-                options={direccionOptions}
-                value={selectedDireccion}
-                onChange={(option) => setField("direccion", option?.label ?? "")}
-                classNamePrefix="rs"
-                components={{ Option }}
-                placeholder="Selecciona la gerencia"
-                {...selectMenuProps}
-              />
-            </div>
+          <div className="rqw-fields-grid">
 
-            <div className="ft-field rqw-panel-field">
+
+            <div className="ft-field rqw-field-card">
               <label className="ft-label">Pertenece al CVE?</label>
               <select
                 id="perteneceCVE"
                 value={state.perteneceCVE}
                 onChange={(option) => {
                   setField("perteneceCVE", option.target.value ?? "");
-
-                  if (option.target.value !== "Si") {
-                    setField("grupoCVE", "");
-                  }
+                  if (option.target.value !== "Si") setField("grupoCVE", "");
                 }}
               >
                 <option value="Si">Si</option>
@@ -268,7 +285,7 @@ export default function Step2Form({
             </div>
 
             {state.perteneceCVE === "Si" ? (
-              <div className="ft-field rqw-panel-field">
+              <div className="ft-field rqw-field-card">
                 <label className="ft-label">Grupo CVE</label>
                 <Select<desplegablesOption, false>
                   inputId="grupoCVE"
@@ -283,7 +300,7 @@ export default function Step2Form({
               </div>
             ) : null}
 
-            <div className="ft-field rqw-panel-field">
+            <div className="ft-field rqw-field-card">
               <label className="ft-label">Tiene auxilio de rodamiento?</label>
               <select
                 id="auxilioRodamiento"
@@ -297,13 +314,13 @@ export default function Step2Form({
               </select>
             </div>
 
-            <div className="ft-field rqw-panel-field">
+            <div className="ft-field rqw-field-card">
               <label className="ft-label">Tipo de teletrabajo *</label>
               <Select<desplegablesOption, false>
                 inputId="modalidadTeletrabajo"
                 options={modalidadOptions}
                 value={selectedModalidad}
-                onChange={(option) => setField("modalidadTeletrabajo", option?.label ?? "")}
+                onChange={(option) => {setField("modalidadTeletrabajo", option?.label ?? ""); notify.auto(option?.label)}}
                 classNamePrefix="rs"
                 components={{ Option }}
                 placeholder="Selecciona la modalidad"
@@ -313,6 +330,8 @@ export default function Step2Form({
           </div>
         </section>
       ) : null}
-    </>
+    </div>
   );
 }
+
+

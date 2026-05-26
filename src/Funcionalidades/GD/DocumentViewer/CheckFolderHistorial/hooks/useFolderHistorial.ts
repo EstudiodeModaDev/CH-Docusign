@@ -6,9 +6,10 @@ import { useFolderHistorialActions } from "./useControlBdACtions";
 import { useSpecificFolderHistorialSearch } from "./useControlSearcher";
 import { useAuth } from "../../../../../auth/authProvider";
 import { useFolderControlActions } from "../../CheckFolderControl/hooks/useControlBdACtions";
-import { useGraphServices } from "../../../../../graph/graphContext";
 import { notifyApprovedFolder, notifyFolderReady, notifyReturnedFolder } from "../utils/notifications";
 import { toISODateFlex } from "../../../../../utils/Date";
+import { useCoreGraphServices, } from "../../../../../graph/graphContext";
+import { notify } from '../../../../../utils/notify';
 
 export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, fullname: string, path: string},) {
   const formController = useFolderControlForm(folderInfo,)
@@ -16,7 +17,7 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
   const searchesController = useSpecificFolderHistorialSearch()
   const integration = useFolderControlActions()
   const auth = useAuth()
-  const graph = useGraphServices()
+  const {mail, graph} = useCoreGraphServices()
 
   const [loading, setLoading] = React.useState(false);
 
@@ -47,16 +48,16 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
         console.log("Payload: ", state)
         const historialCreado = await actionsController.handleSubmitBd(state);
 
-        await notifyFolderReady(graph.mail, folderInfo)
-        alert("Se ha enviado la carpeta a revisión con éxito")
+        await notifyFolderReady(mail, folderInfo)
+        notify.auto("Se ha enviado la carpeta a revisión con éxito")
         return { ok: true, created: historialCreado };
       }
       
-      alert("No se encontró la carpeta para enviar a revisión");
+      notify.auto("No se encontró la carpeta para enviar a revisión");
       return { ok: false, created: null };
       
     } catch {
-      alert("Algo ha salido mal creando el registro");
+      notify.auto("Algo ha salido mal creando el registro");
       return { ok: false, created: null };
     } finally {
       setLoading(false);
@@ -90,18 +91,18 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
         const Historialpayload = buildSendRevisionPayload(state,auth.account, "Devolución de carpeta");
         console.log("Payload: ", Historialpayload)
         const historialCreado = await actionsController.handleSubmitBd(Historialpayload);
-        const groupMembers = await graph.graph.getAllGroupMembers("8ba50c1e-ffd3-4906-b50a-3db33b69b868",)
+        const groupMembers = await graph.getAllGroupMembers("8ba50c1e-ffd3-4906-b50a-3db33b69b868",)
         console.log(groupMembers)
-        await notifyReturnedFolder(graph.mail, folderInfo, motivo, groupMembers)
-        alert("Se ha devuelto la carpeta correctamente")
+        await notifyReturnedFolder(mail, folderInfo, motivo, groupMembers)
+        notify.auto("Se ha devuelto la carpeta correctamente")
         return { ok: true, created: historialCreado };
       }
       
-      alert("No se encontró la carpeta para enviar a devolver");
+      notify.auto("No se encontró la carpeta para enviar a devolver");
       return { ok: false, created: null };
       
     } catch {
-      alert("Algo ha salido mal creando el registro");
+      notify.auto("Algo ha salido mal creando el registro");
       return { ok: false, created: null };
     } finally {
       setLoading(false);
@@ -135,17 +136,17 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
         const Historialpayload = state;
         console.log("Payload: ", Historialpayload)
         const historialCreado = await actionsController.handleSubmitBd(Historialpayload);
-        const groupMembers = await graph.graph.getAllGroupMembers("8ba50c1e-ffd3-4906-b50a-3db33b69b868",)
-        await notifyApprovedFolder(graph.mail, folderInfo, historialCreado.RealizadoPor!, groupMembers)
-        alert("Se ha aprobado la carpeta correctamente")
+        const groupMembers = await graph.getAllGroupMembers("8ba50c1e-ffd3-4906-b50a-3db33b69b868",)
+        await notifyApprovedFolder(mail, folderInfo, historialCreado.RealizadoPor!, groupMembers)
+        notify.auto("Se ha aprobado la carpeta correctamente")
         return { ok: true, created: historialCreado };
       }
       
-      alert("No se encontró la carpeta para enviar a aprobar");
+      notify.auto("No se encontró la carpeta para enviar a aprobar");
       return { ok: false, created: null };
       
     } catch {
-      alert("Algo ha salido mal aprobando el registro");
+      notify.auto("Algo ha salido mal aprobando el registro");
       return { ok: false, created: null };
     } finally {
       setLoading(false);
@@ -162,3 +163,4 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
     loading
   };
 }
+

@@ -28,28 +28,42 @@ type Props = {
   selectedCiudad: desplegablesOption | null;
   ciudadesAllOptions: desplegablesOption[];
   setField: <K extends keyof requisiciones>(k: K, v: requisiciones[K]) => void;
-  state: requisiciones
+  state: requisiciones;
 };
 
-export default function FirstStepForm({ciudadesAllOptions, cargosOptions, selectedCargo, onChangeCargo, selectedCiudad, setField, state}: Props) {
+export default function FirstStepForm({
+  ciudadesAllOptions,
+  cargosOptions,
+  selectedCargo,
+  onChangeCargo,
+  selectedCiudad,
+  setField,
+  state,
+}: Props) {
+  const readyForNext = Boolean(state.Title && state.Ciudad);
+
   return (
-    <section className="rqw-section rqw-section--hero">
-      <div className="rqw-section__head">
-        <div>
-          <span className="rqw-section__eyebrow">Paso 1</span>
-          <h3 className="rqw-section__title">Informacion base de la vacante</h3>
-          <p className="rqw-section__copy">Define el contexto principal de la requisicion. El tipo se asigna automaticamente con base en el cargo.</p>
-        </div>
+    <section className="rqw-stage">
+      <div className="rqw-stage__intro">
+        <span className="rqw-stage__eyebrow">Paso 1</span>
+        <h3 className="rqw-stage__title">Base de la vacante</h3>
+        <p className="rqw-stage__copy">
+          Selecciona el cargo y la ciudad para definir el tipo de requisicion, el nivel y el flujo inicial.
+        </p>
       </div>
 
-      <div className="rqw-grid rqw-grid--intro">
-        <div className="ft-field rqw-panel-field">
-          <label className="ft-label">Tipo de requisicion *</label>
-          <input type="text" readOnly value={state.tipoRequisicion} />
-          <small className="rqw-field-hint">Este valor se calcula automaticamente segun el cargo seleccionado.</small>
+      <div className="rqw-callout">
+        <div className="rqw-callout__status">
+          <span className={`rqw-dot ${readyForNext ? "is-ready" : ""}`} />
+          <strong>{readyForNext ? "Listo para continuar" : "Faltan datos base"}</strong>
         </div>
+        <p className="rqw-callout__copy">
+          El sistema completa automaticamente algunos valores cuando eliges el cargo correcto.
+        </p>
+      </div>
 
-        <div className="ft-field rqw-panel-field">
+      <div className="rqw-fields-grid rqw-fields-grid--step1">
+        <div className="ft-field rqw-field-card">
           <label className="ft-label">Cargo *</label>
           <Select<desplegablesOption, false>
             inputId="cargo"
@@ -61,16 +75,10 @@ export default function FirstStepForm({ciudadesAllOptions, cargosOptions, select
             placeholder="Selecciona el cargo"
             {...selectMenuProps}
           />
-          <small className="rqw-field-hint">Escoge el cargo exacto para asignar ANS, flujo y responsable.</small>
+          <small className="rqw-field-note">Este campo define ANS, responsable y tipo de requisicion.</small>
         </div>
 
-        <div className="ft-field rqw-panel-field">
-          <label className="ft-label">Nivel de cargo *</label>
-          <input type="text" readOnly value={state.NivelCargo} />
-          <small className="rqw-field-hint">Este valor se calcula automaticamente segun el cargo seleccionado.</small>
-        </div>
-
-        <div className="ft-field rqw-panel-field">
+        <div className="ft-field rqw-field-card">
           <label className="ft-label">Ciudad *</label>
           <Select<desplegablesOption, false>
             inputId="ciudad"
@@ -82,7 +90,19 @@ export default function FirstStepForm({ciudadesAllOptions, cargosOptions, select
             placeholder="Selecciona la ciudad"
             {...selectMenuProps}
           />
-          <small className="rqw-field-hint">La ciudad ayuda a determinar la asignacion y reglas operativas.</small>
+          <small className="rqw-field-note">La ciudad ayuda a definir la operacion y la asignacion.</small>
+        </div>
+
+        <div className="ft-field rqw-field-card">
+          <label className="ft-label">Tipo de requisicion</label>
+          <input type="text" readOnly value={state.tipoRequisicion || "Pendiente"} />
+          <small className="rqw-field-note">Se calcula automaticamente con base en el cargo.</small>
+        </div>
+
+        <div className="ft-field rqw-field-card">
+          <label className="ft-label">Nivel de cargo</label>
+          <input type="text" readOnly value={state.NivelCargo || "Pendiente"} />
+          <small className="rqw-field-note">Se completa cuando el cargo tiene configuracion asociada.</small>
         </div>
       </div>
     </section>

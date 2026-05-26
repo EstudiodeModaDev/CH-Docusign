@@ -1,11 +1,12 @@
 import * as React from "react";
 import "../Empresas.css";
-import { useGraphServices } from "../../../../graph/graphContext";
+import { useCoreGraphServices, } from "../../../../graph/graphContext";
 import { useOrigenSeleccion } from "../../../../Funcionalidades/Desplegables";
 import type { maestro } from "../../../../models/Desplegables";
+import { notify } from '../../../../utils/notify';
 
 export const OrigenSeleccionManager: React.FC = () => {
-  const { Maestro, } = useGraphServices();
+  const { Maestro, } = useCoreGraphServices();
 
   const { items, add, editItem, reload, remove } = useOrigenSeleccion(Maestro);
 
@@ -28,7 +29,7 @@ export const OrigenSeleccionManager: React.FC = () => {
   const handleAddNew = React.useCallback(async (): Promise<maestro | null> => {
     const origen = (state.T_x00ed_tulo1 ?? "").trim();
     if (!origen) {
-      alert("Rellene todos los campos");
+      notify.auto("Rellene todos los campos");
       return null;
     }
 
@@ -120,7 +121,7 @@ export const OrigenSeleccionManager: React.FC = () => {
                 <button type="button" className="emp-btn emp-btn--ok" disabled={saving} onClick={async () => { 
                                                                                                     const cargo = (state?.T_x00ed_tulo1?.toUpperCase() ?? "").trim();
                                                                                                     if (!cargo) {
-                                                                                                        alert("Rellene todos los campos");
+                                                                                                        notify.auto("Rellene todos los campos");
                                                                                                         return;
                                                                                                     }
                                                                                                     setSaving(true);
@@ -129,13 +130,13 @@ export const OrigenSeleccionManager: React.FC = () => {
                                                                                                             await editItem({ Title: "Origenes selecciones", T_x00ed_tulo1: cargo }, state!.Id ?? "");
                                                                                                         }
 
-                                                                                                        alert("Se ha actualizado el cargo con éxito");
+                                                                                                        notify.auto("Se ha actualizado el cargo con éxito");
                                                                                                         reload();
                                                                                                         setIsEditing(false);
                                                                                                         resetForm();
                                                                                                     } catch (e: any) {
                                                                                                         console.error(e);
-                                                                                                        alert(e?.message ?? String(e));
+                                                                                                        notify.auto(e?.message ?? String(e));
                                                                                                     } finally {
                                                                                                         setSaving(false);
                                                                                                     }
@@ -164,13 +165,13 @@ export const OrigenSeleccionManager: React.FC = () => {
                                                                                                         if (add) await add(payload);
 
 
-                                                                                                        alert("Se ha creado el origen de selección con éxito");
+                                                                                                        notify.auto("Se ha creado el origen de selección con éxito");
                                                                                                         reload();
                                                                                                         setIsAdding(false);
                                                                                                         resetForm();
                                                                                                     } catch (e: any) {
                                                                                                         console.error(e);
-                                                                                                        alert(e?.message ?? String(e));
+                                                                                                        notify.auto(e?.message ?? String(e));
                                                                                                     } finally {
                                                                                                     setSaving(false);
                                                                                                     }
@@ -185,3 +186,5 @@ export const OrigenSeleccionManager: React.FC = () => {
     </div>
   );
 };
+
+

@@ -2,6 +2,7 @@ import React from "react";
 import type {permisos, renovar } from "../../models/PazSalvo";
 import type { RenovarService } from "../../Services/Renovar.service";
 import { useAuth } from "../../auth/authProvider";
+import { notify } from '../../utils/notify';
 
 export function useRenovar(renovarServiceSvc: RenovarService) {
   const [rows, setRows] = React.useState<permisos[]>([]);
@@ -56,7 +57,7 @@ export function useRenovar(renovarServiceSvc: RenovarService) {
     const userState = rows.find(r => r.Title === account?.username);
     if (userState) {
       renovarServiceSvc.update(userState.Id ?? "", {Estado: "Renovado" });
-      alert("Su firma ha sido renovada correctamente.");
+      notify.auto("Su firma ha sido renovada correctamente.");
     }
   }
 
@@ -65,4 +66,6 @@ export function useRenovar(renovarServiceSvc: RenovarService) {
     setField, handleSubmit, cleanState, loadRenovables, updateState
   };
 }
+
+
 

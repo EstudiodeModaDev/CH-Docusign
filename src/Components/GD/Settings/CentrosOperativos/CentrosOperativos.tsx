@@ -1,14 +1,15 @@
 import * as React from "react";
 import "../Empresas.css";
-import { useGraphServices } from "../../../../graph/graphContext";
+import { useCoreGraphServices } from "../../../../graph/graphContext";
 import { useCentroOperativo, } from "../../../../Funcionalidades/Desplegables";
 import type { withCode } from "../../../../models/Maestros";
 import type { maestro } from "../../../../models/Desplegables";
 import { MasiveChargeModal } from "../CentroCostos/CentroCostos";
 import { masiveChargeCO } from "../../../../Funcionalidades/CargaMasiva";
+import { notify } from '../../../../utils/notify';
 
 export const CentroOperativoManager: React.FC = () => {
-    const { Maestro, } = useGraphServices();
+    const { Maestro, } = useCoreGraphServices();
     const { items, add, editItem, reload, remove} = useCentroOperativo(Maestro);
     const [isEditing, setIsEditing] = React.useState(false);
     const [state, setState] = React.useState<withCode>({ Title: "", Codigo: ""})
@@ -18,7 +19,7 @@ export const CentroOperativoManager: React.FC = () => {
 
     const handleAddNew = () => {
         if(!state.Title){
-            alert("Rellene todos los campos")
+            notify.auto("Rellene todos los campos")
         }
         const payload: maestro = {
             T_x00ed_tulo1: state?.Title,
@@ -94,7 +95,7 @@ export const CentroOperativoManager: React.FC = () => {
                                                                                             console.table(state)
                                                                                             if(editItem){
                                                                                                 await editItem({Title: "Centros operativos", T_x00ed_tulo1: state?.Title}, state!.Id ?? "", );
-                                                                                                alert("Se ha editado con éxito el CO")
+                                                                                                notify.auto("Se ha editado con éxito el CO")
                                                                                                 setIsAdding(false)
                                                                                                 setIsEditing(false)
                                                                                                 reload()
@@ -113,12 +114,12 @@ export const CentroOperativoManager: React.FC = () => {
                                                                                                     if (!payload?.T_x00ed_tulo1?.trim()) return;
 
                                                                                                     await add(payload); // ✅ esperar
-                                                                                                    alert("Se ha agregado con éxito el CO");
+                                                                                                    notify.auto("Se ha agregado con éxito el CO");
                                                                                                     setIsEditing(false)
                                                                                                     setIsAdding(false)
                                                                                                     } catch (e: any) {
                                                                                                     console.error(e);
-                                                                                                    alert("Error agregando el cargo: " + (e?.message ?? e));
+                                                                                                    notify.auto("Error agregando el cargo: " + (e?.message ?? e));
                                                                                                     }
                                                                                                 }}>✔</button>
                                 </div>
@@ -132,5 +133,7 @@ export const CentroOperativoManager: React.FC = () => {
         </div>
     );
 };
+
+
 
 

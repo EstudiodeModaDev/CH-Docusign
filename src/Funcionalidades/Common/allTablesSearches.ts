@@ -1,4 +1,4 @@
-import type { useGraphServices } from "../../graph/graphContext";
+import type { useGestorServices } from "../../graph/graphContext";
 import type { CommonRegister } from "../../models/Commons";
 import type { solicitud } from "../../models/solicitudCambio";
 import { convertToCommonDTO } from "./parseOptions";
@@ -9,7 +9,7 @@ export const isModulo = (value: string): value is Modulo => {
   return ["Cesacion", "Contratacion", "Promocion", "Retail", "Habeas"].includes(value);
 };
 
-export const getServiceByModulo = (modulo: Modulo, graph: ReturnType<typeof useGraphServices>) => {
+export const getServiceByModulo = (modulo: Modulo, graph: ReturnType<typeof useGestorServices>) => {
   switch (modulo) {
     case "Contratacion":
       return graph.Contratos;
@@ -26,7 +26,7 @@ export const getServiceByModulo = (modulo: Modulo, graph: ReturnType<typeof useG
   }
 };
 
-export const getRegistroReal = async (solicitud: solicitud, graph: ReturnType<typeof useGraphServices>): Promise<CommonRegister | null> => {
+export const getRegistroReal = async (solicitud: solicitud, graph: ReturnType<typeof useGestorServices>): Promise<CommonRegister | null> => {
   if(!isModulo(solicitud.Title)) return null
   
   const service = getServiceByModulo(solicitud.Title, graph);

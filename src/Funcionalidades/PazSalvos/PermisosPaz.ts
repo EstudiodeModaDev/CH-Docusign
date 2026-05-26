@@ -1,6 +1,7 @@
 import React from "react";
 import type {permisos, permisosErrors } from "../../models/PazSalvo";
 import type { PermisosPazSalvosService } from "../../Services/PermisosPazSalvos.service";
+import { notify } from '../../utils/notify';
 
 export function usePermisosPazSalvos(permisosPazSalvosSvc: PermisosPazSalvosService) {
   const [rows, setRows] = React.useState<permisos[]>([]);
@@ -60,7 +61,7 @@ export function usePermisosPazSalvos(permisosPazSalvosSvc: PermisosPazSalvosServ
         Title: state.Title, 
       };
       await permisosPazSalvosSvc.create(payload);
-      alert("Se ha creado el registro con éxito");
+      notify.auto("Se ha creado el registro con éxito");
       cleanState();
     } finally {
         setLoading(false);
@@ -83,4 +84,6 @@ export function usePermisosPazSalvos(permisosPazSalvosSvc: PermisosPazSalvosServ
      applyRange, reloadAll, setSearch, setField, handleSubmit, cleanState, loadPermisos, checkAdmin, 
   };
 }
+
+
 

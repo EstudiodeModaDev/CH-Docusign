@@ -1,6 +1,6 @@
 import * as React from "react";
 import "./PazSalvo.css";
-import { useGraphServices } from "../../../graph/graphContext";
+import { useCoreGraphServices, usePazSalvoServices } from "../../../graph/graphContext";
 import { usePazSalvo } from "../../../Funcionalidades/PazSalvos/PazSalvos";
 import { parseDateFlex } from "../../../utils/Date";
 import type { PazSalvo } from "../../../models/PazSalvo";
@@ -16,7 +16,8 @@ type Props = {
 
 export const PazSalvosEnviados: React.FC<Props> = ({onNew, isAdmin, onSelectRow, changeView}) => {
 
-  const {PazSalvos, Respuesta, mail} = useGraphServices()
+  const {PazSalvos, Respuesta,} = usePazSalvoServices()
+  const {mail} = useCoreGraphServices()
   const {visibleRows, range, year, search, estado, setEstado, setYear, setSearch, setRange, toggleSort, } = usePazSalvo(PazSalvos, mail, isAdmin, );
   const {account} = useAuth()
   const {loadUserRespuestas} = useRespuestasPazSalvos(Respuesta)

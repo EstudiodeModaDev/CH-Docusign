@@ -4,6 +4,7 @@ import type { solicitud } from "../../../../../models/solicitudCambio";
 import { DDMMYYYY } from "../../../../../utils/Date";
 import { useRequestDetailsSearches } from "../../../../../Funcionalidades/GD/UpdateRequestDetails/hooks/useRequestDetailsSearches";
 import { useRequestActions } from "../../../../../Funcionalidades/GD/UpdateRequest/hooks/useRequestActions";
+import { notify } from '../../../../../utils/notify';
 
 type Props = {
   selectedSolicitud: solicitud | null;
@@ -34,7 +35,7 @@ export default function SolicitudesDetails({selectedSolicitud, onCloseDetail,}: 
     if (!selectedSolicitud || submitting) return;
 
     if(!comentario){
-      alert("Debe indicar el motivo de su decisión")
+      notify.auto("Debe indicar el motivo de su decisión")
       return
     }
     setSubmitting(true);
@@ -183,3 +184,4 @@ export default function SolicitudesDetails({selectedSolicitud, onCloseDetail,}: 
     </div>
   );
 }
+

@@ -1,9 +1,10 @@
 import React from "react";
-import { useGraphServices } from "../../../../graph/graphContext";
+
 import type { detalle,  } from "../../../../models/solicitudCambio";
+import { useGestorServices } from "../../../../graph/graphContext";
 
 export function useRequestDetailsSearches() {
-  const graph = useGraphServices()
+  const {detalle} = useGestorServices()
 
   const [details, setDetails] = React.useState<detalle[]>([])
   const [loading, setLoading] = React.useState<boolean>(false)
@@ -11,7 +12,7 @@ export function useRequestDetailsSearches() {
   const getDetails = async (IdDetalle: string): Promise<detalle[]> => {
     setLoading(true)
     try {
-      const requestResponse = await graph.detalle.getAll({filter:`fields/Title eq '${IdDetalle}'`})
+      const requestResponse = await detalle.getAll({filter:`fields/Title eq '${IdDetalle}'`})
       setDetails(requestResponse)
       return details
     } catch {

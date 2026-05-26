@@ -1,5 +1,6 @@
 import type { AccountInfo } from "@azure/msal-browser";
 import type { GraphRest, } from "../../graph/graphRest";
+import { notify } from '../../utils/notify';
 
 //Validar si el usuario pertenece al grupo de autorizado para acciones administrativas
 export async function isAdmin(graph: GraphRest, correo: AccountInfo): Promise<boolean> {
@@ -11,9 +12,11 @@ export async function isAdmin(graph: GraphRest, correo: AccountInfo): Promise<bo
     const isMember = groupMembers.some(user => (user.mail || user.userPrincipalName || "").toLowerCase() === currentEmail);
 
     if(!isMember){
-      alert("No tienes permisos para aprobar")
+      notify.auto("No tienes permisos para aprobar")
       return false
     }
 
     return true
 };
+
+

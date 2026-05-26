@@ -1,14 +1,15 @@
 import * as React from "react";
 import "../Empresas.css";
-import { useGraphServices } from "../../../../graph/graphContext";
+import { useCoreGraphServices } from "../../../../graph/graphContext";
 import { useCentroCostos, } from "../../../../Funcionalidades/Desplegables";
 import type { withCode } from "../../../../models/Maestros";
 import type { maestro } from "../../../../models/Desplegables";
 import { masiveCharge } from "../../../../Funcionalidades/CargaMasiva";
 import type { MaestrosService } from "../../../../Services/Maestros.service";
+import { notify } from '../../../../utils/notify';
 
 export const CentroCostosManager: React.FC = () => {
-    const { Maestro, } = useGraphServices();
+    const { Maestro, } = useCoreGraphServices();
     const { items, add, editItem, reload, remove} = useCentroCostos(Maestro);
     const [isEditing, setIsEditing] = React.useState(false);
     const [state, setState] = React.useState<withCode>({ Title: "", Codigo: ""})
@@ -17,7 +18,7 @@ export const CentroCostosManager: React.FC = () => {
 
     const handleAddNew = () => {
         if(!state.Title || !state.Codigo){
-            alert("Rellene todos los campos")
+            notify.auto("Rellene todos los campos")
         }
         const payload: maestro = {
             T_x00ed_tulo1: state?.Title,
@@ -96,7 +97,7 @@ export const CentroCostosManager: React.FC = () => {
                                                                                             if(editItem){
                                                                                                 await editItem({Title: "Centro de costos", T_x00ed_tulo1: state?.Title, Codigo: state.Codigo}, state!.Id ?? "", );
                                                                                                 reload()
-                                                                                                alert("Se ha editado con éxito el CC")
+                                                                                                notify.auto("Se ha editado con éxito el CC")
                                                                                                 setIsAdding(false)
                                                                                                 setIsEditing(false)
                                                                                             }
@@ -114,12 +115,12 @@ export const CentroCostosManager: React.FC = () => {
                                                                                                     if (!payload?.T_x00ed_tulo1?.trim()) return;
 
                                                                                                     await add(payload); // ✅ esperar
-                                                                                                    alert("Se ha agregado con éxito el centro de costos");
+                                                                                                    notify.auto("Se ha agregado con éxito el centro de costos");
                                                                                                     setIsEditing(false)
                                                                                                     setIsAdding(false)
                                                                                                     } catch (e: any) {
                                                                                                     console.error(e);
-                                                                                                    alert("Error agregando el cargo: " + (e?.message ?? e));
+                                                                                                    notify.auto("Error agregando el cargo: " + (e?.message ?? e));
                                                                                                     }
                                                                                                 }}>✔</button>
                                 </div>
@@ -265,3 +266,5 @@ export const MasiveChargeModal: React.FC<Props> = ({ open, onClose, maestroSvc, 
     </div>
   );
 };
+
+

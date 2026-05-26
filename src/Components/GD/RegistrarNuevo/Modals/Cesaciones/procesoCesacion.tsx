@@ -1,6 +1,6 @@
 import * as React from "react";
 import "../PasosPromocion.css";
-import { useGraphServices } from "../../../../../graph/graphContext";
+import { useCoreGraphServices, useGestorServices } from "../../../../../graph/graphContext";
 import type { DetallesPasos, PasosProceso } from "../../../../../models/Pasos";
 import type { GraphSendMailPayload } from "../../../../../graph/graphRest";
 import { toUnifyVM, type Proceso } from "../../../../../utils/unify";
@@ -9,6 +9,7 @@ import { parseEmails, renderTemplate, safeString } from "../../../../../utils/te
 import type { PropsProceso } from "../../../../../models/Props";
 import { spDateToDDMMYYYY } from "../../../../../utils/Date";
 import { SimpleFileUpload } from "../../../../GD/AddFile/AddFile";
+import { notify } from '../../../../../utils/notify';
 
 export type TipoPaso = "Aprobacion" | "Notificacion" | "SubidaDocumento";
 type EstadoFinal = "Completado" | "Omitido";
@@ -35,7 +36,8 @@ function withSuffix(name: string, i: number) {
 }
 
 export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDetalles, errorDetalles, loadDetalles, titulo, selectedCesacion, onClose, loadingPasos, errorPasos, pasosById, decisiones, motivos, setMotivos, setDecisiones, handleCompleteStep, proceso,}) => {
-  const {ColaboradoresDH,  ColaboradoresEDM, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta, ColaboradoresBroken, mail,} = useGraphServices();
+  const {ColaboradoresDH,  ColaboradoresEDM, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta, ColaboradoresBroken, } = useGestorServices();
+  const {mail,} = useCoreGraphServices();
 
   const vm = toUnifyVM(proceso as Proceso, selectedCesacion as any);
 
@@ -146,7 +148,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
       const file = files[idDetalle];
 
       if (!file) {
-        alert("Debes seleccionar un archivo antes de subirlo");
+        notify.auto("Debes seleccionar un archivo antes de subirlo");
         return;
       }
 
@@ -164,7 +166,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
       const empresa = canon(vm?.empresa?.toLowerCase() ?? "");
 
       if (!numeroDoc || !nombre) {
-        alert("Faltan datos del colaborador: número de documento o nombre.");
+        notify.auto("Faltan datos del colaborador: número de documento o nombre.");
         return;
       }
 
@@ -186,7 +188,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
 
       if (!servicioColaboradores) {
-        alert(`Empresa no reconocida para subida de archivos: ${vm?.empresa ?? "sin empresa"}`);
+        notify.auto(`Empresa no reconocida para subida de archivos: ${vm?.empresa ?? "sin empresa"}`);
         return;
       }
 
@@ -257,10 +259,10 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
       await handleSubmit(detalle, "Completado");
       setFiles((prev) => ({ ...prev, [idDetalle]: null }));
-      alert("Archivo subido y paso completado correctamente");
+      notify.auto("Archivo subido y paso completado correctamente");
     } catch (e: any) {
       console.error("[UPLOAD] error:", e);
-      alert("Error subiendo archivo: " + (e?.message ?? String(e)));
+      notify.auto("Error subiendo archivo: " + (e?.message ?? String(e)));
     } finally {
       setUploading(false);
       uploadingRef.current = false;
@@ -284,17 +286,17 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
     const destinos = parseEmails(destinatario);
 
     if (!destinos.length) {
-      alert("Ingresa al menos un correo válido (separa por coma o punto y coma).");
+      notify.auto("Ingresa al menos un correo válido (separa por coma o punto y coma).");
       return;
     }
 
     if (!asunto.trim()) {
-      alert("El asunto no puede estar vacío.");
+      notify.auto("El asunto no puede estar vacío.");
       return;
     }
 
     if (!cuerpo || !cuerpo.trim()) {
-      alert("El mensaje no puede estar vacío.");
+      notify.auto("El mensaje no puede estar vacío.");
       return;
     }
 
@@ -305,10 +307,10 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
       await handleSubmit(detalle, "Completado");
       setAsunto("");
       setBody("");
-      alert("Notificación enviada.");
+      notify.auto("Notificación enviada.");
     } catch (e: any) {
       console.error(e);
-      alert("Error enviando notificación: " + (e?.message ?? e));
+      notify.auto("Error enviando notificación: " + (e?.message ?? e));
     } finally {
       setSending(false);
     }
@@ -321,11 +323,11 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
     const motivo = safeString(motivos[idDetalle] ?? "");
 
     if (!decision) {
-      alert("Selecciona Aceptado o Rechazado.");
+      notify.auto("Selecciona Aceptado o Rechazado.");
       return;
     }
     if (decision === "Rechazado" && !motivo.trim()) {
-      alert("Debes ingresar el motivo del rechazo.");
+      notify.auto("Debes ingresar el motivo del rechazo.");
       return;
     }
 
@@ -539,3 +541,5 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
     </section>
   );
 };
+
+

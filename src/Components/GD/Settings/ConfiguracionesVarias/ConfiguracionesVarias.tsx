@@ -1,10 +1,11 @@
 import * as React from "react";
 import "../Empresas.css";
-import { useGraphServices } from "../../../../graph/graphContext";
+import { useCoreGraphServices } from "../../../../graph/graphContext";
 import type { configuraciones } from "../../../../models/Desplegables";
+import { notify } from '../../../../utils/notify';
 
 export const ConfiguracionesVariasComponent: React.FC = () => {
-    const { configuraciones, } = useGraphServices();
+    const { configuraciones, } = useCoreGraphServices();
     const [isEditing, setIsEditing] = React.useState(false);
     const [state, setState] = React.useState<configuraciones>({ Title: "", Valor: ""})
     const [rows, setRows] = React.useState<configuraciones[]>([])
@@ -17,7 +18,7 @@ export const ConfiguracionesVariasComponent: React.FC = () => {
     
     const editItem = async (): Promise<boolean> => {
         if(!state.Valor){
-            alert("El parametro debe tener un valor")
+            notify.auto("El parametro debe tener un valor")
             return false
         }
 
@@ -65,7 +66,7 @@ export const ConfiguracionesVariasComponent: React.FC = () => {
                                                                                         if(editItem){
                                                                                             const next = await editItem();
                                                                                             if(next){
-                                                                                                alert("Se ha actualizado con éxito el tipo de documento")
+                                                                                                notify.auto("Se ha actualizado con éxito el tipo de documento")
                                                                                                 setIsEditing(false)
                                                                                                 loadConfigs()
                                                                                             }
@@ -80,3 +81,5 @@ export const ConfiguracionesVariasComponent: React.FC = () => {
         </div>
     );
 };
+
+

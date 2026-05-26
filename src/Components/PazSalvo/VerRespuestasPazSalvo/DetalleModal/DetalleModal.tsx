@@ -1,8 +1,8 @@
 import * as React from "react";
 import "./DetalleModal.css";
-import { useGraphServices } from "../../../../graph/graphContext";
 import { useRespuestasPazSalvos } from "../../../../Funcionalidades/PazSalvos/Respuesta";
 import type { PazSalvo, respuestas } from "../../../../models/PazSalvo";
+import { usePazSalvoServices } from "../../../../graph/graphContext";
 
 type Props = {
   open: boolean;
@@ -18,7 +18,7 @@ type AdjuntoSimplificado = {
 };
 
 export const RespuestasDetalleModal: React.FC<Props> = ({open, onClose, titulo = "Detalle de respuestas", solicitado, PazSalvoId,}) => {
-  const { Respuesta } = useGraphServices();
+  const { Respuesta } = usePazSalvoServices();
   const { loadAllPazRespuestas, getAttachments } = useRespuestasPazSalvos(Respuesta, PazSalvoId);
 
   const [respuestas, setRespuestas] = React.useState<respuestas[]>([]);

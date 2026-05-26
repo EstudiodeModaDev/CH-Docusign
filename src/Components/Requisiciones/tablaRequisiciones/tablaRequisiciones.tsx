@@ -102,6 +102,7 @@ export default function RequisicionesBoard(props: Props) {
                   <th>Solicitante</th>
                   <th>Fecha hasta</th>
                   <th>Seguimiento</th>
+                  <th>Fecha de cierre</th>
                   <th>Porcetanje</th>
                   <th>Acciones</th>
                 </tr>
@@ -126,6 +127,7 @@ export default function RequisicionesBoard(props: Props) {
                           {item.Estado === "Completada" ? "Finalizada" :seguimiento.urgencyLabel}
                         </span>
                       </td>
+                      <td data-label="fecha de cierre">{item.fechaCierre ?? "No se ha cerrado"}</td>
                       <td data-label="Porcentaje">{item.porceranje ?? 0}%</td>
                       <td data-label="Acciones">
                         <div className="rq-actions-cell">

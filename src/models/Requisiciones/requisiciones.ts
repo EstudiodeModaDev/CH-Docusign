@@ -42,6 +42,7 @@ export type requisiciones = {
     codigoCentroOperativo?: string;
 
     notified?:boolean
+    fechaCierre?: string | null
 }
 
 export type ansRequisicion ={

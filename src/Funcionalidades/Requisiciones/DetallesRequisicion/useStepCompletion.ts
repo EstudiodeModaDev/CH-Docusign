@@ -7,6 +7,7 @@ import { calculatePorcentaje } from "./utils";
 import { notify } from '../../../utils/notify';
 import { shouldNotifyAllStepsCompleted } from "./utils/notificationRules";
 import { useNotifyRequisiciones } from "../Requisicion/Hooks/useRequisicionNotifications";
+import type { requisiciones } from "../../../models/Requisiciones/requisiciones";
 
 interface UpdateSvc {
   update: (id: string, payload: Partial<Omit<detalleRequisicion, "Id">>) => Promise<any>;
@@ -57,16 +58,18 @@ export function useStepCompletion({
     );
 
     const porcentaje = calculatePorcentaje(templates, updatedDetails);
+    let toUpdated: Partial<requisiciones> = {porceranje: porcentaje}
     if(porcentaje === 100) {
       const estadoCierre = await calcularEstadoCierre(requisicionId, requisicionesService);
-      await requisicionesService.update(requisicionId, { Estado: "Completada", cumpleANS: estadoCierre });
       const shouldNotify = await shouldNotifyAllStepsCompleted(requisicionId, requisicionesService)
       if(shouldNotify) {
+        toUpdated = {...toUpdated, notified: true}
         const requisicion= await requisicionesService.get(requisicionId)
         await notificaciones.notifyEncuestaSatisfaccion(requisicion) 
       }
+      toUpdated = {...toUpdated, Estado: estadoCierre}
     };
-    await requisicionesService.update(requisicionId, { porceranje: porcentaje });
+    await requisicionesService.update(requisicionId, toUpdated);
   }
 
   const handleCompleteStep = async (

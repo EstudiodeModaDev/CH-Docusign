@@ -323,7 +323,7 @@ export function useNotifyRequisiciones() {
     await mail.sendEmail(mailPayload);
   };
 
-  const notifyInconveniente = async (created: requisiciones, tipoError: string) => {
+  const notifyInconveniente = async (created: requisiciones, tipoError: string, explicacion: string) => {
     const htmlBody = `
       <div style="font-family: Segoe UI, Roboto, Arial, sans-serif; background: #f8fafc; padding: 24px;">
         <div style="max-width: 720px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden;">
@@ -377,6 +377,16 @@ export function useNotifyRequisiciones() {
                   </td>
                   <td style="padding: 12px 16px; color: #0f172a; font-size: 13px; font-weight: 600;">
                     ${tipoError || "No definido"}
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding: 12px 16px; color: #475569; font-size: 13px;">
+                    Explicación del error
+                  </td>
+
+                  <td style="padding: 12px 16px; color: #0f172a; font-size: 13px; font-weight: 600;">
+                    ${explicacion || "No definido"}
                   </td>
                 </tr>
               </tbody>

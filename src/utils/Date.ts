@@ -250,3 +250,10 @@ export function toTime(v: any) {
 export function todayISO(){
   return new Date().toISOString().slice(0, 10);
 }
+
+export function getCurrentMonthRange(date = new Date()) {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+
+  return { start, end };
+}

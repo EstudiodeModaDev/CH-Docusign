@@ -55,7 +55,8 @@ export class RequisicionesService extends BaseSharePointListService<requisicione
       nuevoPromocion: f.nuevoPromocion,
       porceranje: f.porceranje,
       tienda: f.tienda,
-      codigoCentroOperativo: f.codigoCentroOperativo
+      codigoCentroOperativo: f.codigoCentroOperativo,
+      notified: f.notified
     };
   }
 }

@@ -40,6 +40,8 @@ export type requisiciones = {
     //Retail
     tienda?: string; //Centro operativo
     codigoCentroOperativo?: string;
+
+    notified?:boolean
 }
 
 export type ansRequisicion ={

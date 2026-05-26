@@ -5,6 +5,8 @@ import { calcularEstadoCierre } from "../Requisicion/utils/requisicionesCalcular
 import type { RequisicionDecisionMap, RequisicionReasonMap } from "./types";
 import { calculatePorcentaje } from "./utils";
 import { notify } from '../../../utils/notify';
+import { shouldNotifyAllStepsCompleted } from "./utils/notificationRules";
+import { useNotifyRequisiciones } from "../Requisicion/Hooks/useRequisicionNotifications";
 
 interface UpdateSvc {
   update: (id: string, payload: Partial<Omit<detalleRequisicion, "Id">>) => Promise<any>;
@@ -30,6 +32,7 @@ export function useStepCompletion({
   motivos,
 }: Params) {
   const { account } = useAuth();
+  const notificaciones = useNotifyRequisiciones()
 
   function isCompleted(estado: string): boolean {
     const normalizedEstado = estado.trim().toLocaleLowerCase();
@@ -57,6 +60,11 @@ export function useStepCompletion({
     if(porcentaje === 100) {
       const estadoCierre = await calcularEstadoCierre(requisicionId, requisicionesService);
       await requisicionesService.update(requisicionId, { Estado: "Completada", cumpleANS: estadoCierre });
+      const shouldNotify = await shouldNotifyAllStepsCompleted(requisicionId, requisicionesService)
+      if(shouldNotify) {
+        const requisicion= await requisicionesService.get(requisicionId)
+        await notificaciones.notifyEncuestaSatisfaccion(requisicion) 
+      }
     };
     await requisicionesService.update(requisicionId, { porceranje: porcentaje });
   }
@@ -177,6 +185,7 @@ export function useStepCompletion({
       ok: true,
     };
   };
+
 
   return { handleCompleteStep };
 }

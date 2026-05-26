@@ -204,7 +204,7 @@
   min-height: 0;
   width: 100%;
   display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)) !important;
   grid-auto-rows: max-content;
   justify-items: stretch;
   align-items: start;
@@ -231,6 +231,7 @@
 }
 
 .ft-scope .ft-field {
+  box-sizing: border-box;
   width: 100%;
   min-width: 0;
   display: grid;
@@ -266,8 +267,10 @@
 .ft-field input[type="date"],
 .ft-field select {
   display: block;
+  box-sizing: border-box;
   width: 100%;
   min-width: 0;
+  max-width: 100%;
   min-height: 46px;
   margin: 0;
   padding: 12px 14px;
@@ -325,7 +328,9 @@
 
 .ft-scope .rs__control {
   display: flex !important;
+  box-sizing: border-box !important;
   width: 100% !important;
+  max-width: 100% !important;
   min-height: 46px !important;
   margin: 0 !important;
   border-radius: 14px !important;
@@ -342,7 +347,16 @@
 }
 
 .ft-scope .rs__value-container {
+  min-width: 0 !important;
   padding: 4px 10px !important;
+}
+
+.ft-scope .ft-field > .rs-container,
+.ft-scope .ft-field > [class*="rs-"],
+.ft-scope .ft-field > [class*="rs__"],
+.ft-scope .ft-field > div {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .ft-scope .rs__single-value,
@@ -506,7 +520,7 @@
   }
 
   .ft-scope .ft-form {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)) !important;
   }
 }
 

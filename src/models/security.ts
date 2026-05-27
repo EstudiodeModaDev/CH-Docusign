@@ -8,7 +8,7 @@ export const FEATURES = {
   Promociones: ["promociones.inactivate", "promociones.add", "promociones.delete", "promociones.edit", "promociones.view",],
   Retail: ["retail.inactivate", "retail.add", "retail.delete", "retail.edit", "retail.view",],
   Reportes: ["reports.view"],
-  Requisiciones: ["requisiciones.viewAll", "requisiciones.view", "requisiciones.add"],
+  Requisiciones: ["requisiciones.viewAll", "requisiciones.view", "requisiciones.add", "requisiciones.manage", "requisiciones.edit"],
   Accesos: ["acess.view"]
 } as const;
 
@@ -68,6 +68,8 @@ export const FEATURE_LABELS: Record<FeatureKey, string> = {
   "requisiciones.viewAll": "Ver todas las requisiciones",
   "requisiciones.view": "Ver requisiciones",
   "requisiciones.add": "Crear requisiciones",
+  "requisiciones.manage": "Gestionar requisiciones",
+  "requisiciones.edit": "Editar requisiciones",
 
   "acess.view": "Administrar accesos",
 

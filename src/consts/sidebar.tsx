@@ -170,7 +170,7 @@ export const SECTIONS: Section[] = [
     id: "metricasRequisiciones",
     label: "Metricas requisiciones",
     to: "/requisiciones/metricas",
-    anyOf: ["requisiciones.view", "requisiciones.viewAll"],
+    anyOf: ["requisiciones.viewAll"],
     icon:
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#ffffff">
         <path d="M4 19h16v2H2V3h2zm3-2H5v-6h2zm4 0H9V7h2zm4 0h-2V10h2zm4 0h-2V5h2z"/>

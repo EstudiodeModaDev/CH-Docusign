@@ -80,7 +80,8 @@ export default function AppRoutes() {
         <Route index element={null} />
         <Route path="new" element={<NewRequisicionWrapper/>}/>
         <Route path="view" element={<RequisicionesBoardWrapper/>}/>
-          <Route path="view/visualizacionDetalle" element={<RequisicionesBoardWrapper/>}/>
+        <Route path="view/visualizacionDetalle" element={<RequisicionesBoardWrapper/>}/>
+        <Route path="view/editRequisicion" element={<RequisicionesBoardWrapper/>}/>
         <Route path="metricas" element={<Navigate to="/requisiciones/metricas" replace />} />
       </Route>
     </Routes>

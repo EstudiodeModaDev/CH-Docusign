@@ -6,12 +6,14 @@ import { spDateToDDMMYYYY, toISODateFlex } from "../../../utils/Date";
 import ProcesoRequisicionModal from "./Proceso/ProcesoRequisicionModal";
 import FiltersRequisicionesTable from "./filtersRequisicionesTable";
 import "./tablaRequisiciones.css";
+import { usePermissions } from "../../../Funcionalidades/Permisos";
 
 type Props = {
   cargoOptions: desplegablesOption[];
   onOpenRow: (row: requisiciones) => void;
   className?: string;
   emptyText?: string;
+  onEditRow: (row: requisiciones) => void
 };
 
 type RowTone = "active" | "closed" | "cancel" | "neutral";
@@ -27,9 +29,10 @@ type seguimiento = {
 };
 
 export default function RequisicionesBoard(props: Props) {
-  const { cargoOptions, onOpenRow, className, emptyText = "No hay requisiciones para los filtros seleccionados." } = props;
+  const { cargoOptions, onOpenRow, className, emptyText = "No hay requisiciones para los filtros seleccionados." , onEditRow} = props;
   const requisicionesController = useRequisicion();
   const [selectedProcessRow, setSelectedProcessRow] = React.useState<requisiciones | null>(null);
+  const { engine } = usePermissions();
 
   const stats = React.useMemo(() => {
     let active = 0;
@@ -47,6 +50,18 @@ export default function RequisicionesBoard(props: Props) {
 
     return { total: requisicionesController.rows.length, active, closed, cancel, overdue };
   }, [requisicionesController.rows]);
+
+  const canManageRequisicion = React.useMemo(() => {
+    const requiredPermission = "requisiciones.manage";
+    if (!requiredPermission) return false;
+    return engine.can(requiredPermission);
+  }, [engine]);
+
+  const canEditRequisiciones = React.useMemo(() => {
+    const requiredPermission = "requisiciones.edit";
+    if (!requiredPermission) return false;
+    return engine.can(requiredPermission);
+  }, [engine]);
 
   return (
     <div className={`rb-shell ${className ?? ""}`.trim()}>
@@ -112,7 +127,7 @@ export default function RequisicionesBoard(props: Props) {
                   const seguimiento = calcDayDifference(item);
 
                   return (
-                    <tr key={item.Id} className={`rb-tr rb-tr--${seguimiento.tone}`} onClick={() => onOpenRow(item)}>
+                    <tr key={item.Id} className={`rb-tr rb-tr--${seguimiento.tone}`}>
                       <td data-label="ID">
                         <span className="rb-id">#{item.Id || "-"}</span>
                       </td>
@@ -131,7 +146,7 @@ export default function RequisicionesBoard(props: Props) {
                       <td data-label="Porcentaje">{item.porceranje ?? 0}%</td>
                       <td data-label="Acciones">
                         <div className="rq-actions-cell">
-                          <button
+                          <button 
                             type="button"
                             className="rq-action-btn rq-action-btn--ghost"
                             onClick={(event) => {
@@ -141,16 +156,31 @@ export default function RequisicionesBoard(props: Props) {
                           >
                             Ver
                           </button>
-                          <button
-                            type="button"
-                            className="rq-action-btn rq-action-btn--primary"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setSelectedProcessRow(item);
-                            }}
-                          >
-                            Checklist
-                          </button>
+                          {canEditRequisiciones ?          
+                            <button
+                              type="button"
+                              className="rq-action-btn rq-action-btn--green"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                onEditRow(item);
+                              }}
+                            > 
+                              Editar
+                            </button>
+                            : null
+                          }
+                          {canManageRequisicion ?
+                            <button
+                              type="button"
+                              className="rq-action-btn rq-action-btn--primary"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setSelectedProcessRow(item);
+                              }}
+                            >
+                              Checklist
+                            </button> : null
+                          }
                         </div>
                       </td>
                     </tr>

@@ -73,7 +73,7 @@ const DETAIL_SECTIONS: Array<{ title: string; fields: DetailField[] }> = [
   },
 ];
 
-export default function RequisicionDetalleModal({ open, row, onClose }: Props) {
+export default function RequisicionDetalleModal({open, row, onClose }: Props) {
   const notificaciones = useNotifyRequisiciones()
   const [currentRow, setCurrentRow] = React.useState<requisiciones | null>(row);
   const [reportModalOpen, setReportModalOpen] = React.useState(false);

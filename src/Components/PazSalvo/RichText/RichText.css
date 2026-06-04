@@ -124,7 +124,6 @@
 
 /* Código inline */
 .rte-editor code{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   background: color-mix(in oklab, var(--field-bg, #f1f5f9) 96%, transparent);
   border: 1px solid var(--rte-border);
   border-radius: 6px;

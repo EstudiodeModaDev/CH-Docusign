@@ -1,5 +1,5 @@
 // src/auth/msal.ts
-import {PublicClientApplication, EventType, InteractionRequiredAuthError, type AccountInfo, type EventMessage, type PopupRequest, type RedirectRequest, type SilentRequest,} from '@azure/msal-browser';
+import {PublicClientApplication, EventType, InteractionRequiredAuthError, type AccountInfo, type EventMessage, type PopupRequest, type RedirectRequest, type SilentRequest, type AuthenticationResult,} from '@azure/msal-browser';
 
 /* ===========================
    Configuración básica MSAL
@@ -114,6 +114,38 @@ export async function ensureLogin(mode: 'popup' | 'redirect' = 'redirect'): Prom
   return mode === 'popup' ? ensureLoginPopup() : ensureLoginRedirect();
 }
 
+const API_SCOPES = ['api://4c033c56-8659-4150-a703-54b5fff7c588/accesasuser'];
+
+export async function getApiAccessToken(): Promise<string> {
+  const account: AccountInfo | null =
+    msal.getActiveAccount() ?? msal.getAllAccounts()[0] ?? null;
+
+  if (!account) {
+    throw new Error('No hay una sesion activa en MSAL.');
+  }
+
+  try {
+    const response: AuthenticationResult = await msal.acquireTokenSilent({
+      account,
+      scopes: API_SCOPES,
+    });
+
+    return response.accessToken;
+  } catch (error) {
+    if (error instanceof InteractionRequiredAuthError) {
+      const response = await msal.acquireTokenPopup({
+        account,
+        scopes: API_SCOPES,
+      });
+
+      return response.accessToken;
+    }
+
+    throw error;
+  }
+}
+
+
 /* ===========================
    Tokens (silent → popup → redirect)
    =========================== */
@@ -131,6 +163,10 @@ export async function getAccessToken(opts?: {
 }): Promise<string> {
   await initMSAL();
   const account = ensureActiveAccount();
+
+  const token2 = await getApiAccessToken();
+
+  console.log("Token 2", token2)
   if (!account) {
     // Sin sesión, fuerza login según modo
     const mode = opts?.interactionMode ?? 'popup';

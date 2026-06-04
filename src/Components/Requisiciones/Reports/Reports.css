@@ -23,7 +23,6 @@
 .rqv-page{
   min-height: 100vh;
   color: var(--rqv-ink);
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
 }
 
 /* topbar */
@@ -367,8 +366,6 @@
 .rqv-page{
   min-height: 100vh;
   color: var(--rqv-ink);
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
-
   /* CLAVE: evitar que algún padre lo "encierre" */
   width: 100%;
 }

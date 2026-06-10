@@ -25,6 +25,7 @@ type Props = {
   handleSubmit: (ans: number) => Promise<{ created: requisiciones | null; ok: boolean }>;
   notifyAsignacion: (created: requisiciones) => Promise<void>;
   setField: <K extends keyof requisiciones>(k: K, v: requisiciones[K]) => void;
+  sendNotificationPlantaIdeal: (co: string, motivo:string) => void
 };
 
 function sameText(left: unknown, right: unknown) {
@@ -37,6 +38,7 @@ export default function WizardRequisicion3Pasos({
   handleSubmit,
   notifyAsignacion,
   setField,
+  sendNotificationPlantaIdeal
 }: Props) {
   const { ansRequisicion } = useRequisicionesServices();
   const { categorias, Maestro, DeptosYMunicipios } = useCoreGraphServices();
@@ -138,6 +140,7 @@ export default function WizardRequisicion3Pasos({
       }
 
       await notifyAsignacion(result.created);
+      await sendNotificationPlantaIdeal(result.created.codigoCentroOperativo ?? "No registrado", result.created.motivo)
 
       onClose();
     } finally {
@@ -173,16 +176,20 @@ export default function WizardRequisicion3Pasos({
 
   const handleCargoChange = async (cargo: string) => {
     const cleanCargo = cargo.toLocaleLowerCase().trim();
+    console.log(cargo)
     setField("Title", cargo);
 
-    if (cargosRetail.includes(cleanCargo)) {
+    const query = `fields/Title eq '${cargo.toUpperCase().trim()}'`
+    console.log(query)
+    const categoriaCargo = (await categorias.getAll({ filter: query }))[0];
+    console.log(categoriaCargo)
+    setField("NivelCargo", categoriaCargo?.Categoria || "");
+
+      if (cargosRetail.includes(cleanCargo)) {
       setTipoRequisicion("Retail");
       setField("tipoRequisicion", "Retail");
       return;
     }
-
-    const categoriaCargo = (await categorias.getAll({ filter: `fields/Title eq '${cargo}'` }))[0];
-    setField("NivelCargo", categoriaCargo?.Categoria || "");
 
     setTipoRequisicion("Administrativa");
     setField("tipoRequisicion", "Administrativa");

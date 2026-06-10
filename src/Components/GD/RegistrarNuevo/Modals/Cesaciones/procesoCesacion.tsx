@@ -141,8 +141,6 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
     uploadingRef.current = true;
     setUploading(true);
 
-    console.log(vm)
-
     try {
       const idDetalle = detalle.Id ?? "";
       const file = files[idDetalle];
@@ -204,16 +202,12 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
       try {
         const found = await servicioColaboradores.findFolderByDocNumber(numeroDoc);
-        console.log(found)
         if (found?.id) targetFolderId = found.id;
       } catch {
         targetFolderId = null;
       }
 
       console.log("[UPLOAD] vm:", vm);
-      console.log("[UPLOAD] numeroDoc:", numeroDoc);
-      console.log("[UPLOAD] nombre:", nombre);
-      console.log("[UPLOAD] empresa:", empresa);
       console.log("[UPLOAD] folderId:", targetFolderId);
       console.log("[UPLOAD] fallbackPath:", carpetaFallback);
 

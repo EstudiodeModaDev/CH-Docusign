@@ -29,13 +29,8 @@ export default function ProcesoRequisicionModal(props: ProcesoRequisicionModalPr
 
   React.useEffect(() => {
     if (!open || !row?.Id) return;
-    console.log("Cargando checklist para requisicion", row.Id);
     void Promise.all([loadTemplates(), loadDetails()]);
   }, [open, row?.Id]);
-
-  React.useEffect(() => {
-    console.log(resolvedRows)
-  }, [resolvedRows]);
 
   React.useEffect(() => {
     if (!open) return;

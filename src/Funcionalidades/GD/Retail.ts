@@ -298,7 +298,6 @@ export function useRetail(RetailSvc: RetailService, ) {
 
   const handleSubmit = async (): Promise<{created: Retail | null, ok: boolean}> => {
     if (!validate()) { 
-      console.log(state)
       notify.auto("Hay campos vacios")
       return{
         created: null,
@@ -426,7 +425,6 @@ export function useRetail(RetailSvc: RetailService, ) {
       });
 
     setWorkersOptions(next);
-    console.log("options armadas:", next);
 
     return workers;
   };

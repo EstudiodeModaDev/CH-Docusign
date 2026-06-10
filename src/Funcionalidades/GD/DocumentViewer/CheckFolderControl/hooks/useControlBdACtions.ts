@@ -11,7 +11,6 @@ export function useFolderControlActions() {
 
   const handleSubmitBd = async (state: Partial<ControlRevisionCarpetas>): Promise<ControlRevisionCarpetas> => {
     try {
-      console.log("Enviando a creación con estado:", state);
       const created = await controlRevisionCarpetas.create(state);
       console.log("Se ha creado la entidad de la carpeta con éxito", created)
       return created
@@ -22,12 +21,10 @@ export function useFolderControlActions() {
 
   const handleUpdateSendRevision = async (cedula: string): Promise<{ ok: boolean; data: ControlRevisionCarpetas | null; message: string | null }> => {
     try {
-      console.log("Buscando carpeta con cédula:", cedula);
       const carpetas = await controlRevisionCarpetas.getAll({ filter: `fields/Cedula eq '${cedula}'`, top: 1 })
-      console.log(carpetas)
+      console.log("Carpetas encontradas: ", carpetas)
       const carpeta = carpetas[0]
       if(carpeta.Id){
-        console.log(carpeta.Id)
         const created = await controlRevisionCarpetas.update(carpeta.Id, buildSendRevisionPayload(auth.account));
         console.log("Se ha actualizado la entidad de la carpeta con éxito", created)
         return { ok: true, data: created, message: null }
@@ -42,9 +39,7 @@ export function useFolderControlActions() {
 
   const handleUpdateReturned = async (cedula: string): Promise<{ ok: boolean; data: ControlRevisionCarpetas | null; message: string | null }> => {
     try {
-      console.log("Buscando carpeta con cédula:", cedula);
       const carpetas = await controlRevisionCarpetas.getAll({ filter: `fields/Cedula eq '${cedula}'`, top: 1 })
-      console.log(carpetas)
       const carpeta = carpetas[0]
       if(carpeta.Id){
         const created = await controlRevisionCarpetas.update(carpeta.Id, buildReturnedPayload(carpeta, auth.account));
@@ -61,9 +56,7 @@ export function useFolderControlActions() {
 
   const handleUpdateApprove = async (cedula: string): Promise<{ ok: boolean; data: ControlRevisionCarpetas | null; message: string | null }> => {
     try {
-      console.log("Buscando carpeta con cédula:", cedula);
       const carpetas = await controlRevisionCarpetas.getAll({ filter: `fields/Cedula eq '${cedula}'`, top: 1 })
-      console.log(carpetas)
       const carpeta = carpetas[0]
       if(carpeta.Id){
         const created = await controlRevisionCarpetas.update(carpeta.Id, buildApprovePayload(carpeta, auth.account));

@@ -18,9 +18,7 @@ export function useFolderControl(folderInfo: {cedula: string, nombre: string, fu
     setLoading(true);
 
     try {
-      console.log("Creando entidad con estado:", state);
       const payload = buildFirstTimeControlRevisionPayload(state)
-      console.log("Payload después de conversión:", payload);
       const creado = await actionsController.handleSubmitBd(payload);
       return { ok: true, created: creado };
     } catch {

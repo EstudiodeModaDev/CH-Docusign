@@ -6,7 +6,6 @@ export function useFolderHistorialActions() {
 
   const handleSubmitBd = async (state: Partial<HistorialRevisionCarpetas>): Promise<HistorialRevisionCarpetas> => {
     try {
-      console.log("Enviando a creación con estado:", state);
       const created = await historialRevisionCarpetas.create(state);
       console.log("Se ha creado la entidad de la carpeta con éxito", created)
       return created

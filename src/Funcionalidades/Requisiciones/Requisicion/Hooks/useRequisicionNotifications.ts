@@ -2,6 +2,7 @@ import { useCoreGraphServices, useRequisicionesServices } from "../../../../grap
 import type { requisiciones } from "../../../../models/Requisiciones/requisiciones";
 import { spDateToDDMMYYYY } from "../../../../utils/Date";
 import { buildRecipients } from "../../../../utils/mail";
+import { notify } from "../../../../utils/notify";
 import { emailsArray } from "../../../../utils/text";
 
 export function useNotifyRequisiciones() {
@@ -235,7 +236,14 @@ export function useNotifyRequisiciones() {
       saveToSentItems: true,
     };
 
-    await mail.sendEmail(mailPayload);
+    try{
+      await mail.sendEmail(mailPayload);
+      notify.success("Se ha enviado la notificación")
+    } catch(e: any) {
+      notify.error("Ha ocurrido enviando la notifiocación")
+      throw new Error("Algo ha salido mal ", e)
+    }
+    
   };
 
   const notifyEncuestaSatisfaccion = async (created: requisiciones) => {

@@ -15,7 +15,6 @@ export const ElegirColaboradorModal: React.FC<Props> = ({open, options, onClose,
   // Cuando cambian las opciones o se abre el modal, selecciona la primera
   React.useEffect(() => {
     if (!open) return;
-    console.log(options)
     if (options.length > 0) {
       setSelectedId(options[0].value);
     } else {

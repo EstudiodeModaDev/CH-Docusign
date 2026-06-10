@@ -5,18 +5,18 @@ import { useRequisicionesContext } from "../../Funcionalidades/Requisiciones/Req
 
 export default function NewRequisicionWrapper() {
     const navigate = useNavigate();
-    const { cleanState, reloadAll, setField,  state, handleSubmit, notifyAsignacion, } = useRequisicionesContext();
+    const { cleanState, reloadAll, setField,  state, handleSubmit, notifyAsignacion, sendNotificationPlantaIdeal } = useRequisicionesContext();
 
 
     return (
         <>
             <WizardRequisicion3Pasos
-                onClose={() => {reloadAll(); cleanState(); navigate("/requisicion/view"); }}
+                onClose={() => { reloadAll(); cleanState(); navigate("/requisicion/view"); } }
                 state={state}
                 handleSubmit={handleSubmit}
                 notifyAsignacion={notifyAsignacion}
-                setField={setField}
-            />
+                setField={setField} 
+                sendNotificationPlantaIdeal={sendNotificationPlantaIdeal}           />
         </>
     );
 }

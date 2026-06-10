@@ -575,6 +575,11 @@
   box-shadow: 0 18px 34px -24px color-mix(in oklab, #dc2626 70%, transparent);
 }
 
+
+.rq-detail-btn--normal {
+  box-shadow: 0 18px 34px -24px color-mix(in oklab, #6793da 70%, transparent);
+}
+
 .rq-detail-id {
   display: inline-flex;
   align-items: center;

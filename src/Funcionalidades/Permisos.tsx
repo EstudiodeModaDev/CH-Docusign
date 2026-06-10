@@ -34,7 +34,6 @@ export function PermissionsProvider({ deps, children }: { deps: Deps; children: 
       setGroupIds(ids);
 
       const rows = await deps.getAppPermissionsRows();
-      console.log("Permisos obtenidos de SP:", rows);
       // Filtra por grupos del usuario + Enabled
       const idSet = new Set(ids.map(s => s.toLowerCase()));
       const keys: FeatureKey[] = [];
@@ -42,14 +41,12 @@ export function PermissionsProvider({ deps, children }: { deps: Deps; children: 
       for (const r of rows) {
         if (!r.Enabled) continue;
         if (!r.GroupId) continue;
-        console.log("Evaluando row:", r);
         
         if (!idSet.has(String(r.GroupId).toLowerCase())) continue;
 
         const k = normalizeFeatureKey(r.FeatureKey);
         if (k) keys.push(k);
       }
-      console.log(keys)
       setEngine(createEngine(new Set(keys)));
     } catch (e: any) {
       setError(e?.message ?? "Error cargando permisos");

@@ -3,7 +3,7 @@ import "../Contratos/Contratos.css";
 import type { DateRange, SortDir, SortField } from "../../../../models/Commons";
 import type { Cesacion, CesacionErrors } from "../../../../models/Cesaciones";
 import { toISODateFlex } from "../../../../utils/Date";
-import FormCesacion from "../Modals/Cesaciones/addCesacion";
+import FormCesacion from "../Modals/Cesaciones/addForm/addCesacion";
 import type { SetField } from "../Modals/Contrato/addContrato";
 import type { desplegablesOption } from "../../../../models/Desplegables";
 import { usePermissions } from "../../../../Funcionalidades/Permisos";

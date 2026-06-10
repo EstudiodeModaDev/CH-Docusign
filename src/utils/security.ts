@@ -25,22 +25,16 @@ export function createEngine(set: ReadonlySet<FeatureKey>): PermissionsEngine {
   const can = (k: FeatureKey) => set.has(k);
 
   const canAny = (...keys: FeatureKey[]) => {
-    console.group("DEBUG canAny");
-    console.log("Permisos solicitados:", keys);
-    console.log("Permisos del usuario:", Array.from(set));
 
     for (const k of keys) {
       const hasPermission = set.has(k);
-      console.log(`Evaluando ${k}:`, hasPermission);
 
       if (hasPermission) {
-        console.log("canAny = true por:", k);
         console.groupEnd();
         return true;
       }
     }
 
-    console.log("canAny = false");
     console.groupEnd();
     return false;
   };

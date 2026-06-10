@@ -31,6 +31,12 @@ export function useRequisicion() {
     return true
   }
 
+  const onPostergarANS = async (r: requisiciones, date: string, motivo: string): Promise<boolean> => {
+    await actionsController.postergarANS(r, date, motivo)
+    await listController.reloadAll()
+    return true
+  }
+
   return {
     ...formController,
     ...paginationController,
@@ -38,7 +44,8 @@ export function useRequisicion() {
     ...actionsController,
     ... listController,
     ...notificationController,
-    cancelarRequisicion
+    cancelarRequisicion,
+    onPostergarANS
   };
 }
 

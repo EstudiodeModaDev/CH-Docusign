@@ -7,7 +7,7 @@ import FormContratacion from "./Modals/Contrato/addContrato";
 import FormHabeas from "./Modals/HabeasData/addHabeasData";
 import FormPromociones from "./Modals/Promociones/addPromociones";
 import CesacionesTabla from "./Cesaciones/Cesaciones";
-import FormCesacion from "./Modals/Cesaciones/addCesacion";
+import FormCesacion from "./Modals/Cesaciones/addForm/addCesacion";
 import { useCoreGraphServices, useGestorServices } from "../../../graph/graphContext";
 import { usePromocion } from "../../../Funcionalidades/GD/Promocion";
 import RetailTabla from "./Retail/Retail";

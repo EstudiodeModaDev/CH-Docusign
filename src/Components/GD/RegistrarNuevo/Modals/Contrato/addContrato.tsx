@@ -14,7 +14,6 @@ import { useRetail } from "../../../../../Funcionalidades/GD/Retail";
 import { createBody, notifyTeam } from "../../../../../utils/mail";
 import type { DetallesPasos } from "../../../../../models/Pasos";
 import { ProcessDetail } from "../Cesaciones/procesoCesacion";
-import { CancelProcessModal } from "../../../View/CancelProcess/CancelProcess";
 import { safeLower } from "../../../../../utils/text";
 import { usePermissions } from "../../../../../Funcionalidades/Permisos";
 import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones/hooks/useCesaciones";
@@ -23,6 +22,8 @@ import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
 import { createEmptyContratos } from "../../../../../Funcionalidades/GD/Contratos/utils/contratosState";
 import { useNovedadesStepDetails, useNovedadesSteps } from "../../../../../Funcionalidades/GD/Steps/ContratosSteps/useNovedadesSteps";
 import { useCoreGraphServices, useGestorServices } from "../../../../../graph/graphContext";
+import { ConfirmModal, type ConfirmModalPayload } from "../../../Common/confirmModal/ConfirmModal";
+import FooterForm from "../Common/AddFormFooter/addFooter";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -312,8 +313,6 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
     } else {
       const valor = selectedNovedad?.auxconectividadvalor ? Number(selectedNovedad.auxconectividadvalor) : 0
       const texto = selectedNovedad?.auxconectividadtexto ? String(selectedNovedad.auxconectividadtexto) : ""
-      console.log("valor", valor)
-      console.log("texto", texto)
       setConectividad(valor)
       setConectividadTexto(texto)
     }
@@ -361,7 +360,6 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
 
       if (created.ok) {
         const pasos = await stepsController.load(false);
-        console.log(pasos)
         await handleCreateAllSteps(pasos, created.created?.Id ?? "", created.created?.CARGO ?? "");
         const body = createBody(account?.name ?? "", "Contratación", state.NombreSeleccionado, state.Numero_x0020_identificaci_x00f3_, state.CARGO, state.FECHA_x0020_REQUERIDA_x0020_PARA0 ?? "",)
         await notifyTeam(mail, "Nuevo registro en contratación - Gestor documental CH", body)
@@ -419,11 +417,15 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
     }
   },[calcPorcentaje, selectedNovedad?.Id, Contratos]);
 
-  const handleCancel = async (razon: string) => {
-    await handleCancelProcessbyId(selectedNovedad!.Id ?? "", razon)
+  const handleCancel = async ({ reason }: ConfirmModalPayload) => {
+    if (!reason) return;
+    await handleCancelProcessbyId(selectedNovedad!.Id ?? "", reason)
     setCancelProcess(false)
   };
 
+  const inactivateRegister = () => {
+    selectedNovedad?.Estado === "Cancelado" ?  handleReactivateProcessById(selectedNovedad.Id ?? "") :  setCancelProcess(true)
+  }
 
   return (
     <div className="ft-modal-backdrop">
@@ -1369,33 +1371,30 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
         {/* Acciones */}
         {flow ? null : 
           <div className="ft-actions">
-              <button disabled={selectedNovedad?.Estado === "Cancelado" || !canEditRegister} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreateNovedad(e)}>
-                {
-                  !canEditRegister ? "No tiene permiso para editar este registro" : 
-                  selectedNovedad?.Estado === "Cancelado" ? "No se puede editar este registro ya que fue usado" : 
-                  isView ? "Realizar solicitud de edición" :
-                  "Guardar"}
-              </button> 
-              { isView || tipo === "edit" ?
-                <button type="submit" className="btn btn-xs" onClick={() => setFlow(true)}>Detalles</button> : null
-              }
-              { canInactivateRegister && (isView || tipo === "edit") ?
-                <button disabled={!canInactivateRegister} type="submit" className="btn btn-xs btn-danger" onClick={() => {
-                                                                                                            selectedNovedad?.Estado === "Cancelado" ? 
-                                                                                                            handleReactivateProcessById(selectedNovedad.Id ?? "") : 
-                                                                                                            setCancelProcess(true)}}
-                                                                                                          >
-                  {
-                    !canInactivateRegister ? "No tiene permiso para cancelar este proceso" : 
-                    selectedNovedad?.Estado !== "Cancelado" ? "Cancelar proceso" : 
-                    "Reactivar proceso"
-                  }
-                </button> : null
-              }
-            <button type="button" className="btn btn-xs" onClick={onClose}>Cancelar</button>
+
+          <FooterForm 
+            processState={selectedNovedad?.Estado} 
+            sending={false} 
+            canEditRegister={canEditRegister} 
+            canInactivateRegister={canInactivateRegister} 
+            isView={isView} 
+            handleCreate={handleCreateNovedad} 
+            showFlow={setFlow} 
+            inactivateRegister={inactivateRegister} 
+            onClose={onClose} 
+            tipo={tipo}/>
           </div>
         }
-        <CancelProcessModal open={cancelProcess} onClose={() => setCancelProcess(false) } onEliminar={handleCancel}/>
+        <ConfirmModal 
+          open={cancelProcess} 
+          onClose={() => setCancelProcess(false) } 
+          description= "Escriba la razón de cancelación del proceso"
+          needText={true}
+          onSend={handleCancel}
+          title="Cancelación de proceso"
+          buttonText={"Cancelar Proceso"}
+          loading={false}
+        />
       </section>
     </div>
   );

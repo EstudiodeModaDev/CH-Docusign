@@ -78,8 +78,6 @@ export function useHabeasData() {
 
         const DetallesPayload = detallePayloadFromHabeas(realRegister, formController.state, request.created.Id!)
 
-        console.log(DetallesPayload)
-
         requestController.genericProcess("Habeas", DetallesPayload,)
 
         const groupMembers = await graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})

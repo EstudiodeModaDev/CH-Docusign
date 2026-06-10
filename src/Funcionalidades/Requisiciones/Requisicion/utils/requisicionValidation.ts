@@ -1,4 +1,5 @@
 import type { requisiciones, RequisicionesErrors } from "../../../../models/Requisiciones/requisiciones";
+import { notify } from "../../../../utils/notify";
 
 export function validate(state: requisiciones): RequisicionesErrors{
   const e: RequisicionesErrors = {};
@@ -28,5 +29,29 @@ export function validate(state: requisiciones): RequisicionesErrors{
   }
 
   return e
-}  
+} 
+
+export function validatePostergarANS(r: requisiciones, d: string, m: string): boolean{
+  if(!m){
+    notify.error("Debe escribir el motivo de postergación")
+    return false
+  }
+
+  if(!d){
+    notify.error("Debe escoger la nueva fecha final")
+    return false
+  }
+
+  if(!r.Id){
+    notify.error("No se ha podido encontrar la requisición escogida")
+    return false
+  }
+
+  if(r.Estado === "Completada"){
+    notify.error("No se puede postergar el ANS de una requisición finalizada")
+    return false
+  }
+
+  return true
+}
   

@@ -36,8 +36,6 @@ export function validateContrato(state: Novedad): NovedadErrors {
   if(!!state.Aprendiz && !state.FechaNac) e.FechaNac = "Seleccione la fecha de nacimiento del aprendiz"
   if(!!state.Aprendiz && !state.NitUniversidad) e.NitUniversidad = "Ingrese el NIT de la universidad"
   if(!!state.Universidad && !state.Universidad) e.Universidad = "Ingrese el nombre de la universidad"
-  
-  console.log(e)
 
   return e;
 }

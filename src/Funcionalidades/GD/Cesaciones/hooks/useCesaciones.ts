@@ -63,12 +63,10 @@ export function useCesaciones() {
     }
 
     setLoading(true);
-    console.log(cesacionSeleccionada)
 
     try {
       const toEdit = await Cesaciones.get(cesacionSeleccionada.Id!)
       const payload = buildCesacionPatch(toEdit, formController.state, );
-      console.log(payload)
 
       if (Object.keys(payload).length === 0) {
         notify.auto("No hay cambios para guardar");
@@ -87,8 +85,6 @@ export function useCesaciones() {
         const realRegister = await Cesaciones.get(cesacionSeleccionada.Id)
 
         const DetallesPayload = detallePayloadFromCesacion(realRegister, formController.state, request.created.Id!)
-
-        console.log(DetallesPayload)
 
         requestController.genericProcess("Cesacion", DetallesPayload,)
 

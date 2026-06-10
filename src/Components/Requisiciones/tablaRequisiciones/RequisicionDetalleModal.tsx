@@ -4,11 +4,14 @@ import { notify } from "../../../utils/notify";
 import { spDateToDDMMYYYY } from "../../../utils/Date";
 import "./tablaRequisiciones.css";
 import { useNotifyRequisiciones } from "../../../Funcionalidades/Requisiciones/Requisicion/Hooks/useRequisicionNotifications";
+import { ConfirmModal, type ConfirmModalPayload } from "../../GD/Common/confirmModal/ConfirmModal";
 
 type Props = {
   open: boolean;
   row: requisiciones | null;
   onClose: () => void;
+  onPostergarANSBD: (r: requisiciones, date: string, motivo: string) => void
+
 };
 
 type DetailField = {
@@ -73,10 +76,11 @@ const DETAIL_SECTIONS: Array<{ title: string; fields: DetailField[] }> = [
   },
 ];
 
-export default function RequisicionDetalleModal({open, row, onClose }: Props) {
+export default function RequisicionDetalleModal({open, row, onClose,onPostergarANSBD }: Props) {
   const notificaciones = useNotifyRequisiciones()
   const [currentRow, setCurrentRow] = React.useState<requisiciones | null>(row);
   const [reportModalOpen, setReportModalOpen] = React.useState(false);
+  const [postergarANS, setPostergarANS] = React.useState(false);
   const [selectedReason, setSelectedReason] = React.useState("");
   const [reportText, setReportText] = React.useState("");
   const [savingReport, setSavingReport] = React.useState(false);
@@ -146,15 +150,17 @@ export default function RequisicionDetalleModal({open, row, onClose }: Props) {
     }
   };
 
+  const onPostergarANS = async ({ date, reason }: ConfirmModalPayload) => {
+    if(!date || !reason){
+      return
+    }
+
+    await onPostergarANSBD(row!, date, reason)
+  };
+
   return (
     <div className="rq-detail-backdrop" role="presentation" onClick={onClose}>
-      <div
-        className="rq-detail-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="rq-detail-title"
-        onClick={(event) => event.stopPropagation()}
-      >
+      <div className="rq-detail-modal" role="dialog" aria-modal="true" aria-labelledby="rq-detail-title" onClick={(event) => event.stopPropagation()}>
         <header className="rq-detail-header">
           <div className="rq-detail-header__copy">
             <span className="rq-detail-kicker">Detalle de requisicion</span>
@@ -172,7 +178,10 @@ export default function RequisicionDetalleModal({open, row, onClose }: Props) {
             </div>
 
             <div className="rq-detail-header__actions">
-              <button type="button" className="btn btn-danger btn-xs rq-detail-btn rq-detail-btn--danger" onClick={() => setReportModalOpen(true)}>
+              <button type="button" className="btn btn-primary btn-xs rq-detail-btn rq-detail-btn--danger" onClick={() => setPostergarANS(true)}>
+                Postergar ANS
+              </button>
+              <button type="button" className="btn btn-danger btn-xs rq-detail-btn rq-detail-btn--normal" onClick={() => setReportModalOpen(true)}>
                 Reportar problema
               </button>
               <button type="button" className="btn btn-secondary-final btn-xs rq-detail-btn" onClick={onClose}>
@@ -263,6 +272,17 @@ export default function RequisicionDetalleModal({open, row, onClose }: Props) {
           </div>
         ) : null}
       </div>
+
+      <ConfirmModal 
+        open={postergarANS} 
+        onClose={() => setPostergarANS(false)}
+        onSend={onPostergarANS} 
+        title={"Postergar ANS de requisición " + row?.Title} 
+        needText={true} 
+        description={"Escriba la razón por la que se posterga el ANS"} 
+        buttonText={"Aplicar"}
+        needDate={true}
+        dateText="Nueva fecha final"/>
     </div>
   );
 }

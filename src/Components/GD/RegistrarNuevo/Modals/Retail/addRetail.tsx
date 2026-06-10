@@ -15,7 +15,6 @@ import { createBody, notifyTeam } from "../../../../../utils/mail";
 import { safeLower } from "../../../../../utils/text";
 import type { DetallesPasos } from "../../../../../models/Pasos";
 import { ProcessDetail } from "../Cesaciones/procesoCesacion";
-import { CancelProcessModal } from "../../../View/CancelProcess/CancelProcess";
 import { toISODateFlex } from "../../../../../utils/Date";
 import { usePermissions } from "../../../../../Funcionalidades/Permisos";
 import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones/hooks/useCesaciones";
@@ -23,6 +22,8 @@ import { useContratos } from "../../../../../Funcionalidades/GD/Contratos/hooks/
 import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
 import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
 import { useRetailStepDetails, useRetailSteps } from "../../../../../Funcionalidades/GD/Steps/RetailSteps/retailStepts";
+import { ConfirmModal, type ConfirmModalPayload } from "../../../Common/confirmModal/ConfirmModal";
+import FooterForm from "../Common/AddFormFooter/addFooter";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -222,7 +223,6 @@ export default function FormRetail({
   
       if(created.ok){
         const steps = await retailStepsController.load(false)
-        console.log(steps)
         await retailStepsDetailsController.handleCreateAllSteps(steps, created.created?.Id ?? "", created.created?.Cargo ?? "")
         const body = createBody(account?.name ?? "", "Retail", state.Nombre, state.Title, state.Cargo, state.FechaIngreso ?? "")
         await notifyTeam(mail, "Nuevo registro en el modulo de Retail - Gestor documental CH", body)
@@ -260,8 +260,9 @@ export default function FormRetail({
     }
   },[selectedRetail?.Id, Retail, retailStepsController.handleCompleteStep, retailStepsDetailsController,])
 
-  const handleCancel = async (razon: string) => {
-    await handleCancelProcessbyId(selectedRetail!.Id ?? "", razon)
+  const handleCancel = async ({ reason }: ConfirmModalPayload) => {
+    if (!reason) return;
+    await handleCancelProcessbyId(selectedRetail!.Id ?? "", reason)
     setCancelProcess(false)
   };
 
@@ -322,6 +323,11 @@ export default function FormRetail({
     await retailStepsController.load();
     setFlow(true);
   }
+
+  const inactivateRegister = () => {
+    selectedRetail?.Estado === "Cancelado" ?  handleReactivateProcessById(selectedRetail.Id ?? "") :  setCancelProcess(true)
+  }
+
 
   return (
     <div className="ft-modal-backdrop">
@@ -705,32 +711,26 @@ export default function FormRetail({
 
         {/* Acciones */}
         <div className="ft-actions">
-            <button disabled={selectedRetail?.Estado === "Cancelado" || submitting || !canEditRegister} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreateRetail(e)}>
-              {
-                !canEditRegister ? "No tiene permiso para editar este registro" : 
-                selectedRetail?.Estado === "Cancelado" ? "Este registro ha sido cancelado" : 
-                isView ? "Enviar solicitud de edición" :
-                submitting ? "Guardando" : "Guardar" 
-              }
-            </button> 
-            { isView || tipo === "edit" ?
-              <button type="submit" className="btn btn-xs" onClick={() => openFlow()}>Detalles</button> : null
-            }
-            { (canInactivateRegister &&(isView || tipo === "edit")) ?
-              <button disabled={!canInactivateRegister} type="submit" className="btn btn-xs btn-danger" onClick={() => {
-                                                                        selectedRetail?.Estado === "Cancelado" ? 
-                                                                          handleReactivateProcessById(selectedRetail.Id ?? "") : 
-                                                                          setCancelProcess(true)}}
-                                                                        >
-                {
-                  !canInactivateRegister ? "No tiene permiso para cancelar este proceso" :
-                  selectedRetail?.Estado !== "Cancelado" ? "Cancelar proceso" : "Reactivar proceso"
-                }
-              </button> : null
-            }
-          <button type="button" className="btn btn-xs" onClick={onClose}>Cancelar</button>
+          <FooterForm 
+            processState={selectedRetail?.Estado} 
+            sending={submitting} 
+            canEditRegister={canEditRegister} 
+            canInactivateRegister={canInactivateRegister} 
+            isView={isView} 
+            handleCreate={handleCreateRetail} 
+            showFlow={openFlow} 
+            inactivateRegister={inactivateRegister} 
+            onClose={onClose} 
+            tipo={tipo}/>
         </div>
-        <CancelProcessModal open={cancelProcess} onClose={() => setCancelProcess(false) } onEliminar={handleCancel}/>
+        <ConfirmModal 
+          open={cancelProcess}
+          onClose={() => setCancelProcess(false)}
+          description="Escriba la razón de cancelación del proceso"
+          needText={true}
+          onSend={handleCancel}
+          title="Cancelación de proceso"
+          loading={submitting} buttonText={"Cancelar Proceso"}        />
       </section>
     </div>
   );

@@ -1,6 +1,6 @@
 import React from "react";
 import { useCoreGraphServices, useRequisicionesServices } from "../../../../graph/graphContext";
-import { validate } from "../utils/requisicionValidation";
+import { validate, validatePostergarANS } from "../utils/requisicionValidation";
 import type { requisiciones, RequisicionesErrors } from "../../../../models/Requisiciones/requisiciones";
 import { buildRequisicionesPatch } from "../utils/requisicionPatch";
 import { chooseFinalResponsible } from "../utils/requisicionResponsible";
@@ -9,6 +9,7 @@ import { getContractsByCO } from "../../../../Services/Requisiciones/VistaContra
 import { useNotifyRequisiciones } from "./useRequisicionNotifications";
 import { createRequisicionPayload } from "../utils/RequisicionPayload";
 import { notify } from '../../../../utils/notify';
+import { toISODateTimeFlex } from "../../../../utils/Date";
 
 type Props = {
   state: requisiciones;
@@ -42,15 +43,20 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
   ): Promise<{ message: string | null; sent: boolean }> => {
     setLoading(true);
     try {
+
+      console.log(co)
+      console.log(motivo)
       const [plantaIdealDefinida, resultado] = await Promise.all([
         lookPlantaIdeal(plantaIdeal, co),
         getContractsByCO(co),
       ]);
+      const totalRegistros = resultado.data.length
+      console.log(totalRegistros)
       console.log(plantaIdealDefinida);
       console.log(resultado);
 
-      if (plantaIdealDefinida ?? 0 <= Number(resultado.lenght ?? 0)) {
-        await notifications.notifcacionPlantaIdeal(motivo, co, {actual: Number(plantaIdealDefinida), aprobada: resultado});
+      if ((plantaIdealDefinida ?? 0) <= Number(totalRegistros ?? 0)) {
+        await notifications.notifcacionPlantaIdeal(motivo, co, {actual: Number(plantaIdealDefinida), aprobada: totalRegistros});
       }
 
       return {
@@ -58,6 +64,7 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
         sent: true,
       };
     } catch (e) {
+      console.log("fallo", e)
       return {
         message: "No se ha podido enviar la advertencia " + e,
         sent: false,
@@ -181,6 +188,25 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
     return true;
   };
 
+  const postergarANS = async (r: requisiciones, date: string, motivo: string): Promise<boolean> => {
+
+    const formatedDate = toISODateTimeFlex(date)
+    const validation = validatePostergarANS(r, date, motivo)
+
+    if(!validation){
+      return false
+    }
+
+     try{
+       requisiciones.update(r.Id!, {fechaLimite:formatedDate, motivoNoCumplimiento: motivo})
+       notify.success("Se ha postergado el ANS con éxito")
+       return true
+     } catch(e) {
+      notify.error("No se ha podido postergar el ANS " + e)
+      return false
+     }
+  };
+
   return {
     loading,
     state,
@@ -188,6 +214,7 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
     handleEdit,
     cancelarBD,
     sendNotificationPlantaIdeal,
+    postergarANS
   };
 }
 

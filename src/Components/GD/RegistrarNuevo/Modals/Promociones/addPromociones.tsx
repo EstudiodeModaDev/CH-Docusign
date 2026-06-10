@@ -15,7 +15,6 @@ import { useRetail } from "../../../../../Funcionalidades/GD/Retail";
 import { createBody, notifyTeam } from "../../../../../utils/mail";
 import { safeLower } from "../../../../../utils/text";
 import type { DetallesPasos } from "../../../../../models/Pasos";
-import { CancelProcessModal } from "../../../View/CancelProcess/CancelProcess";
 import { ProcessDetail } from "../Cesaciones/procesoCesacion";
 import { usePermissions } from "../../../../../Funcionalidades/Permisos";
 import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones/hooks/useCesaciones";
@@ -23,6 +22,8 @@ import { useContratos } from "../../../../../Funcionalidades/GD/Contratos/hooks/
 import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
 import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
 import { usePromocionStepDetails, usePromocionSteps } from "../../../../../Funcionalidades/GD/Steps/PromocionSteps/usePromocionSteps";
+import { ConfirmModal, type ConfirmModalPayload } from "../../../Common/confirmModal/ConfirmModal";
+import FooterForm from "../Common/AddFormFooter/addFooter";
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
   const { label } = props;
@@ -343,8 +344,9 @@ export default function FormPromocion({ submitting, handleReactivateProcessById,
     [handleCompleteStep, calcPorcentaje, selectedPromocion?.Id, Promociones]
   );
 
-  const handleCancel = async (razon: string) => {
-    await handleCancelProcessbyId(selectedPromocion!.Id ?? "", razon)
+  const handleCancel = async ({ reason }: ConfirmModalPayload) => {
+    if (!reason) return;
+    await handleCancelProcessbyId(selectedPromocion!.Id ?? "", reason)
     setCancelProcess(false)
   };
 
@@ -375,6 +377,11 @@ export default function FormPromocion({ submitting, handleReactivateProcessById,
     setConectividad(auxRes.valor);
     setConectividadTexto(auxRes.texto.toUpperCase());
   };
+
+  const inactivateRegister = () => {
+    selectedPromocion?.Estado === "Cancelado" ?  handleReactivateProcessById(selectedPromocion.Id ?? "") :  setCancelProcess(true)
+  }
+
 
   return (
     <div className="ft-modal-backdrop">
@@ -1108,36 +1115,29 @@ export default function FormPromocion({ submitting, handleReactivateProcessById,
         </>
       }
 
-        {/* Acciones */}
         <div className="ft-actions">
-            <button disabled={selectedPromocion?.Estado === "Cancelado" || submitting || !canEditRegister} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreatePromotion(e)}>
-              {
-                !canEditRegister ? "No tiene registro para editar esta promoción" :
-                isView ? "Enviar solicitud de edición" : 
-                selectedPromocion?.Estado === "Cancelado" ? "Este proceso fue cancelado" : 
-                submitting ? "Guardando" : 
-                "Guardar"
-              }
-            </button> 
-            { isView || tipo === "edit" ?
-              <button type="submit" className="btn btn-xs" onClick={() => setFlow(true)}>Detalles</button> : null
-            }
-            { canInactivateRegister && (isView || tipo === "edit") ?
-              <button type="submit" className="btn btn-xs btn-danger" disabled={!canInactivateRegister} onClick={() => {
-                                                                                                          selectedPromocion?.Estado === "Cancelado" ? 
-                                                                                                            handleReactivateProcessById(selectedPromocion.Id ?? "") : 
-                                                                                                            setCancelProcess(true)}}
-                                                                                                          >
-                {
-                  canInactivateRegister ? "No tiene permiso para cancelar este registro" :
-                  selectedPromocion?.Estado !== "Cancelado" ? "Cancelar proceso" : 
-                  "Reactivar proceso"
-                }
-              </button> : null
-            }
-          <button type="button" className="btn btn-xs" onClick={onClose}>Cancelar</button>
+          <FooterForm 
+            processState={selectedPromocion?.Estado} 
+            sending={submitting} 
+            canEditRegister={canEditRegister} 
+            canInactivateRegister={canInactivateRegister} 
+            isView={isView} 
+            handleCreate={handleCreatePromotion} 
+            showFlow={setFlow} 
+            inactivateRegister={inactivateRegister} 
+            onClose={onClose} 
+            tipo={tipo}/>
         </div>
-        <CancelProcessModal open={cancelProcess} onClose={() => setCancelProcess(false) } onEliminar={handleCancel}/>
+        <ConfirmModal 
+          open={cancelProcess} 
+          onClose={() => setCancelProcess(false) } 
+          description= "Escriba la razón de cancelación del proceso"
+          needText={true}
+          onSend={handleCancel}
+          title="Cancelación de proceso"
+          loading={submitting}
+          buttonText={"Cancelar Proceso"}
+        />
       </section>
     </div>
   );

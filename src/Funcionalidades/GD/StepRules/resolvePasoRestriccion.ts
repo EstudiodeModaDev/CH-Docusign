@@ -1,7 +1,6 @@
 import type { PasoRestriccion } from "../../../models/Pasos";
 
 export function resolvePasoRestriccionCargo(cargoNegocio: string, reglas: PasoRestriccion[]): {ok: boolean, message: string | null} {
-  console.log(reglas)
   const activas = reglas.filter(r => r.Activo);
 
   if (!activas.length){ 
@@ -27,7 +26,6 @@ export function resolvePasoRestriccionCargo(cargoNegocio: string, reglas: PasoRe
 
   if (inclusiones.length > 0) {
     const ok = inclusiones.some(r => r.CargoNombre.trim().toLowerCase() === cargo)
-    console.log(ok)
     return {
       ok,
       message: null
@@ -36,13 +34,11 @@ export function resolvePasoRestriccionCargo(cargoNegocio: string, reglas: PasoRe
 
   if (exclusiones.length > 0) {
     const ok = !exclusiones.some(r => r.CargoNombre.trim().toLowerCase() === cargo)
-    console.log(ok)
     return {
       ok, 
       message: null
     }
   }
-  console.log("No hay reglas para la regla")
   return {
     ok: true,
     message: null

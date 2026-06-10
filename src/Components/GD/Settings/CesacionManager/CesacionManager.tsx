@@ -140,9 +140,7 @@ export const ProcesosStepManager: React.FC<Props> = ({loadingCargo, cargos, onCh
     setSaving(true);
     try {
       if (editingId) {
-        console.log("Inicio")
         await onEdit(editingId, state);
-        console.log("Paso")
       } else {
         await onAdd(state);
       }
@@ -167,7 +165,6 @@ const desactivate = async (s: PasosProceso) => {
   try {
     const isActive = s.Activado === true;
 
-    console.log(isActive ? "Desactivando paso" : "Activando paso", s);
     const ok = isActive
       ? await onDesactivate(s.Id)
       : await onActivate(s.Id);
@@ -178,11 +175,7 @@ const desactivate = async (s: PasosProceso) => {
         : "No fue posible activar el paso.");
       return;
     }
-
-    console.log(isActive ? "Desactivando paso" : "Activando paso");
-
-    const a = await onReload();
-    console.log(a);
+    await onReload();
 
     onChanged?.();
   } catch (e: any) {

@@ -25,10 +25,7 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
     setLoading(true);
 
     try {
-      console.log("Actualizando la entidad con path:", folderInfo.path);
-      console.log(folderInfo)
       const entityUpdated = await integration.handleUpdateSendRevision(folderInfo.cedula.trim());
-      console.log(entityUpdated)
       const state: HistorialRevisionCarpetas = {
         Accion: "Envío a revisión",
         Cedula: folderInfo.cedula,
@@ -45,7 +42,6 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
       }
 
       if(entityUpdated.ok && entityUpdated.data) {
-        console.log("Payload: ", state)
         const historialCreado = await actionsController.handleSubmitBd(state);
 
         await notifyFolderReady(mail, folderInfo)
@@ -68,8 +64,6 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
     setLoading(true);
 
     try {
-      console.log("Actualizando la entidad con path:", folderInfo.path);
-      console.log(folderInfo)
       const entityUpdated = await integration.handleUpdateReturned(folderInfo.cedula.trim());
       
       const state: HistorialRevisionCarpetas = {
@@ -89,10 +83,8 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
 
       if(entityUpdated.ok && entityUpdated.data) {
         const Historialpayload = buildSendRevisionPayload(state,auth.account, "Devolución de carpeta");
-        console.log("Payload: ", Historialpayload)
         const historialCreado = await actionsController.handleSubmitBd(Historialpayload);
         const groupMembers = await graph.getAllGroupMembers("8ba50c1e-ffd3-4906-b50a-3db33b69b868",)
-        console.log(groupMembers)
         await notifyReturnedFolder(mail, folderInfo, motivo, groupMembers)
         notify.auto("Se ha devuelto la carpeta correctamente")
         return { ok: true, created: historialCreado };
@@ -113,8 +105,6 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
     setLoading(true);
 
     try {
-      console.log("Actualizando la entidad con path:", folderInfo.path);
-      console.log(folderInfo)
       const entityUpdated = await integration.handleUpdateApprove(folderInfo.cedula.trim());
       
       const state: HistorialRevisionCarpetas = {
@@ -134,7 +124,6 @@ export function useFolderHistorial(folderInfo: {cedula: string, nombre: string, 
 
       if(entityUpdated.ok && entityUpdated.data) {
         const Historialpayload = state;
-        console.log("Payload: ", Historialpayload)
         const historialCreado = await actionsController.handleSubmitBd(Historialpayload);
         const groupMembers = await graph.getAllGroupMembers("8ba50c1e-ffd3-4906-b50a-3db33b69b868",)
         await notifyApprovedFolder(mail, folderInfo, historialCreado.RealizadoPor!, groupMembers)

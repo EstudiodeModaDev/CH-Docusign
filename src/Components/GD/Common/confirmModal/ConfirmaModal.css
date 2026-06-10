@@ -1,0 +1,277 @@
+.rfm-backdrop {
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--surface) 28%, rgba(15, 23, 42, 0.72)), rgba(15, 23, 42, 0.68));
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 9999;
+}
+
+.rfm-modal {
+  width: 100%;
+  max-width: 560px;
+  border-radius: 24px;
+  border: 1px solid color-mix(in oklab, var(--primary) 16%, var(--bd) 84%);
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--surface-elev) 72%, var(--surface) 28%), var(--surface));
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.rfm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 22px;
+  border-bottom: 1px solid color-mix(in oklab, var(--bd) 74%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--primary) 10%, transparent), transparent 44%),
+    linear-gradient(180deg, color-mix(in oklab, var(--surface-elev) 78%, var(--surface) 22%), color-mix(in oklab, var(--surface) 94%, white 6%));
+}
+
+.rfm-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.rfm-close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid color-mix(in oklab, var(--bd) 78%, transparent);
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--field-bg) 88%, transparent);
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.rfm-close:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--field-bg) 78%, transparent);
+  border-color: color-mix(in oklab, var(--primary) 24%, var(--bd) 76%);
+  transform: translateY(-1px);
+}
+
+.rfm-close:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.rfm-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.rfm-body {
+  padding: 22px;
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.rfm-text {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.rfm-label {
+  font-size: 12px;
+  color: color-mix(in oklab, var(--primary) 56%, var(--muted) 44%);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rfm-textarea {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-height: 140px;
+  resize: vertical;
+  border-radius: 16px;
+  border: 1px solid color-mix(in oklab, var(--bd) 78%, var(--primary) 22%);
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--field-bg) 88%, white 12%), color-mix(in oklab, var(--field-bg) 96%, transparent));
+  color: var(--ink);
+  padding: 14px 16px;
+  outline: none;
+  font: inherit;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+
+.rfm-textarea:focus {
+  box-shadow: 0 0 0 4px var(--ring);
+  border-color: color-mix(in oklab, var(--primary) 56%, var(--bd) 44%);
+  background: color-mix(in oklab, var(--surface) 92%, white 8%);
+}
+
+.rfm-textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.rfm-dateBlock {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  border: 1px solid color-mix(in oklab, var(--primary) 18%, var(--bd) 82%);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--surface-elev) 82%, var(--surface) 18%), var(--surface));
+  min-width: 0;
+}
+
+.rfm-dateField {
+  position: relative;
+  min-width: 0;
+}
+
+.rfm-meta {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.rfm-date {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-height: 48px;
+  border: 1px solid color-mix(in oklab, var(--bd) 78%, var(--primary) 22%);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--field-bg) 88%, white 12%), color-mix(in oklab, var(--field-bg) 96%, transparent));
+  color: var(--ink);
+  padding: 0 14px;
+  font: inherit;
+  font-weight: 700;
+  outline: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+  color-scheme: dark light;
+}
+
+.rfm-date:focus {
+  box-shadow: 0 0 0 4px var(--ring);
+  border-color: color-mix(in oklab, var(--primary) 56%, var(--bd) 44%);
+  background: color-mix(in oklab, var(--surface) 92%, white 8%);
+}
+
+.rfm-date:hover:not(:disabled) {
+  border-color: color-mix(in oklab, var(--primary) 40%, var(--bd) 60%);
+}
+
+.rfm-date:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.rfm-date::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.85;
+  filter: saturate(0) brightness(1.2);
+}
+
+.rfm-error {
+  border: 1px solid color-mix(in oklab, #ff4d4d 35%, var(--bd));
+  background: color-mix(in oklab, #ff4d4d 8%, var(--surface));
+  color: color-mix(in oklab, #ff4d4d 80%, var(--ink));
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-weight: 700;
+}
+
+.rfm-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 22px 22px;
+  border-top: 1px solid color-mix(in oklab, var(--bd) 74%, transparent);
+  background: color-mix(in oklab, var(--surface-elev) 62%, var(--surface) 38%);
+}
+
+.rfm-btn {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid var(--bd);
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.rfm-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.rfm-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.rfm-btn--ghost {
+  background: color-mix(in oklab, var(--surface-elev) 84%, var(--surface) 16%);
+  color: var(--ink);
+  border-color: color-mix(in oklab, var(--bd) 80%, transparent);
+}
+
+.rfm-btn--ghost:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--surface-elev) 72%, var(--surface) 28%);
+}
+
+.rfm-btn--danger {
+  background: color-mix(in oklab, #ef4444 14%, var(--surface));
+  border-color: color-mix(in oklab, #ef4444 34%, var(--bd));
+  color: color-mix(in oklab, #ff7a7a 38%, var(--ink) 62%);
+  box-shadow: 0 14px 28px -20px color-mix(in oklab, #ef4444 48%, transparent);
+}
+
+.rfm-btn--danger:hover:not(:disabled) {
+  background: color-mix(in oklab, #ef4444 18%, var(--surface));
+  border-color: color-mix(in oklab, #ef4444 42%, var(--bd));
+}
+
+.rfm-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
+@media (max-width: 640px) {
+  .rfm-backdrop {
+    padding: 16px;
+    align-items: flex-end;
+  }
+
+  .rfm-modal {
+    max-width: none;
+    border-radius: 22px 22px 0 0;
+  }
+
+  .rfm-header,
+  .rfm-body,
+  .rfm-footer {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .rfm-footer {
+    flex-direction: column-reverse;
+  }
+
+  .rfm-btn {
+    width: 100%;
+  }
+}

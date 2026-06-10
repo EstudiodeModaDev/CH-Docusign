@@ -108,8 +108,6 @@ export function mapHabeasToVM(h: HabeasData): DocuSignVM {
 }
 
 export function mapCesacionToVM(p: Cesacion): DocuSignVM {
-  console.log(p)
-  console.log(p.FechaIngreso)
   return {
     ...emptyVM(),
     nombre: p.Nombre ?? "",
@@ -127,8 +125,6 @@ export function mapCesacionToVM(p: Cesacion): DocuSignVM {
 }
 
 export function mapRetailToVM(r: Retail): DocuSignVM {
-  console.log(r)
-  console.log(r.FechaIngreso)
   return {
     ...emptyVM(),
     nombre: r.Nombre ?? "",

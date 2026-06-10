@@ -41,12 +41,10 @@ export default function SolicitudesAprobacion() {
         if (!s.Id) continue;
 
         const reg = await getRegistroReal(s, gestor);
-        console.log(reg)
         if (reg) {
           nuevos[String(s.Id)] = reg;
         }
       }
-      console.log(nuevos)
       setRegistrosMap(nuevos);
     };
 

@@ -8,6 +8,7 @@ import { notify } from '../../../utils/notify';
 import { shouldNotifyAllStepsCompleted } from "./utils/notificationRules";
 import { useNotifyRequisiciones } from "../Requisicion/Hooks/useRequisicionNotifications";
 import type { requisiciones } from "../../../models/Requisiciones/requisiciones";
+import { toISODateTimeFlex } from "../../../utils/Date";
 
 interface UpdateSvc {
   update: (id: string, payload: Partial<Omit<detalleRequisicion, "Id">>) => Promise<any>;
@@ -62,12 +63,13 @@ export function useStepCompletion({
     if(porcentaje === 100) {
       const estadoCierre = await calcularEstadoCierre(requisicionId, requisicionesService);
       const shouldNotify = await shouldNotifyAllStepsCompleted(requisicionId, requisicionesService)
+      const fechaCierre = toISODateTimeFlex(new Date())
       if(shouldNotify) {
         toUpdated = {...toUpdated, notified: true}
         const requisicion= await requisicionesService.get(requisicionId)
         await notificaciones.notifyEncuestaSatisfaccion(requisicion) 
       }
-      toUpdated = {...toUpdated, Estado: estadoCierre}
+      toUpdated = {...toUpdated, Estado: estadoCierre, fechaCierre}
     };
     await requisicionesService.update(requisicionId, toUpdated);
   }

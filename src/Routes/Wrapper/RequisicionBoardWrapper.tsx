@@ -19,6 +19,7 @@ import RequisicionDetalleModal from "../../Components/Requisiciones/tablaRequisi
 import RequisicionEditModal from "../../Components/Requisiciones/tablaRequisiciones/RequisicionEditModal";
 import { useCoreGraphServices, useRequisicionesServices } from "../../graph/graphContext";
 import { notify } from "../../utils/notify";
+import { useRequisicion } from "../../Funcionalidades/Requisiciones/Requisicion/Hooks/requisicion";
 
 export default function RequisicionesBoardWrapper() {
   const location = useLocation();
@@ -28,6 +29,7 @@ export default function RequisicionesBoardWrapper() {
   const { setState, state } = useRequisicionesContext();
   const detailRouteMatch = useMatch("/requisicion/view/visualizacionDetalle");
   const editRouteMatch = useMatch("/requisicion/view/editRequisicion");
+  const {onPostergarANS} = useRequisicion()
 
   const { options: cargoOptions, reload: reloadCargo } = useCargo(Maestro);
   const { options: ciudadesOptions, reload: reloadDeptos } = useDeptosMunicipios(DeptosYMunicipios);
@@ -130,8 +132,7 @@ export default function RequisicionesBoardWrapper() {
       <RequisicionDetalleModal
         open={Boolean(detailRouteMatch && selectedRow)}
         row={selectedRow}
-        onClose={handleCloseModal}
-      />
+        onClose={handleCloseModal} onPostergarANSBD={onPostergarANS}      />
 
       <RequisicionEditModal
         open={Boolean(editRouteMatch && selectedRow)}

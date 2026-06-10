@@ -3,7 +3,6 @@ import type { HistorialRevisionCarpetas } from "../../../../../models/DocumentVi
 import { toISODateFlex } from "../../../../../utils/Date";
 
 export function buildSendRevisionPayload(state: HistorialRevisionCarpetas, account: AccountInfo | null, Accion: string): Partial<HistorialRevisionCarpetas> {
-  console.log("Payload antes de conversión:", state);
 
   return {
     Accion,

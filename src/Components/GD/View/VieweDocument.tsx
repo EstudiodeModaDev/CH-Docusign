@@ -2,18 +2,19 @@ import * as React from "react";
 import "./ViewerDocument.css";
 import { parseDateFlex } from "../../../utils/Date";
 import { RenameModal } from "./ChangeName/ChangeName";
-import { CancelProcessModal } from "./CancelProcess/CancelProcess";
 import type { Archivo } from "../../../models/archivos";
 import { SimpleFileUpload } from "../../GD/AddFile/AddFile";
 import { useColaboradoresExplorer } from "../../../Funcionalidades/GD/DocumentViewer/hooks/useColaboradoresExplorer";
 import { useFolderControl } from "../../../Funcionalidades/GD/DocumentViewer/CheckFolderControl/hooks/useFolderControl";
 import type { ControlRevisionCarpetas } from "../../../models/DocumentViewer";
 import { useFolderHistorial } from "../../../Funcionalidades/GD/DocumentViewer/CheckFolderHistorial/hooks/useFolderHistorial";
-import { buildBreadcrumb, getEstadoClass, normalizeEstado, parseFolderDataFromPath } from "./utils/Helpers";
+import { parseFolderDataFromPath } from "./utils/Helpers";
 import { useDocumentPermissions } from "../../../Funcionalidades/Common/usePermissions";
-import { columns, EMPRESAS } from "./utils/Constants";
-import { ReasonModal } from "../Common/ReasonModal/ReasonModal";
+import { columns,  } from "./utils/Constants";
 import { TableModal } from "../Common/TableModal/TableModal";
+import { ColaboradoresExplorerSidebar } from "./Sidebar";
+import { ColaboradoresExplorerHeader } from "./Header";
+import { ConfirmModal, type ConfirmModalPayload } from "../Common/confirmModal/ConfirmModal";
 
 type SearchFolderResult = {
   founded: boolean;
@@ -22,7 +23,7 @@ type SearchFolderResult = {
 
 export const ColaboradoresExplorer: React.FC = () => {
   const viewerController = useColaboradoresExplorer();
-  const { canInactivateRegister, canCheckFinishedFolder, canDelete, canApprove, } = useDocumentPermissions();
+  const {canDelete, } = useDocumentPermissions();
 
   const [agregar, setAgregar] = React.useState(false);
   const [edit, setEdit] = React.useState(false);
@@ -38,18 +39,7 @@ export const ColaboradoresExplorer: React.FC = () => {
 
   const lastAutoCreatedPathRef = React.useRef<string>("");
   const autoCreatingPathRef = React.useRef<string>("");
-  const hayRuta = !!viewerController.currentPath.trim();
   const showActions = viewerController.depth >= 2;
-
-  const breadcrumbParts = React.useMemo(() => buildBreadcrumb(viewerController.currentPath), [viewerController.currentPath]);
-
-  const totalItems = viewerController.items.length;
-
-  const totalFolders = React.useMemo(() => viewerController.items.filter((i) => i.isFolder).length, [viewerController.items]);
-
-  const totalFiles = totalItems - totalFolders;
-
-  const isActivosOrRetirados = viewerController.currentPath.toLowerCase().includes("activos") || viewerController.currentPath.toLowerCase().includes("retirados");
 
   const folderInfo = React.useMemo(() => {
     return parseFolderDataFromPath(viewerController.currentPath);
@@ -73,17 +63,6 @@ export const ColaboradoresExplorer: React.FC = () => {
     onlyFiles.forEach((f, idx) => map.set(f.id, String(idx + 1).padStart(2, "0")));
     return map;
   }, [viewerController.items]);
-
-  const currentEstado = React.useMemo(() => {return normalizeEstado(folderState.folders?.Estado);}, [folderState]);
-
-  const isFolderLockedForReview = React.useMemo(() => {return currentEstado === "en revisión" || currentEstado === "aprobada";}, [currentEstado]);
-  const isFolderLockedForApproval = React.useMemo(() => { return currentEstado === "aprobada" || currentEstado === "en construcción"}, [currentEstado]);
-
-  const reviewButtonLabel = React.useMemo(() => {
-    if (currentEstado === "aprobada") return "Carpeta aprobada";
-    if (currentEstado === "en revisión") return "Carpeta en revisión";
-    return "Enviar a revisión";
-  }, [currentEstado]);
 
   const loadFolderState = React.useCallback(async () => {
     if (!folderInfo.cedula) {
@@ -177,7 +156,6 @@ export const ColaboradoresExplorer: React.FC = () => {
   }, [selectedFile, handleSearchAndCreateControlEntity]);
 
   const handleReviewFolder = async () => {
-    if (isFolderLockedForReview) return;
     setSending(true);
     await folderHistorial.sendFolderToRevision(folderInfo);
     await loadFolderState();
@@ -185,16 +163,16 @@ export const ColaboradoresExplorer: React.FC = () => {
   };
 
   const handleApproveFolder = async () => {
-    if (isFolderLockedForApproval) return;
     setSending(true);
     await folderHistorial.approveFolder(folderInfo);
     await loadFolderState();
     setSending(false)
   };
 
-  const handleReturnFolder = async (motivo: string) => {
+  const handleReturnFolder = async ({ reason }: ConfirmModalPayload) => {
+    if (!reason) return;
     setSending(true);
-    await folderHistorial.returnFolder(folderInfo, motivo);
+    await folderHistorial.returnFolder(folderInfo, reason);
     await loadFolderState();
     setSending(false);
   };
@@ -207,174 +185,18 @@ export const ColaboradoresExplorer: React.FC = () => {
 
   return (
     <div className="ce2">
-      <aside className="ce2-sb" aria-label="Empresas">
-        <div className="ce2-sb__brand">
-          <div className="ce2-sb__kicker">Expedientes</div>
-        </div>
-
-        <div className="ce2-sb__seg" role="tablist" aria-label="Selector de empresa">
-          {EMPRESAS.map((e) => (
-            <button key={e.key} role="tab" aria-selected={viewerController.empresa === e.key} type="button" className={"ce2-sb__segBtn" + (viewerController.empresa === e.key ? " is-active" : "")} onClick={() => viewerController.setEmpresa(e.key)}>
-              {e.label}
-            </button>
-          ))}
-        </div>
-      </aside>
+      <ColaboradoresExplorerSidebar onSelect={viewerController.setEmpresa} empresa={viewerController.empresa}/>
 
       <section className="ce2-main">
-        <header className="ce3-head">
-          <div className="ce3-top">
-            <div className="ce3-bc" aria-label="Ruta">
-              <span className="ce3-bc__root">{EMPRESAS.find((e) => e.key === viewerController.empresa)?.label ?? "Inicio"}</span>
-
-              {breadcrumbParts.length > 0 && <span className="ce3-bc__sep">/</span>}
-
-              {breadcrumbParts.map((p, idx) => {
-                const isLast = idx === breadcrumbParts.length - 1;
-
-                return (
-                  <React.Fragment key={`${p}-${idx}`}>
-                    <span className={"ce3-bc__crumb" + (isLast ? " is-current" : "")} title={p}>
-                      {p}
-                    </span>
-                    {!isLast && <span className="ce3-bc__sep">/</span>}
-                  </React.Fragment>
-                );
-              })}
-            </div>
-
-            <div className="ce3-kpis" aria-label="Resumen">
-              <span className={getEstadoClass(folderState.folders?.Estado!)}><strong>{folderState.folders?.Estado}</strong></span>
-              <span className="ce3-kpi">{totalFiles} archivos</span>
-              <span className="ce3-kpi">{totalFolders} carpetas</span>
-            </div>
-          </div>
-
-          <div className="ce3-ctl">
-            <div className="ce3-actions">
-              {hayRuta && (
-                <button type="button" className="ce3-btn ce3-btn--ghost" onClick={viewerController.goUp}>
-                  ← Volver
-                </button>
-              )}
-
-              {showActions && (
-                <button type="button" className="ce3-btn ce3-btn--primary" onClick={() => setAgregar(true)}>
-                  + Agregar archivo
-                </button>
-              )}
-
-              {/*Acciones*/}
-              {showActions && (
-                <details className="ce3-more">
-                  <summary className="ce3-btn ce3-btn--ghost ce3-more__sum">
-                    Más ▾
-                  </summary>
-
-                  <div className="ce3-more__menu">
-                    {canInactivateRegister && isActivosOrRetirados && (
-                      <button
-                        type="button"
-                        className="ce3-menuItem"
-                        onClick={() =>
-                          viewerController.currentPath.toLowerCase().includes("activos")
-                            ? viewerController.moveCarpeta("Colaboradores Retirados")
-                            : viewerController.moveCarpeta("Colaboradores Activos")
-                        }
-                      >
-                        {viewerController.currentPath.toLowerCase().includes("activos")
-                          ? "Marcar como retirado"
-                          : "Reintegrar colaborador"}
-                      </button>
-                    )}
-
-                    {/*Boton de enviar a revisión*/}
-                    {canCheckFinishedFolder && (
-                      <button
-                        type="button"
-                        className="ce3-menuItem"
-                        onClick={handleReviewFolder}
-                        disabled={isFolderLockedForReview || loading}
-                        title={
-                          isFolderLockedForReview
-                            ? "Carpeta en construcción"
-                            : loading
-                            ? "Cargando estado de la carpeta"
-                            : "Enviar carpeta a revisión"
-                        }
-                      >
-                        {reviewButtonLabel}
-                      </button>
-                    )}
-
-                    {/*Boton de enviar a aprobación*/}
-                    {canApprove && (
-                      <button 
-                        type="button"
-                        className="ce3-menuItem"
-                        onClick={handleApproveFolder}
-                        disabled={isFolderLockedForApproval || loading}
-                        title={
-                          isFolderLockedForApproval
-                            ? "La carpeta esta en construcción o aprobada"
-                            : loading
-                            ? "Cargando estado de la carpeta"
-                            : "Aprobar carpeta"
-                        }
-                      >
-                        {isFolderLockedForApproval ? "Carpeta no apta para aprobar" : sending ? "Cargando..." :"Aprobar carpeta"}
-                      </button>
-                    )}
-
-                    {/*Boton de devolución*/}
-                    {canApprove && (
-                      <button
-                        type="button"
-                        className="ce3-menuItem"
-                        onClick={() => setReturnFolder(true)}
-                        disabled={isFolderLockedForApproval || loading}
-                        title={
-                          isFolderLockedForApproval
-                            ? "La carpeta esta en construcción o aprobada"
-                            : loading
-                            ? "Cargando estado de la carpeta"
-                            : "Devolver carpeta"
-                        }
-                      >
-                        {isFolderLockedForApproval ? "Carpeta no apta para devolver" : sending ? "Cargando..." : "Devolver carpeta"}
-                      </button>
-                    )}
-
-                    <button type="button" className="ce3-menuItem" onClick={() => viewFolderHistory()} disabled={sending || loading}>
-                        Ver historial
-                    </button>
-                  </div>
-                </details>
-              )}
-            </div>
-
-            <div className="ce3-filters">
-              <select
-                className="ce3-select"
-                value={viewerController.organizacion}
-                onChange={(e) =>
-                  viewerController.setOrganizacion(e.target.value as "asc" | "desc")
-                }
-                aria-label="Orden"
-              >
-                <option value="asc">Más antiguas</option>
-                <option value="desc">Más nuevas</option>
-              </select>
-
-              <input
-                className="ce3-search"
-                placeholder="Buscar por nombre…"
-                value={viewerController.search}
-                onChange={(e) => viewerController.setSearch(e.target.value)}
-              />
-            </div>
-          </div>
-        </header>
+        <ColaboradoresExplorerHeader 
+          folderState={folderState.folders?.Estado!}
+          setAgregar={setAgregar}
+          viewerController={viewerController}
+          loading={loading} sending={sending}
+          handleApproveFolder={handleApproveFolder}
+          setReturnFolder={setReturnFolder} 
+          viewFolderHistory={viewFolderHistory} 
+          handleReviewFolder={handleReviewFolder} />
 
         <div className="ce2-panel">
           <div className="ce2-table" role="table" aria-label="Listado">
@@ -420,7 +242,8 @@ export const ColaboradoresExplorer: React.FC = () => {
                     parseDateFlex(item.lastModified ?? "")?.toLocaleDateString("es-CO") ?? "";
 
                   return (
-                    <button key={item.id} type="button" className="ce2-tr ce2-rowBtn" role="row" onClick={() => {setSelectedFile(item); viewerController.openItem(item);}}>                   <div className="ce2-td ce2-td--seq" role="cell">
+                    <button key={item.id} type="button" className="ce2-tr ce2-rowBtn" role="row" onClick={() => {setSelectedFile(item); viewerController.openItem(item);}}>                   
+                      <div className="ce2-td ce2-td--seq" role="cell">
                         <span className={"ce2-seq" + (seq === "—" ? " is-ghost" : "")}>
                           {seq}
                         </span>
@@ -489,9 +312,25 @@ export const ColaboradoresExplorer: React.FC = () => {
 
         <RenameModal open={edit} selectedFile={selectedFile!} onClose={() => setEdit(false)} biblioteca={viewerController.empresa} recargar={viewerController.reload}/>
 
-        <CancelProcessModal open={cancelProcess} onClose={() => setCancelProcess(false)} onEliminar={handleCancel}/>
+        <ConfirmModal 
+          open={cancelProcess}
+          onClose={() => setCancelProcess(false)}
+          onSend={handleCancel}
+          title={"Cancelar proceso"}
+          needText={false}
+          description={"¿Estás seguro de que deseas cancelar el proceso?"}
+          loading={loading || sending} 
+          buttonText={"Cancelar Proceso"}/>
 
-        <ReasonModal open={returnFolder} onClose={() => setReturnFolder(false)} onSend={handleReturnFolder} title={"Devolver carpeta"}/>
+        <ConfirmModal 
+          open={returnFolder}
+          onClose={() => setReturnFolder(false)}
+          onSend={handleReturnFolder}
+          title={"Devolver carpeta"}
+          needText={true}
+          description={"Escriba el motivo por el que quiere devolver la carpeta"}
+          loading={loading || sending} 
+          buttonText={"Devolver"}/>
 
         <TableModal open={folderHistory} title={"Historial de Revisiones"} rows={historial} columns={columns} onClose={() => setFolderHistory(false)}/>
       </section>

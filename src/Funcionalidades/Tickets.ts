@@ -132,7 +132,6 @@ export function useNuevoTicketForm(services: Svc) {
         const created = await Tickets.create(payload);
 
         createdId = created?.ID ?? "";
-        console.log("Ticket creado con ID:", createdId);
 
         const idTexto = String(createdId || "—");
         const fechaSolTexto = solucion ? new Date(solucion as unknown as string).toLocaleString() : "No aplica";

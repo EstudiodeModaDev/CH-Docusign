@@ -319,7 +319,6 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
 
   const handleSubmit = async (): Promise<{created: Promocion | null, ok: boolean}> => {
     if (!validate()) { 
-      console.log(state)
       notify.auto("Hay campos vacios")
       return{
         created: null,
@@ -391,7 +390,6 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
         FechaExamenesMedicos: null
       };
       const created = await PromocionesSvc.create(payload);
-      console.log(created)
       notify.auto("Se ha creado el registro con éxito")
       return {
         created: created,
@@ -433,8 +431,6 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
         const realRegister = await Promociones.get(promocionSeleccionada.Id)
 
         const DetallesPayload = detallePayloadFromPromocion(realRegister, state, request.created.Id!)
-
-        console.log(DetallesPayload)
 
         requestController.genericProcess("Promocion", DetallesPayload,)
 
@@ -491,7 +487,6 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
       });
 
     setWorkersOptions(next);
-    console.log("options armadas:", next);
 
     return workers;
   };

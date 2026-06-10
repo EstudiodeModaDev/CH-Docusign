@@ -1,29 +1,31 @@
 import * as React from "react";
-import "../AddContrato.css"
+import "../../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
-import { useCoreGraphServices, useGestorServices } from "../../../../../graph/graphContext";
-import type { desplegablesOption } from "../../../../../models/Desplegables";
-import { useAuth } from "../../../../../auth/authProvider";
-import { formatPesosEsCO, numeroATexto, toNumberFromEsCO,  } from "../../../../../utils/Number";
-import { useSalarios } from "../../../../../Funcionalidades/GD/Salario";;
-import { lookOtherInfo } from "../../../../../utils/lookFor";
-import { usePromocion } from "../../../../../Funcionalidades/GD/Promocion";
-import type { Cesacion, CesacionErrors, } from "../../../../../models/Cesaciones";
-import type { SetField } from "../Contrato/addContrato";
-import { useRetail } from "../../../../../Funcionalidades/GD/Retail";
-import { createBody, notifyTeam } from "../../../../../utils/mail";
-import { ProcessDetail } from "./procesoCesacion";
-import { CancelProcessModal } from "../../../View/CancelProcess/CancelProcess";
-import { useAutomaticCargo } from "../../../../../Funcionalidades/GD/Niveles";
-import { safeLower } from "../../../../../utils/text";
-import { toISODateFlex } from "../../../../../utils/Date";
-import { usePermissions } from "../../../../../Funcionalidades/Permisos";
-import type { DetallesPasos } from "../../../../../models/Pasos";
-import { useContratos } from "../../../../../Funcionalidades/GD/Contratos/hooks/useContratos";
-import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
-import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
-import { createEmptyCesacion } from "../../../../../Funcionalidades/GD/Cesaciones/utils/cesacionesState";
-import { useCesacionStepDetails, useCesacionSteps } from "../../../../../Funcionalidades/GD/Steps/CesacionSteps/useCesacionSteps";
+import { useCoreGraphServices, useGestorServices } from "../../../../../../graph/graphContext";
+import type { desplegablesOption } from "../../../../../../models/Desplegables";
+import { useAuth } from "../../../../../../auth/authProvider";
+import { formatPesosEsCO, numeroATexto, toNumberFromEsCO,  } from "../../../../../../utils/Number";
+import { useSalarios } from "../../../../../../Funcionalidades/GD/Salario";;
+import { lookOtherInfo } from "../../../../../../utils/lookFor";
+import { usePromocion } from "../../../../../../Funcionalidades/GD/Promocion";
+import type { Cesacion, CesacionErrors, } from "../../../../../../models/Cesaciones";
+import type { SetField } from "../../Contrato/addContrato";
+import { useRetail } from "../../../../../../Funcionalidades/GD/Retail";
+import { createBody, notifyTeam } from "../../../../../../utils/mail";
+import { ProcessDetail } from "../procesoCesacion";
+import { useAutomaticCargo } from "../../../../../../Funcionalidades/GD/Niveles";
+import { safeLower } from "../../../../../../utils/text";
+import { toISODateFlex } from "../../../../../../utils/Date";
+import { usePermissions } from "../../../../../../Funcionalidades/Permisos";
+import type { DetallesPasos } from "../../../../../../models/Pasos";
+import { useContratos } from "../../../../../../Funcionalidades/GD/Contratos/hooks/useContratos";
+import { useHabeasData } from "../../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
+import { auxilioHandlder } from "../../../Handler/CesacionesHandlers";
+import { createEmptyCesacion } from "../../../../../../Funcionalidades/GD/Cesaciones/utils/cesacionesState";
+import { useCesacionStepDetails, useCesacionSteps } from "../../../../../../Funcionalidades/GD/Steps/CesacionSteps/useCesacionSteps";
+import { ConfirmModal, type ConfirmModalPayload } from "../../../../Common/confirmModal/ConfirmModal";
+import { notify } from "../../../../../../utils/notify";
+import FooterForm from "../../Common/AddFormFooter/addFooter";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -95,7 +97,6 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
 
   const showCargos = React.useMemo(() => new Set<string>(["31", "42", "9", "33", "793"]), []);
   const filteredCargoOptions = React.useMemo(() => cargoOptions.filter(o => showCargos.has(String(o.value))), [cargoOptions, showCargos]);
-  console.log(filteredCargoOptions)
 
   const canEditRegister = React.useMemo(() => {
     const requiredPermission = "cesaciones.edit";
@@ -219,7 +220,6 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
       const created = await handleSubmit();
       if(created.ok){
         const steps = await loadPasosCesacion(false)
-        console.log(steps)
         await handleCreateAllSteps(steps, created.created?.Id ?? "", created.created?.Cargo ?? "")
         const body = createBody(account?.name ?? "", "Cesaciones", state.Nombre, state.Title, state.Cargo, state.FechaIngreso ?? "")
         await notifyTeam(mail, "Nuevo registro en cesaciones - Gestor documental CH", body)
@@ -258,8 +258,13 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
     },
     [handleCompleteStep, calcPorcentaje, selectedCesacion?.Id, Cesaciones])
 
-  const handleCancel = async (razon: string) => {
-    await handleCancelProcessbyId(selectedCesacion!.Id ?? "", razon)
+  const handleCancel = async ({ reason }: ConfirmModalPayload) => {
+    if(!reason) {
+      notify.error("La razón de cancelación es requerida");
+      return
+    };
+
+    await handleCancelProcessbyId(selectedCesacion!.Id ?? "", reason)
     setCancelProcess(false)
   };
 
@@ -315,6 +320,11 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
 
     handleAuxilioChange(raw)
   };
+
+  const inactivateRegister = () => {
+    selectedCesacion?.Estado === "Cancelado" ?  handleReactivateProcessById(selectedCesacion.Id ?? "") :  setCancelProcess(true)
+  }
+
 
   return (
     <div className="ft-modal-backdrop">
@@ -737,36 +747,28 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
 
         {/* Acciones */}
         <div className="ft-actions">
-            <button disabled={selectedCesacion?.Estado === "Cancelado" || sending || !canEditRegister} type="button" className="btn btn-primary btn-xs" onClick={(e) => handleCreateCesacion(e)}>
-              {
-                !canEditRegister ? "No tiene permisos para editar en este modulo" :
-                isView ? "Enviar solicitud de edición" :
-                selectedCesacion?.Estado === "Cancelado" ? "Este proceso fue cancelado, no puede ser usado" : 
-                sending ? "Procesando..." : 
-                "Guardar"
-              }
-            </button> 
-
-            { isView || tipo === "edit" ?
-              <button type="submit" className="btn btn-xs" onClick={() => setFlow(true)}>Detalles</button> : null
-            }
-
-            { canInactivateRegister && (isView || tipo === "edit" ) ?
-              <button type="submit" className="btn btn-xs btn-danger" disabled={!canInactivateRegister} onClick={() => {
-                                                                        selectedCesacion?.Estado === "Cancelado" ? 
-                                                                          handleReactivateProcessById(selectedCesacion.Id ?? "") : 
-                                                                          setCancelProcess(true)}}
-                                                                        >
-                {
-                  !canInactivateRegister ? "No tiene permiso para cancelar este registro" :
-                  selectedCesacion?.Estado !== "Cancelado" ? "Cancelar proceso" : 
-                  "Reactivar proceso"
-                }
-              </button> : null
-            }
-          <button type="button" className="btn btn-xs" onClick={onClose}>Cancelar</button>
+          <FooterForm 
+            processState={selectedCesacion?.Estado} 
+            sending={sending} 
+            canEditRegister={canEditRegister} 
+            canInactivateRegister={canInactivateRegister} 
+            isView={isView} 
+            handleCreate={handleCreateCesacion} 
+            showFlow={setFlow} 
+            inactivateRegister={inactivateRegister} 
+            onClose={onClose} 
+            tipo={tipo}/>
         </div>
-        <CancelProcessModal open={cancelProcess} onClose={() => setCancelProcess(false) } onEliminar={handleCancel}/>
+        <ConfirmModal 
+          open={cancelProcess} 
+          onClose={() => setCancelProcess(false) } 
+          description= "Escriba la razón de cancelación del proceso"
+          needText={true}
+          onSend={handleCancel}
+          title="Cancelación de proceso"
+          loading={sending}
+          buttonText={"Cancelar Proceso"}
+        />
       </section>
     </div>
   );

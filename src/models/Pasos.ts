@@ -4,6 +4,7 @@ export type PasosProceso = {
     NombrePaso: string;
     Orden: number;
     NombreEvidencia: string;
+    AceptaTipos?: string;
     TipoPaso: string;
     PlantillaCorreo: string
     PlantillaAsunto: string;

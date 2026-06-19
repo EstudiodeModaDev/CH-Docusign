@@ -2,92 +2,48 @@ import * as React from "react";
 import "../PasosPromocion.css";
 import { useCoreGraphServices, useGestorServices } from "../../../../../graph/graphContext";
 import type { DetallesPasos, PasosProceso } from "../../../../../models/Pasos";
-import type { GraphSendMailPayload } from "../../../../../graph/graphRest";
+import type { GraphFileAttachment, GraphSendMailPayload } from "../../../../../graph/graphRest";
 import { toUnifyVM, type Proceso } from "../../../../../utils/unify";
-import RichTextBase64 from "../../../../RichText/RichText";
 import { parseEmails, renderTemplate, safeString } from "../../../../../utils/text";
 import type { PropsProceso } from "../../../../../models/Props";
 import { spDateToDDMMYYYY } from "../../../../../utils/Date";
 import { SimpleFileUpload } from "../../../../GD/AddFile/AddFile";
-import { notify } from '../../../../../utils/notify';
-
-export type TipoPaso = "Aprobacion" | "Notificacion" | "SubidaDocumento";
-type EstadoFinal = "Completado" | "Omitido";
-
-function toRecipients(addresses: string[]) {
-  return addresses.map((address) => ({ emailAddress: { address } }));
-}
-
-function sanitizeFileName(name: string) {
-  // caracteres no permitidos en OneDrive/SharePoint
-  const bad = /["*:<>\?\/\\|]/g;
-  let n = (name ?? "").replace(bad, "-").trim();
-  // evitar terminar en punto/espacio
-  n = n.replace(/[\. ]+$/g, "");
-  // evitar dobles espacios
-  n = n.replace(/\s+/g, " ");
-  return n || "Evidencia";
-}
-
-function withSuffix(name: string, i: number) {
-  const dot = name.lastIndexOf(".");
-  if (dot <= 0) return `${name} (${i})`;
-  return `${name.slice(0, dot)} (${i})${name.slice(dot)}`;
-}
+import { notify } from "../../../../../utils/notify";
+import { blobToBase64 } from "../../../../../utils/Images";
+import { detectTipoPaso, getCurrentDetalle, isEstadoDone, normalizeProcessText, sanitizeFileName, toRecipients, type EstadoFinal, withSuffix,} from "./processCesacion.helpers";
+import { ApprovalStepContent, NotificationStepContent, StepCompletionNotes, UploadStepContent,} from "./processCesacionSections";
 
 export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDetalles, errorDetalles, loadDetalles, titulo, selectedCesacion, onClose, loadingPasos, errorPasos, pasosById, decisiones, motivos, setMotivos, setDecisiones, handleCompleteStep, proceso,}) => {
-  const {ColaboradoresDH,  ColaboradoresEDM, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta, ColaboradoresBroken, } = useGestorServices();
-  const {mail,} = useCoreGraphServices();
+  const { ColaboradoresDH, ColaboradoresEDM, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta, ColaboradoresBroken,} = useGestorServices();
+  const { mail } = useCoreGraphServices();
 
   const vm = toUnifyVM(proceso as Proceso, selectedCesacion as any);
 
-
   const [files, setFiles] = React.useState<Record<string, File | null>>({});
-  const [destinatario, setDestinatario] = React.useState<string>("");
-  const [asunto, setAsunto] = React.useState<string>("");
-  const [cuerpo, setBody] = React.useState<string>("");
-  const [sending, setSending] = React.useState<boolean>(false);
-  const [uploading, setUploading] = React.useState<boolean>(false);
-  const [isCustomBody, setIsCustomBody] = React.useState<boolean>(false);
+  const [destinatario, setDestinatario] = React.useState("");
+  const [asunto, setAsunto] = React.useState("");
+  const [cuerpo, setBody] = React.useState("");
+  const [mailAttachments, setMailAttachments] = React.useState<File[]>([]);
+  const [sending, setSending] = React.useState(false);
+  const [uploading, setUploading] = React.useState(false);
+  const [isCustomBody, setIsCustomBody] = React.useState(false);
   const [uploadPicker, setUploadPicker] = React.useState<{
     idDetalle: string;
     label: string;
     accept: string;
   } | null>(null);
+  const uploadingRef = React.useRef(false);
 
-  const detectTipoPaso = (paso: any): TipoPaso => {
-    const t = paso?.TipoPaso ?? "";
-    if (t === "Aprobacion" || t === "Notificacion" || t === "SubidaDocumento") return t;
-    return "Aprobacion";
-  };
+  const catalogReady = Object.keys(pasosById ?? {}).length > 0;
 
-  const isEstadoDone = (estado?: string | null) => estado === "Completado" || estado === "Omitido";
-
-  const catalogReady = Object.keys(pasosById ?? {}).length > 0
-
-  /** ======= PASO ACTUAL (1ero desbloqueado y pendiente) ======= */
-  const currentDetalle = React.useMemo(() => {
-    if (!detallesRows?.length) return null;
-
-    for (let i = 0; i < detallesRows.length; i++) {
-      const d = detallesRows[i];
-      const prev = detallesRows[i - 1];
-
-      const unlocked = i === 0 || isEstadoDone(prev?.EstadoPaso);
-      const isPending = !isEstadoDone(d?.EstadoPaso);
-
-      if (unlocked && isPending) return d;
-    }
-
-    return detallesRows[detallesRows.length - 1] ?? null;
-  }, [detallesRows]);
+  const currentDetalle = React.useMemo(() => getCurrentDetalle(detallesRows), [detallesRows]);
 
   const currentPaso = React.useMemo(() => {
     if (!currentDetalle) return null;
     return pasosById?.[currentDetalle.NumeroPaso] ?? null;
   }, [currentDetalle, pasosById]);
 
-  const data = React.useMemo(
+  const templateData = React.useMemo(
     () => ({
       nombre: vm?.nombre ?? "",
       numeroDoc: vm?.numeroDoc ?? "",
@@ -100,23 +56,25 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
   );
 
   React.useEffect(() => {
-    // BODY
     const tplBody = String(currentPaso?.PlantillaCorreo ?? "");
     if (tplBody.trim() && !isCustomBody) {
-      setBody((prev) => (prev?.trim() ? prev : renderTemplate(tplBody, data)));
+      setBody((prev) => (prev?.trim() ? prev : renderTemplate(tplBody, templateData)));
     }
 
-    // ASUNTO
     const tplSubject = String(currentPaso?.PlantillaAsunto ?? "");
     if (tplSubject.trim()) {
-      setAsunto((prev) => (prev?.trim() ? prev : renderTemplate(tplSubject, data)));
+      setAsunto((prev) => (prev?.trim() ? prev : renderTemplate(tplSubject, templateData)));
     }
 
-    // PARA
     setDestinatario((prev) => (prev?.trim() ? prev : vm?.correoElectronico ?? ""));
-  }, [currentPaso?.PlantillaCorreo, currentPaso?.PlantillaAsunto, data, isCustomBody, vm?.correoElectronico]);
+  }, [
+    currentPaso?.PlantillaAsunto,
+    currentPaso?.PlantillaCorreo,
+    isCustomBody,
+    templateData,
+    vm?.correoElectronico,
+  ]);
 
-  /** ======= Completar u Omitir ======= */
   const handleSubmit = async (detalle: DetallesPasos, estado: EstadoFinal) => {
     await handleCompleteStep(detalle, estado);
     await loadDetalles();
@@ -127,16 +85,37 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
     await handleSubmit(detalle, "Omitido");
   };
 
-  /** ======= Subida de documento ======= */
-  const uploadingRef = React.useRef(false);
+  const handleSelectFile = React.useCallback(
+    async (_path: string, file: File) => {
+      if (!uploadPicker?.idDetalle) return;
+      setFiles((prev) => ({ ...prev, [uploadPicker.idDetalle]: file }));
+      setUploadPicker(null);
+    },
+    [uploadPicker]
+  );
 
-  const handleSelectFile = React.useCallback(async (_path: string, file: File) => {
-    if (!uploadPicker?.idDetalle) return;
-    setFiles((prev) => ({ ...prev, [uploadPicker.idDetalle]: file }));
-    setUploadPicker(null);
-  }, [uploadPicker]);
+  const handleAddMailAttachments = React.useCallback((selectedFiles: FileList | null) => {
+    if (!selectedFiles?.length) return;
+    const files = Array.from(selectedFiles)
+    console.log(files)
 
-  const handleUploadAndComplete = async (detalle: DetallesPasos, paso: any) => {
+    setMailAttachments((prev) => {
+      const next = [...prev];
+
+      for (const file of Array.from(files)) {
+
+        next.push(file);
+      }
+
+      return next;
+    });
+  }, []);
+
+  const handleRemoveMailAttachment = React.useCallback((index: number) => {
+    setMailAttachments((prev) => prev.filter((_, currentIndex) => currentIndex !== index));
+  }, []);
+
+  const handleUploadAndComplete = async (detalle: DetallesPasos, paso: PasosProceso | null) => {
     if (uploadingRef.current) return;
     uploadingRef.current = true;
     setUploading(true);
@@ -150,18 +129,9 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
         return;
       }
 
-      const canon = (s: string) =>
-        (s ?? "")
-          .toString()
-          .normalize("NFKC")
-          .replace(/\u00a0/g, " ")
-          .replace(/[‐-‒–—―]/g, "-")
-          .replace(/\s+/g, " ")
-          .trim();
-
-      const numeroDoc = canon(vm?.numeroDoc ?? "");
-      const nombre = canon(vm?.nombre ?? "");
-      const empresa = canon(vm?.empresa?.toLowerCase() ?? "");
+      const numeroDoc = normalizeProcessText(vm?.numeroDoc ?? "");
+      const nombre = normalizeProcessText(vm?.nombre ?? "");
+      const empresa = normalizeProcessText(vm?.empresa?.toLowerCase() ?? "");
 
       if (!numeroDoc || !nombre) {
         notify.auto("Faltan datos del colaborador: número de documento o nombre.");
@@ -172,18 +142,16 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
         empresa === "dh retail"
           ? ColaboradoresDH
           : empresa === "movimiento"
-          ? ColaboradoresVisual
-          : empresa === "denim head"
-          ? ColaboradoresDenim
-          : empresa === "estudio de moda"
-          ? ColaboradoresEDM
-          : empresa === "metagraphics"
-          ? ColaboradoresMeta
-          : empresa === "broken"
-          ? ColaboradoresBroken
-          : null;
-
-
+            ? ColaboradoresVisual
+            : empresa === "denim head"
+              ? ColaboradoresDenim
+              : empresa === "estudio de moda"
+                ? ColaboradoresEDM
+                : empresa === "metagraphics"
+                  ? ColaboradoresMeta
+                  : empresa === "broken"
+                    ? ColaboradoresBroken
+                    : null;
 
       if (!servicioColaboradores) {
         notify.auto(`Empresa no reconocida para subida de archivos: ${vm?.empresa ?? "sin empresa"}`);
@@ -191,10 +159,8 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
       }
 
       const ext = (file.name.split(".").pop() ?? "pdf").trim();
-      const evidenciaRaw = canon(paso?.NombreEvidencia ?? paso?.NombrePaso ?? "Evidencia");
-      const nombreBaseRaw = `${numeroDoc} - ${evidenciaRaw}`;
-      const baseSafe = sanitizeFileName(nombreBaseRaw);
-
+      const evidenciaRaw = normalizeProcessText(paso?.NombreEvidencia ?? paso?.NombrePaso ?? "Evidencia");
+      const baseSafe = sanitizeFileName(`${numeroDoc} - ${evidenciaRaw}`);
       const folderName = `${numeroDoc} - ${nombre}`;
       const carpetaFallback = `Colaboradores Activos/${folderName}`;
 
@@ -207,15 +173,12 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
         targetFolderId = null;
       }
 
-      console.log("[UPLOAD] vm:", vm);
-      console.log("[UPLOAD] folderId:", targetFolderId);
-      console.log("[UPLOAD] fallbackPath:", carpetaFallback);
-
       let uploadedName: string | null = null;
-      let lastErr: any = null;
+      let lastErr: unknown = null;
 
-      for (let i = 0; i <= 15; i++) {
-        const candidate = i === 0 ? `${baseSafe}.${ext}` : `${withSuffix(baseSafe, i)}.${ext}`;
+      for (let index = 0; index <= 15; index++) {
+        const candidate =
+          index === 0 ? `${baseSafe}.${ext}` : `${withSuffix(baseSafe, index)}.${ext}`;
 
         const renamedFile = new File([file], candidate, {
           type: file.type,
@@ -232,20 +195,20 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
           uploadedName = candidate;
           lastErr = null;
           break;
-        } catch (e: any) {
-          const msg = (e?.message ?? "").toLowerCase();
-          const status = e?.status ?? e?.response?.status;
+        } catch (error: any) {
+          const message = (error?.message ?? "").toLowerCase();
+          const status = error?.status ?? error?.response?.status;
 
           if (
             status === 409 ||
-            msg.includes("incompatible with a similar name") ||
-            msg.includes("409")
+            message.includes("incompatible with a similar name") ||
+            message.includes("409")
           ) {
-            lastErr = e;
+            lastErr = error;
             continue;
           }
 
-          throw e;
+          throw error;
         }
       }
 
@@ -254,21 +217,38 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
       await handleSubmit(detalle, "Completado");
       setFiles((prev) => ({ ...prev, [idDetalle]: null }));
       notify.auto("Archivo subido y paso completado correctamente");
-    } catch (e: any) {
-      console.error("[UPLOAD] error:", e);
-      notify.auto("Error subiendo archivo: " + (e?.message ?? String(e)));
+    } catch (error: any) {
+      console.error("[UPLOAD] error:", error);
+      notify.auto("Error subiendo archivo: " + (error?.message ?? String(error)));
     } finally {
       setUploading(false);
       uploadingRef.current = false;
     }
   };
-  /** ======= Notificación ======= */
-  const sendNotification = async (toList: string[], subject: string, htmlBody: string) => {
+
+  const buildMailAttachments = async (attachments: File[]): Promise<GraphFileAttachment[]> => {
+    return Promise.all(
+      attachments.map(async (file) => ({
+        "@odata.type": "#microsoft.graph.fileAttachment",
+        name: file.name,
+        contentType: file.type || "application/octet-stream",
+        contentBytes: await blobToBase64(file),
+      }))
+    );
+  };
+
+  const sendNotification = async (
+    toList: string[],
+    subject: string,
+    htmlBody: string,
+    attachments: File[]
+  ) => {
     const payload: GraphSendMailPayload = {
       message: {
         subject,
         body: { contentType: "HTML", content: htmlBody },
         toRecipients: toRecipients(toList),
+        ...(attachments.length ? { attachments: await buildMailAttachments(attachments) } : {}),
       },
     };
     await mail.sendEmail(payload);
@@ -296,21 +276,20 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
 
     setSending(true);
     try {
-      await sendNotification(destinos, asunto, cuerpo);
-
+      await sendNotification(destinos, asunto, cuerpo, mailAttachments);
       await handleSubmit(detalle, "Completado");
       setAsunto("");
       setBody("");
+      setMailAttachments([]);
       notify.auto("Notificación enviada.");
-    } catch (e: any) {
-      console.error(e);
-      notify.auto("Error enviando notificación: " + (e?.message ?? e));
+    } catch (error: any) {
+      console.error(error);
+      notify.auto("Error enviando notificación: " + (error?.message ?? error));
     } finally {
       setSending(false);
     }
   };
 
-  /** ======= Aprobación ======= */
   const handleApproveAndComplete = async (detalle: DetallesPasos) => {
     const idDetalle = detalle.Id ?? "";
     const decision = (decisiones[idDetalle] ?? "") as "" | "Aceptado" | "Rechazado";
@@ -320,6 +299,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
       notify.auto("Selecciona Aceptado o Rechazado.");
       return;
     }
+
     if (decision === "Rechazado" && !motivo.trim()) {
       notify.auto("Debes ingresar el motivo del rechazo.");
       return;
@@ -349,25 +329,19 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
       <div className="promo-steps__grid">
         {detallesRows.map((detalle, index) => {
           const idDetalle = detalle.Id ?? "";
-          const paso: PasosProceso | any = pasosById?.[detalle.NumeroPaso] ?? null;
-
+          const paso: PasosProceso | null = pasosById?.[detalle.NumeroPaso] ?? null;
           const previous = detallesRows[index - 1];
           const prevDone = index === 0 ? true : isEstadoDone(previous?.EstadoPaso);
           const isVisible = index === 0 || prevDone;
+
           if (!isVisible) return null;
 
           const isCompleted = detalle.EstadoPaso === "Completado";
           const isOmitted = detalle.EstadoPaso === "Omitido";
           const isDone = isCompleted || isOmitted;
-
           const tipoPaso = detectTipoPaso(paso);
+          const canSkip = !(paso?.Obligatorio ?? true) && !isDone;
 
-          const busySend = !!sending;
-          const busyUpload = !!uploading;
-
-          const obligatorio = paso?.Obligatorio ?? true;
-          const canSkip = !obligatorio && !isDone;
-        
           return (
             <article key={idDetalle} className="step-card">
               <div className="step-card__header">
@@ -379,136 +353,71 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
                   </span>
 
                   {canSkip && (
-                    <button type="button" className="btn btn-xs" onClick={() => handleSkipStep(detalle)} title="Omitir este paso">
+                    <button
+                      type="button"
+                      className="btn btn-xs"
+                      onClick={() => handleSkipStep(detalle)}
+                      title="Omitir este paso"
+                    >
                       Omitir
                     </button>
                   )}
                 </div>
               </div>
 
-              <div className="step-card__body"> 
-                  <>
-                    {/* ======== APROBACIÓN ======== */}
-                    {tipoPaso === "Aprobacion" && (
-                      <>
-                        {!isDone ? (
-                          <>
-                            <select className="step-card__select" value={(decisiones[idDetalle] ?? "") as any} onChange={(e) => {
-                                                                                                                  const value = e.target.value as "" | "Aceptado" | "Rechazado";
-                                                                                                                  setDecisiones((prev: any) => ({ ...prev, [idDetalle]: value }));
-                                                                                                                }}>
-                              <option value="">Seleccione…</option>
-                              <option value="Aceptado">Aceptado</option>
-                              <option value="Rechazado">Rechazado</option>
-                            </select>
+              <div className="step-card__body">
+                {tipoPaso === "Aprobacion" && (
+                  <ApprovalStepContent
+                    idDetalle={idDetalle}
+                    isDone={isDone}
+                    catalogReady={catalogReady}
+                    decision={(decisiones[idDetalle] ?? "") as "" | "Aceptado" | "Rechazado"}
+                    motivo={motivos[idDetalle] ?? ""}
+                    setDecisiones={setDecisiones}
+                    setMotivos={setMotivos}
+                    onApprove={() => handleApproveAndComplete(detalle)}
+                  />
+                )}
 
-                            {(decisiones[idDetalle] ?? "") === "Rechazado" && (
-                              <input type="text" className="step-card__input" placeholder="Motivo del rechazo" value={motivos[idDetalle] ?? ""} onChange={(e) => {
-                                                                                                                                                  const motivo = e.target.value;
-                                                                                                                                                  setMotivos((prev: any) => ({ ...prev, [idDetalle]: motivo }));
-                                                                                                                                                }}/>
-                            )}
+                {tipoPaso === "Notificacion" && (
+                  <NotificationStepContent
+                    isDone={isDone}
+                    busySend={sending}
+                    destinatario={destinatario}
+                    asunto={asunto}
+                    cuerpo={cuerpo}
+                    attachments={mailAttachments}
+                    setDestinatario={setDestinatario}
+                    setAsunto={setAsunto}
+                    setBody={setBody}
+                    setIsCustomBody={setIsCustomBody}
+                    onAddAttachments={handleAddMailAttachments}
+                    onRemoveAttachment={handleRemoveMailAttachment}
+                    onSend={() => handleSendAndComplete(detalle)}
+                  />
+                )}
 
-                            <button type="button" className={`step-card__check ${isDone ? "step-card__check--active" : ""}`} disabled={isDone || !catalogReady} onClick={() => handleApproveAndComplete(detalle)} title="Completar paso">
-                              ✓
-                            </button>
-                          </>
-                        ) :null}
-                      </>
-                    )}
+                {tipoPaso === "SubidaDocumento" && (
+                  <UploadStepContent
+                    idDetalle={idDetalle}
+                    isDone={isDone}
+                    busyUpload={uploading}
+                    file={files[idDetalle] ?? null}
+                    pasoNombreEvidencia={paso?.NombreEvidencia}
+                    pasoNombre={paso?.NombrePaso}
+                    pasoAceptaTipos={paso?.AceptaTipos}
+                    onOpenPicker={setUploadPicker}
+                    onUpload={() => handleUploadAndComplete(detalle, paso)}
+                  />
+                )}
 
-                    {/* ======== NOTIFICACIÓN ======== */}
-                    {tipoPaso === "Notificacion" && (
-                      <>
-                        {!isDone ? (
-                          <div className="mail">
-                            <div className="mail__topbar">
-                              <div className="mail__title">Nuevo mensaje</div>
-
-                              <div className="mail__actions">
-                                <button type="button" className="mail__send btn btn-xs"  disabled={busySend} onClick={() => handleSendAndComplete(detalle)} title="Enviar notificación y completar">
-                                  {busySend ? "Enviando…" : "Enviar"}
-                                </button>
-                              </div>
-                            </div>
-
-                            <div className="mail__main">
-                              <div className="mail__fields">
-                                <div className="mail__row">
-                                  <div className="mail__label">Para</div>
-                                  <input type="text" className="mail__input" placeholder="correo@dominio.com; correo2@gmail.com; correo3@hotmail.com" value={destinatario} onChange={(e) => setDestinatario(e.target.value)} disabled={busySend}/>
-                                </div>
-
-                                <div className="mail__row">
-                                  <div className="mail__label">Asunto</div>
-                                  <input type="text" className="mail__input" placeholder="Asunto" value={asunto} onChange={(e) => setAsunto(e.target.value)} disabled={busySend}/>
-                                </div>
-                              </div>
-
-                              <div className="mail__editor">
-                                <RichTextBase64 value={cuerpo} placeholder="Redacta tu mensaje… (HTML permitido)" readOnly={busySend} className="mail__rte-inner" imageSize={{ width: 240, fit: "contain" }} onChange={(html) => {
-                                    setIsCustomBody(true);
-                                    setBody(html);
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        ) : null}
-                      </>
-                    )}
-
-                    {/* ======== SUBIDA DE DOCUMENTO ======== */}
-                    {tipoPaso === "SubidaDocumento" && (
-                      <>
-                        {!isDone ? (
-                          <>
-                            <div className="step-card__upload-wrapper">
-                              <button
-                                type="button"
-                                className="step-card__upload-btn"
-                                disabled={busyUpload}
-                                onClick={() =>
-                                  setUploadPicker({
-                                    idDetalle,
-                                    label: safeString(paso?.NombreEvidencia ?? paso?.NombrePaso ?? "Documento requerido"),
-                                    accept: safeString(paso?.AceptaTipos ?? ".pdf,.jpg,.jpeg,.png"),
-                                  })
-                                }
-                              >
-                                Seleccionar archivo
-                              </button>
-
-                              {files[idDetalle] && (
-                                <span className="step-card__file-name">{files[idDetalle]?.name}</span>
-                              )}
-                            </div>
-
-                            <button
-                              type="button"
-                              className="btn btn-xs"
-                              disabled={busyUpload || !files[idDetalle]}
-                              onClick={() => handleUploadAndComplete(detalle, paso)}
-                              title="Subir y completar"
-                            >
-                              {busyUpload ? "Subiendo…" : "Subir ✓"}
-                            </button>
-                          </>
-                        ) : null}
-                      </>
-                    )}
-
-                    {(isOmitted || isCompleted) ?
-                       
-                      <>
-                        <div className="step-card__notes">
-                          <p className="step-card__note"><strong>{isOmitted ? "Omitido" : "Completado"} Por: </strong>{detalle.CompletadoPor}</p>
-                          <p className="step-card__note"><strong>Fecha en la que se {isOmitted ? "omitio" : "completo"}: </strong>{detalle.FechaCompletacion}</p>
-                          <p className="step-card__note"><strong>Notas: </strong>{detalle.Notas}</p>
-                        </div>
-                      </> : null
-                    }
-                  </>
+                <StepCompletionNotes
+                  isOmitted={isOmitted}
+                  isCompleted={isCompleted}
+                  completadoPor={detalle.CompletadoPor}
+                  fechaCompletacion={detalle.FechaCompletacion}
+                  notas={detalle.Notas}
+                />
               </div>
             </article>
           );
@@ -535,5 +444,3 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
     </section>
   );
 };
-
-

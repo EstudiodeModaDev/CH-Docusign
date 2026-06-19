@@ -4,6 +4,15 @@ export type GraphRecipient = {
   };
 };
 
+export type GraphFileAttachment = {
+  "@odata.type": string;
+  name: string;
+  contentType?: string;
+  contentBytes: string;
+  isInline?: boolean;
+  contentId?: string;
+};
+
 export type GraphSendMailPayload = {
   message: {
     subject: string;
@@ -13,6 +22,7 @@ export type GraphSendMailPayload = {
     };
     toRecipients: GraphRecipient[];
     ccRecipients?: GraphRecipient[];
+    attachments?: GraphFileAttachment[];
   };
   saveToSentItems?: boolean;
 };

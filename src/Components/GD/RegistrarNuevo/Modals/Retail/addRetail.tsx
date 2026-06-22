@@ -24,6 +24,7 @@ import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
 import { useRetailStepDetails, useRetailSteps } from "../../../../../Funcionalidades/GD/Steps/RetailSteps/retailStepts";
 import { ConfirmModal, type ConfirmModalPayload } from "../../../Common/confirmModal/ConfirmModal";
 import FooterForm from "../Common/AddFormFooter/addFooter";
+import { diasSemanaOptions } from "../../../../../consts/diasFestivos";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -166,6 +167,7 @@ export default function FormRetail({
   const selectedCentroCostos = CentroCostosOptions.find((o) => safeLower(o.value) === safeLower(state.CodigoCentroCostos)) ?? null;
   const selectedCentroOperativo = COOptions.find((o) => safeLower(o.value) === safeLower(state.CodigoCentroOperativo)) ?? null;
   const selectedUnidadNegocio = UNOptions.find((o) => safeLower(o.value) === safeLower(state.CodigoUnidadNegocio)) ?? null;
+  const selectedDominicalDay = diasSemanaOptions.find((o) => safeLower(o.value) === safeLower(state.DominicalDay)) ?? null;
   const selectedDependencia = dependenciaOptions.find((o) =>safeLower( o.label) === safeLower(state.Depedencia)) ?? null;
   const selectedOrigenSeleccion = origenOptions.find((o) => o.label.toLocaleLowerCase() === state.OrigenSeleccion.toLocaleLowerCase()) ?? null;
 
@@ -673,6 +675,26 @@ export default function FormRetail({
               <label className="ft-label" htmlFor="abreviacionDoc"> Codigo unidad de negocio *</label>
               <input disabled={!canEditRegister} id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoUnidadNegocio} readOnly/>
             </div>
+
+            {/* ================= Dia dominical ================= */}
+            <div className="ft-field">
+              <label className="ft-label" htmlFor="dominicalDay">Dia dominical</label>
+              <Select<desplegablesOption, false>
+                inputId="dominicalDay"
+                options={diasSemanaOptions}
+                placeholder={"Buscar tipo dia dominical..."}
+                value={selectedDominicalDay}
+                onChange={(opt) => setField("DominicalDay", opt?.value ?? "")}
+                classNamePrefix="rs"
+                isDisabled={!canEditRegister}
+                getOptionValue={(o) => String(o.value)}
+                getOptionLabel={(o) => o.value}
+                components={{ Option }}
+                isClearable
+              />
+              <small>{errors.DominicalDay}</small>
+            </div>
+            
 
             {/* ================= Origen Seleccion ================= */}
             <div className="ft-field">

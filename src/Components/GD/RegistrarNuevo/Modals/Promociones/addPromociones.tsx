@@ -24,6 +24,7 @@ import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
 import { usePromocionStepDetails, usePromocionSteps } from "../../../../../Funcionalidades/GD/Steps/PromocionSteps/usePromocionSteps";
 import { ConfirmModal, type ConfirmModalPayload } from "../../../Common/confirmModal/ConfirmModal";
 import FooterForm from "../Common/AddFormFooter/addFooter";
+import { diasSemanaOptions } from "../../../../../consts/diasFestivos";
 /* ================== Option custom para react-select ================== */
 const Option = (props: OptionProps<desplegablesOption, false>) => {
   const { label } = props;
@@ -191,6 +192,7 @@ export default function FormPromocion({ submitting, handleReactivateProcessById,
   const selectedUnidadNegocio = UNOptions.find((o) => safeLower(o.value) === safeLower(state.IDUnidadNegocio)) ?? null;
   const selectedTipoVacante = tipoVacanteOptions.find((o) => safeLower(o.label) === safeLower(state.TipoVacante)) ?? null;
   const selectedDependencia = dependenciaOptions.find((o) =>safeLower( o.label) === safeLower(state.Dependencia)) ?? null;
+  const selectedDominicalDay = diasSemanaOptions.find((o) =>safeLower( o.label) === safeLower(state.DominicalDay)) ?? null;
   const opcionesTipoNomina = [{ value: "Retail", label: "Retail" }, { value: "Administrativa", label: "Administrativa" },];
 
   /* ================== display salario ================== */
@@ -881,6 +883,25 @@ export default function FormPromocion({ submitting, handleReactivateProcessById,
                 isClearable
               />
               <small>{errors.UnidadNegocio}</small>
+            </div>
+
+            {/* ================= Dia dominical ================= */}
+            <div className="ft-field">
+              <label className="ft-label" htmlFor="dominicalDay">Dia dominical</label>
+              <Select<desplegablesOption, false>
+                inputId="dominicalDay"
+                options={diasSemanaOptions}
+                placeholder={"Buscar tipo dia dominical..."}
+                value={selectedDominicalDay}
+                onChange={(opt) => setField("DominicalDay", opt?.value ?? "")}
+                classNamePrefix="rs"
+                isDisabled={!canEditRegister}
+                getOptionValue={(o) => String(o.value)}
+                getOptionLabel={(o) => o.value}
+                components={{ Option }}
+                isClearable
+              />
+              <small>{errors.DominicalDay}</small>
             </div>
             
             {/* Codigo UN */}

@@ -42,6 +42,7 @@ export type Cesacion = {
     direccionResidencia: string;
     CanceladoPor: string;
     RazonCancelacion: string;
+    DominicalDay: string;
 }
 
 export type CesacionErrors = Partial<Record<keyof Cesacion, string>>;

@@ -131,7 +131,8 @@ export class PromocionesService {
         Estado: f.Estado,
         CanceladoPor: f.CanceladoPor, 
         razonCancelacion: f.razonCancelacion,
-        FechaExamenesMedicos: f.FechaExamenesMedicos
+        FechaExamenesMedicos: f.FechaExamenesMedicos,
+        DominicalDay: f.DominicalDay
     };
   }
 

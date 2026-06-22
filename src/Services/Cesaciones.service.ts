@@ -113,7 +113,8 @@ export class CesacionesService {
       direccionResidencia: f.direccionResidencia,
       CanceladoPor: f.CanceladoPor,
       RazonCancelacion: f.RazonCancelacion,
-      FechaExamenesMedicos: f.FechaExamenesMedicos
+      FechaExamenesMedicos: f.FechaExamenesMedicos,
+      DominicalDay: f.DominicalDay
     };
   }
 

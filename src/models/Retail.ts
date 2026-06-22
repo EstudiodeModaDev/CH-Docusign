@@ -36,7 +36,8 @@ export type Retail = {
     Estado: string;
     CanceladoPor?: string;
     razonCancelacion?: string; 
-    FechaExamenesMedicos: string | null
+    FechaExamenesMedicos: string | null;
+    DominicalDay: string
 }
 
 export type RetailErrors = Partial<Record<keyof Retail, string>>;

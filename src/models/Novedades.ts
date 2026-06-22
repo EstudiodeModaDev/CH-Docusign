@@ -78,6 +78,7 @@ export type Novedad = {
     LugarExpedicion: string;
     RazonCancelacion: string;
     CanceladoPor: string;
+    DominicalDay: string;
 }
 
 export type NovedadErrors = Partial<Record<keyof Novedad, string>>;

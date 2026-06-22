@@ -80,6 +80,7 @@ export function createEmptyContratos(reportadoPor: string): Novedad {
     UNIDAD_x0020_DE_x0020_NEGOCIO_x0: "",
     Universidad: "",
     VALOR_x0020_GARANTIZADO: "",
-    FechaExamenesMedicos: null
+    FechaExamenesMedicos: null,
+    DominicalDay: ""
   };
 }

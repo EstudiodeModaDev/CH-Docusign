@@ -128,7 +128,8 @@ export function useRetail(RetailSvc: RetailService, ) {
     Temporal: "",
     CanceladoPor: "",
     razonCancelacion: "",
-    FechaExamenesMedicos: null
+    FechaExamenesMedicos: null,
+    DominicalDay: ""
   });
   const [estado, setEstado] = React.useState<string>("En proceso");
   const [errors, setErrors] = React.useState<RetailErrors>({});
@@ -341,7 +342,8 @@ export function useRetail(RetailSvc: RetailService, ) {
         NivelCargo: state.NivelCargo,
         Temporal: state.Temporal,
         UnidadNegocio: state.UnidadNegocio,
-        FechaExamenesMedicos: null
+        FechaExamenesMedicos: null,
+        DominicalDay: state.DominicalDay
     };
       const created = await RetailSvc.create(payload);
       notify.auto("Se ha creado el registro con éxito")

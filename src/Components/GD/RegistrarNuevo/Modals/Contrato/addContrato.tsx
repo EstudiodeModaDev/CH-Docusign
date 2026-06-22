@@ -24,6 +24,7 @@ import { useNovedadesStepDetails, useNovedadesSteps } from "../../../../../Funci
 import { useCoreGraphServices, useGestorServices } from "../../../../../graph/graphContext";
 import { ConfirmModal, type ConfirmModalPayload } from "../../../Common/confirmModal/ConfirmModal";
 import FooterForm from "../Common/AddFormFooter/addFooter";
+import { diasSemanaOptions } from "../../../../../consts/diasFestivos";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -205,7 +206,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
   const selectedTipoVacante = tipoVacanteOptions.find((o) => safeLower(o.label) === safeLower(state.TIPO_x0020_DE_x0020_VACANTE_x002)) ?? null;
   const selectedDependencia = dependenciaOptions.find((o) =>safeLower( o.label) === safeLower(state.DEPENDENCIA_x0020_)) ?? null;
   const selectedEtapa = etapasOptions.find((o) => safeLower(o.label) === safeLower(state.Etapa)) ?? null;
-
+  const selectedDominicalDay = diasSemanaOptions.find((d) => safeLower(d.label) === safeLower(state.DominicalDay))
   /* ================== display salario ================== */
   React.useEffect(() => {
     if (state.SALARIO != null && state.SALARIO !== "") {
@@ -1182,6 +1183,26 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
                 isClearable
               />
               <small>{errors.TIPO_x0020_DE_x0020_CONTRATO}</small>
+            </div>
+
+            {/* ================= Dia dominical ================= */}
+            <div className="ft-field">
+              <label className="ft-label" htmlFor="dominicalDay">Dia dominical</label>
+              <Select<desplegablesOption, false>
+                inputId="dominicalDay"
+                options={diasSemanaOptions}
+                placeholder={loadingTipoContrato ? "Cargando opciones…" : "Buscar tipo dia dominical..."}
+                value={selectedDominicalDay}
+                onChange={(opt) => setField("DominicalDay", opt?.value ?? "")}
+                classNamePrefix="rs"
+                isDisabled={loadingTipoContrato || !canEditRegister}
+                isLoading={loadingTipoContrato}
+                getOptionValue={(o) => String(o.value)}
+                getOptionLabel={(o) => o.value}
+                components={{ Option }}
+                isClearable
+              />
+              <small>{errors.DominicalDay}</small>
             </div>
 
             {/* ================= Tipo de vacante ================= */}

@@ -108,7 +108,8 @@ export class RetailService {
         Estado: f.Estado,
         razonCancelacion: f.razonCancelacion,
         CanceladoPor: f.CanceladoPor,
-        FechaExamenesMedicos: f.FechaExamenesMedicos
+        FechaExamenesMedicos: f.FechaExamenesMedicos,
+        DominicalDay: f.DominicalDay
     };
   }
 

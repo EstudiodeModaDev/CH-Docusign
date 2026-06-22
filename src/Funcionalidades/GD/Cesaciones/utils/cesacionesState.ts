@@ -44,6 +44,7 @@ export function createEmptyCesacion(reportadoPor: string): Cesacion {
     direccionResidencia: "",
     CanceladoPor: "",
     RazonCancelacion: "",
-    FechaExamenesMedicos: null
+    FechaExamenesMedicos: null,
+    DominicalDay: ""
   };
 }

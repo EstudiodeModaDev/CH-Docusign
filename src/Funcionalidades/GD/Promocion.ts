@@ -146,7 +146,8 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
     Estado: "En proceso",
     CanceladoPor: "",
     razonCancelacion: "",
-    FechaExamenesMedicos: null
+    FechaExamenesMedicos: null,
+    DominicalDay: ""
   });
   const [estado, setEstado] = React.useState<string>("En proceso");
   const [errors, setErrors] = React.useState<PromocionErrors>({});
@@ -387,7 +388,8 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
         Estado: "En proceso",
         CanceladoPor: state.CanceladoPor,
         razonCancelacion: state.razonCancelacion,
-        FechaExamenesMedicos: null
+        FechaExamenesMedicos: null,
+        DominicalDay: state.DominicalDay
       };
       const created = await PromocionesSvc.create(payload);
       notify.auto("Se ha creado el registro con éxito")

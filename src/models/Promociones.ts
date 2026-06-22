@@ -59,7 +59,8 @@ export type Promocion = {
     Estado: string,
     CanceladoPor: string;
     razonCancelacion: string
-    FechaExamenesMedicos: string | null
+    FechaExamenesMedicos: string | null;
+    DominicalDay: string
 }
 
 export type PromocionErrors = Partial<Record<keyof Promocion, string>>;

@@ -26,6 +26,7 @@ import { useCesacionStepDetails, useCesacionSteps } from "../../../../../../Func
 import { ConfirmModal, type ConfirmModalPayload } from "../../../../Common/confirmModal/ConfirmModal";
 import { notify } from "../../../../../../utils/notify";
 import FooterForm from "../../Common/AddFormFooter/addFooter";
+import { diasSemanaOptions } from "../../../../../../consts/diasFestivos";
 
 /* ================== Option custom para react-select ================== */
 export const Option = (props: OptionProps<desplegablesOption, false>) => {
@@ -167,6 +168,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
   const selectedCentroOperativo = COOptions.find((o) => safeLower(o.value) === safeLower(state.CodigoCO)) ?? null;
   const selectedUnidadNegocio = UNOptions.find((o) => safeLower(o.value) === safeLower(state.CodigoUN)) ?? null;
   const selectedTemporal = temporalOption.find((o) => safeLower(o.label) === safeLower(state.Temporal)) ?? null;
+  const selectedDominicalDay = diasSemanaOptions.find((d) => safeLower(d.value) === safeLower(state.DominicalDay)) ?? null;
 
   /* ================== display salario ================== */
   React.useEffect(() => {
@@ -721,6 +723,25 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
             <div className="ft-field">
               <label className="ft-label" htmlFor="abreviacionDoc"> Codigo unidad de negocio *</label>
               <input id="abreviacionDoc" name="abreviacionDoc" type="text" placeholder="Seleccione un tipo CO" value={state.CodigoUN} readOnly/>
+            </div>
+
+            {/* ================= Dia dominical ================= */}
+            <div className="ft-field">
+              <label className="ft-label" htmlFor="dominicalDay">Dia dominical</label>
+              <Select<desplegablesOption, false>
+                inputId="dominicalDay"
+                options={diasSemanaOptions}
+                placeholder={"Buscar tipo dia dominical..."}
+                value={selectedDominicalDay}
+                onChange={(opt) => setField("DominicalDay", opt?.value ?? "")}
+                classNamePrefix="rs"
+                isDisabled={!canEditRegister}
+                getOptionValue={(o) => String(o.value)}
+                getOptionLabel={(o) => o.value}
+                components={{ Option }}
+                isClearable
+              />
+              <small>{errors.DominicalDay}</small>
             </div>
 
             {/* Direccion */}

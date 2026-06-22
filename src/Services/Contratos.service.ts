@@ -149,7 +149,8 @@ export class ContratosService {
         LugarExpedicion: f.LugarExpedicion,
         RazonCancelacion: f.RazonCancelacion,
         CanceladoPor: f.CanceladoPor,
-        FechaExamenesMedicos: f.FechaExamenesMedicos
+        FechaExamenesMedicos: f.FechaExamenesMedicos,
+        DominicalDay: f.DominicalDay
     };
   }
 

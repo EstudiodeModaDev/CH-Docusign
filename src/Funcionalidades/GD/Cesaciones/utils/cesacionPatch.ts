@@ -1,5 +1,5 @@
 import type { Cesacion } from "../../../../models/Cesaciones";
-import { normalize, normalizeDate } from "../../../../utils/Date";
+import { areFieldValuesEqual } from "../../UpdateRequestDetails/utils/fieldComparison";
 
 const fields: (keyof Cesacion)[] = [
   "Title", "Nombre", "Cargo", "Temporal", "Tienda", "Celular", "Correoelectronico",
@@ -21,15 +21,11 @@ export function buildCesacionPatch(original: Cesacion, next: Cesacion) {
   const patch: Record<string, any> = {};
 
   for (const k of fields) {
-    const a = normalize(original[k]);
-    const b = normalize(next[k]);
-    if (a !== b) patch[k] = b;
+    if (!areFieldValuesEqual(String(k), original[k], next[k])) patch[k] = next[k];
   }
 
   for (const k of dateFields) {
-    const a = normalizeDate(original[k]);
-    const b = normalizeDate(next[k]);
-    if (a !== b) patch[k] = b;
+    if (!areFieldValuesEqual(String(k), original[k], next[k], "date")) patch[k] = next[k];
   }
 
   return patch;

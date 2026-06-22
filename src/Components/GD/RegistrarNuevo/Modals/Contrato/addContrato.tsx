@@ -134,9 +134,50 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
   const [conectividad, setConectividad] = React.useState<number>(0);
   const [conectividadTexto, setConectividadTexto] = React.useState<string>("");
   const [planFinanciado, setPlanfinanciado] = React.useState<boolean>(false);
-  const [garantizadoValor, setValorGarantizado] = React.useState<number>(0);
-  const [porcentajeValor, setPorcentajeValor] = React.useState<number>(0);
-  const [promedio, setPromedio] = React.useState<number>(0);
+  const [porcentajeValor, setPorcentajeValor] = React.useState<string>("");
+  const garantizadoValor = React.useMemo(() => {
+    const salario = Number(state.SALARIO || 0);
+
+    // 👇 Solo inicializa cuando ya haya datos válidos
+    const porcentaje = Number(porcentajeValor || 0);
+    if (salario <= 0 || porcentaje <= 0) return "";
+    return Math.round(salario * (porcentaje / 100));
+  }, [state.SALARIO, porcentajeValor]);
+
+  React.useEffect(() => {
+    if (!selectedNovedad) {
+      setPorcentajeValor("");
+      return;
+    }
+
+    if (selectedNovedad.VALOR_x0020_GARANTIZADO && selectedNovedad.SALARIO) {
+      const garantizado = Number(selectedNovedad.VALOR_x0020_GARANTIZADO);
+      const salario = Number(selectedNovedad.SALARIO);
+
+      if (garantizado > 0 && salario > 0) {
+        const newPercentage = (garantizado / salario) * 100;
+        setPorcentajeValor(String(Math.round(newPercentage)));
+        return;
+      }
+    }
+
+    setPorcentajeValor("");
+  }, [selectedNovedad]);
+
+  React.useEffect(() => {
+
+    if (garantizadoValor === "") {
+      setField("VALOR_x0020_GARANTIZADO", "");
+      setField("Garantizado_x0020_en_x0020_letra", "");
+      return;
+    }
+
+    setField("VALOR_x0020_GARANTIZADO", String(garantizadoValor));
+    setField("Garantizado_x0020_en_x0020_letra", numeroATexto(garantizadoValor).toUpperCase());
+  }, [garantizadoValor, setField]);
+
+
+  const [promedio, setPromedio] = React.useState<number | "">("");
   const [minimo, setMinimo] = React.useState<number>(0);
   const [auxTransporte, setAuxTransporte] = React.useState<number>(0);
   const [grupoCVE, setGrupoCVE] = React.useState<string>("");
@@ -228,34 +269,15 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
   }, [state.Auxilio_x0020_de_x0020_rodamient]);
 
 
-  /* ================== Garantizado ================== */
-  const inicializadoRef = React.useRef(false);
-
-  React.useEffect(() => {
-    if (inicializadoRef.current) return;
-
-    const salario = Number(state.SALARIO || 0);
-    const valorGarantizadoState = Number(state.VALOR_x0020_GARANTIZADO || 0);
-
-    // 👇 Solo inicializa cuando ya haya datos válidos
-    if (salario > 0 && valorGarantizadoState > 0) {
-      const porcentajeCalculado = Math.round((valorGarantizadoState / salario) * 100);
-
-      setValorGarantizado(valorGarantizadoState);
-      setPorcentajeValor(porcentajeCalculado);
-      setField("VALOR_x0020_GARANTIZADO", String(valorGarantizadoState));
-      setField(
-        "Garantizado_x0020_en_x0020_letra",
-        numeroATexto(valorGarantizadoState).toUpperCase()
-      );
-
-      inicializadoRef.current = true; // 🔥 bloquea futuras ejecuciones
-    }
-
-  }, [state.SALARIO, state.VALOR_x0020_GARANTIZADO]);
-
   /* ================== CVE  ================== */
   React.useEffect(() => {
+    const hasCveInputs = [
+      state.AUTONOM_x00cd_A_x0020_,
+      state.IMPACTO_x0020_CLIENTE_x0020_EXTE,
+      state.CONTRIBUCION_x0020_A_x0020_LA_x0,
+      state.PRESUPUESTO_x0020_VENTAS_x002f_M,
+    ].some((value) => value !== null && value !== undefined && String(value).trim() !== "");
+
     const p =
       Number(state.AUTONOM_x00cd_A_x0020_ || 0) * 0.2 +
       Number(state.IMPACTO_x0020_CLIENTE_x0020_EXTE || 0) * 0.2 +
@@ -270,11 +292,14 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
       pRed === 3 ? "Imaginarios" :
       pRed === 4 ? "Soñadores" : "";
 
-    setPromedio((prev) => (prev === p ? prev : p));
-    setGrupoCVE((prev) => (prev === g ? prev : g));
+    const nextPromedio = hasCveInputs ? p : "";
+    const nextGrupo = hasCveInputs ? g : "";
 
-    setField("PROMEDIO_x0020_", String(p));
-    setField("GRUPO_x0020_CVE_x0020_", g);
+    setPromedio((prev) => (prev === nextPromedio ? prev : nextPromedio));
+    setGrupoCVE((prev) => (prev === nextGrupo ? prev : nextGrupo));
+
+    setField("PROMEDIO_x0020_", hasCveInputs ? String(p) : "");
+    setField("GRUPO_x0020_CVE_x0020_", nextGrupo);
   }, [
     state.AUTONOM_x00cd_A_x0020_,
     state.PRESUPUESTO_x0020_VENTAS_x002f_M,
@@ -850,10 +875,10 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
             {state.GARANTIZADO_x0020__x0020__x00bf_?.toLocaleLowerCase() === "si" && (
               <div className="ft-field">
                 <label className="ft-label" htmlFor="porcentajeValor">Porcentaje del garantizado *</label>
-                <input disabled={!canEditRegister} id="porcentajeValor" name="porcentajeValor" type="text" placeholder="Porcentaje del garantizado" value={porcentajeValor} onChange={(e) => setPorcentajeValor(Number(e.target.value))} maxLength={3}/>
+                <input disabled={!canEditRegister} id="porcentajeValor" name="porcentajeValor" type="text" placeholder="Porcentaje del garantizado" value={porcentajeValor} onChange={(e) => setPorcentajeValor(e.target.value)} maxLength={3}/>
                 <small>{errors.VALOR_x0020_GARANTIZADO}</small>
 
-                <input id="VALOR_x0020_GARANTIZADO" name="VALOR_x0020_GARANTIZADO" type="text" placeholder="Total Garantizado" value={garantizadoValor ? formatPesosEsCO(String(garantizadoValor)) : ""} autoComplete="off" readOnly/>
+                <input id="VALOR_x0020_GARANTIZADO" name="VALOR_x0020_GARANTIZADO" type="text" placeholder="Total Garantizado" value={garantizadoValor === "" ? "" : formatPesosEsCO(String(garantizadoValor))} autoComplete="off" readOnly/>
               </div>
             )}
 

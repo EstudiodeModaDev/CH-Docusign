@@ -124,7 +124,7 @@ export default function FormPromocion({ submitting, handleReactivateProcessById,
   const [planFinanciado, setPlanfinanciado] = React.useState<boolean>(false);
   const [garantizadoValor, setValorGarantizado] = React.useState<number>(0);
   const [porcentajeValor, setPorcentajeValor] = React.useState<number>(0);
-  const [promedio, setPromedio] = React.useState<number>(0);
+  const [promedio, setPromedio] = React.useState<number | "">("");
   const [minimo, setMinimo] = React.useState<number>(0);
   const [auxTransporte, setAuxTransporte] = React.useState<number>(0);
   const [grupoCVE, setGrupoCVE] = React.useState<string>("");
@@ -220,6 +220,16 @@ export default function FormPromocion({ submitting, handleReactivateProcessById,
     const salario = Number(state.Salario || 0);
     const porcentaje = Number(porcentajeValor || 0);
 
+    if (porcentaje <= 0 || salario <= 0) {
+      setValorGarantizado(state.ValorGarantizado ? Number(state.ValorGarantizado) : 0);
+
+      if (!state.ValorGarantizado) {
+        setField("ValorGarantizado", "");
+        setField("GarantizadoLetras", "");
+      }
+      return;
+    }
+
     const valor = Math.round(salario * (porcentaje / 100)); 
 
     setValorGarantizado(valor);
@@ -229,25 +239,34 @@ export default function FormPromocion({ submitting, handleReactivateProcessById,
 
   /* ================== CVE  ================== */
   React.useEffect(() => {
-    let promedio
-    promedio = 
-      (Number(state.Autonomia) * 0.2) + 
-      (Number(state.ImpactoClienteExterno) * 0.2)+
-      (Number(state.ContribucionaLaEstrategia) * 0.3) +
-      (Number(state.PresupuestoVentasMagnitudEconomi) * 0.3)  
-    setPromedio(promedio)
+    const hasCveInputs = [
+      state.Autonomia,
+      state.ImpactoClienteExterno,
+      state.ContribucionaLaEstrategia,
+      state.PresupuestoVentasMagnitudEconomi,
+    ].some((value) => value !== null && value !== undefined && String(value).trim() !== "");
+    const promedio =
+      Number(state.Autonomia) * 0.2 +
+      Number(state.ImpactoClienteExterno) * 0.2 +
+      Number(state.ContribucionaLaEstrategia) * 0.3 +
+      Number(state.PresupuestoVentasMagnitudEconomi) * 0.3;
     const promedioRedondeado = Math.floor(promedio)
+    let nextGrupo = ""
     switch(promedioRedondeado){
-      case 1: {setGrupoCVE("Constructores");} break;
-      case 2: setGrupoCVE("Desarrolladores"); break;
-      case 3: setGrupoCVE("Imaginarios"); break;
-      case 4: setGrupoCVE("Soñadores"); break;
-      default: setGrupoCVE("")
+      case 1: {nextGrupo = "Constructores";} break;
+      case 2: nextGrupo = "Desarrolladores"; break;
+      case 3: nextGrupo = "Imaginarios"; break;
+      case 4: nextGrupo = "Soñadores"; break;
+      default: nextGrupo = ""
     }
-    setField("Promedio", String(promedio));
-    setField("GrupoCVE", grupoCVE)
+    const promedioValue = hasCveInputs ? promedio : "";
+    const grupoValue = hasCveInputs ? nextGrupo : "";
+    setPromedio(promedioValue)
+    setGrupoCVE(grupoValue)
+    setField("Promedio", hasCveInputs ? String(promedio) : "");
+    setField("GrupoCVE", grupoValue)
 
-  }, [state.Autonomia, state.PresupuestoVentasMagnitudEconomi, state.ImpactoClienteExterno, state.ContribucionaLaEstrategia, grupoCVE]);
+  }, [state.Autonomia, state.PresupuestoVentasMagnitudEconomi, state.ImpactoClienteExterno, state.ContribucionaLaEstrategia]);
 
   /* ================== Nivel por cargo ================== */
   React.useEffect(() => {

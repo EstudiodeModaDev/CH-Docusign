@@ -1,6 +1,6 @@
 import type { HabeasData } from "../../../../models/HabeasData";
 import type { Promocion } from "../../../../models/Promociones";
-import { normalize, normalizeDate,} from "../../../../utils/Date";
+import { areFieldValuesEqual } from "../../UpdateRequestDetails/utils/fieldComparison";
 
 const fields: (keyof HabeasData)[] = [
   "Title", "AbreviacionTipoDoc", "Ciudad", "Correo", "Empresa", "NumeroDocumento", "Tipodoc",
@@ -10,9 +10,7 @@ export function buildHabeasPatch(original: HabeasData, next: HabeasData) {
   const patch: Record<string, any> = {};
 
   for (const k of fields) {
-    const a = normalize(original[k]);
-    const b = normalize(next[k]);
-    if (a !== b) patch[k] = b;
+    if (!areFieldValuesEqual(String(k), original[k], next[k])) patch[k] = next[k];
   }
 
   return patch;
@@ -34,15 +32,11 @@ export function buildHabeasPatch(original: HabeasData, next: HabeasData) {
     const patch: Record<string, any> = {};
 
     for (const k of fieldsPromociones) {
-      const a = normalize(original[k]);
-      const b = normalize(next[k]);
-      if (a !== b) patch[k] = b;
+      if (!areFieldValuesEqual(String(k), original[k], next[k])) patch[k] = next[k];
     }
 
     for (const k of dateFields) {
-      const a = normalizeDate(original[k]);
-      const b = normalizeDate(next[k]);
-      if (a !== b) patch[k] = b;
+      if (!areFieldValuesEqual(String(k), original[k], next[k], "date")) patch[k] = next[k];
     }
 
     return patch;

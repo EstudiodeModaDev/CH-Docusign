@@ -187,7 +187,7 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
     })
   };
   
-  const handleSubmit = async (e: React.FormEvent, firma: FirmaInline | null, correo: string, link: string, copias: string[]) => {
+  const handleSubmit = async (e: React.FormEvent, firma: FirmaInline | null, copias: string[]) => {
     e.preventDefault();
 
     if (!validate()) {
@@ -353,32 +353,6 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
       }
 
       await mail.sendEmail(mailPayload);
-
-     /* const formPayload: any = {
-        message: {
-          subject: `Encuesta de retiro Estudio de Moda`,
-          body: { contentType: "HTML", content:`
-                                                <p>Hola,</p>
-                                                <p>Desde <strong>Estudio de Moda</strong> te invitamos a rellenar esta encuesta de retiro para ayudarnos a mejorar:</p>
-                                                <p>
-                                                  <a href="${link}"
-                                                    style="color:#2563eb;text-decoration:underline;"
-                                                    target="_blank" rel="noopener noreferrer">
-                                                    Responder encuesta
-                                                  </a>
-                                                </p>
-                                                <p style="font-size:12px;color:#6b7280;">Si no te abre, copia y pega este enlace: ${link}</p>
-                                                <p>Gracias.</p>
-                                              `.trim(),},
-              toRecipients: [{emailAddress: { address: correo },},],
-        },
-        saveToSentItems: true,
-      };
-
-      //7) Enviar form
-      await mail.sendEmail(formPayload)*/
-
-      console.log(correo + " ", link)
 
       notify.auto("Se ha creado el registro con éxito y se enviaron las notificaciones.");
       cleanState();

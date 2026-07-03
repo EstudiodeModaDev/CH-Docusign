@@ -53,8 +53,7 @@ export const PreviewEnvioModal: React.FC<PreviewEnvioModalProps> = ({open, onClo
             const recipients = await getRecipients(envelopeId)
             setDestinatarios(recipients);
 
-            const info = await getenvelopeInfo(envelopeId)
-            console.log("Envelope info:", info);
+            await getenvelopeInfo(envelopeId)
 
             setCampos(result);
             } catch (e) {

@@ -176,13 +176,10 @@ export default function WizardRequisicion3Pasos({
 
   const handleCargoChange = async (cargo: string) => {
     const cleanCargo = cargo.toLocaleLowerCase().trim();
-    console.log(cargo)
     setField("Title", cargo);
 
     const query = `fields/Title eq '${cargo.toUpperCase().trim()}'`
-    console.log(query)
     const categoriaCargo = (await categorias.getAll({ filter: query }))[0];
-    console.log(categoriaCargo)
     setField("NivelCargo", categoriaCargo?.Categoria || "");
 
       if (cargosRetail.includes(cleanCargo)) {

@@ -249,7 +249,6 @@ export default function FormRetail({
   }, []);
 
   const completeStep = React.useCallback( async (detalle: DetallesPasos, estado: string) => {
-    console.log("Iniciando completación de paso con detalle:", detalle, "y estado:", estado);
     await retailStepsController.handleCompleteStep(detalle, estado);
 
     const porcentaje = await retailStepsDetailsController.calcPorcentaje(); 

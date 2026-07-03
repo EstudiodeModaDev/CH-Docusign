@@ -97,7 +97,6 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
   const handleAddMailAttachments = React.useCallback((selectedFiles: FileList | null) => {
     if (!selectedFiles?.length) return;
     const files = Array.from(selectedFiles)
-    console.log(files)
 
     setMailAttachments((prev) => {
       const next = [...prev];

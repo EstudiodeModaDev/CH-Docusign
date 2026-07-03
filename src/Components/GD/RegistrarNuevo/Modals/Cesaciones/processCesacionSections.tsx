@@ -96,10 +96,6 @@ export function NotificationStepContent(props: NotificationStepContentProps) {
 
   if (isDone) return null;
 
-  React.useEffect(() => {
-    console.log(attachments)
-  }, [attachments])
-
   return (
     <div className="mail">
       <div className="mail__topbar">

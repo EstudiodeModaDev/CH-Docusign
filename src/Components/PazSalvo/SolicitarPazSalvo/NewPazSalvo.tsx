@@ -187,7 +187,7 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
 
     const firma = await getFirmaInline();
     if (firma) {
-      await handleSubmit(e, firma, correo, encuestaFinal, copias);
+      await handleSubmit(e, firma, copias);
     }
   };
 

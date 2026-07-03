@@ -12,8 +12,6 @@ export function buildStepsMap(rows: PasosProceso[],): Record<string, PasosProces
     if (key) map[String(key)] = row;
   }
 
-  console.log(map)
-
   return map;
 }
 

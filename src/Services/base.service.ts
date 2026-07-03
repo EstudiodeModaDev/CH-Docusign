@@ -141,7 +141,6 @@ export abstract class BaseSharePointListService<TModel, TCreate = Omit<TModel, "
 
     const url = `/sites/${this.siteId}/lists/${this.listId}/items?${qs.toString()}`;
     const res = await this.fetchPage(url);
-    console.log(res)
     return res
   }
 

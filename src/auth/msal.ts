@@ -164,9 +164,6 @@ export async function getAccessToken(opts?: {
   await initMSAL();
   const account = ensureActiveAccount();
 
-  const token2 = await getApiAccessToken();
-
-  console.log("Token 2", token2)
   if (!account) {
     // Sin sesión, fuerza login según modo
     const mode = opts?.interactionMode ?? 'popup';

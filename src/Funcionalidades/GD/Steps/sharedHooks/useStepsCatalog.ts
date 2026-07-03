@@ -26,7 +26,6 @@ export function useStepsCatalog({getAll, update, orderby = "fields/Orden asc", i
 
     try {
       const items = await getAll({ orderby });
-      console.log(items)
       const filtered = all ? items : items.filter(i => i.Activado === true);
       setRows(filtered);
       return filtered;

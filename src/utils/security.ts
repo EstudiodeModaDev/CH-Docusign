@@ -1,4 +1,4 @@
-import type { GraphRest } from "../graph/graphRest";
+import type { GraphCollectionPage, GraphRest } from "../graph/graphRest";
 import { FEATURES, type FeatureKey, type ModuleKey } from "../models/security";
 import type { MatrizPermisosService } from "../Services/MatrizPermisos.service";
 
@@ -50,13 +50,22 @@ export function createEngine(set: ReadonlySet<FeatureKey>): PermissionsEngine {
 }
 
 export async function getUserGroupIds(graph: GraphRest): Promise<string[]> {
+  const groupIds = new Set<string>();
+  let nextUrl: string | null =
+    "https://graph.microsoft.com/v1.0/me/transitiveMemberOf/microsoft.graph.group?$select=id&$top=999";
 
-  const res = await graph.get<{ value: Array<{ id: string }> }>(
-    "/me/transitiveMemberOf/microsoft.graph.group?$select=id"
-  );
-  console.log(res);
-  console.log(res.value?.length);
-  return (res.value ?? []).map(x => x.id).filter(Boolean);
+  while (nextUrl) {
+    const page: GraphCollectionPage<{ id: string }> =
+      await graph.getAbsolute<GraphCollectionPage<{ id: string }>>(nextUrl);
+
+    for (const item of page.value ?? []) {
+      if (item?.id) groupIds.add(item.id);
+    }
+
+    nextUrl = page["@odata.nextLink"] ?? null;
+  }
+
+  return Array.from(groupIds);
 }
 
 export async function isUserInGroup(graph: GraphRest, groupId: string): Promise<boolean> {

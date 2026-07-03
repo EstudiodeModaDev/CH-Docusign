@@ -54,15 +54,36 @@ export async function getUserGroupIds(graph: GraphRest): Promise<string[]> {
   let nextUrl: string | null =
     "https://graph.microsoft.com/v1.0/me/transitiveMemberOf/microsoft.graph.group?$select=id&$top=999";
 
-  while (nextUrl) {
-    const page: GraphCollectionPage<{ id: string }> =
-      await graph.getAbsolute<GraphCollectionPage<{ id: string }>>(nextUrl);
+  try {
+    while (nextUrl) {
+      const page: GraphCollectionPage<{ id: string }> =
+        await graph.getAbsolute<GraphCollectionPage<{ id: string }>>(nextUrl);
 
-    for (const item of page.value ?? []) {
-      if (item?.id) groupIds.add(item.id);
+      for (const item of page.value ?? []) {
+        if (item?.id) groupIds.add(item.id);
+      }
+
+      nextUrl = page["@odata.nextLink"] ?? null;
     }
+  } catch (error) {
+    console.warn("[security] No se pudo listar transitiveMemberOf, se intentara fallback con checkMemberGroups.", error);
+  }
 
-    nextUrl = page["@odata.nextLink"] ?? null;
+  const appGroupIds = SECURITY_GROUPS.map((group) => group.groupId).filter(Boolean);
+
+  if (appGroupIds.length) {
+    try {
+      const res = await graph.post<{ value?: string[] }>(
+        "/me/checkMemberGroups",
+        { groupIds: appGroupIds }
+      );
+
+      for (const groupId of res.value ?? []) {
+        if (groupId) groupIds.add(groupId);
+      }
+    } catch (error) {
+      console.warn("[security] No se pudo validar membresia con checkMemberGroups.", error);
+    }
   }
 
   return Array.from(groupIds);

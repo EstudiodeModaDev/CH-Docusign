@@ -42,6 +42,7 @@ export default function FirstStepForm({
 }: Props) {
   const readyForNext = Boolean(state.Title && state.Ciudad);
 
+
   return (
     <section className="rqw-stage">
       <div className="rqw-stage__intro">

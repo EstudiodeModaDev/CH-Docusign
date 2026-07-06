@@ -20,6 +20,7 @@ import { useCoreGraphServices, useRequisicionesServices } from "../../../graph/g
 import { notify } from '../../../utils/notify';
 import { safeLower } from "../../../utils/text";
 import { diasSemanaOptions } from "../../../consts/diasFestivos";
+import { useSalarios } from "../../../Funcionalidades/GD/Salario";
 
 type Props = {
   onClose: () => void;
@@ -43,8 +44,9 @@ export default function WizardRequisicion3Pasos({
   sendNotificationPlantaIdeal
 }: Props) {
   const { ansRequisicion } = useRequisicionesServices();
-  const { categorias, Maestro, DeptosYMunicipios } = useCoreGraphServices();
+  const { categorias, Maestro, DeptosYMunicipios, salarios } = useCoreGraphServices();
   const [submitting, setSubmitting] = React.useState(false);
+    const { loadSpecificSalary } = useSalarios(salarios);
 
   const { reload: loadCargos, options: cargoOptions } = useCargo(Maestro);
   const { reload: loadTipoVacante, options: tipoConvocatoriaOptions } = useTipoVacante(Maestro);
@@ -185,14 +187,17 @@ export default function WizardRequisicion3Pasos({
     const categoriaCargo = (await categorias.getAll({ filter: query }))[0];
     setField("NivelCargo", categoriaCargo?.Categoria || "");
 
-      if (cargosRetail.includes(cleanCargo)) {
+    if (cargosRetail.includes(cleanCargo)) {
+      const [salarioRes] = await Promise.all([ loadSpecificSalary(cargo),]);
       setTipoRequisicion("Retail");
       setField("tipoRequisicion", "Retail");
+      setField("salarioBasico", salarioRes?.Salariorecomendado ?? "")
       return;
     }
 
     setTipoRequisicion("Administrativa");
     setField("tipoRequisicion", "Administrativa");
+    
   };
 
   const currentStep = step === 1 ? 1 : 2;

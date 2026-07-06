@@ -31,9 +31,11 @@ export function PermissionsProvider({ deps, children }: { deps: Deps; children: 
     setError(null);
     try {
       const ids = await deps.getMyGroupIds();
+      console.log("Grupos a los que pertecene el usuario: ", ids)
       setGroupIds(ids);
 
       const rows = await deps.getAppPermissionsRows();
+      console.log("Permisos otrogados: ", rows)
       // Filtra por grupos del usuario + Enabled
       const idSet = new Set(ids.map(s => s.toLowerCase()));
       const keys: FeatureKey[] = [];

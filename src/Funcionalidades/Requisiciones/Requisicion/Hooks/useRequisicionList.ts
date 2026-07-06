@@ -10,11 +10,17 @@ type Props = {
   pagination: ReturnType<typeof useNewRequisicionPagination>;
 };
 
-export function useRequisicionesList({filters, pagination}: Props) {
-  const {requisiciones} = useRequisicionesServices()
-  const {account} = useAuth()
-  
+type PageCache = {
+  rows: requisiciones[];
+  nextLink: string | null;
+};
+
+export function useRequisicionesList({ filters, pagination }: Props) {
+  const { requisiciones } = useRequisicionesServices();
+  const { account } = useAuth();
+
   const [rows, setRows] = React.useState<requisiciones[]>([]);
+  const [pages, setPages] = React.useState<PageCache[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -25,54 +31,79 @@ export function useRequisicionesList({filters, pagination}: Props) {
     setError(null);
 
     try {
-      const { items, nextLink: serverNextLink } = await requisiciones.getAll(filters.buildFilter());
-      setRows(items ?? []);
-      pagination.setNextLink(serverNextLink ?? null);
-      pagination.setPageIndex(1);
+      const filtro = filters.buildFilter();
+      const { items, nextLink: serverNextLink } = await requisiciones.getAll(filtro);
+      const firstPageRows = items ?? [];
+      const normalizedNextLink = serverNextLink ?? null;
+
+      setRows(firstPageRows);
+      setPages([{ rows: firstPageRows, nextLink: normalizedNextLink }]);
+      pagination.resetPagination(normalizedNextLink);
     } catch (e: any) {
-      setError(e?.message ?? "Error cargando tickets");
+      setError(e?.message ?? "Error cargando requisiciones");
       setRows([]);
-      pagination.setNextLink(null);
-      pagination.setPageIndex(1);
+      setPages([]);
+      pagination.resetPagination(null);
     } finally {
       setLoading(false);
     }
-  }, [account?.username, filters.buildFilter, pagination.pageSize, requisiciones]);
+  }, [account?.username, ]);
 
-
-  // =========================
-  // API-compatible: loadFirstPage / paging
-  // =========================
   const loadFirstPage = React.useCallback(async () => {
     await load();
-    pagination.setPageIndex(1);
   }, [load]);
 
-
-  // siguiente página: seguir el nextLink tal cual
- 
   const nextPage = React.useCallback(async () => {
     if (!pagination.nextLink) return;
-    setLoading(true); setError(null);
+
+    setLoading(true);
+    setError(null);
+
     try {
-      const { items, nextLink: n2 } = await requisiciones.getByNextLink(pagination.nextLink);
-      setRows(items); 
-      pagination.nextPage(n2)
+      const { items, nextLink: serverNextLink } = await requisiciones.getByNextLink(pagination.nextLink);
+      const nextRows = items ?? [];
+      const normalizedNextLink = serverNextLink ?? null;
+
+      setRows(nextRows);
+      setPages((currentPages) => {
+        const currentIndex = Math.max(pagination.pageIndex - 1, 0);
+        const trimmedPages = currentPages.slice(0, currentIndex + 1);
+        return [...trimmedPages, { rows: nextRows, nextLink: normalizedNextLink }];
+      });
+      pagination.goToNextPage(normalizedNextLink);
     } catch (e: any) {
-      setError(e?.message ?? "Error cargando más tickets");
+      setError(e?.message ?? "Error cargando mas requisiciones");
     } finally {
       setLoading(false);
     }
-  }, [pagination.nextLink,]);
+  }, [pagination, requisiciones]);
 
-  // recargas por cambios externos
-  const applyRange = React.useCallback(() => { loadFirstPage(); }, [loadFirstPage]);
-  const reloadAll  = React.useCallback(() => { loadFirstPage(); }, [loadFirstPage,]);
+  const prevPage = React.useCallback(() => {
+    if (pagination.pageIndex <= 1) return;
+
+    const previousPage = pages[pagination.pageIndex - 2];
+    if (!previousPage) return;
+
+    setRows(previousPage.rows);
+    pagination.goToPreviousPage(previousPage.nextLink);
+  }, [pagination, pages]);
+
+  const applyRange = React.useCallback(() => {
+    loadFirstPage();
+  }, [loadFirstPage]);
+
+  const reloadAll = React.useCallback(() => {
+    loadFirstPage();
+  }, [loadFirstPage]);
 
   return {
-    rows, loading, error, nextPage, applyRange, reloadAll,
+    rows,
+    loading,
+    error,
+    nextPage,
+    prevPage,
+    applyRange,
+    reloadAll,
+    loadFirstPage,
   };
 }
-
-
-

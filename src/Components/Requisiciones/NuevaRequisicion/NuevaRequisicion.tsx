@@ -19,6 +19,7 @@ import Step2Form from "./FormStep2/Step2";
 import { useCoreGraphServices, useRequisicionesServices } from "../../../graph/graphContext";
 import { notify } from '../../../utils/notify';
 import { safeLower } from "../../../utils/text";
+import { diasSemanaOptions } from "../../../consts/diasFestivos";
 
 type Props = {
   onClose: () => void;
@@ -106,6 +107,7 @@ export default function WizardRequisicion3Pasos({
   const selectedDireccion = direccionOptions.find((option) => sameText(option.label, state.direccion)) ?? null;
   const selectedCVE = cveOptions.find((option) => sameText(safeLower(option.label), safeLower(state.grupoCVE))) ?? null;
   const selectedModalidad = modalidadOptions.find((option) => sameText(option.label, state.modalidadTeletrabajo)) ?? null;
+  const selectedDominical = diasSemanaOptions.find((option) => sameText(option.label, state.Dominical)) ?? null;
 
   const handleSubmitRequest = async () => {
     if (!state.Title || !state.Ciudad) {
@@ -297,8 +299,7 @@ export default function WizardRequisicion3Pasos({
                   cveOptions={cveOptions}
                   selectedCve={selectedCVE}
                   modalidadOptions={modalidadOptions}
-                  selectedModalidad={selectedModalidad}
-                />
+                  selectedModalidad={selectedModalidad} selectedDominical={selectedDominical}                />
               ) : null}
             </form>
           </main>

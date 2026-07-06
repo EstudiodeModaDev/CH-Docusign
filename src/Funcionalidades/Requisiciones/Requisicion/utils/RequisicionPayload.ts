@@ -47,6 +47,7 @@ export async function createRequisicionPayload(state: requisiciones, ans: number
     motivoNoCumplimiento: state.motivoNoCumplimiento,
     nuevoPromocion: state.nuevoPromocion,
     NivelCargo: categoriaCargo || state.NivelCargo,
-    porceranje: Number(state.porceranje)
+    porceranje: Number(state.porceranje),
+    Dominical: state.Dominical
   }
 }

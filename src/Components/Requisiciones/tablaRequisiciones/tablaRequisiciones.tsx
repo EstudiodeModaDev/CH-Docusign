@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useRequisicion } from "../../../Funcionalidades/Requisiciones/Requisicion/Hooks/requisicion";
 import type { desplegablesOption } from "../../../models/Desplegables";
 import type { requisiciones } from "../../../models/Requisiciones/requisiciones";
 import { spDateToDDMMYYYY, toISODateFlex } from "../../../utils/Date";
@@ -7,6 +6,7 @@ import ProcesoRequisicionModal from "./Proceso/ProcesoRequisicionModal";
 import FiltersRequisicionesTable from "./filtersRequisicionesTable";
 import "./tablaRequisiciones.css";
 import { usePermissions } from "../../../Funcionalidades/Permisos";
+import { useRequisicionesContext } from "../../../Funcionalidades/Requisiciones/RequisicionesContext";
 
 type Props = {
   cargoOptions: desplegablesOption[];
@@ -30,7 +30,7 @@ type seguimiento = {
 
 export default function RequisicionesBoard(props: Props) {
   const { cargoOptions, onOpenRow, className, emptyText = "No hay requisiciones para los filtros seleccionados." , onEditRow} = props;
-  const requisicionesController = useRequisicion();
+  const requisicionesController = useRequisicionesContext();
   const [selectedProcessRow, setSelectedProcessRow] = React.useState<requisiciones | null>(null);
   const { engine } = usePermissions();
 
@@ -62,6 +62,11 @@ export default function RequisicionesBoard(props: Props) {
     if (!requiredPermission) return false;
     return engine.can(requiredPermission);
   }, [engine]);
+
+  // Traer de Graph cuando cambien filtros, búsqueda o tamaño de página.
+  React.useEffect(() => {
+    requisicionesController.reloadAll()
+  }, []);
 
   return (
     <div className={`rb-shell ${className ?? ""}`.trim()}>
@@ -190,6 +195,49 @@ export default function RequisicionesBoard(props: Props) {
             </table>
           </div>
         )}
+
+        <div className="rb-pagination" aria-label="Controles de paginacion">
+          <div className="rb-pagination__summary">
+            <span className="rb-pagination__count">{requisicionesController.rows.length} requisiciones visibles</span>
+            <span className="rb-pagination__page">Pagina {requisicionesController.pageIndex}</span>
+          </div>
+
+          <div className="rb-pagination__controls">
+            <label className="rb-pagination__size">
+              <span>Requisiciones por pagina</span>
+              <select
+                className="rb-select rb-pagination__select"
+                value={requisicionesController.pageSize}
+                onChange={(event) => requisicionesController.setPageSize(Number(event.target.value))}
+              >
+                {[10, 20, 50, 100].map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className="rb-pagination__buttons">
+              <button
+                type="button"
+                className="rb-pagination__button"
+                onClick={requisicionesController.prevPage}
+                disabled={requisicionesController.loading || !requisicionesController.hasPrevious}
+              >
+                Anterior
+              </button>
+              <button
+                type="button"
+                className="rb-pagination__button rb-pagination__button--primary"
+                onClick={requisicionesController.nextPage}
+                disabled={requisicionesController.loading || !requisicionesController.hasNext}
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
+        </div>
       </section>
 
       <ProcesoRequisicionModal

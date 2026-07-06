@@ -15,11 +15,6 @@ export function useRequisicion() {
   const listController = useRequisicionesList({filters: filtersController, pagination: paginationController})
   const notificationController = useNotifyRequisiciones()
 
-  // Traer de Graph cuando cambien filtros, búsqueda o tamaño de página.
-  React.useEffect(() => {
-    listController.reloadAll()
-  }, [listController.reloadAll]);
-
   // Mantiene la numeración consistente al cambiar la búsqueda antes de recargar.
   React.useEffect(() => {
     paginationController.setPageIndex(1);

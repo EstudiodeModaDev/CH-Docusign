@@ -4,6 +4,7 @@ import { formatPesosEsCO } from "../../../../utils/Number";
 import type { requisiciones } from "../../../../models/Requisiciones/requisiciones";
 import Select, { components, type OptionProps } from "react-select";
 import { notify } from '../../../../utils/notify';
+import { diasSemanaOptions } from "../../../../consts/diasFestivos";
 
 const selectMenuProps = {
   menuPortalTarget: typeof document !== "undefined" ? document.body : null,
@@ -46,6 +47,7 @@ type Props = {
   selectedCve: desplegablesOption | null;
   modalidadOptions: desplegablesOption[];
   selectedModalidad: desplegablesOption | null;
+  selectedDominical: desplegablesOption | null;
 };
 
 export default function Step2Form({
@@ -70,6 +72,7 @@ export default function Step2Form({
   selectedTipoConvocatoria,
   generoOptions,
   selectedGenero,
+  selectedDominical
 }: Props) {
   const [displaySalario, setDisplaySalario] = React.useState("");
 
@@ -178,6 +181,22 @@ export default function Step2Form({
               {...selectMenuProps}
             />
           </div>
+
+          {state.tipoRequisicion === "Retail" ? 
+            <div className="ft-field rqw-field-card">
+              <label className="ft-label">Dominical *</label>
+              <Select<desplegablesOption, false>
+                inputId="gerencia"
+                options={diasSemanaOptions}
+                value={selectedDominical}
+                onChange={(option) => setField("Dominical", option?.label ?? "")}
+                classNamePrefix="rs"
+                components={{ Option }}
+                placeholder="Selecciona la gerencia"
+                {...selectMenuProps}
+              />
+            </div> : null
+          }
         </div>
       </section>
 

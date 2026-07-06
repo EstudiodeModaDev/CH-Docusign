@@ -40,7 +40,8 @@ export function cleanStateRequisicion(account: AccountInfo | null): requisicione
     tienda: "",
     motivoNoCumplimiento: "",
     porceranje: 0,
-    NivelCargo: ""
+    NivelCargo: "",
+    Dominical: ""
   }
 } 
  

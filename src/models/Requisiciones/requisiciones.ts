@@ -40,6 +40,7 @@ export type requisiciones = {
     //Retail
     tienda?: string; //Centro operativo
     codigoCentroOperativo?: string;
+    Dominical: string;
 
     notified?:boolean
     fechaCierre?: string | null

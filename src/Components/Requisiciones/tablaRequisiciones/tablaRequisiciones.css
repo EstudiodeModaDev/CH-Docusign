@@ -421,6 +421,75 @@
   color: var(--muted);
 }
 
+.rb-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px 18px;
+  border-top: 1px solid color-mix(in oklab, var(--bd) 70%, transparent);
+  background: color-mix(in oklab, var(--surface-elev) 62%, var(--surface) 38%);
+}
+
+.rb-pagination__summary,
+.rb-pagination__controls,
+.rb-pagination__buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rb-pagination__count,
+.rb-pagination__page,
+.rb-pagination__size span {
+  color: var(--muted);
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.rb-pagination__size {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rb-pagination__select {
+  min-width: 110px;
+  min-height: 42px;
+}
+
+.rb-pagination__button {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid color-mix(in oklab, var(--bd) 76%, transparent);
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--surface) 86%, white 14%);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
+}
+
+.rb-pagination__button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px -18px color-mix(in oklab, var(--primary) 42%, transparent);
+}
+
+.rb-pagination__button--primary {
+  border-color: color-mix(in oklab, var(--primary) 24%, var(--bd) 76%);
+  background: color-mix(in oklab, var(--primary) 10%, var(--surface));
+  color: color-mix(in oklab, var(--primary) 64%, var(--ink) 36%);
+}
+
+.rb-pagination__button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 @media (max-width: 1180px) {
   .rb-toolbar__top {
     flex-direction: column;
@@ -450,6 +519,16 @@
     flex-direction: column;
     align-items: stretch;
   }
+
+  .rb-pagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rb-pagination__summary,
+  .rb-pagination__controls {
+    justify-content: space-between;
+  }
 }
 
 @media (max-width: 560px) {
@@ -469,6 +548,18 @@
     width: 100%;
     max-width: none;
     flex-basis: auto;
+  }
+
+  .rb-pagination__controls,
+  .rb-pagination__buttons,
+  .rb-pagination__size {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rb-pagination__button,
+  .rb-pagination__select {
+    width: 100%;
   }
 }
 

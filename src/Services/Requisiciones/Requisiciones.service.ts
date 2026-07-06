@@ -57,7 +57,8 @@ export class RequisicionesService extends BaseSharePointListService<requisicione
       tienda: f.tienda,
       codigoCentroOperativo: f.codigoCentroOperativo,
       notified: f.notified,
-      fechaCierre: f.fechaCierre
+      fechaCierre: f.fechaCierre,
+      Dominical: f.Dominical
     };
   }
 }

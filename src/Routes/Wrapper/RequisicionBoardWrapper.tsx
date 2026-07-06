@@ -19,17 +19,15 @@ import RequisicionDetalleModal from "../../Components/Requisiciones/tablaRequisi
 import RequisicionEditModal from "../../Components/Requisiciones/tablaRequisiciones/RequisicionEditModal";
 import { useCoreGraphServices, useRequisicionesServices } from "../../graph/graphContext";
 import { notify } from "../../utils/notify";
-import { useRequisicion } from "../../Funcionalidades/Requisiciones/Requisicion/Hooks/requisicion";
 
 export default function RequisicionesBoardWrapper() {
   const location = useLocation();
   const navigate = useNavigate();
   const { Maestro, DeptosYMunicipios } = useCoreGraphServices();
   const { requisiciones } = useRequisicionesServices();
-  const { setState, state } = useRequisicionesContext();
+  const { setState, state, onPostergarANS } = useRequisicionesContext();
   const detailRouteMatch = useMatch("/requisicion/view/visualizacionDetalle");
   const editRouteMatch = useMatch("/requisicion/view/editRequisicion");
-  const {onPostergarANS} = useRequisicion()
 
   const { options: cargoOptions, reload: reloadCargo } = useCargo(Maestro);
   const { options: ciudadesOptions, reload: reloadDeptos } = useDeptosMunicipios(DeptosYMunicipios);

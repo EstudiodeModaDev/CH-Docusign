@@ -33,6 +33,7 @@ const DETAIL_SECTIONS: Array<{ title: string; fields: DetailField[] }> = [
       { key: "motivo", label: "Motivo" },
       { key: "tipoConvocatoria", label: "Tipo de convocatoria" },
       { key: "genero", label: "Genero" },
+      { key: "Dominical", label: "Dominical" },
     ],
   },
   {

@@ -10,11 +10,10 @@ export function useRequisicionFilters(pageSize: number) {
   const { engine, loading: loadingPerms } = usePermissions();
   const [sorts, setSorts] = React.useState<Array<{ field: SortField; dir: SortDir }>>([{ field: "id", dir: "desc" }]);
 
-  const [mes, setMes] = React.useState<string>("");
+  const [mes, setMes] = React.useState<string | null>(null);
   const [search, setSearch] = React.useState<string>("");
   const [estado, setEstado] = React.useState<string>("");
   const [cargo, setCargo] = React.useState<string>("");
-  const [anio, setAnio] = React.useState<string>("2026");
   const [cumpleANS, setCumpleANS] = React.useState<string>("all");
   const [ciudad, setCiudad] = React.useState<string>("all");
   const [analista, setAnalista] = React.useState<string>("all");
@@ -45,14 +44,6 @@ export function useRequisicionFilters(pageSize: number) {
     if (ciudad && ciudad !== "all") filters.push(`fields/Ciudad eq '${ciudad}'`);
     if (analista && analista !== "all") filters.push(`fields/nombreProfesional eq '${analista}'`);
 
-    if (anio && anio !== "all") {
-      const y = Number(anio);
-      const from = `${y}-01-01T00:00:00Z`;
-      const toExclusive = `${y + 1}-01-01T00:00:00Z`;
-      filters.push(`fields/Created ge '${from}'`);
-      filters.push(`fields/Created lt '${toExclusive}'`);
-    }
-
     if (securityFilter) filters.push(securityFilter);
 
     if (trimmedSearch) {
@@ -68,12 +59,13 @@ export function useRequisicionFilters(pageSize: number) {
       filters.push(`fields/fechaInicioProceso lt '${toExclusive}'`);
     }
 
+
     return {
       filter: filters.length ? filters.join(" and ") : undefined,
       orderby,
       top: pageSize,
     };
-  }, [estado, cargo, cumpleANS, ciudad, analista, anio, securityFilter, debouncedSearch, mes, pageSize, orderby]);
+  }, [estado, cargo, cumpleANS, ciudad, analista, securityFilter, debouncedSearch, mes, pageSize, orderby]);
 
   return {
     buildFilter,
@@ -85,9 +77,7 @@ export function useRequisicionFilters(pageSize: number) {
     cumpleANS,
     ciudad,
     analista,
-    anio,
     setMes,
-    setAnio,
     setAnalista,
     setCargo,
     setSearch,

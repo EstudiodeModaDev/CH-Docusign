@@ -12,7 +12,7 @@ type Props = {
   setCiudad: (ciudad: string) => void;
   setAnalista: (analista: string) => void;
   setMes: (mes: string) => void;
-  mes: string;
+  mes: string | null;
   search: string;
   estado: string;
   cargo: string;
@@ -108,7 +108,7 @@ export default function FiltersRequisicionesTable(props: Props) {
         </Field>
 
         <Field label="Mes de inicio" className="rb-field--date">
-          <input className="rb-input" type="month" value={mes} onChange={(e) => setMes(e.target.value)} />
+          <input className="rb-input" type="month" value={mes ?? new Date().toDateString()} onChange={(e) => setMes(e.target.value)} />
         </Field>
       </div>
 

@@ -3,7 +3,6 @@ import type { desplegablesOption } from "../../../models/Desplegables";
 
 
 type Props = {
-  anio: string;
   cargo: string;
   ciudad: string;
   analista: string;
@@ -13,7 +12,6 @@ type Props = {
   ciudadOptions: desplegablesOption[];
   analistaOptions: desplegablesOption[];
   direccionOptions: desplegablesOption[];
-  setAnio: (value: string) => void;
   setCargo: (value: string) => void;
   setCiudad: (value: string) => void;
   setAnalista: (value: string) => void;
@@ -22,17 +20,14 @@ type Props = {
 
 export default function MetricasFilters(props: Props) {
   const {
-    anio,
     cargo,
     ciudad,
     analista,
     direccion,
-    yearOptions,
     cargoOptions,
     ciudadOptions,
     analistaOptions,
     direccionOptions,
-    setAnio,
     setCargo,
     setCiudad,
     setAnalista,
@@ -43,16 +38,6 @@ export default function MetricasFilters(props: Props) {
 
   return (
     <section className="rqm-filters" aria-label="Filtros del tablero">
-      <label className="rqm-filter-field">
-        <span>Año</span>
-        <select value={anio} onChange={(e) => setAnio(e.target.value)}>
-          {yearOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
       <label className="rqm-filter-field">
         <span>Dirección</span>
         <select value={direccion} onChange={(e) => setDireccion(e.target.value)}>

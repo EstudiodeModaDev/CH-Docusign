@@ -11,7 +11,6 @@ type Props = {
   error: string | null;
   rowsCount: number;
   metrics: RequisicionesMetrics;
-  anio: string;
   cargo: string;
   ciudad: string;
   analista: string;
@@ -21,7 +20,6 @@ type Props = {
   ciudadOptions: desplegablesOption[];
   analistaOptions: desplegablesOption[];
   direccionOptions: desplegablesOption[];
-  setAnio: (value: string) => void;
   setCargo: (value: string) => void;
   setCiudad: (value: string) => void;
   setAnalista: (value: string) => void;
@@ -34,7 +32,6 @@ export default function RequisicionesMetricasPage(props: Props) {
     error,
     rowsCount,
     metrics,
-    anio,
     cargo,
     ciudad,
     analista,
@@ -44,7 +41,6 @@ export default function RequisicionesMetricasPage(props: Props) {
     ciudadOptions,
     analistaOptions,
     direccionOptions,
-    setAnio,
     setCargo,
     setCiudad,
     setAnalista,
@@ -55,7 +51,6 @@ export default function RequisicionesMetricasPage(props: Props) {
     <div className="rqm-page">
       <div className="rqm-shell">
         <MetricasFilters 
-          anio={anio} 
           cargo={cargo} 
           ciudad={ciudad} 
           analista={analista} 
@@ -65,7 +60,6 @@ export default function RequisicionesMetricasPage(props: Props) {
           ciudadOptions={ciudadOptions} 
           analistaOptions={analistaOptions} 
           direccionOptions={direccionOptions} 
-          setAnio={setAnio} 
           setCargo={setCargo} 
           setCiudad={setCiudad} 
           setAnalista={setAnalista} 

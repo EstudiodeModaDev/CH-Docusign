@@ -110,16 +110,12 @@ export default function RequisicionesMetricasWrapper() {
       years.push({ value: year, label: year });
     });
 
-    if (requisicionesController.anio && requisicionesController.anio !== "all" && !seen.has(requisicionesController.anio)) {
-      years.push({ value: requisicionesController.anio, label: requisicionesController.anio });
-    }
-
     return years.sort((a, b) => {
       if (a.value === "all") return -1;
       if (b.value === "all") return 1;
       return Number(b.value) - Number(a.value);
     });
-  }, [metricsRows, requisicionesController.anio]);
+  }, [metricsRows,]);
 
   const mergedDireccionOptions = React.useMemo<desplegablesOption[]>(() => {
     const map = new Map<string, desplegablesOption>();
@@ -192,7 +188,6 @@ export default function RequisicionesMetricasWrapper() {
       error={error}
       rowsCount={dashboardRows.length}
       metrics={metrics}
-      anio={requisicionesController.anio}
       cargo={requisicionesController.cargo}
       ciudad={requisicionesController.ciudad}
       analista={requisicionesController.analista}
@@ -202,7 +197,6 @@ export default function RequisicionesMetricasWrapper() {
       ciudadOptions={[ALL_FEMALE_OPTION, ...ciudadOptions]}
       analistaOptions={[ALL_OPTION, ...analistaOptions]}
       direccionOptions={[ALL_FEMALE_OPTION, ...mergedDireccionOptions]}
-      setAnio={requisicionesController.setAnio}
       setCargo={requisicionesController.setCargo}
       setCiudad={requisicionesController.setCiudad}
       setAnalista={requisicionesController.setAnalista}

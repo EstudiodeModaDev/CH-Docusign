@@ -18,6 +18,7 @@ import {
 import Step2Form from "./FormStep2/Step2";
 import { useCoreGraphServices, useRequisicionesServices } from "../../../graph/graphContext";
 import { notify } from '../../../utils/notify';
+import { safeLower } from "../../../utils/text";
 
 type Props = {
   onClose: () => void;
@@ -103,7 +104,7 @@ export default function WizardRequisicion3Pasos({
   const selectedCentroCostos = centroCostosOptioons.find((option) => sameText(option.value, state.codigoCentroCosto)) ?? null;
   const selectedUnidadNegocio = unidadNegocioOptions.find((option) => sameText(option.value, state.codigoUnidadNegocio)) ?? null;
   const selectedDireccion = direccionOptions.find((option) => sameText(option.label, state.direccion)) ?? null;
-  const selectedCVE = cveOptions.find((option) => sameText(option.value, state.grupoCVE)) ?? null;
+  const selectedCVE = cveOptions.find((option) => sameText(safeLower(option.label), safeLower(state.grupoCVE))) ?? null;
   const selectedModalidad = modalidadOptions.find((option) => sameText(option.label, state.modalidadTeletrabajo)) ?? null;
 
   const handleSubmitRequest = async () => {

@@ -279,6 +279,7 @@ export default function Step2Form({
                   if (option.target.value !== "Si") setField("grupoCVE", "");
                 }}
               >
+                <option value="">Seleccione</option>
                 <option value="Si">Si</option>
                 <option value="No">No</option>
               </select>
@@ -291,7 +292,7 @@ export default function Step2Form({
                   inputId="grupoCVE"
                   options={cveOptions}
                   value={selectedCve}
-                  onChange={(option) => setField("grupoCVE", option?.label ?? "")}
+                  onChange={(option) => {setField("grupoCVE", option!.label!);}}
                   classNamePrefix="rs"
                   components={{ Option }}
                   placeholder="Selecciona el grupo"
@@ -309,6 +310,7 @@ export default function Step2Form({
                   setField("auxilioRodamiento", option.target.value ?? "");
                 }}
               >
+                <option value="">Seleccione</option>
                 <option value="Si">Si</option>
                 <option value="No">No</option>
               </select>

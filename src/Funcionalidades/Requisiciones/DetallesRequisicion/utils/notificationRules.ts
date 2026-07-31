@@ -11,6 +11,8 @@ export async function shouldNotifyAllStepsCompleted(requisicionId: string, requi
       fields/tipoRequisicion eq 'Retail' and 
       fields/correoSolicitante eq '${requisicion.correoSolicitante}'`
     })
+
+    console.log(monthlyRequisiciones)
   
   const monthlyRequisicionesApproved = monthlyRequisiciones.items.filter((r)=> !!r.notified)
 

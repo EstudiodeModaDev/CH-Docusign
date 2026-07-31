@@ -8,7 +8,7 @@ const fields: (keyof Cesacion)[] = [
   "CodigoCO", "DescripcionCO", "CodigoUN", "DescripcionUN", "Salario", "SalarioTexto",
   "auxConectividadTexto", "auxConectividadValor", "Pertenecealmodelo", "GrupoCVE",
   "PresupuestaVentas", "Autonomia", "ImpactoCliente", "contribucionEstrategia",
-  "Promedio", "direccionResidencia",
+  "Promedio", "direccionResidencia", "DominicalDay"
 ];
 
 const dateFields: (keyof Cesacion)[] = [

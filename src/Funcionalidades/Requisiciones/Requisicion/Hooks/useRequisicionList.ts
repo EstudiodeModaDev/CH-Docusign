@@ -47,7 +47,7 @@ export function useRequisicionesList({ filters, pagination }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [account?.username, ]);
+  }, [account?.username, filters.buildFilter, pagination.resetPagination, requisiciones]);
 
   const loadFirstPage = React.useCallback(async () => {
     await load();
@@ -95,6 +95,11 @@ export function useRequisicionesList({ filters, pagination }: Props) {
   const reloadAll = React.useCallback(() => {
     loadFirstPage();
   }, [loadFirstPage]);
+
+  React.useEffect(() => {
+    if (!account?.username) return;
+    void loadFirstPage();
+  }, [account?.username, loadFirstPage]);
 
   return {
     rows,

@@ -14,6 +14,16 @@ export function mapSortField(field: SortField) {
       return "fields/Estado";
     case "analista":
       return "fields/nombreProfesional";
+    case "solicitante":
+      return "fields/solicitante";
+    case "fechaLimite":
+      return "fields/fechaLimite";
+    case "seguimiento":
+      return "fields/fechaLimite";
+    case "fechaCierre":
+      return "fields/fechaCierre";
+    case "porcentaje":
+      return "fields/porceranje";
     default:
       return "fields/Created";
   }

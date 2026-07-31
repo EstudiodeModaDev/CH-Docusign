@@ -275,6 +275,40 @@
   white-space: nowrap;
 }
 
+.rb-sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.rb-sort-button:hover {
+  color: var(--ink);
+}
+
+.rb-sort-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--ring);
+  border-radius: 10px;
+}
+
+.rb-sort-button.is-active {
+  color: color-mix(in oklab, var(--primary) 60%, var(--ink) 40%);
+}
+
+.rb-sort-button__icon {
+  font-size: .72rem;
+  line-height: 1;
+}
+
 .rb-table tbody td {
   padding: 14px;
   vertical-align: middle;

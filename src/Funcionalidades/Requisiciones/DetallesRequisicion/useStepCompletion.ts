@@ -63,6 +63,9 @@ export function useStepCompletion({
     if(porcentaje === 100) {
       const estadoCierre = await calcularEstadoCierre(requisicionId, requisicionesService);
       const shouldNotify = await shouldNotifyAllStepsCompleted(requisicionId, requisicionesService)
+
+      console.log(shouldNotify)
+
       const fechaCierre = toISODateTimeFlex(new Date())
       if(shouldNotify) {
         toUpdated = {...toUpdated, notified: true}

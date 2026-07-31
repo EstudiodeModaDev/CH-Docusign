@@ -145,7 +145,8 @@ export default function WizardRequisicion3Pasos({
       }
 
       await notifyAsignacion(result.created);
-      await sendNotificationPlantaIdeal(result.created.codigoCentroOperativo ?? "No registrado", result.created.motivo)
+
+      if(result.created.tipoRequisicion === "Retail") await sendNotificationPlantaIdeal(result.created.codigoCentroOperativo ?? "No registrado", result.created.motivo)
 
       onClose();
     } finally {

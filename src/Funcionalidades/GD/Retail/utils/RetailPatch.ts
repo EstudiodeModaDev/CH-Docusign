@@ -4,7 +4,7 @@ import { areFieldValuesEqual } from "../../UpdateRequestDetails/utils/fieldCompa
 const fields: (keyof Retail)[] = [
   "Title", "TipoDoc", "Nombre", "Empresaalaquepertenece", "CorreoElectronico", "Celular", "NivelCargo", "Cargo", "Salario", "SalarioLetras", "Auxiliodetransporte", 
   "Auxiliotransporteletras", "Depedencia", "Departamento", "Ciudad", "Temporal", "CentroCostos", "CodigoCentroCostos", "CentroOperativo", "CodigoCentroOperativo", 
-  "UnidadNegocio", "CodigoUnidadNegocio", "OrigenSeleccion", ];
+  "UnidadNegocio", "CodigoUnidadNegocio", "OrigenSeleccion", "DominicalDay" ];
 
 const dateFields: (keyof Retail)[] = [
   "FechaIngreso",

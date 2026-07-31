@@ -28,6 +28,16 @@ type seguimiento = {
   tone: RowTone;
 };
 
+type SortKey =
+  | "id"
+  | "cargo"
+  | "analista"
+  | "solicitante"
+  | "fechaLimite"
+  | "seguimiento"
+  | "fechaCierre"
+  | "porcentaje";
+
 export default function RequisicionesBoard(props: Props) {
   const { cargoOptions, onOpenRow, className, emptyText = "No hay requisiciones para los filtros seleccionados." , onEditRow} = props;
   const requisicionesController = useRequisicionesContext();
@@ -64,9 +74,21 @@ export default function RequisicionesBoard(props: Props) {
   }, [engine]);
 
   // Traer de Graph cuando cambien filtros, búsqueda o tamaño de página.
-  React.useEffect(() => {
-    requisicionesController.reloadAll()
-  }, []);
+  const activeSort = React.useMemo(() => {
+    const current = requisicionesController.sorts?.[0];
+    return {
+      key: (current?.field as SortKey | undefined) ?? "id",
+      direction: current?.dir ?? "desc",
+    };
+  }, [requisicionesController.sorts]);
+
+  const handleSort = React.useCallback((key: SortKey) => {
+    requisicionesController.setSorts((current) => {
+      const currentSort = current?.[0];
+      const nextDirection = currentSort?.field === key && currentSort.dir === "asc" ? "desc" : "asc";
+      return [{ field: key, dir: nextDirection }];
+    });
+  }, [requisicionesController]);
 
   return (
     <div className={`rb-shell ${className ?? ""}`.trim()}>
@@ -116,14 +138,14 @@ export default function RequisicionesBoard(props: Props) {
             <table className="rb-table">
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Cargo</th>
-                  <th>Analista</th>
-                  <th>Solicitante</th>
-                  <th>Fecha hasta</th>
-                  <th>Seguimiento</th>
-                  <th>Fecha de cierre</th>
-                  <th>Porcetanje</th>
+                  <SortableHeader label="ID" columnKey="id" sortConfig={activeSort} onSort={handleSort} />
+                  <SortableHeader label="Cargo" columnKey="cargo" sortConfig={activeSort} onSort={handleSort} />
+                  <SortableHeader label="Analista" columnKey="analista" sortConfig={activeSort} onSort={handleSort} />
+                  <SortableHeader label="Solicitante" columnKey="solicitante" sortConfig={activeSort} onSort={handleSort} />
+                  <SortableHeader label="Fecha hasta" columnKey="fechaLimite" sortConfig={activeSort} onSort={handleSort} />
+                  <SortableHeader label="Seguimiento" columnKey="seguimiento" sortConfig={activeSort} onSort={handleSort} />
+                  <SortableHeader label="Fecha de cierre" columnKey="fechaCierre" sortConfig={activeSort} onSort={handleSort} />
+                  <SortableHeader label="Porcentaje" columnKey="porcentaje" sortConfig={activeSort} onSort={handleSort} />
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -246,6 +268,37 @@ export default function RequisicionesBoard(props: Props) {
         onClose={() => setSelectedProcessRow(null)}
       />
     </div>
+  );
+}
+
+function SortableHeader({
+  label,
+  columnKey,
+  sortConfig,
+  onSort,
+}: {
+  label: string;
+  columnKey: SortKey;
+  sortConfig: { key: SortKey; direction: "asc" | "desc" };
+  onSort: (key: SortKey) => void;
+}) {
+  const isActive = sortConfig.key === columnKey;
+  const direction = isActive ? sortConfig.direction : undefined;
+  const ariaSort = !isActive ? "none" : direction === "asc" ? "ascending" : "descending";
+
+  return (
+    <th aria-sort={ariaSort}>
+      <button
+        type="button"
+        className={`rb-sort-button ${isActive ? "is-active" : ""}`.trim()}
+        onClick={() => onSort(columnKey)}
+      >
+        <span>{label}</span>
+        <span className="rb-sort-button__icon" aria-hidden="true">
+          {isActive ? (direction === "asc" ? "▲" : "▼") : "↕"}
+        </span>
+      </button>
+    </th>
   );
 }
 

@@ -10,7 +10,7 @@ const fields: (keyof Novedad)[] = [
   "NombreSeleccionado", "Numero_x0020_identificaci_x00f3_", "ORIGEN_x0020_DE_x0020_LA_x0020_S", "PERSONAS_x0020_A_x0020_CARGO", "PRESUPUESTO_x0020_VENTAS_x002f_M", "PROMEDIO_x0020_",
    "Programa", "SALARIO", "SALARIO_x0020_AJUSTADO", "SE_x0020_DEBE_x0020_HACER_x0020_", "TIPO_x0020_DE_x0020_CONTRATO", "TEMPORAL", 
   "TIPO_x0020_DE_x0020_VACANTE_x002", "Tipo_x0020_de_x0020_documento_x0", "UNIDAD_x0020_DE_x0020_NEGOCIO_x0", "Universidad", "VALOR_x0020_GARANTIZADO", "auxconectividadtexto",
-  "salariotexto", "tipodoc", 
+  "salariotexto", "tipodoc", "DominicalDay"
 ];
 
 const booleanFields: (keyof Novedad)[] = [

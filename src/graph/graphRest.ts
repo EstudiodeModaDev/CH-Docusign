@@ -52,6 +52,7 @@ export class GraphRest {
   private async call<T>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, body?: any, init?: RequestInit): Promise<T> {
     const token = await this.getToken();
     const hasBody = body !== undefined && body !== null;
+    const { headers: initHeaders, ...restInit } = init ?? {};
 
     const res = await fetch(this.base + path, {
       method,
@@ -60,10 +61,10 @@ export class GraphRest {
         ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
         // Quita esta Prefer si no la necesitas
         Prefer: 'HonorNonIndexedQueriesWarningMayFailRandomly',
-        ...(init?.headers || {}),
+        ...(initHeaders || {}),
       },
       body: hasBody ? JSON.stringify(body) : undefined,
-      ...init,
+      ...restInit,
     });
 
     // ---- Manejo de error con mensaje detallado de Graph ----
@@ -129,16 +130,17 @@ export class GraphRest {
 
   async putBinary<T = any>(path: string,  binary: Blob | ArrayBuffer | Uint8Array, contentType?: string, init?: RequestInit): Promise<T> {
     const token = await this.getToken();
+    const { headers: initHeaders, ...restInit } = init ?? {};
 
     const res = await fetch(this.base + path, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
         ...(contentType ? { "Content-Type": contentType } : {}),
-        ...(init?.headers || {}),
+        ...(initHeaders || {}),
       },
       body: binary as any,
-      ...init,
+      ...restInit,
     });
 
     if (!res.ok) {
@@ -177,15 +179,16 @@ export class GraphRest {
 
   async getAbsolute<T = any>(url: string, init?: RequestInit): Promise<T> {
     const token = await this.getToken();
+    const { headers: initHeaders, ...restInit } = init ?? {};
 
     const res = await fetch(url, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
         Prefer: 'HonorNonIndexedQueriesWarningMayFailRandomly',
-        ...(init?.headers || {}),
+        ...(initHeaders || {}),
       },
-      ...init,
+      ...restInit,
     });
 
     if (!res.ok) {
@@ -215,16 +218,17 @@ export class GraphRest {
 
   async postAbsoluteBinary<T = any>(url: string, binary: Blob | ArrayBuffer | Uint8Array, contentType?: string, init?: RequestInit): Promise<T> {
     const token = await this.getToken();
+    const { headers: initHeaders, ...restInit } = init ?? {};
 
     const res = await fetch(url, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         ...(contentType ? { "Content-Type": contentType } : {}),
-        ...(init?.headers || {}),
+        ...(initHeaders || {}),
       },
       body: binary as any,
-      ...init,
+      ...restInit,
     });
 
     if (!res.ok) {
@@ -291,14 +295,20 @@ export class GraphRest {
   }
 
   async addUserToGroup(groupId: string, email: string): Promise<void> {
-    const gid = (groupId ?? "").trim();
-    if (!gid) throw new Error("addUserToGroup: groupId vacío");
-
     const userId = await this.getUserIdByEmail(email);
+    await this.addUserIdToGroup(groupId, userId);
+  }
+
+  async addUserIdToGroup(groupId: string, userId: string): Promise<void> {
+    const gid = (groupId ?? "").trim();
+    if (!gid) throw new Error("addUserIdToGroup: groupId vacío");
+
+    const uid = (userId ?? "").trim();
+    if (!uid) throw new Error("addUserIdToGroup: userId vacío");
 
     try {
       await this.post<void>(`/groups/${gid}/members/$ref`, {
-        "@odata.id": `https://graph.microsoft.com/v1.0/directoryObjects/${userId}`,
+        "@odata.id": `https://graph.microsoft.com/v1.0/directoryObjects/${uid}`,
       });
     } catch (err: any) {
       const msg = String(err?.message ?? err);
@@ -408,6 +418,31 @@ export class GraphRest {
       const key = (user.mail ?? user.userPrincipalName ?? user.id).trim().toLowerCase();
       if (!key) continue;
       if (!unique.has(key)) unique.set(key, user);
+    }
+
+    return Array.from(unique.values());
+  }
+
+  async getAllActiveUsers(): Promise<GraphUserLite[]> {
+    const results: GraphUserLite[] = [];
+    let nextUrl: string | null =
+      `${this.base}users?$filter=accountEnabled eq true&$select=id,displayName,mail,userPrincipalName&$top=999`;
+
+    while (nextUrl) {
+      const page: GraphCollectionPage<GraphUserLite> = await this.getAbsolute<GraphCollectionPage<GraphUserLite>>(nextUrl);
+
+      for (const user of page.value ?? []) {
+        if (!user.mail) continue;
+        results.push(user);
+      }
+
+      nextUrl = page["@odata.nextLink"] ?? null;
+    }
+
+    const unique = new Map<string, GraphUserLite>();
+
+    for (const user of results) {
+      if (!unique.has(user.id)) unique.set(user.id, user);
     }
 
     return Array.from(unique.values());

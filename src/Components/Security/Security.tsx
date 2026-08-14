@@ -5,7 +5,18 @@ import GroupPermissionsManager from "./PermisosGrupo";
 
 export default function GroupUsersManager() {
   const {selectedKey, search, loading, error, selectedGroup, filteredUsers, users, addBusy, nextLink, isAddOpen, addEmail,
-    setSelectedKey, setSearch, loadFirstPage, setIsAddOpen, handleRemove, loadMore, handleAdd, setAddEmail,} = useSecurity(SECURITY_GROUPS);
+    setSelectedKey, setSearch, loadFirstPage, setIsAddOpen, handleRemove, loadMore, handleAdd, setAddEmail,
+    syncing, syncProgress, syncSummary, syncActiveUsers,} = useSecurity(SECURITY_GROUPS);
+
+  const canSyncActiveUsers = selectedGroup?.key === "app_ch_requisiciones_usuarios";
+
+  const handleSyncActiveUsers = () => {
+    const ok = window.confirm(
+      `Se agregarán al grupo "${selectedGroup?.label}" todos los usuarios activos de la compañía que aún no sean miembros. ¿Continuar?`
+    );
+    if (!ok) return;
+    void syncActiveUsers();
+  };
 
   if (!SECURITY_GROUPS.length) {
     return (
@@ -31,6 +42,16 @@ export default function GroupUsersManager() {
           <button className="gum__btn gum__btn--primary" onClick={() => setIsAddOpen(true)}>
             + Añadir
           </button>
+
+          {canSyncActiveUsers && (
+            <button
+              className="gum__btn gum__btn--ghost"
+              onClick={handleSyncActiveUsers}
+              disabled={syncing || loading}
+            >
+              {syncing ? "Sincronizando..." : "Sincronizar usuarios activos"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -53,6 +74,48 @@ export default function GroupUsersManager() {
       </div>
 
       {error ? <div className="gum__error">{error}</div> : null}
+
+      {canSyncActiveUsers && syncing && syncProgress && (
+        <div className="gum__syncPanel" role="status" aria-live="polite">
+          <div className="gum__syncSkeletonRow">
+            <span className="gum__skeletonBar" />
+            <span className="gum__skeletonBar" />
+            <span className="gum__skeletonBar" />
+          </div>
+
+          <div className="gum__syncProgressBar">
+            <div
+              className="gum__syncProgressFill"
+              style={{
+                width: `${syncProgress.total ? Math.round((syncProgress.processed / syncProgress.total) * 100) : 0}%`,
+              }}
+            />
+          </div>
+
+          <div className="gum__syncStats">
+            <span>
+              Procesados: <strong>{syncProgress.processed}</strong> / {syncProgress.total}
+            </span>
+            <span>
+              Nuevos agregados: <strong>{syncProgress.added}</strong>
+            </span>
+            <span>
+              Total usuarios activos: <strong>{syncProgress.total}</strong>
+            </span>
+            {syncProgress.failed > 0 && (
+              <span className="gum__syncErrorInline">Con error: {syncProgress.failed}</span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {canSyncActiveUsers && !syncing && syncSummary && (
+        <div className="gum__syncSummary">
+          Sincronización completa: se agregaron <strong>{syncSummary.added}</strong> usuarios nuevos de un
+          total de <strong>{syncSummary.total}</strong> usuarios activos
+          {syncSummary.failed > 0 ? ` (${syncSummary.failed} con error)` : ""}.
+        </div>
+      )}
 
       <div className="gum__stats">
         <div className="gum__stat">
@@ -93,7 +156,7 @@ export default function GroupUsersManager() {
                   <td>{u.userPrincipalName ?? "—"}</td>
                   <td className="gum__tdActions">
                     <button className="gum__dangerLink"  onClick={() => handleRemove(u)} disabled={loading}>
-                      Quitar
+                      {loading ? "Cargando" : "Quitar"}
                     </button>
                   </td>
                 </tr>
@@ -116,7 +179,7 @@ export default function GroupUsersManager() {
 
         <div className="gum__footerRight">
           <span className="gum__muted">
-            Para grupos grandes, carga más páginas antes de filtrar.
+            La búsqueda consulta directamente el grupo en Azure AD (no solo lo ya cargado).
           </span>
         </div>
       </div>

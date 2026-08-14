@@ -9,6 +9,63 @@ type MembersResponse = {
   "@odata.nextLink"?: string;
 };
 
+const EXCLUDED_SYNC_TERMS = [
+  "facturacion",
+  "integracion", 
+  "facturas",
+  "test", 
+  "diesel", 
+  "kipling", 
+  "pilatos", 
+  "superdry", 
+  "new balance", 
+  "newbalance", 
+  "parqueadero", 
+  "mfg",
+  "prueba",
+  "e-global",
+  "movivisual",
+  "replaycol",
+  "gmail",
+  "virtualconfe",
+  "crm",
+  "fupbi",
+  "bdo",
+  "grupo-exito",
+  "hacku",
+  "brokenchains",
+  "styleink",
+  "1beat",
+  "prevalentware",
+  "onebeat",
+  "mtagraphics",
+  "lehablamaria",
+  "solucionesbpo",
+  "arkia",
+  "movivisual",
+  "parking",
+  "parkin",
+  "creditotucuota"
+];
+
+function isExcludedFromSync(user: GraphUserLite): boolean {
+  const haystack = [user.displayName, user.mail, user.userPrincipalName]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return EXCLUDED_SYNC_TERMS.some((term) => haystack.includes(term));
+}
+
+function buildMemberSearchFilter(term: string): string {
+  const escaped = term.trim().replace(/'/g, "''");
+  return ["displayName", "mail", "userPrincipalName"]
+    .map((prop) => `startswith(${prop},'${escaped}')`)
+    .join(" or ");
+}
+
+const PAGE_SIZE = 50;
+
 export function useSecurity(groups: GroupOption[]) {
   const { graph } = useCoreGraphServices();
 
@@ -28,21 +85,55 @@ export function useSecurity(groups: GroupOption[]) {
   const [addEmail, setAddEmail] = React.useState("");
   const [addBusy, setAddBusy] = React.useState(false);
 
+  const [syncing, setSyncing] = React.useState(false);
+  const [syncProgress, setSyncProgress] = React.useState<{
+    processed: number;
+    added: number;
+    failed: number;
+    total: number;
+  } | null>(null);
+  const [syncSummary, setSyncSummary] = React.useState<{
+    added: number;
+    skipped: number;
+    failed: number;
+    total: number;
+  } | null>(null);
+
   const selectedGroup = React.useMemo(
     () => groups.find((g) => g.key === selectedKey) ?? null,
     [groups, selectedKey]
   );
 
-  const filteredUsers = React.useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return users;
+  const [debouncedSearch, setDebouncedSearch] = React.useState("");
 
-    return users.filter((u) =>
-      (u.displayName ?? "").toLowerCase().includes(term) ||
-      (u.mail ?? "").toLowerCase().includes(term) ||
-      (u.userPrincipalName ?? "").toLowerCase().includes(term)
-    );
-  }, [users, search]);
+  React.useEffect(() => {
+    const handle = setTimeout(() => setDebouncedSearch(search.trim()), 350);
+    return () => clearTimeout(handle);
+  }, [search]);
+
+  // El filtrado se hace en el servidor (Graph), así que no hace falta filtrar de nuevo en el cliente.
+  const filteredUsers = users;
+
+  // Cuántos usuarios había cargado el usuario (página inicial + "Cargar más" acumulados).
+  // Se usa para restaurar la misma cantidad tras un reload silencioso (ej. después de eliminar).
+  const loadedTargetRef = React.useRef(PAGE_SIZE);
+
+  const fetchFirstPage = React.useCallback(async (): Promise<{ items: GraphUserLite[]; nextLink: string | null }> => {
+    if (!selectedGroup?.groupId) return { items: [], nextLink: null };
+
+    const term = debouncedSearch;
+    const path = term
+      ? `/groups/${selectedGroup.groupId}/members/microsoft.graph.user?$select=id,displayName,mail,userPrincipalName&$top=${PAGE_SIZE}&$count=true&$filter=${encodeURIComponent(buildMemberSearchFilter(term))}`
+      : `/groups/${selectedGroup.groupId}/members?$select=id,displayName,mail,userPrincipalName&$top=${PAGE_SIZE}`;
+
+    const res = await graph.get<MembersResponse>(path, { headers: { ConsistencyLevel: "eventual" } });
+    return { items: res?.value ?? [], nextLink: res?.["@odata.nextLink"] ?? null };
+  }, [graph, selectedGroup?.groupId, debouncedSearch]);
+
+  const fetchNextPage = React.useCallback(async (link: string): Promise<{ items: GraphUserLite[]; nextLink: string | null }> => {
+    const res = await graph.getAbsolute<MembersResponse>(link, { headers: { ConsistencyLevel: "eventual" } });
+    return { items: res?.value ?? [], nextLink: res?.["@odata.nextLink"] ?? null };
+  }, [graph]);
 
   const loadFirstPage = React.useCallback(async () => {
     if (!selectedGroup?.groupId) return;
@@ -51,20 +142,18 @@ export function useSecurity(groups: GroupOption[]) {
     setError(null);
     setUsers([]);
     setNextLink(null);
+    loadedTargetRef.current = PAGE_SIZE;
 
     try {
-      const res = await graph.get<MembersResponse>(
-        `/groups/${selectedGroup.groupId}/members?$select=id,displayName,mail,userPrincipalName&$top=50`
-      );
-
-      setUsers(res?.value ?? []);
-      setNextLink(res?.["@odata.nextLink"] ?? null);
+      const { items, nextLink } = await fetchFirstPage();
+      setUsers(items);
+      setNextLink(nextLink);
     } catch (e: any) {
       setError(String(e?.message ?? e));
     } finally {
       setLoading(false);
     }
-  }, [graph, selectedGroup?.groupId]);
+  }, [selectedGroup?.groupId, fetchFirstPage]);
 
   const loadMore = React.useCallback(async () => {
     if (!nextLink) return;
@@ -73,20 +162,53 @@ export function useSecurity(groups: GroupOption[]) {
     setError(null);
 
     try {
-      const res = await graph.getAbsolute<MembersResponse>(nextLink);
-      setUsers((prev) => [...prev, ...(res?.value ?? [])]);
-      setNextLink(res?.["@odata.nextLink"] ?? null);
+      const { items, nextLink: next } = await fetchNextPage(nextLink);
+      setUsers((prev) => {
+        const merged = [...prev, ...items];
+        loadedTargetRef.current = merged.length;
+        return merged;
+      });
+      setNextLink(next);
     } catch (e: any) {
       setError(String(e?.message ?? e));
     } finally {
       setLoading(false);
     }
-  }, [graph, nextLink]);
+  }, [nextLink, fetchNextPage]);
+
+  // Recarga desde la página 1 pero sigue paginando hasta recuperar la misma cantidad
+  // de usuarios que ya se tenían cargados (en vez de colapsar todo a la primera página).
+  const reloadPreservingLimit = React.useCallback(async () => {
+    if (!selectedGroup?.groupId) return;
+
+    const target = loadedTargetRef.current;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      let { items: accumulated, nextLink: next } = await fetchFirstPage();
+
+      while (accumulated.length < target && next) {
+        const page = await fetchNextPage(next);
+        accumulated = [...accumulated, ...page.items];
+        next = page.nextLink;
+      }
+
+      setUsers(accumulated);
+      setNextLink(next);
+      loadedTargetRef.current = Math.max(PAGE_SIZE, accumulated.length);
+    } catch (e: any) {
+      setError(String(e?.message ?? e));
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedGroup?.groupId, fetchFirstPage, fetchNextPage]);
 
   React.useEffect(() => {
     if (!selectedGroup?.groupId) return;
     void loadFirstPage();
-  }, [selectedGroup?.groupId, loadFirstPage]);
+  }, [selectedGroup?.groupId, debouncedSearch, loadFirstPage]);
 
   const handleAdd = React.useCallback(async () => {
     if (!selectedGroup?.groupId) return;
@@ -101,13 +223,13 @@ export function useSecurity(groups: GroupOption[]) {
       await graph.addUserToGroup(selectedGroup.groupId, email);
       setIsAddOpen(false);
       setAddEmail("");
-      await loadFirstPage();
+      await reloadPreservingLimit();
     } catch (e: any) {
       setError(String(e?.message ?? e));
     } finally {
       setAddBusy(false);
     }
-  }, [graph, selectedGroup?.groupId, addEmail, loadFirstPage]);
+  }, [graph, selectedGroup?.groupId, addEmail, reloadPreservingLimit]);
 
   const handleRemove = React.useCallback(
     async (user: GraphUserLite) => {
@@ -127,15 +249,63 @@ export function useSecurity(groups: GroupOption[]) {
         }
 
         await graph.removeUserFromGroup(selectedGroup.groupId, email);
-        await loadFirstPage();
+        await reloadPreservingLimit();
       } catch (e: any) {
         setError(String(e?.message ?? e));
       } finally {
         setLoading(false);
       }
     },
-    [graph, selectedGroup?.groupId, loadFirstPage]
+    [graph, selectedGroup?.groupId, reloadPreservingLimit]
   );
+
+  const syncActiveUsers = React.useCallback(async () => {
+    if (!selectedGroup?.groupId) return;
+
+    setSyncing(true);
+    setError(null);
+    setSyncSummary(null);
+
+    try {
+      const [activeUsersRaw, currentMembers] = await Promise.all([
+        graph.getAllActiveUsers(),
+        graph.getAllGroupMembers(selectedGroup.groupId),
+      ]);
+
+      const activeUsers = activeUsersRaw.filter((u) => !isExcludedFromSync(u));
+
+      const memberIds = new Set(currentMembers.map((m) => m.id));
+      const total = activeUsers.length;
+
+      let processed = 0;
+      let added = 0;
+      let failed = 0;
+
+      setSyncProgress({ processed, added, failed, total });
+
+      for (const user of activeUsers) {
+        if (!memberIds.has(user.id)) {
+          try {
+            await graph.addUserIdToGroup(selectedGroup.groupId, user.id);
+            memberIds.add(user.id);
+            added += 1;
+          } catch {
+            failed += 1;
+          }
+        }
+
+        processed += 1;
+        setSyncProgress({ processed, added, failed, total });
+      }
+
+      setSyncSummary({ added, skipped: total - added - failed, failed, total });
+      await loadFirstPage();
+    } catch (e: any) {
+      setError(String(e?.message ?? e));
+    } finally {
+      setSyncing(false);
+    }
+  }, [graph, selectedGroup?.groupId, loadFirstPage]);
 
   return {
     selectedKey,
@@ -162,5 +332,10 @@ export function useSecurity(groups: GroupOption[]) {
     addBusy,
     handleAdd,
     handleRemove,
+
+    syncing,
+    syncProgress,
+    syncSummary,
+    syncActiveUsers,
   };
 }

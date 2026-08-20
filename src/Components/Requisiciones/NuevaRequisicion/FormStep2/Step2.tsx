@@ -5,6 +5,7 @@ import type { requisiciones } from "../../../../models/Requisiciones/requisicion
 import Select, { components, type OptionProps } from "react-select";
 import { notify } from '../../../../utils/notify';
 import { diasSemanaOptions } from "../../../../consts/diasFestivos";
+import { sameText } from "../NuevaRequisicion";
 
 const selectMenuProps = {
   menuPortalTarget: typeof document !== "undefined" ? document.body : null,
@@ -29,8 +30,6 @@ type Props = {
   state: requisiciones;
   setField: <K extends keyof requisiciones>(k: K, v: requisiciones[K]) => void;
   tipoConvocatoria: "Administrativa" | "Retail";
-  tipoConvocatoriaOptions: desplegablesOption[];
-  selectedTipoConvocatoria: desplegablesOption | null;
   generoOptions: desplegablesOption[];
   selectedGenero: desplegablesOption | null;
   motivoOptions: desplegablesOption[];
@@ -41,8 +40,6 @@ type Props = {
   selectedCentroCostos: desplegablesOption | null;
   unidadNegocioOptions: desplegablesOption[];
   selectedUnidadNegocio: desplegablesOption | null;
-  direccionOptions: desplegablesOption[];
-  selectedDireccion: desplegablesOption | null;
   cveOptions: desplegablesOption[];
   selectedCve: desplegablesOption | null;
   modalidadOptions: desplegablesOption[];
@@ -50,13 +47,28 @@ type Props = {
   selectedDominical: desplegablesOption | null;
 };
 
+
+const convocatoriaOptions: desplegablesOption[] = [
+  {label: "Externo", value: "Externo"},
+  {label: "Interno", value: "Interno"},
+  {label: "Mixto", value: "Mixto"},
+]
+
+const gerenciasOptions: desplegablesOption[] = [
+  {label: "Gerencia Retail Multimarca", value: "Gerencia Retail Multimarca"},
+  {label: "Gerencia de Marcas", value: "Gerencia de Marcas"},
+  {label: "Gerencia de Abastecimiento", value: "Gerencia de Abastecimiento"},
+  {label: "Gerencia de Administrativa y Financiera", value: "Gerencia de Administrativa y Financiera"},
+  {label: "Gerencia de Juridica y Control Interno", value: "Gerencia de Juridica y Control Interno"},
+  {label: "Gerencia de TI e Inteligencia Comercial", value: "Gerencia de TI e Inteligencia Comercial"},
+  {label: "Gerencia de Capital Humano", value: "Gerencia de Capital Humano"},
+]
+
 export default function Step2Form({
   modalidadOptions,
   selectedModalidad,
   cveOptions,
   selectedCve,
-  direccionOptions,
-  selectedDireccion,
   unidadNegocioOptions,
   selectedUnidadNegocio,
   centroCostosOptions,
@@ -68,13 +80,13 @@ export default function Step2Form({
   selectedMotivo,
   state,
   setField,
-  tipoConvocatoriaOptions,
-  selectedTipoConvocatoria,
   generoOptions,
   selectedGenero,
   selectedDominical
 }: Props) {
   const [displaySalario, setDisplaySalario] = React.useState("");
+  const selectedTipoConvocatoria = convocatoriaOptions.find((option) => sameText(option.label, state.tipoConvocatoria)) ?? null;
+  const selectedGerencia = gerenciasOptions.find((option) => sameText(option.label, state.tipoConvocatoria)) ?? null;
 
   React.useEffect(() => {
     if (state.salarioBasico) {
@@ -130,7 +142,7 @@ export default function Step2Form({
             <label className="ft-label">Tipo de convocatoria *</label>
             <Select<desplegablesOption, false>
               inputId="tipoConvocatoria"
-              options={tipoConvocatoriaOptions}
+              options={convocatoriaOptions}
               value={selectedTipoConvocatoria}
               onChange={(option) => setField("tipoConvocatoria", option?.label ?? "")}
               classNamePrefix="rs"
@@ -172,8 +184,8 @@ export default function Step2Form({
             <label className="ft-label">Gerencia *</label>
             <Select<desplegablesOption, false>
               inputId="gerencia"
-              options={direccionOptions}
-              value={selectedDireccion}
+              options={gerenciasOptions}
+              value={selectedGerencia}
               onChange={(option) => setField("direccion", option?.label ?? "")}
               classNamePrefix="rs"
               components={{ Option }}

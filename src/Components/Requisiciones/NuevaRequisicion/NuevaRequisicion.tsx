@@ -8,11 +8,9 @@ import {
   useCentroCostos,
   useCentroOperativo,
   useDeptosMunicipios,
-  useDireccion,
   useGenero,
   useModalidadTrabajo,
   useMotivoRequisicion,
-  useTipoVacante,
   useUnidadNegocio,
 } from "../../../Funcionalidades/Desplegables";
 import Step2Form from "./FormStep2/Step2";
@@ -31,7 +29,7 @@ type Props = {
   sendNotificationPlantaIdeal: (co: string, motivo:string) => void
 };
 
-function sameText(left: unknown, right: unknown) {
+export function sameText(left: unknown, right: unknown) {
   return String(left ?? "").trim().toLowerCase() === String(right ?? "").trim().toLowerCase();
 }
 
@@ -49,14 +47,12 @@ export default function WizardRequisicion3Pasos({
     const { loadSpecificSalary } = useSalarios(salarios);
 
   const { reload: loadCargos, options: cargoOptions } = useCargo(Maestro);
-  const { reload: loadTipoVacante, options: tipoConvocatoriaOptions } = useTipoVacante(Maestro);
   const { reload: loadGenero, options: generoOptions } = useGenero(Maestro);
   const { reload: loadCiudades, options: ciudadesOptions } = useDeptosMunicipios(DeptosYMunicipios);
   const { reload: loadMotivos, options: motivosOptions } = useMotivoRequisicion(Maestro);
   const { reload: loadCentroOperativo, options: centroOperativoOptions } = useCentroOperativo(Maestro);
   const { reload: loadCentroCostos, options: centroCostosOptioons } = useCentroCostos(Maestro);
   const { reload: loadUnidadNegocio, options: unidadNegocioOptions } = useUnidadNegocio(Maestro);
-  const { reload: loadDireccion, options: direccionOptions } = useDireccion(Maestro);
   const { reload: loadCVE, options: cveOptions } = gruposCVE(Maestro);
   const { reload: loadModalidad, options: modalidadOptions } = useModalidadTrabajo(Maestro);
 
@@ -87,26 +83,22 @@ export default function WizardRequisicion3Pasos({
   React.useEffect(() => {
     loadCargos();
     loadCiudades();
-    loadTipoVacante();
     loadGenero();
     loadMotivos();
     loadCentroOperativo();
     loadCentroCostos();
     loadUnidadNegocio();
-    loadDireccion();
     loadCVE();
     loadModalidad();
   }, []);
 
   const selectedCargo = cargoOptions.find((option) => sameText(option.label, state.Title)) ?? null;
   const selectedCiudad = ciudadesAllOptions.find((option) => sameText(option.value, state.Ciudad)) ?? null;
-  const selectedTipoConvocatoria = tipoConvocatoriaOptions.find((option) => sameText(option.label, state.tipoConvocatoria)) ?? null;
   const selectedGenero = generoOptions.find((option) => sameText(option.label, state.genero)) ?? null;
   const selectedMotivo = motivosOptions.find((option) => sameText(option.label, state.motivo)) ?? null;
   const selectedCentroOperativo = centroOperativoOptions.find((option) => sameText(option.value, state.codigoCentroOperativo)) ?? null;
   const selectedCentroCostos = centroCostosOptioons.find((option) => sameText(option.value, state.codigoCentroCosto)) ?? null;
   const selectedUnidadNegocio = unidadNegocioOptions.find((option) => sameText(option.value, state.codigoUnidadNegocio)) ?? null;
-  const selectedDireccion = direccionOptions.find((option) => sameText(option.label, state.direccion)) ?? null;
   const selectedCVE = cveOptions.find((option) => sameText(safeLower(option.label), safeLower(state.grupoCVE))) ?? null;
   const selectedModalidad = modalidadOptions.find((option) => sameText(option.label, state.modalidadTeletrabajo)) ?? null;
   const selectedDominical = diasSemanaOptions.find((option) => sameText(option.label, state.Dominical)) ?? null;
@@ -288,8 +280,6 @@ export default function WizardRequisicion3Pasos({
                   state={state}
                   setField={setField}
                   tipoConvocatoria={tipoRequisicion}
-                  tipoConvocatoriaOptions={tipoConvocatoriaOptions}
-                  selectedTipoConvocatoria={selectedTipoConvocatoria}
                   generoOptions={generoOptions}
                   selectedGenero={selectedGenero}
                   motivoOptions={motivosOptions}
@@ -300,8 +290,6 @@ export default function WizardRequisicion3Pasos({
                   selectedCentroCostos={selectedCentroCostos}
                   unidadNegocioOptions={unidadNegocioOptions}
                   selectedUnidadNegocio={selectedUnidadNegocio}
-                  direccionOptions={direccionOptions}
-                  selectedDireccion={selectedDireccion}
                   cveOptions={cveOptions}
                   selectedCve={selectedCVE}
                   modalidadOptions={modalidadOptions}

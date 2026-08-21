@@ -118,7 +118,7 @@ export default function WizardRequisicion3Pasos({
         notify.auto("Este cargo no ha sido configurado, por favor comuniquese con capital humano");
         return;
       }
-
+      
       const [ansRows] = await Promise.all([
         ansRequisicion.getAll({ filter: `fields/NivelCargo eq '${categoriaCargo}'`, top: 1 }),
       ]);

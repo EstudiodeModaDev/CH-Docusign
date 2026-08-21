@@ -30,7 +30,7 @@ export type Section = {
    Shell: controla autenticación básica y muestra LoggedApp
    ============================================================ */
 function Shell() {
-  const { ready, account, signIn, signOut } = useAuth();
+  const { ready, account, signIn, signOut,} = useAuth();
   const [loadingAuth, setLoadingAuth] = React.useState(false);
 
   const user: User = account

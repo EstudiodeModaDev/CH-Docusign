@@ -86,7 +86,7 @@ export default function Step2Form({
 }: Props) {
   const [displaySalario, setDisplaySalario] = React.useState("");
   const selectedTipoConvocatoria = convocatoriaOptions.find((option) => sameText(option.label, state.tipoConvocatoria)) ?? null;
-  const selectedGerencia = gerenciasOptions.find((option) => sameText(option.label, state.tipoConvocatoria)) ?? null;
+  const selectedGerencia = gerenciasOptions.find((option) => sameText(option.label, state.direccion)) ?? null;
 
   React.useEffect(() => {
     if (state.salarioBasico) {

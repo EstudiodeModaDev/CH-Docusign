@@ -56,7 +56,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // evita iniciar interacción desde aquí; deja que UI llame signIn()
       throw new Error('No hay sesión iniciada. Inicia sesión para continuar.');
     }
-    return getAccessToken({ interactionMode: 'popup', forceSilent: false });
+    const token = getAccessToken({ interactionMode: 'popup', forceSilent: false });
+    return token
   }, []);
 
   const value = React.useMemo<AuthCtx>(() => ({

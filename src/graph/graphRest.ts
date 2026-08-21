@@ -101,7 +101,8 @@ export class GraphRest {
   }
 
   async getBlob(path: string) {
-      const token = await this.getToken(); // mismo token que ya te sirve
+      const token = await this.getToken(); 
+      console.log(token)
       const res = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
       headers: { Authorization: `Bearer ${token}` }
     });

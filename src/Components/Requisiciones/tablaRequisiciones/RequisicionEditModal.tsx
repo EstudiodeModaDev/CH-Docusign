@@ -75,7 +75,7 @@ const EDIT_SECTIONS: Array<{ title: string; description: string; fields: EditFie
     title: "Resumen de requisicion",
     description: "Campos base para identificar la vacante y su estado operativo.",
     fields: [
-      { key: "Identificador", label: "Identificador", placeholder: "RQ-0000", disabled: true },
+      { key: "Id", label: "Identificador", placeholder: "0000", disabled: true },
       {
         key: "nuevoPromocion",
         label: "Nuevo o promocion",
@@ -203,7 +203,7 @@ export default function RequisicionEditModal({ open = true, row = null, onClose,
   if (!open) return null;
 
   const title = getDraftValue(draft, "Title") || "Edicion de requisicion";
-  const identifier = getDraftValue(draft, "Identificador") || getDraftValue(draft, "Id") || "Sin ID";
+  const identifier = getDraftValue(draft, "Id") || "Sin ID";
   const estado = getDraftValue(draft, "Estado") || "Borrador visual";
 
   const applyPatch = (patch: Partial<requisiciones>) => {

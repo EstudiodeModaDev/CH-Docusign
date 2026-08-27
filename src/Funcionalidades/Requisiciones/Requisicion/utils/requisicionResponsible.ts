@@ -120,7 +120,9 @@ export async function chooseFinalResponsible(
   tipoRequisicion: "Administrativa" | "Retail",
   nivelCargo?: string
 ): Promise<Responsible | null> {
-  if (tipoRequisicion === "Retail") {
+  const formatedNivel = nivelCargo ? nivelCargo?.trim().toLocaleLowerCase() : ""
+
+  if (tipoRequisicion === "Retail" || formatedNivel === "administrador") {
     const preferredResponsible = await chooseByZona(ciudadSvc, responsableSvc, ciudad);
     return preferredResponsible
   }

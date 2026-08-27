@@ -51,9 +51,6 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
         getContractsByCO(co),
       ]);
       const totalRegistros = resultado.data.length
-      console.log(totalRegistros)
-      console.log(plantaIdealDefinida);
-      console.log(resultado);
 
       if ((plantaIdealDefinida ?? 0) <= Number(totalRegistros ?? 0)) {
         await notifications.notifcacionPlantaIdeal(motivo, co, {actual: Number(plantaIdealDefinida), aprobada: totalRegistros});

@@ -7,10 +7,8 @@ import { useAuth } from "../../../../../../auth/authProvider";
 import { formatPesosEsCO, numeroATexto, toNumberFromEsCO,  } from "../../../../../../utils/Number";
 import { useSalarios } from "../../../../../../Funcionalidades/GD/Salario";;
 import { lookOtherInfo } from "../../../../../../utils/lookFor";
-import { usePromocion } from "../../../../../../Funcionalidades/GD/Promocion";
 import type { Cesacion, CesacionErrors, } from "../../../../../../models/Cesaciones";
 import type { SetField } from "../../Contrato/addContrato";
-import { useRetail } from "../../../../../../Funcionalidades/GD/Retail";
 import { createBody, notifyTeam } from "../../../../../../utils/mail";
 import { ProcessDetail } from "../procesoCesacion";
 import { useAutomaticCargo } from "../../../../../../Funcionalidades/GD/Niveles";
@@ -18,8 +16,7 @@ import { safeLower } from "../../../../../../utils/text";
 import { toISODateFlex } from "../../../../../../utils/Date";
 import { usePermissions } from "../../../../../../Funcionalidades/Permisos";
 import type { DetallesPasos } from "../../../../../../models/Pasos";
-import { useContratos } from "../../../../../../Funcionalidades/GD/Contratos/hooks/useContratos";
-import { useHabeasData } from "../../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
+import { useRegistroPersonasContext } from "../../../../../../Funcionalidades/GD/RegistrarNuevoContext";
 import { auxilioHandlder } from "../../../Handler/CesacionesHandlers";
 import { createEmptyCesacion } from "../../../../../../Funcionalidades/GD/Cesaciones/utils/cesacionesState";
 import { useCesacionStepDetails, useCesacionSteps } from "../../../../../../Funcionalidades/GD/Steps/CesacionSteps/useCesacionSteps";
@@ -84,12 +81,9 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormCesacion({sending, temporalLoading, temporalOption, deptoOptions, loadingDeptos, handleReactivateProcessById, title, handleCancelProcessbyId, setState, selectedCesacion, handleEdit, tipo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, dependenciaOptions, loadingDependencias, onClose, state, setField, handleSubmit, errors, searchRegister: searchCesacion }: Props) {
-  const { Cesaciones, Promociones, Retail} = useGestorServices();
+  const { Cesaciones, } = useGestorServices();
   const {categorias, salarios, configuraciones, mail} = useCoreGraphServices()
-  const HabeasController = useHabeasData();
-  const contratosController = useContratos();
-  const { searchRegister: searchPromocion } = usePromocion(Promociones);
-  const { searchRegister: searchRetail } = useRetail(Retail);
+  const { searchHabeas, searchNovedad, searchPromocion, searchRetail } = useRegistroPersonasContext();
   const { loadSpecificSalary } = useSalarios(salarios);
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
   const { load: loadPasosCesacion, handleCompleteStep, byId, decisiones, setDecisiones, motivos, setMotivos, loading: loadingPasos, error: errorPasos} = useCesacionSteps()
@@ -233,7 +227,7 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
   };
 
   const searchPeople = React.useCallback(async (cedula: string) => {
-    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad: contratosController.searchRegister, searchCesacion, searchHabeas: HabeasController.searchRegister, searchRetail})
+    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion, searchHabeas, searchRetail})
     if(persona){
       setField("Title", persona.cedula)
       setField("Nombre", persona.nombre)

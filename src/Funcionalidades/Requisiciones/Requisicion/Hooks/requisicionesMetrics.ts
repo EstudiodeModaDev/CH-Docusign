@@ -38,6 +38,24 @@ export type SummaryMetrics = {
   vacantesAbiertas: number;
 };
 
+export type EstadoDistributionRow = {
+  estado: string;
+  count: number;
+  pct: number;
+};
+
+export type WatchlistItem = {
+  id: string;
+  cargo: string;
+  ciudad: string;
+  direccion: string;
+  tienda?: string;
+  analista: string;
+  fechaLimite: string | null;
+  diasRestantes: number | null;
+  tone: Extract<MetricTone, "warn" | "risk">;
+};
+
 export type RequisicionesMetrics = {
   resumen: SummaryMetrics;
   embudo: FunnelMetrics;
@@ -45,6 +63,8 @@ export type RequisicionesMetrics = {
   porDireccion: MetricGroupRow[];
   porCiudad: MetricGroupRow[];
   porAnalista: MetricGroupRow[];
+  porEstado: EstadoDistributionRow[];
+  watchlist: WatchlistItem[];
 };
 
 const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
@@ -74,6 +94,8 @@ const EMPTY_METRICS: RequisicionesMetrics = {
   porDireccion: [],
   porCiudad: [],
   porAnalista: [],
+  porEstado: [],
+  watchlist: [],
 };
 
 type DetailsByRequisicion = Record<string, detalleRequisicion[]>;
@@ -110,7 +132,70 @@ export function buildRequisicionesMetrics(
     porDireccion: buildGroupedMetrics(rows, "direccion", now),
     porCiudad: buildGroupedMetrics(rows, "Ciudad", now),
     porAnalista: buildGroupedMetrics(rows, "nombreProfesional", now),
+    porEstado: buildEstadoDistribution(rows),
+    watchlist: buildWatchlist(rows, now),
   };
+}
+
+const ESTADO_ORDER = ["activo", "cerrado", "cancelado"];
+
+function buildEstadoDistribution(rows: requisiciones[]): EstadoDistributionRow[] {
+  const groups = new Map<string, requisiciones[]>();
+
+  rows.forEach((row) => {
+    const raw = typeof row.Estado === "string" && row.Estado.trim() ? row.Estado.trim() : "Sin dato";
+    const current = groups.get(raw);
+
+    if (current) {
+      current.push(row);
+      return;
+    }
+
+    groups.set(raw, [row]);
+  });
+
+  const entries: EstadoDistributionRow[] = [...groups.entries()].map(([estado, groupedRows]) => ({
+    estado,
+    count: groupedRows.length,
+    pct: toPercent(groupedRows.length, rows.length),
+  }));
+
+  return entries.sort((a, b) => {
+    const aIndex = ESTADO_ORDER.indexOf(a.estado.toLowerCase());
+    const bIndex = ESTADO_ORDER.indexOf(b.estado.toLowerCase());
+
+    if (aIndex === -1 && bIndex === -1) return b.count - a.count;
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+    return aIndex - bIndex;
+  });
+}
+
+function buildWatchlist(rows: requisiciones[], now: Date): WatchlistItem[] {
+  return rows
+    .filter(isOpenRequisition)
+    .reduce<WatchlistItem[]>((acc, row) => {
+      const tone = isExpiredAns(row, now) ? "risk" : isRiskAns(row, now) ? "warn" : null;
+      if (!tone) return acc;
+
+      const deadline = parseDate(row.fechaLimite);
+      const diasRestantes = deadline ? Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
+
+      acc.push({
+        id: String(row.Id ?? ""),
+        cargo: row.Title,
+        ciudad: row.Ciudad,
+        direccion: row.direccion,
+        tienda: row.tienda,
+        analista: row.nombreProfesional,
+        fechaLimite: row.fechaLimite,
+        diasRestantes,
+        tone,
+      });
+
+      return acc;
+    }, [])
+    .sort((a, b) => (a.diasRestantes ?? 0) - (b.diasRestantes ?? 0));
 }
 
 function buildSummaryMetrics(rows: requisiciones[], now: Date): SummaryMetrics {
@@ -275,8 +360,8 @@ function isCumpleAns(row: requisiciones): boolean {
 }
 
 function isOpenRequisition(row: requisiciones): boolean {
-  const state = normalize(row.Estado);
-  return state !== "cerrado" && state !== "cancelado";
+  const state = normalize(row.Estado.toLocaleLowerCase());
+  return state !== "cerrado" && state !== "cancelado" && state !== "finalizada" && state !== "completada";
 }
 
 function isExpiredAns(row: requisiciones, now: Date): boolean {

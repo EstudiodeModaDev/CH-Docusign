@@ -36,7 +36,6 @@ export function cleanStateRequisicion(account: AccountInfo | null): requisicione
     empresaContratista: "",
     Estado: "Activo",
     fechaTerna: null,
-    Identificador: "",
     tienda: "",
     motivoNoCumplimiento: "",
     porceranje: 0,

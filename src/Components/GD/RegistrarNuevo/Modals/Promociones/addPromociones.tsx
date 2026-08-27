@@ -11,15 +11,12 @@ import { lookOtherInfo } from "../../../../../utils/lookFor";
 import { useAutomaticCargo } from "../../../../../Funcionalidades/GD/Niveles";
 import type { Promocion, PromocionErrors } from "../../../../../models/Promociones";
 import type { SetField } from "../Contrato/addContrato";
-import { useRetail } from "../../../../../Funcionalidades/GD/Retail";
 import { createBody, notifyTeam } from "../../../../../utils/mail";
 import { safeLower } from "../../../../../utils/text";
 import type { DetallesPasos } from "../../../../../models/Pasos";
 import { ProcessDetail } from "../Cesaciones/procesoCesacion";
 import { usePermissions } from "../../../../../Funcionalidades/Permisos";
-import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones/hooks/useCesaciones";
-import { useContratos } from "../../../../../Funcionalidades/GD/Contratos/hooks/useContratos";
-import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
+import { useRegistroPersonasContext } from "../../../../../Funcionalidades/GD/RegistrarNuevoContext";
 import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
 import { usePromocionStepDetails, usePromocionSteps } from "../../../../../Funcionalidades/GD/Steps/PromocionSteps/usePromocionSteps";
 import { ConfirmModal, type ConfirmModalPayload } from "../../../Common/confirmModal/ConfirmModal";
@@ -93,12 +90,9 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormPromocion({ submitting, handleReactivateProcessById, title, handleCancelProcessbyId, setState, selectedPromocion, handleEdit, tipo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, loadingModalidad, especificidadOptions, loadingEspecificdad, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, onClose, state, setField, handleSubmit, errors, searchRegister: searchPromocion, loadFirstPage }: Props) {
-  const { Promociones, Retail,} = useGestorServices();
+  const { Promociones, } = useGestorServices();
   const { salarios, categorias, configuraciones, mail} = useCoreGraphServices();
-  const { searchRegister: searchHabeas} = useHabeasData();
-  const contratosController = useContratos();
-  const cesacionesController = useCesaciones();
-  const { searchRegister: searchRetail } = useRetail(Retail);
+  const { searchHabeas, searchNovedad, searchCesacion, searchRetail } = useRegistroPersonasContext();
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
   const { loadSpecificSalary } = useSalarios(salarios);
   const { load: loadPasosPromocion, rows, loading: loadinPasosPromocion, error: errorPasosPromocion, byId, decisiones, setDecisiones, motivos, setMotivos, handleCompleteStep} = usePromocionSteps()
@@ -338,7 +332,7 @@ export default function FormPromocion({ submitting, handleReactivateProcessById,
   };
 
   const searchPeople = React.useCallback(async (cedula: string) => {
-    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad: contratosController.searchRegister, searchCesacion: cesacionesController.searchRegister, searchHabeas, searchRetail})
+    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion, searchHabeas, searchRetail})
     if(persona){
       setField("NumeroDoc", persona.cedula)
       setField("NombreSeleccionado", persona.nombre)

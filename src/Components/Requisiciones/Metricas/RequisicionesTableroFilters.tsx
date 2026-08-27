@@ -53,7 +53,7 @@ export default function MetricasFilters(props: Props) {
         <select value={ciudad} onChange={(e) => setCiudad(e.target.value)}>
           {ciudadOptions.map((option) => (
             <option key={option.value} value={option.value}>
-              {option.label}
+              {option.value}
             </option>
           ))}
         </select>

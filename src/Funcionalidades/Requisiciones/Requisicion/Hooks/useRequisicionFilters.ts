@@ -17,9 +17,11 @@ export function useRequisicionFilters(pageSize: number) {
   const [cumpleANS, setCumpleANS] = React.useState<string>("all");
   const [ciudad, setCiudad] = React.useState<string>("all");
   const [analista, setAnalista] = React.useState<string>("all");
+  const [solicitante, setSolicitante] = React.useState<string>("");
   const { account } = useAuth();
 
   const debouncedSearch = useDebouncedValue(search, 250);
+  const debouncedSolicitante = useDebouncedValue(solicitante, 250);
   const canViewAll = engine.can("requisiciones.viewAll");
 
   const securityFilter = React.useMemo(() => {
@@ -53,6 +55,11 @@ export function useRequisicionFilters(pageSize: number) {
       }
     }
 
+    const trimmedSolicitante = debouncedSolicitante.trim();
+    if (trimmedSolicitante) {
+      filters.push(`startswith(fields/solicitante, '${esc(trimmedSolicitante)}')`);
+    }
+
     if (mes) {
       const { from, toExclusive } = buildUtcMonthRange(mes);
       filters.push(`fields/fechaInicioProceso ge '${from}'`);
@@ -65,7 +72,7 @@ export function useRequisicionFilters(pageSize: number) {
       orderby,
       top: pageSize,
     };
-  }, [estado, cargo, cumpleANS, ciudad, analista, securityFilter, debouncedSearch, mes, pageSize, orderby]);
+  }, [estado, cargo, cumpleANS, ciudad, analista, securityFilter, debouncedSearch, debouncedSolicitante, mes, pageSize, orderby]);
 
   return {
     buildFilter,
@@ -77,6 +84,7 @@ export function useRequisicionFilters(pageSize: number) {
     cumpleANS,
     ciudad,
     analista,
+    solicitante,
     setMes,
     setAnalista,
     setCargo,
@@ -85,6 +93,7 @@ export function useRequisicionFilters(pageSize: number) {
     setCiudad,
     setCumpleANS,
     setEstado,
+    setSolicitante,
   };
 }
 

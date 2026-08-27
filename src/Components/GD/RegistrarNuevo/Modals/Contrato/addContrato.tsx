@@ -7,17 +7,14 @@ import { useAuth } from "../../../../../auth/authProvider";
 import { getTodayLocalISO, toISODateFlex } from "../../../../../utils/Date";
 import { useSalarios } from "../../../../../Funcionalidades/GD/Salario";
 import { lookOtherInfo, } from "../../../../../utils/lookFor";
-import { usePromocion } from "../../../../../Funcionalidades/GD/Promocion";
 import type { Novedad, NovedadErrors } from "../../../../../models/Novedades";
 import { useAutomaticCargo } from "../../../../../Funcionalidades/GD/Niveles";
-import { useRetail } from "../../../../../Funcionalidades/GD/Retail";
 import { createBody, notifyTeam } from "../../../../../utils/mail";
 import type { DetallesPasos } from "../../../../../models/Pasos";
 import { ProcessDetail } from "../Cesaciones/procesoCesacion";
 import { safeLower } from "../../../../../utils/text";
 import { usePermissions } from "../../../../../Funcionalidades/Permisos";
-import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones/hooks/useCesaciones";
-import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
+import { useRegistroPersonasContext } from "../../../../../Funcionalidades/GD/RegistrarNuevoContext";
 import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
 import { createEmptyContratos } from "../../../../../Funcionalidades/GD/Contratos/utils/contratosState";
 import { useNovedadesStepDetails, useNovedadesSteps } from "../../../../../Funcionalidades/GD/Steps/ContratosSteps/useNovedadesSteps";
@@ -94,12 +91,9 @@ type Props = {
 
 /* ================== Formulario ================== */
 export default function FormContratacion({handleReactivateProcessById, title, handleCancelProcessbyId, setState, selectedNovedad, handleEdit, tipo, tipoContratoOptions, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, loadingModalidad, especificidadOptions, loadingEspecificdad, etapasOptions, loadingEtapas, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, origenOptions, loadingOrigen, loadingTipoContrato, tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, onClose, state, setField, handleSubmit, errors, searchRegister: searchNovedad, loadFirstPage }: Props) {
-  const { Contratos, Promociones, Retail,} = useGestorServices();
+  const { Contratos, } = useGestorServices();
   const {salarios, categorias, configuraciones, mail} = useCoreGraphServices()
-  const { searchRegister: searchHabeas} = useHabeasData();
-  const { searchRegister: searchPromocion } = usePromocion(Promociones);
-  const { searchRegister: searchRetail } = useRetail(Retail);
-  const cesacionesController = useCesaciones();
+  const { searchHabeas, searchPromocion, searchRetail, searchCesacion } = useRegistroPersonasContext();
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
   const { loadSpecificSalary } = useSalarios(salarios);
   const stepsController = useNovedadesSteps()
@@ -415,7 +409,7 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
   };
 
   const searchPeople = React.useCallback(async (cedula: string) => {
-    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion: cesacionesController.searchRegister, searchHabeas, searchRetail})
+    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion, searchHabeas, searchRetail})
     if(persona){
       setField("Numero_x0020_identificaci_x00f3_", persona.cedula)
       setField("NombreSeleccionado", persona.nombre)

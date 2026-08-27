@@ -34,7 +34,6 @@ import { CategoriaCargosService } from "../Services/CategoriaCargos.service";
 import { RetailService } from "../Services/Retail.service";
 import { PasosRetailService } from "../Services/PasosRetail.service";
 import { DetallesPasosRetail } from "../Services/DetallesPasosRetail.service";
-import { TicketsService } from "../Services/Tickets.service";
 import { LogService } from "../Services/Log.service";
 import { ConfiguracionesService } from "../Services/Configuraciones.service";
 import { MatrizPermisosService } from "../Services/MatrizPermisos.service";
@@ -90,7 +89,6 @@ export type GestorServices = {
   ColaboradoresVisual: ColaboradoresVisualService;
   ColaboradoresMeta: ColaboradoresMetaService;
   ColaboradoresBroken: ColaboradoresBrokenService;
-  Tickets: TicketsService;
   log: LogService;
   solicitud: solicitudService;
   detalle: solicitudDetalleService;
@@ -167,7 +165,6 @@ export function buildGraphDomainServices(cfg: UnifiedConfig, graph: GraphRest): 
     ColaboradoresVisual: new ColaboradoresVisualService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresVisual),
     ColaboradoresMeta: new ColaboradoresMetaService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresMeta),
     ColaboradoresBroken: new ColaboradoresBrokenService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresBroken),
-    Tickets: new TicketsService(graph, helpDesk.hostname, helpDesk.sitePath, lists.tickets),
     log: new LogService(graph, helpDesk.hostname, helpDesk.sitePath, lists.log),
     solicitud: new solicitudService(graph, ch.hostname, ch.sitePath, lists.solicitud),
     detalle: new solicitudDetalleService(graph, ch.hostname, ch.sitePath, lists.detalle),

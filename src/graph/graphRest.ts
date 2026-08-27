@@ -39,6 +39,22 @@ export type GraphCollectionPage<T> = {
   "@odata.nextLink"?: string;
 };
 
+export type GraphDriveItemRef = {
+  driveId: string;
+  itemId: string;
+  name?: string;
+  webUrl?: string;
+};
+
+/** Convierte un link para compartir de OneDrive/SharePoint al "sharing token" que espera /shares/{id} */
+export function encodeSharingUrl(shareUrl: string): string {
+  const base64 = btoa(unescape(encodeURIComponent(shareUrl.trim())))
+    .replace(/=+$/, "")
+    .replace(/\//g, "_")
+    .replace(/\+/g, "-");
+  return `u!${base64}`;
+}
+
 export class GraphRest {
   private getToken: () => Promise<string>;
   private base = 'https://graph.microsoft.com/v1.0/';
@@ -447,6 +463,73 @@ export class GraphRest {
     }
 
     return Array.from(unique.values());
+  }
+
+  /** Resuelve un link "compartir" de OneDrive/SharePoint al driveId/itemId reales del archivo. */
+  async getDriveItemBySharingLink(shareUrl: string): Promise<GraphDriveItemRef> {
+    const shareId = encodeSharingUrl(shareUrl);
+
+    const item = await this.get<any>(
+      `/shares/${shareId}/driveItem?$select=id,name,webUrl,parentReference`
+    );
+
+    const driveId = item?.parentReference?.driveId;
+    if (!driveId || !item?.id) {
+      throw new Error("No se pudo resolver el driveItem a partir del link compartido");
+    }
+
+    return { driveId, itemId: item.id, name: item.name, webUrl: item.webUrl };
+  }
+
+  /** Lee el rango usado de una hoja como matriz de valores (fila 0 = headers, si el rango incluye la fila de títulos). */
+  async getWorkbookUsedRange(driveId: string, itemId: string, sheetName: string): Promise<any[][]> {
+    const res = await this.get<any>(
+      `/drives/${driveId}/items/${itemId}/workbook/worksheets('${encodeURIComponent(sheetName)}')/usedRange(valuesOnly=true)`
+    );
+    return res?.values ?? [];
+  }
+
+  /** Lee las filas de una tabla de Excel (sin headers, ya vienen como filas de datos). */
+  async getWorkbookTableRows(driveId: string, itemId: string, tableName: string): Promise<any[][]> {
+    const rows: any[][] = [];
+    let nextUrl: string | null =
+      `${this.base}drives/${driveId}/items/${itemId}/workbook/tables('${encodeURIComponent(tableName)}')/rows?$select=values`;
+
+    while (nextUrl) {
+      const page: GraphCollectionPage<{ values: any[][] }> = await this.getAbsolute<GraphCollectionPage<{ values: any[][] }>>(nextUrl);
+
+      for (const r of page.value ?? []) {
+        rows.push(r.values?.[0] ?? []);
+      }
+
+      nextUrl = page["@odata.nextLink"] ?? null;
+    }
+
+    return rows;
+  }
+
+  /** Lista las hojas del workbook (id + name). */
+  async listWorkbookWorksheets(driveId: string, itemId: string): Promise<{ id: string; name: string }[]> {
+    const res = await this.get<{ value: { id: string; name: string }[] }>(
+      `/drives/${driveId}/items/${itemId}/workbook/worksheets?$select=id,name`
+    );
+    return res?.value ?? [];
+  }
+
+  /** Lista las Tablas de Excel definidas en el workbook (id + name). */
+  async listWorkbookTables(driveId: string, itemId: string): Promise<{ id: string; name: string }[]> {
+    const res = await this.get<{ value: { id: string; name: string }[] }>(
+      `/drives/${driveId}/items/${itemId}/workbook/tables?$select=id,name`
+    );
+    return res?.value ?? [];
+  }
+
+  /** Nombres de columna de una tabla de Excel, en orden. */
+  async getWorkbookTableHeaders(driveId: string, itemId: string, tableName: string): Promise<string[]> {
+    const res = await this.get<{ value: { name: string; index: number }[] }>(
+      `/drives/${driveId}/items/${itemId}/workbook/tables('${encodeURIComponent(tableName)}')/columns?$select=name,index`
+    );
+    return (res?.value ?? []).sort((a, b) => a.index - b.index).map((c) => c.name);
   }
 
 }

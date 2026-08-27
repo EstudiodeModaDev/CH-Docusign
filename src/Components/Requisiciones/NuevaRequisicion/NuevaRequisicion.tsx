@@ -41,11 +41,10 @@ export default function WizardRequisicion3Pasos({
   setField,
   sendNotificationPlantaIdeal
 }: Props) {
-  const { ansRequisicion } = useRequisicionesServices();
+  const { ansRequisicion, } = useRequisicionesServices();
   const { categorias, Maestro, DeptosYMunicipios, salarios } = useCoreGraphServices();
   const [submitting, setSubmitting] = React.useState(false);
-    const { loadSpecificSalary } = useSalarios(salarios);
-
+  const { loadSpecificSalary } = useSalarios(salarios);
   const { reload: loadCargos, options: cargoOptions } = useCargo(Maestro);
   const { reload: loadGenero, options: generoOptions } = useGenero(Maestro);
   const { reload: loadCiudades, options: ciudadesOptions } = useDeptosMunicipios(DeptosYMunicipios);
@@ -104,11 +103,6 @@ export default function WizardRequisicion3Pasos({
   const selectedDominical = diasSemanaOptions.find((option) => sameText(option.label, state.Dominical)) ?? null;
 
   const handleSubmitRequest = async () => {
-    if (!state.Title || !state.Ciudad) {
-      notify.auto("Debes seleccionar el cargo y la ciudad para asignar el ANS y el analista.");
-      return;
-    }
-
     setSubmitting(true);
 
     try {

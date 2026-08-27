@@ -12,6 +12,7 @@
   "dependencies": {
     "@azure/msal-browser": "^4.26.2",
     "@date-fns/tz": "^1.4.1",
+    "chart.js": "^4.5.1",
     "date-fns": "^4.1.0",
     "exceljs": "^4.4.0",
     "express": "^5.2.1",
@@ -19,10 +20,10 @@
     "file-saver": "^2.0.5",
     "numero-a-letras": "^1.0.6",
     "react": "^19.2.0",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.14.2",
     "react-select": "^5.10.2",
-    "recharts": "^3.8.0",
     "select": "^1.1.2",
     "sonner": "^2.0.7",
     "xlsx": "^0.18.5"

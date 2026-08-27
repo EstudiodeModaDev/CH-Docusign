@@ -25,7 +25,7 @@ export default function RequisicionesBoardWrapper() {
   const navigate = useNavigate();
   const { Maestro, DeptosYMunicipios } = useCoreGraphServices();
   const { requisiciones } = useRequisicionesServices();
-  const { setState, state, onPostergarANS } = useRequisicionesContext();
+  const { setState, state, onPostergarANS, reloadAll } = useRequisicionesContext();
   const detailRouteMatch = useMatch("/requisicion/view/visualizacionDetalle");
   const editRouteMatch = useMatch("/requisicion/view/editRequisicion");
 
@@ -124,7 +124,13 @@ export default function RequisicionesBoardWrapper() {
   return (
     <>
       <div style={{ padding: "10px" }}>
-        <RequisicionesBoard cargoOptions={cargoOptions} onOpenRow={onSelect} onEditRow={onEdit} />
+        <RequisicionesBoard 
+          cargoOptions={cargoOptions} 
+          ciudadOptions={ciudadOptions} 
+          onOpenRow={onSelect} 
+          onEditRow={onEdit}
+          reloadRequisiciones={reloadAll} 
+        />
       </div>
 
       <RequisicionDetalleModal

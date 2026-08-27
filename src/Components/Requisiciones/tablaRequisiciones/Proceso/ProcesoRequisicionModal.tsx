@@ -32,17 +32,6 @@ export default function ProcesoRequisicionModal(props: ProcesoRequisicionModalPr
     void Promise.all([loadTemplates(), loadDetails()]);
   }, [open, row?.Id]);
 
-  React.useEffect(() => {
-    if (!open) return;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onClose, open]);
-
   const setApprovalValue = React.useCallback((detailId: string, value: "" | "Aprobado" | "Rechazado") => {
     setDecisiones((current) => ({ ...current, [detailId]: value }));
   }, [setDecisiones]);
@@ -88,7 +77,7 @@ export default function ProcesoRequisicionModal(props: ProcesoRequisicionModalPr
   );
 
   return (
-    <div className="rq-process-backdrop" role="presentation" onClick={onClose}>
+    <div className="rq-process-backdrop" role="presentation">
       <section
         className="rq-process-modal"
         role="dialog"

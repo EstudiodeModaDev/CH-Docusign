@@ -41,7 +41,6 @@ export class RequisicionesService extends BaseSharePointListService<requisicione
       fechaTerna: f.fechaTerna,
       genero: f.genero,
       grupoCVE: f.grupoCVE,
-      Identificador: f.Identificador,
       modalidadTeletrabajo: f.modalidadTeletrabajo,
       motivo: f.motivo,
       motivoNoCumplimiento: f.motivoNoCumplimiento,

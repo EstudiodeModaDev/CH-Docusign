@@ -406,6 +406,171 @@
   font-weight: 700;
 }
 
+/* ---------- Lista "Requisiciones por analista" ---------- */
+.rqm-analista-list {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rqm-analista-row__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.rqm-analista-row__name {
+  font-weight: 700;
+  color: #392a57;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rqm-analista-row__count {
+  flex: none;
+  font-size: 13px;
+  color: #7b7194;
+}
+
+.rqm-progress--fluid {
+  width: 100%;
+  height: 22px;
+}
+
+/* ---------- Chart.js hosts ---------- */
+.rqm-chart-canvas {
+  position: relative;
+  height: 220px;
+  min-width: 0;
+}
+
+.rqm-chart-canvas--tall {
+  height: 240px;
+}
+
+.rqm-chart-canvas--meter {
+  height: 34px;
+}
+
+.rqm-meter-ticks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2px;
+  font-size: 12px;
+  color: #7b7194;
+}
+
+.rqm-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* ---------- KPI icons ---------- */
+.rqm-mini-card__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 4px;
+  border-radius: 10px;
+  background: #f2ebff;
+  color: #6a34c5;
+}
+
+.rqm-mini-card__icon.is-warn {
+  background: rgba(245, 158, 11, 0.16);
+  color: #b45309;
+}
+
+.rqm-mini-card__icon.is-risk {
+  background: rgba(244, 63, 94, 0.14);
+  color: #e11d48;
+}
+
+/* ---------- Watchlist ("Requiere atención") ---------- */
+.rqm-watchlist {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rqm-watchlist__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #faf8ff;
+  border: 1px solid rgba(126, 92, 187, 0.12);
+}
+
+.rqm-watchlist__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  flex: none;
+}
+
+.rqm-watchlist__icon.is-warn {
+  background: rgba(245, 158, 11, 0.16);
+  color: #b45309;
+}
+
+.rqm-watchlist__icon.is-risk {
+  background: rgba(244, 63, 94, 0.14);
+  color: #e11d48;
+}
+
+.rqm-watchlist__body {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.rqm-watchlist__body strong {
+  font-size: 13px;
+  color: #392a57;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rqm-watchlist__body span {
+  font-size: 12px;
+  color: #7b7194;
+}
+
+.rqm-watchlist-card .rqm-badge {
+  margin-left: auto;
+  flex: none;
+  white-space: nowrap;
+}
+
+.rqm-watchlist__more {
+  text-align: center;
+  font-size: 12.5px;
+  color: #7b7194;
+  margin: 4px 0 0;
+}
+
+/* ---------- Tabs: reassert brand purple over Settings' teal ---------- */
+.rqm-page .ptabs__tab--active {
+  background: linear-gradient(135deg, #8a4cff 0%, #6c37ce 100%);
+  color: #ffffff;
+}
+
+.rqm-page .ptabs__indicator {
+  background: linear-gradient(90deg, #8a4cff, #6c37ce);
+}
+
 @media (max-width: 1600px) {
   .rqm-filters {
     grid-template-columns: repeat(3, minmax(160px, 1fr));
@@ -413,10 +578,6 @@
 
   .rqm-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .rqm-grid > :last-child {
-    grid-column: 1 / -1;
   }
 }
 
@@ -426,6 +587,10 @@
   }
 
   .rqm-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rqm-grid--2 {
     grid-template-columns: 1fr;
   }
 

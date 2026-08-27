@@ -7,13 +7,16 @@ import FiltersRequisicionesTable from "./filtersRequisicionesTable";
 import "./tablaRequisiciones.css";
 import { usePermissions } from "../../../Funcionalidades/Permisos";
 import { useRequisicionesContext } from "../../../Funcionalidades/Requisiciones/RequisicionesContext";
+import { IconAlertTriangle, IconCheckCircle, IconLayers, IconXCircle } from "./icons";
 
 type Props = {
   cargoOptions: desplegablesOption[];
+  ciudadOptions: desplegablesOption[];
   onOpenRow: (row: requisiciones) => void;
   className?: string;
   emptyText?: string;
   onEditRow: (row: requisiciones) => void
+  reloadRequisiciones: () => void
 };
 
 type RowTone = "active" | "closed" | "cancel" | "neutral";
@@ -39,7 +42,15 @@ type SortKey =
   | "porcentaje";
 
 export default function RequisicionesBoard(props: Props) {
-  const { cargoOptions, onOpenRow, className, emptyText = "No hay requisiciones para los filtros seleccionados." , onEditRow} = props;
+  const { 
+    cargoOptions, 
+    ciudadOptions, 
+    onOpenRow, 
+    className, 
+    emptyText = "No hay requisiciones para los filtros seleccionados." , 
+    onEditRow,
+    reloadRequisiciones
+  } = props;
   const requisicionesController = useRequisicionesContext();
   const [selectedProcessRow, setSelectedProcessRow] = React.useState<requisiciones | null>(null);
   const { engine } = usePermissions();
@@ -100,29 +111,32 @@ export default function RequisicionesBoard(props: Props) {
             <p className="rb-section-copy">Vista tabular para seguimiento operativo con filtros compactos y lectura rapida.</p>
           </div>
 
-          <div className="rb-stats-inline" role="list" aria-label="Metricas rapidas">
-            <StatPill label="Total" value={stats.total} tone="neutral" />
-            <StatPill label="Activas" value={stats.active} tone="success" />
-            <StatPill label="Retraso" value={stats.overdue} tone="danger" />
-            <StatPill label="Cerradas" value={stats.closed} tone="info" />
-            <StatPill label="Canceladas" value={stats.cancel} tone="warn" />
+          <div className="rb-stats-grid" role="list" aria-label="Metricas rapidas">
+            <StatCard label="Total" value={stats.total} tone="neutral" icon={<IconLayers size={17} />} />
+            <StatCard label="Activas" value={stats.active} tone="success" icon={<IconCheckCircle size={17} />} />
+            <StatCard label="Retraso" value={stats.overdue} tone="danger" icon={<IconAlertTriangle size={17} />} />
+            <StatCard label="Cerradas" value={stats.closed} tone="info" icon={<IconCheckCircle size={17} />} />
+            <StatCard label="Canceladas" value={stats.cancel} tone="warn" icon={<IconXCircle size={17} />} />
           </div>
         </div>
 
         <FiltersRequisicionesTable
           cargoOptions={cargoOptions}
+          ciudadOptions={ciudadOptions}
           rows={requisicionesController.rows}
           setSearch={requisicionesController.setSearch}
           setEstado={requisicionesController.setEstado}
           setCargo={requisicionesController.setCargo}
           setCiudad={requisicionesController.setCiudad}
           setAnalista={requisicionesController.setAnalista}
+          setSolicitante={requisicionesController.setSolicitante}
           setMes={requisicionesController.setMes}
           search={requisicionesController.search}
           estado={requisicionesController.estado}
           cargo={requisicionesController.cargo}
           ciudad={requisicionesController.ciudad}
           analista={requisicionesController.analista}
+          solicitante={requisicionesController.solicitante}
           mes={requisicionesController.mes}
         />
       </section>
@@ -140,7 +154,7 @@ export default function RequisicionesBoard(props: Props) {
                 <tr>
                   <SortableHeader label="ID" columnKey="id" sortConfig={activeSort} onSort={handleSort} />
                   <SortableHeader label="Cargo" columnKey="cargo" sortConfig={activeSort} onSort={handleSort} />
-                  <SortableHeader label="Analista" columnKey="analista" sortConfig={activeSort} onSort={handleSort} />
+                  <SortableHeader label="Profesional" columnKey="analista" sortConfig={activeSort} onSort={handleSort} />
                   <SortableHeader label="Solicitante" columnKey="solicitante" sortConfig={activeSort} onSort={handleSort} />
                   <SortableHeader label="Fecha hasta" columnKey="fechaLimite" sortConfig={activeSort} onSort={handleSort} />
                   <SortableHeader label="Seguimiento" columnKey="seguimiento" sortConfig={activeSort} onSort={handleSort} />
@@ -160,8 +174,14 @@ export default function RequisicionesBoard(props: Props) {
                       </td>
                       <td data-label="Cargo">
                         <div className="rb-cell-main">{item.Title}</div>
+                        {item.Ciudad ? <div className="rb-cell-sub">{item.Ciudad}</div> : null}
                       </td>
-                      <td data-label="Analista">{item.nombreProfesional || "Sin asignar"}</td>
+                      <td data-label="Profesional">
+                        <div className="rb-person">
+                          <span className="rb-avatar" aria-hidden="true">{getInitials(item.nombreProfesional)}</span>
+                          <span>{item.nombreProfesional || "Sin asignar"}</span>
+                        </div>
+                      </td>
                       <td data-label="Solicitante" className="rb-break">{item.solicitante || "-"}</td>
                       <td data-label="Fecha hasta">{spDateToDDMMYYYY(item.fechaLimite)}</td>
                       <td data-label="Seguimiento">
@@ -169,8 +189,18 @@ export default function RequisicionesBoard(props: Props) {
                           {item.Estado === "Completada" ? "Finalizada" :seguimiento.urgencyLabel}
                         </span>
                       </td>
-                      <td data-label="fecha de cierre">{item.fechaCierre ?? "No se ha cerrado"}</td>
-                      <td data-label="Porcentaje">{item.porceranje ?? 0}%</td>
+                      <td data-label="fecha de cierre">{item.fechaCierre ? spDateToDDMMYYYY(item.fechaCierre) : "No se ha cerrado"}</td>
+                      <td data-label="Porcentaje">
+                        <div className="rb-progress" title={`${item.porceranje ?? 0}%`}>
+                          <div className="rb-progress__track">
+                            <div
+                              className={`rb-progress__fill rb-progress__fill--${progressTone(item.porceranje ?? 0)}`}
+                              style={{ width: `${Math.min(100, Math.max(0, item.porceranje ?? 0))}%` }}
+                            />
+                          </div>
+                          <span className="rb-progress__label">{item.porceranje ?? 0}%</span>
+                        </div>
+                      </td>
                       <td data-label="Acciones">
                         <div className="rq-actions-cell">
                           <button 
@@ -265,7 +295,7 @@ export default function RequisicionesBoard(props: Props) {
       <ProcesoRequisicionModal
         open={Boolean(selectedProcessRow)}
         row={selectedProcessRow}
-        onClose={() => setSelectedProcessRow(null)}
+        onClose={() => {reloadRequisiciones(); setSelectedProcessRow(null)}}
       />
     </div>
   );
@@ -302,13 +332,39 @@ function SortableHeader({
   );
 }
 
-function StatPill({ label, value, tone }: { label: string; value: number; tone: "neutral" | "success" | "danger" | "info" | "warn" }) {
+function StatCard({
+  label,
+  value,
+  tone,
+  icon,
+}: {
+  label: string;
+  value: number;
+  tone: "neutral" | "success" | "danger" | "info" | "warn";
+  icon: React.ReactNode;
+}) {
   return (
-    <div className={`rb-stat-pill rb-stat-pill--${tone}`} role="listitem">
-      <span>{label}</span>
-      <strong>{value}</strong>
+    <div className={`rb-stat-card rb-stat-card--${tone}`} role="listitem">
+      <span className="rb-stat-card__icon" aria-hidden="true">{icon}</span>
+      <div className="rb-stat-card__copy">
+        <strong>{value}</strong>
+        <span>{label}</span>
+      </div>
     </div>
   );
+}
+
+function getInitials(name?: string): string {
+  const parts = String(name ?? "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "--";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
+function progressTone(value: number): "danger" | "warn" | "ok" {
+  if (value >= 100) return "ok";
+  if (value >= 50) return "warn";
+  return "danger";
 }
 
 function calcDayDifference(row: requisiciones): seguimiento {
@@ -339,7 +395,7 @@ function calcDayDifference(row: requisiciones): seguimiento {
       urgencyTone = "ok";
     }
   } else if (tone === "closed") {
-    urgencyLabel = "Cerrada";
+    urgencyLabel = "Vacante cerrada";
   } else if (tone === "cancel") {
     urgencyLabel = "Cancelada";
   }
@@ -354,7 +410,7 @@ function calcDayDifference(row: requisiciones): seguimiento {
 function getToneByEstado(estado: string): RowTone {
   const s = String(estado ?? "").trim().toLowerCase();
   if (s.includes("cancel")) return "cancel";
-  if (s.includes("completa")) return "closed";
+  if (s.includes("cerr") || s.includes("completa")) return "closed";
   if (s.includes("activo") || s.includes("abiert")) return "active";
   return "neutral";
 }

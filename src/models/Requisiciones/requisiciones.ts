@@ -32,7 +32,6 @@ export type requisiciones = {
     Estado: string;
     fechaTerna: string | null;
     motivoNoCumplimiento: string;
-    Identificador: string;
     nuevoPromocion: string
     NivelCargo: string
     porceranje: number

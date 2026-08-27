@@ -7,7 +7,6 @@ import { useAuth } from "../../../../../auth/authProvider";
 import { formatPesosEsCO, numeroATexto, toNumberFromEsCO,  } from "../../../../../utils/Number";
 import { useSalarios } from "../../../../../Funcionalidades/GD/Salario";
 import { lookOtherInfo } from "../../../../../utils/lookFor";
-import { usePromocion } from "../../../../../Funcionalidades/GD/Promocion";
 import { useAutomaticCargo } from "../../../../../Funcionalidades/GD/Niveles";
 import type { SetField } from "../Contrato/addContrato";
 import type { Retail, RetailErrors } from "../../../../../models/Retail";
@@ -17,9 +16,7 @@ import type { DetallesPasos } from "../../../../../models/Pasos";
 import { ProcessDetail } from "../Cesaciones/procesoCesacion";
 import { toISODateFlex } from "../../../../../utils/Date";
 import { usePermissions } from "../../../../../Funcionalidades/Permisos";
-import { useCesaciones } from "../../../../../Funcionalidades/GD/Cesaciones/hooks/useCesaciones";
-import { useContratos } from "../../../../../Funcionalidades/GD/Contratos/hooks/useContratos";
-import { useHabeasData } from "../../../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
+import { useRegistroPersonasContext } from "../../../../../Funcionalidades/GD/RegistrarNuevoContext";
 import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
 import { useRetailStepDetails, useRetailSteps } from "../../../../../Funcionalidades/GD/Steps/RetailSteps/retailStepts";
 import { ConfirmModal, type ConfirmModalPayload } from "../../../Common/confirmModal/ConfirmModal";
@@ -86,12 +83,9 @@ type Props = {
 export default function FormRetail({
   origenOptions, loadingOrigen, submitting, title, selectedRetail, tipo, empresaOptions, loadingEmp, tipoDocOptions, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, loadingTipo, cargoOptions, loadingCargo, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, 
   handleReactivateProcessById, handleCancelProcessbyId, setState, handleEdit, onClose, state, setField, handleSubmit, errors, searchRegister: searchRetail, }: Props) {
-  const { Promociones, Retail,} = useGestorServices();
+  const { Retail,} = useGestorServices();
   const { salarios, categorias, configuraciones, mail,} = useCoreGraphServices();
-  const { searchRegister: searchHabeas} = useHabeasData();
-  const contratosController = useContratos();
-  const { searchRegister: searchPromocion } = usePromocion(Promociones);
-  const cesacionesController = useCesaciones();
+  const { searchNovedad, searchHabeas, searchPromocion, searchCesacion } = useRegistroPersonasContext();
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
   const { loadSpecificSalary } = useSalarios(salarios);
   const retailStepsController =  useRetailSteps()
@@ -236,7 +230,7 @@ export default function FormRetail({
   };
 
   const searchPeople = React.useCallback(async (cedula: string) => {
-    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad: contratosController.searchRegister, searchCesacion: cesacionesController.searchRegister, searchHabeas, searchRetail})
+    const persona = await  lookOtherInfo(cedula, {searchPromocion, searchNovedad, searchCesacion, searchHabeas, searchRetail})
     if(persona){
       setField("Title", persona.cedula)
       setField("Nombre", persona.nombre)

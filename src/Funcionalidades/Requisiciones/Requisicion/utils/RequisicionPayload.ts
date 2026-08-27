@@ -43,7 +43,6 @@ export async function createRequisicionPayload(state: requisiciones, ans: number
     empresaContratista: state.empresaContratista,
     Estado: state.Estado,
     fechaTerna: state.fechaTerna,
-    Identificador: state.Identificador,
     motivoNoCumplimiento: state.motivoNoCumplimiento,
     nuevoPromocion: state.nuevoPromocion,
     NivelCargo: categoriaCargo || state.NivelCargo,

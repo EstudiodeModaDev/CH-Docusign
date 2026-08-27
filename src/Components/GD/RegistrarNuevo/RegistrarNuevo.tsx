@@ -19,6 +19,7 @@ import type { FeatureKey } from "../../../models/security";
 import { useCesaciones } from "../../../Funcionalidades/GD/Cesaciones/hooks/useCesaciones";
 import { useContratos } from "../../../Funcionalidades/GD/Contratos/hooks/useContratos";
 import { useHabeasData } from "../../../Funcionalidades/GD/Habeas/hooks/useHabeas";
+import { RegistroPersonasProvider } from "../../../Funcionalidades/GD/RegistrarNuevoContext";
 
 export default function RegistrarNuevoPage() {
   const { Promociones, Retail, } = useGestorServices();
@@ -89,6 +90,23 @@ export default function RegistrarNuevoPage() {
     return allOptions.filter((opt) => engine.can(opt.feature));
   }, [engine]);
 
+  // Se instancian una sola vez aqui y se comparten por Context, para que los 4 modales
+  // de creacion no vuelvan a llamar useContratos/useHabeasData/usePromocion/useCesaciones/useRetail
+  // solo para validar cedulas duplicadas entre modulos.
+  const registroPersonasValue = React.useMemo(() => ({
+    searchNovedad: contratosController.searchRegister,
+    searchHabeas: habeasController.searchRegister,
+    searchPromocion: promocionesController.searchRegister,
+    searchCesacion: cesacionesController.searchRegister,
+    searchRetail: retailController.searchRegister,
+  }), [
+    contratosController.searchRegister,
+    habeasController.searchRegister,
+    promocionesController.searchRegister,
+    cesacionesController.searchRegister,
+    retailController.searchRegister,
+  ]);
+
   const canOpenCreateModal = React.useMemo(() => {
     const requiredPermission = createPermissionBySection[orden];
     if (!requiredPermission) return false;
@@ -96,6 +114,7 @@ export default function RegistrarNuevoPage() {
   }, [orden, engine]);
 
   return (
+    <RegistroPersonasProvider value={registroPersonasValue}>
     <div className="rn-page">
 
       <div className="rn-toolbar">
@@ -558,5 +577,6 @@ export default function RegistrarNuevoPage() {
           dependenciaOptions={dependenciaOptions} 
           loadingDependencias={loadingDependencias}/> : null}
     </div>
+    </RegistroPersonasProvider>
   );
 }

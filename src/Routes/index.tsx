@@ -8,7 +8,6 @@ import { ParametrosPage } from "../Components/GD/Settings/SettingsPage";
 import GroupUsersManager from "../Components/Security/Security";
 import { ColaboradoresExplorer } from "../Components/GD/View/VieweDocument";
 import { PazSalvoPage } from "../Components/PazSalvo/PazSalvoPage";
-import NuevoTicketForm from "../Components/Tickets/NuevoTicket";
 import NewRequisicionWrapper from "./Wrapper/newRequisicion";
 import TablaEnvios from "../Components/GD/ConsultarDocumentos/ConsultarDocumentos";
 import { ConfiguracionesVariasComponent } from "../Components/GD/Settings/ConfiguracionesVarias/ConfiguracionesVarias";
@@ -31,6 +30,9 @@ import { PromocionStepsManager } from "./Wrapper/ProcesoPromocionWrapper";
 import { RequisicionesProvider } from "../Funcionalidades/Requisiciones/RequisicionesContext";
 import RequisicionesBoardWrapper from "./Wrapper/RequisicionBoardWrapper";
 import RequisicionesMetricasWrapper from "./Wrapper/RequisicionesMetricasWrapper";
+import MetricasResumenPage from "../Components/Requisiciones/Metricas/Pages/MetricasResumenPage";
+import EncuestaSatisfaccionPage from "../Components/Requisiciones/Metricas/Pages/EncuestaSatisfaccionPage";
+import EncuestaPeriodoPruebaPage from "../Components/Requisiciones/Metricas/Pages/EncuestaPeriodoPruebaPage";
 
 
 /**
@@ -70,9 +72,13 @@ export default function AppRoutes() {
         <Route path="proceso/retail" element={<RetailStepsManager/>}/>
       </Route>
       <Route path="/access" element={<GroupUsersManager/>}/>
-      <Route path="/support" element={<NuevoTicketForm/>}/>
       <Route path="/requisiciones" element={<RequisicionesProvider />}>
-        <Route path="metricas" element={<RequisicionesMetricasWrapper/>}/>
+        <Route path="metricas" element={<RequisicionesMetricasWrapper/>}>
+          <Route index element={<Navigate to="/requisiciones/metricas/resumen" replace />} />
+          <Route path="resumen" element={<MetricasResumenPage/>}/>
+          <Route path="satisfaccion" element={<EncuestaSatisfaccionPage/>}/>
+          <Route path="probationary" element={<EncuestaPeriodoPruebaPage/>}/>
+        </Route>
         <Route path="tableaRequisiciones" element={<RequisicionesBoardWrapper/>}/>
         <Route path="tableaRequisiciones/visualizacionDetalle" element={<RequisicionesBoardWrapper/>}/>
       </Route>

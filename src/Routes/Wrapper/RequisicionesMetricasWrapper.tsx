@@ -1,5 +1,5 @@
 import * as React from "react";
-import RequisicionesMetricasPage from "../../Components/Requisiciones/Metricas/RequisicionesMetricas";
+import RequisicionesMetricasLayout from "../../Components/Requisiciones/Metricas/RequisicionesMetricasLayout";
 import { useCargo, useDeptosMunicipios, useDireccion } from "../../Funcionalidades/Desplegables";
 import { useRequisicionesContext } from "../../Funcionalidades/Requisiciones/RequisicionesContext";
 import { useRequisicionesMetrics } from "../../Funcionalidades/Requisiciones/Requisicion/Hooks/requisicionesMetrics";
@@ -183,7 +183,7 @@ export default function RequisicionesMetricasWrapper() {
   const metrics = useRequisicionesMetrics(dashboardRows, detailsByRequisicion, templatesById, now);
 
   return (
-    <RequisicionesMetricasPage
+    <RequisicionesMetricasLayout
       loading={loading}
       error={error}
       rowsCount={dashboardRows.length}

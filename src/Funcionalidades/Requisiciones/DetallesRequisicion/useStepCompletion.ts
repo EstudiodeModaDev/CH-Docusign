@@ -72,7 +72,7 @@ export function useStepCompletion({
         const requisicion= await requisicionesService.get(requisicionId)
         await notificaciones.notifyEncuestaSatisfaccion(requisicion) 
       }
-      toUpdated = {...toUpdated, Estado: estadoCierre, fechaCierre}
+      toUpdated = {...toUpdated, cumpleANS: estadoCierre, fechaCierre, Estado: "Finalizada"}
     };
     await requisicionesService.update(requisicionId, toUpdated);
   }

@@ -26,7 +26,6 @@ export function normalizeProcessText(value: string) {
     .toString()
     .normalize("NFKC")
     .replace(/\u00a0/g, " ")
-    .replace(/[â€-â€’â€“â€”â€•]/g, "-")
     .replace(/\s+/g, " ")
     .trim();
 }

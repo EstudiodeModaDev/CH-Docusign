@@ -163,6 +163,9 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
       const folderName = `${numeroDoc} - ${nombre}`;
       const carpetaFallback = `Colaboradores Activos/${folderName}`;
 
+      console.log(carpetaFallback)
+      console.log(evidenciaRaw)
+
       let targetFolderId: string | null = null;
 
       try {
@@ -189,6 +192,7 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
             await servicioColaboradores.uploadFileByFolderId(targetFolderId, renamedFile);
           } else {
             await servicioColaboradores.uploadFile(carpetaFallback, renamedFile);
+            console.log("Se creao por aqui")
           }
 
           uploadedName = candidate;

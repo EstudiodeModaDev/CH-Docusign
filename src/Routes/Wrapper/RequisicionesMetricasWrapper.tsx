@@ -187,6 +187,7 @@ export default function RequisicionesMetricasWrapper() {
       loading={loading}
       error={error}
       rowsCount={dashboardRows.length}
+      rows={dashboardRows}
       metrics={metrics}
       cargo={requisicionesController.cargo}
       ciudad={requisicionesController.ciudad}

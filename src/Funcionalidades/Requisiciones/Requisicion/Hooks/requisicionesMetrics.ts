@@ -279,6 +279,11 @@ function resolveFunnelStage(template?: pasoRequisicion): "entrevista" | "finalis
   return null;
 }
 
+// Cumplimiento ANS por mes, limitado a las requisiciones que iniciaron en el año indicado.
+export function buildMonthlyMetricsForYear(rows: requisiciones[], year: number): MonthlyMetricRow[] {
+  return buildMonthlyMetrics(rows.filter((row) => pickStartDate(row)?.getFullYear() === year));
+}
+
 function buildMonthlyMetrics(rows: requisiciones[]): MonthlyMetricRow[] {
   const bucket = MONTHS.map((month) => ({
     month,

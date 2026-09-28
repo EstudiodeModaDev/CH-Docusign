@@ -54,7 +54,8 @@ function toPorMes(responses: encuestaSatisfaccion[]): EncuestaSatisfaccionMesRow
   return filas;
 }
 
-export function useEncuestaSatisfaccionMetrics() {
+// forcedYear: si se envía, el año lo controla quien llama (ej. el consolidado) en vez del estado interno.
+export function useEncuestaSatisfaccionMetrics(forcedYear?: number | null) {
   const { graph } = useCoreGraphServices();
   const service = React.useMemo(() => new ExcelSatisfactionSurvey(graph), [graph]);
 
@@ -95,17 +96,20 @@ export function useEncuestaSatisfaccionMetrics() {
   }, [responses]);
 
   React.useEffect(() => {
+    if (forcedYear !== undefined) return;
     if (year !== null && availableYears.includes(year)) return;
     setYear(availableYears[0] ?? null);
-  }, [availableYears, year]);
+  }, [availableYears, year, forcedYear]);
+
+  const effectiveYear = forcedYear !== undefined ? forcedYear : year;
 
   const responsesForYear = React.useMemo(() => {
-    if (year === null) return responses;
-    return responses.filter((r) => r.Hora_inicio instanceof Date && r.Hora_inicio.getFullYear() === year);
-  }, [responses, year]);
+    if (effectiveYear === null) return responses;
+    return responses.filter((r) => r.Hora_inicio instanceof Date && r.Hora_inicio.getFullYear() === effectiveYear);
+  }, [responses, effectiveYear]);
 
   const resumen = React.useMemo(() => toResumen(responsesForYear), [responsesForYear]);
   const porMes = React.useMemo(() => toPorMes(responsesForYear), [responsesForYear]);
 
-  return { resumen, porMes, availableYears, year, setYear, loading, error, reload: load };
+  return { resumen, porMes, availableYears, year: effectiveYear, setYear, loading, error, reload: load };
 }

@@ -33,6 +33,7 @@ import RequisicionesMetricasWrapper from "./Wrapper/RequisicionesMetricasWrapper
 import MetricasResumenPage from "../Components/Requisiciones/Metricas/Pages/MetricasResumenPage";
 import EncuestaSatisfaccionPage from "../Components/Requisiciones/Metricas/Pages/EncuestaSatisfaccionPage";
 import EncuestaPeriodoPruebaPage from "../Components/Requisiciones/Metricas/Pages/EncuestaPeriodoPruebaPage";
+import MetricasConsolidadoPage from "../Components/Requisiciones/Metricas/Pages/MetricasConsolidadoPage";
 
 
 /**
@@ -78,6 +79,7 @@ export default function AppRoutes() {
           <Route path="resumen" element={<MetricasResumenPage/>}/>
           <Route path="satisfaccion" element={<EncuestaSatisfaccionPage/>}/>
           <Route path="probationary" element={<EncuestaPeriodoPruebaPage/>}/>
+          <Route path="consolidado" element={<MetricasConsolidadoPage/>}/>
         </Route>
         <Route path="tableaRequisiciones" element={<RequisicionesBoardWrapper/>}/>
         <Route path="tableaRequisiciones/visualizacionDetalle" element={<RequisicionesBoardWrapper/>}/>

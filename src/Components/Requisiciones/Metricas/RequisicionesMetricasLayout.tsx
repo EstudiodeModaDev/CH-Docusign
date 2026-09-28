@@ -9,11 +9,13 @@ import MetricasFilters from "./RequisicionesTableroFilters";
 import KPIGenericos from "./RequisicionTableroKPIGenerico";
 import { METRICAS_TABS } from "./metricasTabs";
 import { RequisicionesMetricasDataProvider } from "./RequisicionesMetricasContext";
+import type { requisiciones } from "../../../models/Requisiciones/requisiciones";
 
 type Props = {
   loading: boolean;
   error: string | null;
   rowsCount: number;
+  rows: requisiciones[];
   metrics: RequisicionesMetrics;
   cargo: string;
   ciudad: string;
@@ -35,6 +37,7 @@ export default function RequisicionesMetricasLayout(props: Props) {
     loading,
     error,
     rowsCount,
+    rows,
     metrics,
     cargo,
     ciudad,
@@ -60,7 +63,7 @@ export default function RequisicionesMetricasLayout(props: Props) {
     return match?.id ?? METRICAS_TABS[0].id;
   }, [location.pathname]);
 
-  const contextValue = React.useMemo(() => ({ loading, error, rowsCount, metrics }), [loading, error, rowsCount, metrics]);
+  const contextValue = React.useMemo(() => ({ loading, error, rowsCount, rows, metrics }), [loading, error, rowsCount, rows, metrics]);
 
   const showFiltrosGenerales = activeTab === "resumen";
 

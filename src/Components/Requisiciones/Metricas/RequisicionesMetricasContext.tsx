@@ -1,10 +1,12 @@
 import * as React from "react";
 import type { RequisicionesMetrics } from "../../../Funcionalidades/Requisiciones/Requisicion/Hooks/requisicionesMetrics";
+import type { requisiciones } from "../../../models/Requisiciones/requisiciones";
 
 type RequisicionesMetricasDataValue = {
   loading: boolean;
   error: string | null;
   rowsCount: number;
+  rows: requisiciones[];
   metrics: RequisicionesMetrics;
 };
 

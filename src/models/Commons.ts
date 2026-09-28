@@ -72,3 +72,9 @@ export type CommonRegister = {
   Fuente: string
 }
 
+export type commonResponse<T> = {
+  ok: boolean
+  data?: T[]
+  errorMessage?: string
+}
+

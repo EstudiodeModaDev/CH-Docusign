@@ -6,6 +6,7 @@ import { useRequisicionesList } from "./useRequisicionList";
 import { useNewRequisicionPagination } from "./useRequisicionPagination";
 import { useNotifyRequisiciones } from "./useRequisicionNotifications";
 import type { requisiciones } from "../../../../models/Requisiciones/requisiciones";
+import type { commonResponse } from "../../../../models/Commons";
 
 export function useRequisicion() {
   const formController = useNewRequisicionForm()
@@ -20,10 +21,12 @@ export function useRequisicion() {
     paginationController.setPageIndex(1);
   }, []);
 
-  const cancelarRequisicion = async (r: requisiciones): Promise<boolean> => {
-    await actionsController.cancelarBD(r)
+  const cancelarRequisicion = async (r: requisiciones, motivo: string): Promise<commonResponse<void>> => {
+    await actionsController.cancelarBD(r, motivo)
     await listController.reloadAll()
-    return true
+    return {
+      ok: true
+    }
   }
 
   const onPostergarANS = async (r: requisiciones, date: string, motivo: string): Promise<boolean> => {

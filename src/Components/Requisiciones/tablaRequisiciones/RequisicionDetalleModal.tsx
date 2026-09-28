@@ -7,24 +7,33 @@ import { useRequisicionesContext } from "../../../Funcionalidades/Requisiciones/
 import { ConfirmModal, type ConfirmModalPayload } from "../../GD/Common/confirmModal/ConfirmModal";
 import { formatPesosEsCO } from "../../../utils/Number";
 import { getDetailSections, type DetailField } from "../../../consts/requisicionesFields";
+import { toast } from "sonner";
+import type { commonResponse } from "../../../models/Commons";
+import { usePermissions } from "../../../Funcionalidades/Permisos";
 
 type Props = {
   open: boolean;
   row: requisiciones | null;
   onClose: () => void;
   onPostergarANSBD: (r: requisiciones, date: string, motivo: string) => void
-
+  handleCancelRequisicion: (r: requisiciones, motivo: string) => Promise<commonResponse<void>>
 };
 
-export default function RequisicionDetalleModal({open, row, onClose,onPostergarANSBD }: Props) {
+export default function RequisicionDetalleModal({open, row, onClose,onPostergarANSBD, handleCancelRequisicion }: Props) {
   const { notifyInconveniente } = useRequisicionesContext();
   const [currentRow, setCurrentRow] = React.useState<requisiciones | null>(row);
   const [reportModalOpen, setReportModalOpen] = React.useState(false);
   const [postergarANS, setPostergarANS] = React.useState(false);
+  const [cancelRequisicion, setCancelRequisicion] = React.useState(false);
   const [selectedReason, setSelectedReason] = React.useState("");
   const [reportText, setReportText] = React.useState("");
   const [savingReport, setSavingReport] = React.useState(false);
   const detailSections = currentRow ? getDetailSections(currentRow) : [];
+   const { engine } = usePermissions();
+
+  const canCancelRequisicion = React.useMemo(() => {
+    return engine.can("requisiciones.edit");
+  }, [engine]);
 
   //Cerrar con escape o click fuera
   React.useEffect(() => {
@@ -99,6 +108,27 @@ export default function RequisicionDetalleModal({open, row, onClose,onPostergarA
     await onPostergarANSBD(row!, date, reason)
   };
 
+  const onCancelRequisicion = async ({reason}: ConfirmModalPayload) => {
+    if(!reason) {
+      toast.error("Debes llenar el motivo de cancelación")
+      return
+    }
+
+    if(!row){
+      toast.error("La requisición seleccionada no ha sido encontrada en la base de datos")
+      return
+    }
+  
+    const response = await handleCancelRequisicion(row, reason)
+
+    if(!response.ok){
+      toast.error(response.errorMessage ?? "Algo ha salido mal cancelando la requisición")
+      return
+    }
+
+    toast.success("Requisición cancelada con éxito")
+  }
+
   return (
     <div className="rq-detail-backdrop" role="presentation" onClick={onClose}>
       <div className="rq-detail-modal" role="dialog" aria-modal="true" aria-labelledby="rq-detail-title" onClick={(event) => event.stopPropagation()}>
@@ -122,9 +152,15 @@ export default function RequisicionDetalleModal({open, row, onClose,onPostergarA
               <button type="button" className="btn btn-primary btn-xs rq-detail-btn rq-detail-btn--danger" onClick={() => setPostergarANS(true)}>
                 Postergar ANS
               </button>
+
               <button type="button" className="btn btn-danger btn-xs rq-detail-btn rq-detail-btn--normal" onClick={() => setReportModalOpen(true)}>
                 Reportar problema
               </button>
+              { canCancelRequisicion &&
+                <button type="button" className="btn btn-danger btn-xs rq-detail-btn rq-detail-btn--normal" onClick={() => setCancelRequisicion(true)}>
+                  Cancelar requisición
+                </button>
+              }
               <button type="button" className="btn btn-secondary-final btn-xs rq-detail-btn" onClick={onClose}>
                 Cerrar
               </button>
@@ -224,6 +260,16 @@ export default function RequisicionDetalleModal({open, row, onClose,onPostergarA
         buttonText={"Aplicar"}
         needDate={true}
         dateText="Nueva fecha final"/>
+
+      <ConfirmModal 
+        open={cancelRequisicion} 
+        onClose={() => setCancelRequisicion(false)} 
+        onSend={onCancelRequisicion} 
+        title={"Cancelar la requisición #" + row?.Id} 
+        needText={true} 
+        placeHolderText={"Escriba la razón por la que se cancela la requisición"} 
+        buttonText={"Cancelar"} 
+        loadingButtonText={"Cancelando"}/>
     </div>
   );
 }

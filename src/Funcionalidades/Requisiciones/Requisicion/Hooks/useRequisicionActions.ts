@@ -173,13 +173,12 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
     }
   };
 
-  const cancelarBD = async (r: requisiciones): Promise<boolean> => {
-    notify.auto(r.Id);
-    if (!state.motivoNoCumplimiento) return false;
+  const cancelarBD = async (r: requisiciones, motivo: string): Promise<boolean> => {
+    if (!motivo) return false;
     await requisiciones.update(r.Id ?? "", {
       Estado: "Cancelado",
       cumpleANS: "No Aplica",
-      motivoNoCumplimiento: r.motivoNoCumplimiento,
+      motivoNoCumplimiento: motivo,
     });
     notify.auto("Se ha cancelado la requisicion con exito");
     return true;

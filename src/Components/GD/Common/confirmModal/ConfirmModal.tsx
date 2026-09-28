@@ -13,13 +13,15 @@ interface ReturnFolderModalProps {
   onSend: (payload: ConfirmModalPayload) => Promise<void> | void;
   title: string
   needText: boolean;
-  description: string;
+  description?: string;
   buttonText: string
   needDate?: boolean
   dateText?: string
+  loadingButtonText?: string
+  placeHolderText?: string
 }
 
-export function ConfirmModal({dateText, needDate, title, open, loading = false, onClose, onSend, needText, description, buttonText}: ReturnFolderModalProps) {
+export function ConfirmModal({placeHolderText, loadingButtonText, dateText, needDate, title, open, loading = false, onClose, onSend, needText, description, buttonText}: ReturnFolderModalProps) {
   const [reason, setReason] = React.useState("");
   const [error, setError] = React.useState("");
   const [date, setDate] = React.useState<string>("")
@@ -85,7 +87,7 @@ export function ConfirmModal({dateText, needDate, title, open, loading = false, 
                 className="rfm-textarea"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Describe claramente qué debe corregirse..."
+                placeholder={placeHolderText ?? "Describe claramente qué debe corregirse..."}
                 rows={6}
                 maxLength={1000}
                 disabled={loading}
@@ -124,7 +126,7 @@ export function ConfirmModal({dateText, needDate, title, open, loading = false, 
           </button>
 
           <button type="button" className="rfm-btn rfm-btn--danger" onClick={handleSubmit} disabled={isSubmitDisabled}>
-            {loading ? "Procesando..." : buttonText}
+            {loading ? loadingButtonText ?? "Procesando..." : buttonText}
           </button>
         </div>
       </div>

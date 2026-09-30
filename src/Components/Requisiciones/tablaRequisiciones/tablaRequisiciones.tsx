@@ -186,7 +186,7 @@ export default function RequisicionesBoard(props: Props) {
                       <td data-label="Fecha hasta">{spDateToDDMMYYYY(item.fechaLimite)}</td>
                       <td data-label="Seguimiento">
                         <span className={`rb-chip rb-chip--${seguimiento.urgencyTone}`}>
-                          {item.Estado === "Completada" ? "Finalizada" :seguimiento.urgencyLabel}
+                          {seguimiento.urgencyLabel}
                         </span>
                       </td>
                       <td data-label="fecha de cierre">{item.fechaCierre ? spDateToDDMMYYYY(item.fechaCierre) : "No se ha cerrado"}</td>
@@ -383,7 +383,10 @@ function calcDayDifference(row: requisiciones): seguimiento {
   let urgencyLabel = "Sin fecha limite";
   let urgencyTone: RowViewModel["urgencyTone"] = "muted";
 
-  if (tone !== "cancel" && tone !== "closed" && diffDias !== null) {
+  if (isCompletada(estado)) {
+    urgencyLabel = "Completada";
+    urgencyTone = "ok";
+  } else if (tone !== "cancel" && tone !== "closed" && diffDias !== null) {
     if (diffDias < 0) {
       urgencyLabel = `${Math.abs(diffDias)} dias retraso`;
       urgencyTone = "danger";
@@ -407,10 +410,15 @@ function calcDayDifference(row: requisiciones): seguimiento {
   };
 }
 
+function isCompletada(estado: string): boolean {
+  const s = String(estado ?? "").trim().toLowerCase();
+  return s.includes("complet") || s.includes("finaliz");
+}
+
 function getToneByEstado(estado: string): RowTone {
   const s = String(estado ?? "").trim().toLowerCase();
   if (s.includes("cancel")) return "cancel";
-  if (s.includes("cerr") || s.includes("completa")) return "closed";
+  if (s.includes("cerr") || isCompletada(s)) return "closed";
   if (s.includes("activo") || s.includes("abiert")) return "active";
   return "neutral";
 }

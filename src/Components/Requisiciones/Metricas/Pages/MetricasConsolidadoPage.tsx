@@ -1,7 +1,7 @@
 import * as React from "react";
 import "../RequisicionesMetricas.css";
 import { useRequisicionesMetricasData } from "../RequisicionesMetricasContext";
-import { buildMonthlyMetricsForYear } from "../../../../Funcionalidades/Requisiciones/Requisicion/Hooks/requisicionesMetrics";
+import { buildMonthlyMetricsByCloseForYear, pickCloseDate } from "../../../../Funcionalidades/Requisiciones/Requisicion/Hooks/requisicionesMetrics";
 import { useEncuestaSatisfaccionMetrics } from "../../../../Funcionalidades/Requisiciones/EncuestaSatisfaccion/useEncuestaSatisfaccionMetrics";
 import { useEncuestaPeriodoPruebaMetrics } from "../../../../Funcionalidades/Requisiciones/EncuestaPeriodoPrueba/useEncuestaPeriodoPruebaMetrics";
 import { RQM_COLORS } from "../rqmChartTheme";
@@ -22,11 +22,13 @@ type ComponenteRow = {
   peso: number;
   tone: "dark" | "light" | "muted";
   porMes: MonthCount[];
+  // Si es true, un periodo sin registros aporta el peso completo en lugar de 0.
+  pesoCompletoSinDatos?: boolean;
 };
 
-// Aporte ponderado (0..peso). Sin registros en el periodo el componente aporta 0.
-function aporte(count: MonthCount, peso: number): number | null {
-  if (!count.total) return null;
+// Aporte ponderado (0..peso). Sin registros el componente aporta 0 (null), salvo que pesoCompletoSinDatos lo marque.
+function aporte(count: MonthCount, peso: number, pesoCompletoSinDatos = false): number | null {
+  if (!count.total) return pesoCompletoSinDatos ? peso : null;
   return (count.ok / count.total) * peso;
 }
 
@@ -46,9 +48,8 @@ export default function MetricasConsolidadoPage() {
   const requisicionYears = React.useMemo(() => {
     const years = new Set<number>();
     rows.forEach((row) => {
-      if (!row.fechaInicioProceso) return;
-      const date = new Date(row.fechaInicioProceso);
-      if (!Number.isNaN(date.getTime())) years.add(date.getFullYear());
+      const date = pickCloseDate(row);
+      if (date) years.add(date.getFullYear());
     });
     return years;
   }, [rows]);
@@ -66,7 +67,7 @@ export default function MetricasConsolidadoPage() {
   }, [year, requisicionYears, satisfaccion.availableYears, periodoPrueba.availableYears]);
 
   const componentes = React.useMemo<ComponenteRow[]>(() => {
-    const requisicionesMes = buildMonthlyMetricsForYear(rows, year);
+    const requisicionesMes = buildMonthlyMetricsByCloseForYear(rows, year);
 
     return [
       {
@@ -89,6 +90,7 @@ export default function MetricasConsolidadoPage() {
         peso: PESO_SATISFACCION,
         tone: "muted",
         porMes: satisfaccion.porMes.map((m) => ({ total: m.total, ok: m.aprobadas })),
+        pesoCompletoSinDatos: true,
       },
     ];
   }, [rows, year, periodoPrueba.porMes, satisfaccion.porMes]);
@@ -109,8 +111,8 @@ export default function MetricasConsolidadoPage() {
   const tabla = React.useMemo(() => {
     const porComponente = componentes.map((c) => ({
       ...c,
-      valores: monthIndexes.map((index) => aporte(c.porMes[index], c.peso)),
-      total: aporte(sumCounts(monthIndexes.map((index) => c.porMes[index])), c.peso),
+      valores: monthIndexes.map((index) => aporte(c.porMes[index], c.peso, c.pesoCompletoSinDatos)),
+      total: aporte(sumCounts(monthIndexes.map((index) => c.porMes[index])), c.peso, c.pesoCompletoSinDatos),
     }));
 
     const totalMes = monthIndexes.map((_, col) => porComponente.reduce((acc, c) => acc + (c.valores[col] ?? 0), 0));
@@ -222,7 +224,7 @@ export default function MetricasConsolidadoPage() {
               )}
 
               <p className="rqm-cons-note">
-                Los valores de cada componente son su aporte ponderado. Un mes sin registros en un componente se muestra como "—" y aporta 0 al total.
+                Los valores de cada componente son su aporte ponderado. Un mes sin registros en un componente se muestra como "—" y aporta 0 al total, excepto la encuesta de satisfacción, que sin respuestas aporta su peso completo ({PESO_SATISFACCION}%).
               </p>
             </>
           )}

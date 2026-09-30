@@ -280,11 +280,12 @@ function resolveFunnelStage(template?: pasoRequisicion): "entrevista" | "finalis
 }
 
 // Cumplimiento ANS por mes, limitado a las requisiciones que iniciaron en el año indicado.
-export function buildMonthlyMetricsForYear(rows: requisiciones[], year: number): MonthlyMetricRow[] {
-  return buildMonthlyMetrics(rows.filter((row) => pickStartDate(row)?.getFullYear() === year));
+// Agrupa por fecha de cierre: solo cuentan las requisiciones ya cerradas en el año indicado.
+export function buildMonthlyMetricsByCloseForYear(rows: requisiciones[], year: number): MonthlyMetricRow[] {
+  return buildMonthlyMetrics(rows.filter((row) => pickCloseDate(row)?.getFullYear() === year), pickCloseDate);
 }
 
-function buildMonthlyMetrics(rows: requisiciones[]): MonthlyMetricRow[] {
+function buildMonthlyMetrics(rows: requisiciones[], pickDate: (row: requisiciones) => Date | null = pickStartDate): MonthlyMetricRow[] {
   const bucket = MONTHS.map((month) => ({
     month,
     total: 0,
@@ -293,7 +294,7 @@ function buildMonthlyMetrics(rows: requisiciones[]): MonthlyMetricRow[] {
   }));
 
   rows.forEach((row) => {
-    const date = pickStartDate(row);
+    const date = pickDate(row);
     if (!date) return;
 
     const monthIndex = date.getMonth();
@@ -402,6 +403,12 @@ function getClosingDays(row: requisiciones): number | null {
 
 function pickStartDate(row: requisiciones): Date | null {
   return parseDate(row.fechaInicioProceso);
+}
+
+// Las requisiciones cerradas manualmente (Estado "Cerrado") no guardan fechaCierre, solo fechaIngreso.
+export function pickCloseDate(row: requisiciones): Date | null {
+  if (normalize(row.Estado).includes("cancel")) return null;
+  return parseDate(row.fechaCierre) ?? parseDate(row.fechaIngreso);
 }
 
 function parseDate(value: string | null | undefined): Date | null {

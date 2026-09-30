@@ -2,6 +2,7 @@ import * as React from "react";
 import { useRequisicionSteps } from "../../../../Funcionalidades/Requisiciones/DetallesRequisicion";
 import type { detalleRequisicion, pasoRequisicion } from "../../../../models/Requisiciones/pasos";
 import ProcesoRequisicionStepCard from "./ProcesoRequisicionStepCard";
+import FechaIngresoModal from "./SubComponents/FechaIngresoModal";
 import { isStepDone, resolveChecklistPhase, sortChecklistSteps } from "./processUtils";
 import type { ProcesoRequisicionModalProps } from "./types";
 import "../tablaRequisiciones.css";
@@ -26,11 +27,44 @@ export default function ProcesoRequisicionModal(props: ProcesoRequisicionModalPr
     handleCompleteStep,
   } = useRequisicionSteps(row?.Id);
   const [busyId, setBusyId] = React.useState<string>("");
+  // Paso pendiente que cerraria la requisicion; se guarda mientras se pide la fecha de ingreso.
+  const [pendingClose, setPendingClose] = React.useState<{ detail: detalleRequisicion; estado: "Completado" | "Omitido" } | null>(null);
+  const [closing, setClosing] = React.useState(false);
 
   React.useEffect(() => {
     if (!open || !row?.Id) return;
     void Promise.all([loadTemplates(), loadDetails()]);
   }, [open, row?.Id]);
+
+  const runStep = React.useCallback(async (detail: detalleRequisicion, estado: "Completado" | "Omitido") => {
+    if (!detail?.Id) return;
+    setBusyId(detail.Id);
+    try {
+      const result = await handleCompleteStep(detail, estado);
+      if (result.needsFechaIngreso) {
+        setPendingClose({ detail, estado });
+        return;
+      }
+      await loadDetails();
+      await onChecklistChanged?.();
+    } finally {
+      setBusyId("");
+    }
+  }, [handleCompleteStep, loadDetails, onChecklistChanged]);
+
+  const confirmClose = React.useCallback(async (fechaIngreso: string) => {
+    if (!pendingClose) return;
+    setClosing(true);
+    try {
+      const result = await handleCompleteStep(pendingClose.detail, pendingClose.estado, fechaIngreso);
+      if (!result.ok) return;
+      setPendingClose(null);
+      await loadDetails();
+      await onChecklistChanged?.();
+    } finally {
+      setClosing(false);
+    }
+  }, [pendingClose, handleCompleteStep, loadDetails, onChecklistChanged]);
 
   const setApprovalValue = React.useCallback((detailId: string, value: "" | "Aprobado" | "Rechazado") => {
     setDecisiones((current) => ({ ...current, [detailId]: value }));
@@ -44,29 +78,12 @@ export default function ProcesoRequisicionModal(props: ProcesoRequisicionModalPr
     setMotivos((current) => ({ ...current, [detailId]: value }));
   }, [setMotivos]);
 
-  const completeStep = React.useCallback(async (detail: detalleRequisicion, _step: pasoRequisicion) => {
-    if (!detail?.Id) return;
-    setBusyId(detail.Id);
-    try {
-      await handleCompleteStep(detail, "Completado");
-      await loadDetails();
-      await onChecklistChanged?.();
-    } finally {
-      setBusyId("");
-    }
-  }, [handleCompleteStep, loadDetails, onChecklistChanged]);
+  const completeStep = React.useCallback(
+    (detail: detalleRequisicion, _step: pasoRequisicion) => runStep(detail, "Completado"),
+    [runStep]
+  );
 
-  const omitStep = React.useCallback(async (detail: detalleRequisicion) => {
-    if (!detail?.Id) return;
-    setBusyId(detail.Id);
-    try {
-      await handleCompleteStep(detail, "Omitido");
-      await loadDetails();
-      await onChecklistChanged?.();
-    } finally {
-      setBusyId("");
-    }
-  }, [handleCompleteStep, loadDetails, onChecklistChanged]);
+  const omitStep = React.useCallback((detail: detalleRequisicion) => runStep(detail, "Omitido"), [runStep]);
 
   if (!open || !row) return null;
 
@@ -149,6 +166,13 @@ export default function ProcesoRequisicionModal(props: ProcesoRequisicionModalPr
           )}
         </div>
       </section>
+
+      <FechaIngresoModal
+        open={!!pendingClose}
+        busy={closing}
+        onCancel={() => setPendingClose(null)}
+        onConfirm={confirmClose}
+      />
     </div>
   );
 }

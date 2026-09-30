@@ -8,7 +8,7 @@ import { notify } from '../../../utils/notify';
 import { shouldNotifyAllStepsCompleted } from "./utils/notificationRules";
 import { useNotifyRequisiciones } from "../Requisicion/Hooks/useRequisicionNotifications";
 import type { requisiciones } from "../../../models/Requisiciones/requisiciones";
-import { toISODateTimeFlex } from "../../../utils/Date";
+import { toGraphDateTime, toISODateTimeFlex } from "../../../utils/Date";
 
 interface UpdateSvc {
   update: (id: string, payload: Partial<Omit<detalleRequisicion, "Id">>) => Promise<any>;
@@ -41,14 +41,7 @@ export function useStepCompletion({
     return normalizedEstado === "completado" || normalizedEstado === "omitido";
   }
 
-  async function updatePorcentajeRequisicion(
-    detalle: detalleRequisicion,
-    siguienteEstado: "Completado" | "Omitido"
-  ) {
-    const requisicionId = String(detalle.IdRequisicion ?? "").trim();
-
-    if (!requisicionId) return;
-
+  function calcPorcentajeTras(detalle: detalleRequisicion, siguienteEstado: "Completado" | "Omitido"): number {
     const updatedDetails = details.map((item) =>
       item.Id === detalle.Id
         ? {
@@ -58,29 +51,45 @@ export function useStepCompletion({
         : item
     );
 
-    const porcentaje = calculatePorcentaje(templates, updatedDetails);
+    return calculatePorcentaje(templates, updatedDetails);
+  }
+
+  async function updatePorcentajeRequisicion(
+    detalle: detalleRequisicion,
+    siguienteEstado: "Completado" | "Omitido",
+    fechaIngreso?: string
+  ) {
+    const requisicionId = String(detalle.IdRequisicion ?? "").trim();
+
+    if (!requisicionId) return;
+
+    const porcentaje = calcPorcentajeTras(detalle, siguienteEstado);
     let toUpdated: Partial<requisiciones> = {porceranje: porcentaje}
     if(porcentaje === 100) {
-      const estadoCierre = await calcularEstadoCierre(requisicionId, requisicionesService);
+      // La fecha de ingreso de la persona es la fecha de cierre de la requisicion.
+      const fechaIngresoISO = toGraphDateTime(fechaIngreso) ?? null;
+      const fechaCierreDate = fechaIngresoISO ? new Date(fechaIngresoISO) : new Date();
+      const estadoCierre = await calcularEstadoCierre(requisicionId, requisicionesService, fechaCierreDate);
       const shouldNotify = await shouldNotifyAllStepsCompleted(requisicionId, requisicionesService)
 
-      console.log(shouldNotify)
-
-      const fechaCierre = toISODateTimeFlex(new Date())
+      const fechaCierre = toISODateTimeFlex(fechaCierreDate)
       if(shouldNotify) {
         toUpdated = {...toUpdated, notified: true}
         const requisicion= await requisicionesService.get(requisicionId)
-        await notificaciones.notifyEncuestaSatisfaccion(requisicion) 
+        await notificaciones.notifyEncuestaSatisfaccion(requisicion)
       }
-      toUpdated = {...toUpdated, cumpleANS: estadoCierre, fechaCierre, Estado: "Finalizada"}
+      toUpdated = {...toUpdated, cumpleANS: estadoCierre, fechaCierre, fechaIngreso: fechaIngresoISO, Estado: "Finalizada"}
     };
     await requisicionesService.update(requisicionId, toUpdated);
   }
 
+  // Si el paso cierra la requisicion (100%) y no llega fechaIngreso, no se guarda nada y se devuelve
+  // needsFechaIngreso para que la UI la solicite y vuelva a llamar con la fecha.
   const handleCompleteStep = async (
     detalle: detalleRequisicion,
-    estado: "Completado" | "Omitido" = "Completado"
-  ): Promise<{ ok: boolean; message: string }> => {
+    estado: "Completado" | "Omitido" = "Completado",
+    fechaIngreso?: string
+  ): Promise<{ ok: boolean; message: string; needsFechaIngreso?: boolean }> => {
     const idDetalle = detalle.Id;
     const estadoResuelto = isCompleted(detalle.Estado);
     const estadoAnterior = detalle.Estado;
@@ -113,7 +122,15 @@ export function useStepCompletion({
       };
     }
 
+    const requiereFechaIngreso = () =>
+      !fechaIngreso && calcPorcentajeTras(detalle, estado) === 100
+        ? { message: "Debe indicar la fecha de ingreso para cerrar la requisicion", ok: false, needsFechaIngreso: true }
+        : null;
+
     if (estado === "Omitido") {
+      const pendienteFecha = requiereFechaIngreso();
+      if (pendienteFecha) return pendienteFecha;
+
       await detailsService.update(idDetalle, {
         Estado: "Omitido",
         CompletadoPor: userName,
@@ -121,7 +138,7 @@ export function useStepCompletion({
         Notas: detalle.Notas || "Paso omitido",
       });
 
-      await updatePorcentajeRequisicion(detalle, "Omitido");
+      await updatePorcentajeRequisicion(detalle, "Omitido", fechaIngreso);
 
       return {
         message: "Paso omitido con exito",
@@ -179,6 +196,9 @@ export function useStepCompletion({
       notas = valor;
     }
 
+    const pendienteFecha = requiereFechaIngreso();
+    if (pendienteFecha) return pendienteFecha;
+
     await detailsService.update(idDetalle, {
       Estado: "Completado",
       CompletadoPor: userName,
@@ -186,7 +206,7 @@ export function useStepCompletion({
       Notas: notas,
     });
 
-    await updatePorcentajeRequisicion(detalle, "Completado");
+    await updatePorcentajeRequisicion(detalle, "Completado", fechaIngreso);
 
     return {
       message: "Se ha completado el paso con exito",

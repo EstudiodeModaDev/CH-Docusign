@@ -1818,3 +1818,43 @@
     flex: 1 1 110px;
   }
 }
+
+/* Modal de fecha de ingreso al cerrar la requisicion */
+.rq-ingreso-backdrop {
+  z-index: 1300;
+}
+
+.rq-ingreso-modal {
+  width: min(440px, calc(100vw - 32px));
+}
+
+.rq-ingreso-body {
+  display: grid;
+  gap: 14px;
+  padding: 22px 24px;
+}
+
+.rq-ingreso-field {
+  display: grid;
+  gap: 6px;
+  color: var(--ink);
+  font-size: .88rem;
+  font-weight: 700;
+}
+
+.rq-ingreso-field input {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+
+.rq-ingreso-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}

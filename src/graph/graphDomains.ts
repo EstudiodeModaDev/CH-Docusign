@@ -53,6 +53,7 @@ import { ResponsablesNivelService } from "../Services/Requisiciones/Responsables
 import { PasosVacantesService } from "../Services/Requisiciones/PasosVacante.service";
 import { DetalleRequisicionService } from "../Services/Requisiciones/detalleRequisicion.service";
 import { RequisicionesService } from "../Services/Requisiciones/Requisiciones.service";
+import { HistoricoFechasService } from "../Services/Requisiciones/requisicionHistoricoFecha.service";
 
 export type CoreServices = {
   graph: GraphRest;
@@ -116,6 +117,7 @@ export type RequisicionesServices = {
   responsableZonas: ResponsablesZonasService;
   responsablesNivel: ResponsablesNivelService;
   detalleRequisicion: DetalleRequisicionService
+  historicoFechas: HistoricoFechasService
 };
 
 export type GraphServices = CoreServices & GestorServices & PazSalvoServices & RequisicionesServices;
@@ -192,7 +194,8 @@ export function buildGraphDomainServices(cfg: UnifiedConfig, graph: GraphRest): 
     zona: new ZonasService(graph),
     responsableZonas: new ResponsablesZonasService(graph),
     responsablesNivel: new ResponsablesNivelService(graph),
-    detalleRequisicion: new DetalleRequisicionService(graph)
+    detalleRequisicion: new DetalleRequisicionService(graph),
+    historicoFechas: new HistoricoFechasService(graph)
   };
 
   const all: GraphServices = {

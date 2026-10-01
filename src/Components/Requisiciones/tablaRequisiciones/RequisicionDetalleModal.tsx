@@ -10,6 +10,7 @@ import { getDetailSections, type DetailField } from "../../../consts/requisicion
 import { toast } from "sonner";
 import type { commonResponse } from "../../../models/Commons";
 import { usePermissions } from "../../../Funcionalidades/Permisos";
+import HistorialRequisicionModal from "./HistorialRequisicionModal";
 
 type Props = {
   open: boolean;
@@ -17,19 +18,21 @@ type Props = {
   onClose: () => void;
   onPostergarANSBD: (r: requisiciones, date: string, motivo: string) => void
   handleCancelRequisicion: (r: requisiciones, motivo: string) => Promise<commonResponse<void>>
+  loading: boolean
 };
 
-export default function RequisicionDetalleModal({open, row, onClose,onPostergarANSBD, handleCancelRequisicion }: Props) {
+export default function RequisicionDetalleModal({loading, open, row, onClose,onPostergarANSBD, handleCancelRequisicion }: Props) {
   const { notifyInconveniente } = useRequisicionesContext();
   const [currentRow, setCurrentRow] = React.useState<requisiciones | null>(row);
   const [reportModalOpen, setReportModalOpen] = React.useState(false);
   const [postergarANS, setPostergarANS] = React.useState(false);
   const [cancelRequisicion, setCancelRequisicion] = React.useState(false);
+  const [historialOpen, setHistorialOpen] = React.useState(false);
   const [selectedReason, setSelectedReason] = React.useState("");
   const [reportText, setReportText] = React.useState("");
   const [savingReport, setSavingReport] = React.useState(false);
   const detailSections = currentRow ? getDetailSections(currentRow) : [];
-   const { engine } = usePermissions();
+  const { engine } = usePermissions();
 
   const canCancelRequisicion = React.useMemo(() => {
     return engine.can("requisiciones.edit");
@@ -40,18 +43,22 @@ export default function RequisicionDetalleModal({open, row, onClose,onPostergarA
     if (!open) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key !== "Escape") return;
+      // Con el historial abierto, Escape cierra solo el historial
+      if (historialOpen) setHistorialOpen(false);
+      else onClose();
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
+  }, [open, onClose, historialOpen]);
 
   React.useEffect(() => {
     if (!open) return;
     setCurrentRow(row);
     setSelectedReason("");
     setReportText("");
+    setHistorialOpen(false);
   }, [open, row]);
 
   if (!open || !currentRow) return null;
@@ -105,6 +112,16 @@ export default function RequisicionDetalleModal({open, row, onClose,onPostergarA
       return
     }
 
+    if(new Date(date) < new Date()){
+      toast.error("La fecha de postergación no puede ser menor a la fecha actual")
+      return
+    }
+
+    if(new Date(date) < new Date(currentRow.fechaLimite ?? "")){
+      toast.error("La fecha de postergación no puede ser menor a la fecha límite")
+      return
+    }
+
     await onPostergarANSBD(row!, date, reason)
   };
 
@@ -149,6 +166,10 @@ export default function RequisicionDetalleModal({open, row, onClose,onPostergarA
             </div>
 
             <div className="rq-detail-header__actions">
+              <button type="button" className="btn btn-secondary-final btn-xs rq-detail-btn" onClick={() => setHistorialOpen(true)}>
+                Ver historial
+              </button>
+
               <button type="button" className="btn btn-primary btn-xs rq-detail-btn rq-detail-btn--danger" onClick={() => setPostergarANS(true)}>
                 Postergar ANS
               </button>
@@ -248,9 +269,11 @@ export default function RequisicionDetalleModal({open, row, onClose,onPostergarA
             </section>
           </div>
         ) : null}
+
+        <HistorialRequisicionModal open={historialOpen} row={currentRow} onClose={() => setHistorialOpen(false)} />
       </div>
 
-      <ConfirmModal 
+      <ConfirmModal
         open={postergarANS} 
         onClose={() => setPostergarANS(false)}
         onSend={onPostergarANS} 
@@ -259,7 +282,8 @@ export default function RequisicionDetalleModal({open, row, onClose,onPostergarA
         description={"Escriba la razón por la que se posterga el ANS"} 
         buttonText={"Aplicar"}
         needDate={true}
-        dateText="Nueva fecha final"/>
+        dateText="Nueva fecha final "
+        loading={loading}/>
 
       <ConfirmModal 
         open={cancelRequisicion} 

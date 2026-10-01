@@ -425,10 +425,259 @@ export function useNotifyRequisiciones() {
     await mail.sendEmail(mailPayload);
   };
 
+  const notifyAnsPostergado = async (r: requisiciones, motivo: string, newDate: string) => {
+    const htmlBody = `
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"
+         style="background-color:#f4f5f7; padding:40px 20px;">
+        <tr>
+          <td align="center">
+
+            <table width="600" cellpadding="0" cellspacing="0" border="0"
+               style="max-width:600px; width:100%; background-color:#ffffff; border-radius:12px; overflow:hidden;">
+
+              <!-- HEADER -->
+              <tr>
+                <td style="background-color:#1f2937; padding:28px 35px;">
+
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+
+                    <td width="55" valign="middle">
+                      <div style="
+                        width:44px;
+                        height:44px;
+                        background-color:#f59e0b;
+                        border-radius:50%;
+                        text-align:center;
+                        line-height:44px;
+                        font-size:22px;
+                        color:#ffffff;
+                      ">
+                        !
+                      </div>
+                    </td>
+
+                    <td valign="middle" style="padding-left:12px;">
+                      <div style="
+                        color:#ffffff;
+                        font-size:21px;
+                        font-weight:bold;
+                      ">
+                        Fecha límite actualizada
+                      </div>
+
+                      <div style="
+                        color:#d1d5db;
+                        font-size:13px;
+                        margin-top:5px;
+                      ">
+                        Se ha modificado la fecha límite de la vacante
+                      </div>
+                    </td>
+
+                  </tr>
+                </table>
+
+              </td>
+            </tr>
+
+            <!-- CONTENT -->
+            <tr>
+              <td style="padding:35px;">
+
+                <p style="
+                  margin:0 0 20px 0;
+                  color:#374151;
+                  font-size:15px;
+                  line-height:1.6;
+                ">
+                  Hola <strong>${r.solicitante}</strong>,
+                </p>
+
+                <p style="
+                  margin:0 0 25px 0;
+                  color:#4b5563;
+                  font-size:15px;
+                  line-height:1.6;
+                ">
+                  Te informamos que la <strong>fecha límite</strong> de la siguiente
+                  vacante ha sido modificada:
+                </p>
+
+                <!-- VACANCY INFO -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                      style="background-color:#f9fafb; border:1px solid #e5e7eb; border-radius:8px;">
+
+                  <tr>
+                    <td style="padding:20px 22px;">
+
+                      <div style="
+                        color:#6b7280;
+                        font-size:11px;
+                        font-weight:bold;
+                        text-transform:uppercase;
+                        letter-spacing:0.5px;
+                      ">
+                        ID de la vacante
+                      </div>
+
+                      <div style="
+                        color:#111827;
+                        font-size:17px;
+                        font-weight:bold;
+                        margin-top:5px;
+                      ">
+                        ${r.Id}
+                      </div>
+
+                      <div style="
+                        margin-top:18px;
+                        color:#6b7280;
+                        font-size:11px;
+                        font-weight:bold;
+                        text-transform:uppercase;
+                        letter-spacing:0.5px;
+                      ">
+                        Cargo
+                      </div>
+
+                      <div style="
+                        color:#111827;
+                        font-size:17px;
+                        font-weight:bold;
+                        margin-top:5px;
+                      ">
+                        ${r.Title}
+                      </div>
+
+                    </td>
+                  </tr>
+
+                </table>
+
+                <!-- NEW DEADLINE -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                      style="
+                       margin-top:22px;
+                       background-color:#fff7ed;
+                       border:1px solid #fed7aa;
+                       border-radius:8px;
+                ">
+
+                  <tr>
+                    <td style="padding:20px 22px;">
+
+                      <div style="
+                        color:#9a3412;
+                        font-size:12px;
+                        font-weight:bold;
+                        text-transform:uppercase;
+                        letter-spacing:0.5px;
+                      ">
+                        Nueva fecha límite
+                      </div>
+
+                      <div style="
+                        color:#111827;
+                        font-size:23px;
+                        font-weight:bold;
+                        margin-top:8px;
+                      ">
+                        ${newDate}
+                      </div>
+
+                    </td>
+                  </tr>
+
+                </table>
+
+                <!-- REASON -->
+                <div style="margin-top:25px;">
+
+                  <div style="
+                    color:#111827;
+                    font-size:14px;
+                    font-weight:bold;
+                    margin-bottom:8px;
+                  ">
+                    Motivo
+                  </div>
+
+                  <div style="
+                    color:#4b5563;
+                    font-size:14px;
+                    line-height:1.6;
+                    background-color:#f9fafb;
+                    border-left:4px solid #f59e0b;
+                    padding:14px 16px;
+                  ">
+                    ${motivo}
+                  </div>
+
+                </div>
+
+                <p style="
+                  margin:25px 0 0 0;
+                  color:#6b7280;
+                  font-size:13px;
+                  line-height:1.6;
+                ">
+                  Por favor, ten en cuenta esta nueva fecha para el seguimiento
+                  de la vacante.
+                </p>
+
+              </td>
+            </tr>
+
+            <!-- FOOTER -->
+            <tr>
+              <td style="
+                background-color:#f9fafb;
+                padding:20px 35px;
+                border-top:1px solid #e5e7eb;
+              ">
+
+                <p style="
+                  margin:0;
+                  color:#6b7280;
+                  font-size:12px;
+                  line-height:1.5;
+                  text-align:center;
+                ">
+                  Este es un mensaje automático. Por favor, no respondas directamente a este correo.
+                </p>
+
+              </td>
+            </tr>
+
+          </table>
+
+        </td>
+      </tr>
+    </table>
+
+  </body>
+  </html>
+    `;
+    const toRecipients = buildRecipients([r.correoSolicitante]);
+
+    const mailPayload: any = {
+      message: {
+        subject: `Novedad en requisicion ID: ${r.Id}`,
+        body: { contentType: "HTML", content: htmlBody },
+        toRecipients,
+      },
+      saveToSentItems: true,
+    };
+
+    await mail.sendEmail(mailPayload);
+  };
+
   return {
     notifcacionPlantaIdeal,
     notifyAsignacion,
     notifyEncuestaSatisfaccion,
-    notifyInconveniente
+    notifyInconveniente,
+    notifyAnsPostergado
   };
 }

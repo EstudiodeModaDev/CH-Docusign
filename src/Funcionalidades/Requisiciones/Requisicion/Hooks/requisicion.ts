@@ -12,8 +12,8 @@ export function useRequisicion() {
   const formController = useNewRequisicionForm()
   const paginationController = useNewRequisicionPagination()
   const filtersController = useRequisicionFilters(paginationController.pageSize)
-  const actionsController = useRequisicionesActions({setErrors: formController.setErrors, state: formController.state})
-  const listController = useRequisicionesList({filters: filtersController, pagination: paginationController})
+  const actionsController = useRequisicionesActions({setErrors: formController.setErrors, state: formController.state, stateController: formController})
+  const listController = useRequisicionesList({filters: filtersController, pagination: paginationController, stateController: formController})
   const notificationController = useNotifyRequisiciones()
 
   // Mantiene la numeración consistente al cambiar la búsqueda antes de recargar.
@@ -29,7 +29,7 @@ export function useRequisicion() {
     }
   }
 
-  const onPostergarANS = async (r: requisiciones, date: string, motivo: string): Promise<boolean> => {
+  const onPostergarANS = async (r: requisiciones, date: string, motivo: string): Promise<boolean> => {    
     await actionsController.postergarANS(r, date, motivo)
     await listController.reloadAll()
     return true

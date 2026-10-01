@@ -9,6 +9,7 @@ export function useNewRequisicionForm() {
   const [sorts, setSorts] = React.useState<Array<{field: SortField; dir: SortDir}>>([{ field: 'id', dir: 'desc' }]);
   const [state, setState] = React.useState<requisiciones>(cleanStateRequisicion(auth.account));
   const [errors, setErrors] = React.useState<RequisicionesErrors>({});
+  const [loading, setLoading] = React.useState(false);
   
   const setField = React.useCallback(<K extends keyof requisiciones>(k: K, v: requisiciones[K]) => { setState((s) => ({ ...s, [k]: v }));}, []);
   
@@ -18,7 +19,7 @@ export function useNewRequisicionForm() {
   };
 
   return {
-    errors, sorts, state,  setErrors, setState,  setSorts, setField,  cleanState, 
+    loading, setLoading,errors, sorts, state,  setErrors, setState,  setSorts, setField,  cleanState, 
   };
 }
 

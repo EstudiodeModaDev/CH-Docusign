@@ -10,15 +10,18 @@ import { useNotifyRequisiciones } from "./useRequisicionNotifications";
 import { createRequisicionPayload } from "../utils/RequisicionPayload";
 import { notify } from '../../../../utils/notify';
 import { toISODateTimeFlex } from "../../../../utils/Date";
+import { useHistoricoFechas } from "./useHistoricoFechas";
+import type { useNewRequisicionForm } from "./useRequisicionForm";
 
 type Props = {
   state: requisiciones;
   setErrors: React.Dispatch<React.SetStateAction<RequisicionesErrors>>;
+  stateController: ReturnType<typeof useNewRequisicionForm>;
 };
 
-export function useRequisicionesActions({ state, setErrors }: Props) {
-  const [loading, setLoading] = React.useState<boolean>(false);
+export function useRequisicionesActions({ state, setErrors, stateController }: Props) {
   const notifications = useNotifyRequisiciones();
+  const log = useHistoricoFechas({});
   const { DeptosYMunicipios, categorias } = useCoreGraphServices();
   const {
     plantaIdeal,
@@ -28,6 +31,7 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
     pasosVacante,
     detalleRequisicion,
   } = useRequisicionesServices();
+  const {loading, setLoading} = stateController
 
   const validateResult = () => {
     const e = validate(state);
@@ -175,13 +179,25 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
 
   const cancelarBD = async (r: requisiciones, motivo: string): Promise<boolean> => {
     if (!motivo) return false;
-    await requisiciones.update(r.Id ?? "", {
-      Estado: "Cancelado",
-      cumpleANS: "No Aplica",
-      motivoNoCumplimiento: motivo,
-    });
-    notify.auto("Se ha cancelado la requisicion con exito");
-    return true;
+
+    setLoading(true);
+
+    try{
+      await requisiciones.update(r.Id ?? "", {
+        Estado: "Cancelado",
+        cumpleANS: "No Aplica",
+        motivoNoCumplimiento: motivo,
+      });
+      await log.createNewAnsLog(r, motivo, "Cancelación")
+      notify.success("Se ha cancelado la requisicion con exito");
+      return true;
+    } catch(e){
+      notify.error("No se ha podido cancelar la requisicion " + e);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+
   };
 
   const postergarANS = async (r: requisiciones, date: string, motivo: string): Promise<boolean> => {
@@ -193,14 +209,16 @@ export function useRequisicionesActions({ state, setErrors }: Props) {
       return false
     }
 
-     try{
-       requisiciones.update(r.Id!, {fechaLimite:formatedDate, motivoNoCumplimiento: motivo})
-       notify.success("Se ha postergado el ANS con éxito")
-       return true
-     } catch(e) {
-      notify.error("No se ha podido postergar el ANS " + e)
-      return false
-     }
+    try{
+      await requisiciones.update(r.Id!, {fechaLimite:formatedDate, motivoNoCumplimiento: motivo})
+      await log.createNewAnsLog(r, motivo, formatedDate)
+      await notifications.notifyAnsPostergado(r, formatedDate, motivo)
+      notify.success("Se ha postergado el ANS con éxito")
+      return true
+    } catch(e) {
+    notify.error("No se ha podido postergar el ANS " + e)
+    return false
+    }
   };
 
   return {

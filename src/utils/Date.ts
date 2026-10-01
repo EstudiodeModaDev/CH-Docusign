@@ -1,3 +1,5 @@
+import { differenceInCalendarDays } from "date-fns";
+
 export function toISODateFlex(v?: string | Date | null): string {
   if (v == null || v === '') return '';
 
@@ -256,4 +258,24 @@ export function getCurrentMonthRange(date = new Date()) {
   const end = new Date(date.getFullYear(), date.getMonth() + 1, 1);
 
   return { start, end };
+}
+
+/**
+ * Días calendario entre dos fechas (hasta - desde). La hora no afecta el resultado.
+ * Negativo si `hasta` es anterior a `desde`. Devuelve null si alguna fecha no es válida.
+ * Las fechas "YYYY-MM-DD" se interpretan en hora local para evitar el desfase de zona horaria.
+ */
+export function diasEntre(desde?: string | Date | null, hasta?: string | Date | null): number | null {
+  const toLocal = (v?: string | Date | null) => {
+    if (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v.trim())) {
+      const [y, m, d] = v.trim().split("-").map(Number);
+      return new Date(y, m - 1, d);
+    }
+    return parseDateFlex(v);
+  };
+
+  const a = toLocal(desde);
+  const b = toLocal(hasta);
+  if (!a || !b) return null;
+  return differenceInCalendarDays(b, a);
 }

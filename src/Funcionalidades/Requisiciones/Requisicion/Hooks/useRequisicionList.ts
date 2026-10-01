@@ -4,10 +4,12 @@ import type { requisiciones } from "../../../../models/Requisiciones/requisicion
 import type { useRequisicionFilters } from "./useRequisicionFilters";
 import { useAuth } from "../../../../auth/authProvider";
 import type { useNewRequisicionPagination } from "./useRequisicionPagination";
+import type { useNewRequisicionForm } from "./useRequisicionForm";
 
 type Props = {
   filters: ReturnType<typeof useRequisicionFilters>;
   pagination: ReturnType<typeof useNewRequisicionPagination>;
+  stateController: ReturnType<typeof useNewRequisicionForm>;
 };
 
 type PageCache = {
@@ -15,13 +17,13 @@ type PageCache = {
   nextLink: string | null;
 };
 
-export function useRequisicionesList({ filters, pagination }: Props) {
+export function useRequisicionesList({ filters, pagination, stateController }: Props) {
   const { requisiciones } = useRequisicionesServices();
+  const {loading, setLoading} = stateController
   const { account } = useAuth();
 
   const [rows, setRows] = React.useState<requisiciones[]>([]);
   const [pages, setPages] = React.useState<PageCache[]>([]);
-  const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
 
   const load = React.useCallback(async () => {

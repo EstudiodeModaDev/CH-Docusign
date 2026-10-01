@@ -1015,6 +1015,126 @@
   padding-top: 4px;
 }
 
+
+/* Historial de requisicion */
+.rq-history-modal {
+  width: min(680px, 100%);
+  max-height: calc(100% - 16px);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.rq-history-body {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.rq-history-empty {
+  margin: 0;
+  padding: 28px 12px;
+  text-align: center;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+.rq-history-empty--error {
+  color: var(--danger, #dc2626);
+}
+
+.rq-history-list {
+  position: relative;
+  margin: 0;
+  padding: 0 0 0 22px;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+
+.rq-history-list::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 6px;
+  width: 2px;
+  background: color-mix(in oklab, var(--primary) 22%, var(--bd) 78%);
+}
+
+.rq-history-item {
+  position: relative;
+}
+
+.rq-history-dot {
+  position: absolute;
+  top: 16px;
+  left: -21px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 3px var(--surface);
+}
+
+.rq-history-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in oklab, var(--bd) 82%, var(--primary) 18%);
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--surface-elev) 70%, var(--surface) 30%);
+}
+
+.rq-history-card__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.rq-history-action {
+  color: var(--ink);
+  font-size: .95rem;
+}
+
+.rq-history-date {
+  color: var(--muted);
+  font-size: .8rem;
+}
+
+.rq-history-text {
+  margin: 0;
+  color: color-mix(in oklab, var(--ink) 86%, var(--muted) 14%);
+  font-size: .88rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.rq-history-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin: 0;
+}
+
+.rq-history-meta:empty {
+  display: none;
+}
+
+.rq-history-meta dt {
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .03em;
+}
+
+.rq-history-meta dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: .85rem;
+  font-weight: 600;
+}
 .rq-phase-trigger {
   display: grid;
   gap: 4px;

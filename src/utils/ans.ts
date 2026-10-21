@@ -43,7 +43,7 @@ export function calcularFechaSolucion(
   let actual = new TZDate(apertura, TIMEZONE); // trabajar siempre en Bogotá
 
   while (restante > 0) {
-    let hora = actual.getHours();
+    const hora = actual.getHours();
 
     // Si es fin de semana o festivo → saltar al próximo día hábil 7am
     if (isSaturday(actual) || isSunday(actual) || isHoliday(actual, holidays)) {

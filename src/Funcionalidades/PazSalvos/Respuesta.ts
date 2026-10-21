@@ -197,7 +197,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
         filter: `fields/IdPazSalvo eq '${IdPazSalvo?.Id}'`,
       });
       setRows(items);
-    } catch (e: any) {
+    } catch {
       setRows([]);
     } finally {
       setLoading(false);
@@ -213,7 +213,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
         });
         setRows(items)
         return items;
-      } catch (e: any) {
+      } catch {
         setRows([]);
       } finally {
         setLoading(false);
@@ -229,7 +229,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
           filter: `fields/IdPazSalvo eq '${PazSalvoId}'`,
         });
         return items;
-      } catch (e: any) {
+      } catch {
         setRows([]);
       } finally {
         setLoading(false);
@@ -245,7 +245,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
           filter: `fields/IdPazSalvo eq '${PazSalvoId} and fields/Correo eq '${account?.username}'`,
         });
         return items;
-      } catch (e: any) {
+      } catch {
         setRows([]);
       } finally {
         setLoading(false);

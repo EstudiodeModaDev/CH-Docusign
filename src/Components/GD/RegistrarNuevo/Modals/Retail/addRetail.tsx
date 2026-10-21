@@ -320,7 +320,8 @@ export default function FormRetail({
   }
 
   const inactivateRegister = () => {
-    selectedRetail?.Estado === "Cancelado" ?  handleReactivateProcessById(selectedRetail.Id ?? "") :  setCancelProcess(true)
+    if (selectedRetail?.Estado === "Cancelado") handleReactivateProcessById(selectedRetail.Id ?? "");
+    else setCancelProcess(true);
   }
 
 

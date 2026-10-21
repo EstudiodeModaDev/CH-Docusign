@@ -20,7 +20,7 @@ export function usePermisosPazSalvos(permisosPazSalvosSvc: PermisosPazSalvosServ
     try {
       const items = await permisosPazSalvosSvc.getAll(); 
       setRows(items);
-    } catch (e: any) {
+    } catch {
       setRows([]);
     } finally {
       setLoading(false);

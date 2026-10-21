@@ -14,6 +14,7 @@ const RequisicionesMetricasDataContext = React.createContext<RequisicionesMetric
 
 export const RequisicionesMetricasDataProvider = RequisicionesMetricasDataContext.Provider;
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useRequisicionesMetricasData(): RequisicionesMetricasDataValue {
   const ctx = React.useContext(RequisicionesMetricasDataContext);
 

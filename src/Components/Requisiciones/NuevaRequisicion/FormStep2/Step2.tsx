@@ -5,7 +5,7 @@ import type { requisiciones } from "../../../../models/Requisiciones/requisicion
 import Select, { components, type OptionProps } from "react-select";
 import { notify } from '../../../../utils/notify';
 import { diasSemanaOptions } from "../../../../consts/diasFestivos";
-import { sameText } from "../NuevaRequisicion";
+import { sameText } from "../../../../utils/text";
 
 const selectMenuProps = {
   menuPortalTarget: typeof document !== "undefined" ? document.body : null,

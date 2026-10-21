@@ -318,7 +318,8 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
   };
 
   const inactivateRegister = () => {
-    selectedCesacion?.Estado === "Cancelado" ?  handleReactivateProcessById(selectedCesacion.Id ?? "") :  setCancelProcess(true)
+    if (selectedCesacion?.Estado === "Cancelado") handleReactivateProcessById(selectedCesacion.Id ?? "");
+    else setCancelProcess(true);
   }
 
 

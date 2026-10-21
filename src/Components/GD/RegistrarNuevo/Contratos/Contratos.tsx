@@ -215,7 +215,7 @@ export default function TablaContratos({saveMedicalExams, deleteContratacion, ha
       </div>
     ) : null;
 
-  const TablaNormal = () => (
+  const renderTablaNormal = () => (
     <>
       <table>
         <thead>
@@ -328,7 +328,7 @@ export default function TablaContratos({saveMedicalExams, deleteContratacion, ha
     </>
   );
 
-  const TablaCanceladas = () => (
+  const renderTablaCanceladas = () => (
     <>
       <table>
         <thead>
@@ -413,14 +413,14 @@ export default function TablaContratos({saveMedicalExams, deleteContratacion, ha
       )}
 
       <div className="novedades-wrap filas-novedades">
-        {isCanceladas ? <TablaCanceladas /> : <TablaNormal />}
+        {isCanceladas ? renderTablaCanceladas() : renderTablaNormal()}
       </div>
 
       <MedicalExamDateModal 
         isOpen={examenesMedicos}
         onClose={() => setExamenesMedicos(false)}
         onSaveDate={saveMedicalExams} 
-        Id={novedadSeleccionada?.Id!}/>
+        Id={novedadSeleccionada?.Id ?? ""}/>
 
       {visible && novedadSeleccionada ? (
         <FormContratacion 

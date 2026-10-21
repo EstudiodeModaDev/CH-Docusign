@@ -293,7 +293,7 @@ export class GraphRest {
         `/users/${encoded}?$select=id,displayName,mail,userPrincipalName`
       );
       if (u?.id) return u.id;
-    } catch (err: any) {
+    } catch {
 
     }
 

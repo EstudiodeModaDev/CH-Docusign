@@ -17,6 +17,7 @@ const RegistroPersonasContext = React.createContext<RegistroPersonasContextValue
 
 export const RegistroPersonasProvider = RegistroPersonasContext.Provider;
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useRegistroPersonasContext(): RegistroPersonasContextValue {
   const ctx = React.useContext(RegistroPersonasContext);
 

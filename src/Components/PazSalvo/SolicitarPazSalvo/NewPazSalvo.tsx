@@ -20,7 +20,7 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
   const {PazSalvos, Renovar, Firmas,} = usePazSalvoServices()
   const {Maestro, mail, configuraciones} = useCoreGraphServices()
   const {account} = useAuth()
-  const {getFirmaInline} = useFirmaUsuario(Firmas, account?.username!)
+  const {getFirmaInline} = useFirmaUsuario(Firmas, account?.username ?? "")
   const {state, setField, handleSubmit, errors, loading} = usePazSalvo(PazSalvos,mail);
   const {loadRenovables, handleSubmit: createRenovar, setField: setRenovableField,} = useRenovar(Renovar)
   const { workersOptions, loadingWorkers, error: usersError } = useWorkers({onlyEnabled: true,});
@@ -39,10 +39,10 @@ export const PazSalvoForm: React.FC<Props> = ({ onBack,}) => {
   const [copias, setCopias] = React.useState<string[]>([])
   
   React.useEffect(() => {
-    reloadCO(),
-    reloadEmpresas(),
-    reloadEmpresas(),
-    reloadCargo()
+    reloadCO();
+    reloadEmpresas();
+    reloadEmpresas();
+    reloadCargo();
   }, [reloadCO, reloadEmpresas, reloadEmpresas, reloadCargo]);
 
 

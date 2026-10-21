@@ -192,7 +192,7 @@ export default function RetailTabla({saveExamenesMedicos, deleteRetail, dependen
       </div>
     ) : null;
 
-  const TablaNormal = () => (
+  const renderTablaNormal = () => (
     <>
       <table>
         <thead>
@@ -300,7 +300,7 @@ export default function RetailTabla({saveExamenesMedicos, deleteRetail, dependen
     </>
   );
 
-  const TablaCanceladas = () => (
+  const renderTablaCanceladas = () => (
     <>
       <table>
         <thead>
@@ -374,14 +374,14 @@ export default function RetailTabla({saveExamenesMedicos, deleteRetail, dependen
       )}
 
       <div className="novedades-wrap filas-novedades">
-        {isCanceladas ? <TablaCanceladas /> : <TablaNormal />}
+        {isCanceladas ? renderTablaCanceladas() : renderTablaNormal()}
       </div>
 
       <MedicalExamDateModal 
         isOpen={examenesMedicos}
         onClose={() => setExamenesMedicos(false)}
         onSaveDate={saveExamenesMedicos} 
-        Id={novedadSeleccionada?.Id!}/>
+        Id={novedadSeleccionada?.Id ?? ""}/>
 
       {visible && novedadSeleccionada ? (
         <FormRetail 

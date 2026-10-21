@@ -108,7 +108,7 @@ export async function ensureLoginPopup(): Promise<AccountInfo> {
 /** Login por REDIRECT (recomendado para auto-login sin gesto) */
 export async function ensureLoginRedirect(): Promise<AccountInfo> {
   await initMSAL();
-  let account = ensureActiveAccount();
+  const account = ensureActiveAccount();
   if (!account) {
     await msal.loginRedirect(loginRedirectRequest); // navega y no retorna
     return new Promise<AccountInfo>(() => {});

@@ -57,17 +57,17 @@ export default function RegistrarNuevoPage() {
       reloadCargo();
       reloadModalidadTrabajo();
       reloadEspecidadCargo();
-      reloadNivelCargo(),
-      reloadCC(),
-      reloadCO(),
-      reloadDeptos(),
-      reloadUN(),
-      reloadOrigenSeleccion(),
-      reloadTipoContrato(),
-      reloadTipoContrato(),
-      reloadTipoVacante(),
-      reloadEtapas()
-      RealodTemporales()
+      reloadNivelCargo();
+      reloadCC();
+      reloadCO();
+      reloadDeptos();
+      reloadUN();
+      reloadOrigenSeleccion();
+      reloadTipoContrato();
+      reloadTipoContrato();
+      reloadTipoVacante();
+      reloadEtapas();
+      RealodTemporales();
   }, []);
 
   const allOptions = [

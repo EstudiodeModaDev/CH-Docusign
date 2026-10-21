@@ -444,7 +444,8 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
   };
 
   const inactivateRegister = () => {
-    selectedNovedad?.Estado === "Cancelado" ?  handleReactivateProcessById(selectedNovedad.Id ?? "") :  setCancelProcess(true)
+    if (selectedNovedad?.Estado === "Cancelado") handleReactivateProcessById(selectedNovedad.Id ?? "");
+    else setCancelProcess(true);
   }
 
   return (

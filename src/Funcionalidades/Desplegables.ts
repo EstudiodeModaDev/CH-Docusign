@@ -291,7 +291,7 @@ export function useCargo(CargoSvc: MaestrosService) {
   });
 }
 
-export function tipoConvocatoria(CargoSvc: MaestrosService) {
+export function useTipoConvocatoria(CargoSvc: MaestrosService) {
   const load = React.useCallback(
     (_search?: string) => CargoSvc.getAll({filter: "fields/Title eq 'tipoConvocatoria'"}),
     [CargoSvc]
@@ -318,7 +318,7 @@ export function tipoConvocatoria(CargoSvc: MaestrosService) {
   });
 }
 
-export function gruposCVE(CargoSvc: MaestrosService) {
+export function useGruposCVE(CargoSvc: MaestrosService) {
   const load = React.useCallback(
     (_search?: string) => CargoSvc.getAll({filter: "fields/Title eq 'Grupo CVE'"}),
     [CargoSvc]

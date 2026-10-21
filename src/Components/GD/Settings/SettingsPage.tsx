@@ -4,7 +4,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { ParamTabs } from "./Tabs";
 import type { ParamTab } from "../../../models/Props";
 
-export const SETTINGS_TABS: ParamTab[] = [
+const SETTINGS_TABS: ParamTab[] = [
   { id: "configs", label: "Configuraciones", to: "/settings/configuraciones" },
   { id: "empresas", label: "Empresas", to: "/settings/empresas" },
   { id: "origen", label: "Origenes de seleccion", to: "/settings/origenes" },

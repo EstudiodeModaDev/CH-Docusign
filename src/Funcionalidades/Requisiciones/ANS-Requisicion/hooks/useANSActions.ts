@@ -30,7 +30,7 @@ export function useANSActions({service, state, validate, setLoading,}: UseANSAct
           created: created.Id ?? "",
           ok: true,
         };
-      } catch(e) {
+      } catch {
         notify.auto(ANS_MESSAGES.deleteError)
         return {
           created: null,

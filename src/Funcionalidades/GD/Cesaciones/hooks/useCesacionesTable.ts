@@ -132,7 +132,7 @@ export function useCesacionesTable(CesacionesSvc: CesacionesService, username?: 
       try {
         const { items, } = await CesacionesSvc.getAll( buildCesacionesReportFilter(from, to, enviadoPor, cargo, empresa, ciudad));
         setRows(items);
-      } catch (e: any) {
+      } catch {
         setRows([]);
       } finally {
         setLoading(false);

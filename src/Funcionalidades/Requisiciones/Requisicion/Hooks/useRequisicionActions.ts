@@ -21,7 +21,7 @@ type Props = {
 
 export function useRequisicionesActions({ state, setErrors, stateController }: Props) {
   const notifications = useNotifyRequisiciones();
-  const log = useHistoricoFechas({});
+  const log = useHistoricoFechas();
   const { DeptosYMunicipios, categorias } = useCoreGraphServices();
   const {
     plantaIdeal,

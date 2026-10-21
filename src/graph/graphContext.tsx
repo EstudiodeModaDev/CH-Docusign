@@ -41,24 +41,28 @@ export const GraphServicesProvider: React.FC<ProviderProps> = ({ children, confi
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCoreGraphServices(): CoreServices {
   const ctx = React.useContext(CoreGraphServicesContext);
   if (!ctx) throw new Error("useCoreGraphServices debe usarse dentro de <GraphServicesProvider>.");
   return ctx;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useGestorServices(): GestorServices {
   const ctx = React.useContext(GestorServicesContext);
   if (!ctx) throw new Error("useGestorServices debe usarse dentro de <GraphServicesProvider>.");
   return ctx;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function usePazSalvoServices(): PazSalvoServices {
   const ctx = React.useContext(PazSalvoServicesContext);
   if (!ctx) throw new Error("usePazSalvoServices debe usarse dentro de <GraphServicesProvider>.");
   return ctx;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useRequisicionesServices(): RequisicionesServices {
   const ctx = React.useContext(RequisicionesServicesContext);
   if (!ctx) throw new Error("useRequisicionesServices debe usarse dentro de <GraphServicesProvider>.");

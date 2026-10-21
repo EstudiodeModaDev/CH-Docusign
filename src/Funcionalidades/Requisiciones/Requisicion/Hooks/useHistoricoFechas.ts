@@ -2,10 +2,7 @@ import type { historicoFecha } from "../../../../models/Requisiciones/historicoF
 import { useRequisicionesServices } from "../../../../graph/graphContext";
 import type { requisiciones } from "../../../../models/Requisiciones/requisiciones";
 
-type Props = {
-};
-
-export function useHistoricoFechas({ }: Props) {
+export function useHistoricoFechas() {
   const {
     historicoFechas,
   } = useRequisicionesServices();

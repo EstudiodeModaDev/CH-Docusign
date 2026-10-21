@@ -17,6 +17,7 @@ export function RequisicionesProvider() {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useRequisicionesContext() {
   const ctx = React.useContext(RequisicionesContext);
 

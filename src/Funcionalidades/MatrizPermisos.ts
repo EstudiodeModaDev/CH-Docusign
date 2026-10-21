@@ -75,8 +75,8 @@ export function useGroupPermissionsAdmin(selectedGroup: GroupOption | null) {
             FeatureKey: featureKey,
             Enabled: !!row?.Enabled,
             saving: !!savingMap[featureKey],
-            Title: row?.Title!,
-            GroupId: row?.GroupId!,
+            Title: row?.Title ?? "",
+            GroupId: row?.GroupId ?? "",
             GroupKey: row?.GroupKey,
           };
         }),

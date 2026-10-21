@@ -189,7 +189,7 @@ export const ColaboradoresExplorer: React.FC = () => {
 
       <section className="ce2-main">
         <ColaboradoresExplorerHeader 
-          folderState={folderState.folders?.Estado!}
+          folderState={folderState.folders?.Estado ?? ""}
           setAgregar={setAgregar}
           viewerController={viewerController}
           loading={loading} sending={sending}

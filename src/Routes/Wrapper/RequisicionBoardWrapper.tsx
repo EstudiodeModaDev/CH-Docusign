@@ -2,7 +2,7 @@ import * as React from "react";
 import { useLocation, useMatch, useNavigate } from "react-router-dom";
 import type { requisiciones } from "../../models/Requisiciones/requisiciones";
 import {
-  gruposCVE,
+  useGruposCVE,
   useCargo,
   useCentroCostos,
   useCentroOperativo,
@@ -38,7 +38,7 @@ export default function RequisicionesBoardWrapper() {
   const { options: centroCostosOptions, reload: reloadCentroCostos } = useCentroCostos(Maestro);
   const { options: centroOperativoOptions, reload: reloadCentroOperativo } = useCentroOperativo(Maestro);
   const { options: modalidadOptions, reload: reloadModalidad } = useModalidadTrabajo(Maestro);
-  const { options: grupoCveOptions, reload: reloadGrupoCve } = gruposCVE(Maestro);
+  const { options: grupoCveOptions, reload: reloadGrupoCve } = useGruposCVE(Maestro);
 
   React.useEffect(() => {
     reloadCargo();

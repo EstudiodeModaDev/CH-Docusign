@@ -7,8 +7,6 @@ import { isStepDone, resolveChecklistPhase, sortChecklistSteps } from "./process
 import type { ProcesoRequisicionModalProps } from "./types";
 import "../tablaRequisiciones.css";
 
-export { resolveChecklistPhase, sortChecklistSteps } from "./processUtils";
-
 export default function ProcesoRequisicionModal(props: ProcesoRequisicionModalProps) {
   const { open, row, onClose, onChecklistChanged } = props;
   const {

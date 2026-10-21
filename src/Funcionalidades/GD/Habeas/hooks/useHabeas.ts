@@ -22,7 +22,7 @@ export function useHabeasData() {
   const actionsController = useHabeasActions()
   const paginationController = useHabeasPagintation(HabeasData)
   const requestController = useRequestActions()
-  const listController = useHabeasList(paginationController.pageSize, auth.account?.name ?? "")
+  const listController = useHabeasList(auth.account?.name ?? "")
   const searchesController = useSpecificHabeasSearches()
 
   const [loading, setLoading] = React.useState(false);
@@ -108,7 +108,7 @@ export function useHabeasData() {
   const nextPage = React.useCallback(async (): Promise<void> => {
     try {
       paginationController.nextPageBd()
-    } catch (e: any) {
+    } catch {
     } 
   }, []);
 

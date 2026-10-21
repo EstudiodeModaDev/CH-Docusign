@@ -17,7 +17,7 @@ export function toISODateFlex(v?: string | Date | null): string {
       d = tryIso;
     } else {
       // 2) dd/mm/yyyy [hh[:mm]]
-      const m = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2}|\d{4})(?:\s+(\d{1,2})(?::(\d{1,2}))?)?$/.exec(s);
+      const m = /^(\d{1,2})[/-](\d{1,2})[/-](\d{2}|\d{4})(?:\s+(\d{1,2})(?::(\d{1,2}))?)?$/.exec(s);
       if (m) {
         const [, dd, mm, yy, hh = '0', mi = '0'] = m;
         const year = yy.length === 2 ? Number(`20${yy}`) : Number(yy);
@@ -53,7 +53,7 @@ export function parseDateFlex(v?: string | Date | null): Date | null {
   if (!Number.isNaN(attempt.getTime())) return attempt;
 
   // 2) dd/mm/yyyy [hh[:mm]]
-  const m = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2}|\d{4})(?:\s+(\d{1,2})(?::(\d{1,2}))?)?$/.exec(s);
+  const m = /^(\d{1,2})[/-](\d{1,2})[/-](\d{2}|\d{4})(?:\s+(\d{1,2})(?::(\d{1,2}))?)?$/.exec(s);
   if (m) {
     const [, dd, mm, yy, hh = '0', mi = '0'] = m;
     const year = yy.length === 2 ? Number(`20${yy}`) : Number(yy);

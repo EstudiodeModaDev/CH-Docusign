@@ -26,7 +26,7 @@ export type ControlRevisionCarpetas = {
   DevueltoPor: string;
   CorreoDevueltoPor: string;
   MotivoUltimaDevolucion: string;
-  CantidadDevoluciones: Number;
+  CantidadDevoluciones: number;
   UltimaAccion: string;
   FechaUltimaAccion: string | null;
   UltimoActor: string

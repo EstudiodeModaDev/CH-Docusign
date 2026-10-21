@@ -20,7 +20,7 @@ export function useEnviosPagintation(servicio: EnviosService) {
       setNextLink(n2 ?? null);     
       setPageIndex(i => i + 1);
       return items
-    } catch (e: any) {
+    } catch {
       return null
     } 
   }, [nextLink,]);

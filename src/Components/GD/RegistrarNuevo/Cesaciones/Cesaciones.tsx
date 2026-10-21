@@ -195,7 +195,7 @@ export default function CesacionesTabla({saveMedicalExams, deleteCesacion, depto
       </div>
     ) : null;
 
-  const TablaNormal = () => (
+  const renderTablaNormal = () => (
     <>
       <table>
         <thead>
@@ -298,7 +298,7 @@ export default function CesacionesTabla({saveMedicalExams, deleteCesacion, depto
     </>
   );
 
-  const TablaCanceladas = () => (
+  const renderTablaCanceladas = () => (
     <>
       <table>
         <thead>
@@ -361,14 +361,14 @@ export default function CesacionesTabla({saveMedicalExams, deleteCesacion, depto
       )}
 
       <div className="novedades-wrap filas-novedades">
-        {isCanceladas ? <TablaCanceladas /> : <TablaNormal />}
+        {isCanceladas ? renderTablaCanceladas() : renderTablaNormal()}
       </div>
 
       <MedicalExamDateModal 
         isOpen={examenesMedicos}
         onClose={() => setExamenesMedicos(false)}
         onSaveDate={saveMedicalExams} 
-        Id={novedadSeleccionada?.Id!}/>
+        Id={novedadSeleccionada?.Id ?? ""}/>
 
       {visible && novedadSeleccionada ? (
         <FormCesacion 

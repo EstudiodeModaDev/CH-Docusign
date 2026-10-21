@@ -8,9 +8,9 @@ export function toRecipients(addresses: string[]) {
 }
 
 export function sanitizeFileName(name: string) {
-  const bad = /["*:<>\?\/\\|]/g;
+  const bad = /["*:<>?/\\|]/g;
   let normalized = (name ?? "").replace(bad, "-").trim();
-  normalized = normalized.replace(/[\. ]+$/g, "");
+  normalized = normalized.replace(/[. ]+$/g, "");
   normalized = normalized.replace(/\s+/g, " ");
   return normalized || "Evidencia";
 }

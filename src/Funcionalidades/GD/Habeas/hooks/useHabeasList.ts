@@ -3,11 +3,9 @@ import type { DateRange, GetAllOpts, SortDir, SortField } from "../../../../mode
 import type { HabeasData } from "../../../../models/HabeasData";
 import { buildHabeasServerFilter } from "../utils/habeasFilters";
 import { useDebouncedValue } from "../../../Common/debounce";
-import { compareHabeas } from "../utils/habeasSorts";
-import { includesHabeasSearch } from "../utils/habeasSearch";
 import { useGestorServices } from "../../../../graph/graphContext";
 
-export function useHabeasList(pageSize: number, username: string) {
+export function useHabeasList(username: string) {
   const {HabeasData} = useGestorServices()
 
   const [baseRows, setBaseRows] = React.useState<HabeasData[]>([]);
@@ -44,31 +42,12 @@ export function useHabeasList(pageSize: number, username: string) {
         nextLink: null,
         ok: false
       }
-    } finally {
     }
   }, [range, username]);
 
   const loadFirstPage = React.useCallback(async () => {
     await loadBase();
   }, [loadBase]);
-
-  React.useEffect(() => {
-    let data = baseRows;
-
-    if (debouncedSearch.trim()) {
-      data = data.filter(r => includesHabeasSearch(r, debouncedSearch));
-    }
-
-    if (sorts.length) {
-      data = [...data].sort((a, b) => {
-        for (const s of sorts) {
-          const result = compareHabeas(a, b, s.field, s.dir);
-          if (result !== 0) return result;
-        }
-        return 0;
-      });
-    }
-  }, [baseRows, debouncedSearch, sorts, pageSize]);
 
   const toggleSort = React.useCallback((field: SortField, additive = false) => {
     setSorts(prev => {

@@ -12,7 +12,7 @@ type Props = {
 };
 
 export default function HistorialRequisicionModal({ open, row, onClose }: Props) {
-  const { getRequisicionLogs } = useHistoricoFechas({});
+  const { getRequisicionLogs } = useHistoricoFechas();
   const [logs, setLogs] = React.useState<historicoFecha[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);

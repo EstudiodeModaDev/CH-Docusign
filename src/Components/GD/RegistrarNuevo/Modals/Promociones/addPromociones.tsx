@@ -394,7 +394,8 @@ export default function FormPromocion({ submitting, handleReactivateProcessById,
   };
 
   const inactivateRegister = () => {
-    selectedPromocion?.Estado === "Cancelado" ?  handleReactivateProcessById(selectedPromocion.Id ?? "") :  setCancelProcess(true)
+    if (selectedPromocion?.Estado === "Cancelado") handleReactivateProcessById(selectedPromocion.Id ?? "");
+    else setCancelProcess(true);
   }
 
 

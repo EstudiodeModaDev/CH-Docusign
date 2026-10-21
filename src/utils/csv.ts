@@ -1,6 +1,6 @@
 export function sanitizeHeader(raw: string) {
   // CSV headers limpios y estables
-  return (raw ?? "").trim().replace(/\s+/g, "_").replace(/[^\w\-]/g, "").slice(0, 80);
+  return (raw ?? "").trim().replace(/\s+/g, "_").replace(/[^\w-]/g, "").slice(0, 80);
 }
 
 export function toCsvLine(values: string[]) {

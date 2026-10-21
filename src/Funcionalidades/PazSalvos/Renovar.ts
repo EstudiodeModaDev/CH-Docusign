@@ -21,7 +21,7 @@ export function useRenovar(renovarServiceSvc: RenovarService) {
       const items = await renovarServiceSvc.getAll({filter: `fields/Title eq '${account?.username}'`}); 
       setRows(items);
       return items;
-    } catch (e: any) {
+    } catch {
       setRows([]);
     } finally {
       setLoading(false);

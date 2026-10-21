@@ -104,7 +104,7 @@ export default function TablaEnvios() {
             )}
             </div>
 
-          <PreviewEnvioModal open={visible} onClose={() => { setVisible(false)} } envelopeId={envioSeleccionado?.IdSobre!}></PreviewEnvioModal>
+          <PreviewEnvioModal open={visible} onClose={() => { setVisible(false)} } envelopeId={envioSeleccionado?.IdSobre ?? ""}></PreviewEnvioModal>
         </div>
     </div>
   );

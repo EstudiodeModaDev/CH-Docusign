@@ -1,5 +1,9 @@
 export const esc = (s: string) => String(s).replace(/'/g, "''");
 
+export function sameText(left: unknown, right: unknown) {
+  return String(left ?? "").trim().toLowerCase() === String(right ?? "").trim().toLowerCase();
+}
+
 export const norm = (s?: string) => {
   const base = (s ?? '').normalize('NFD').toLowerCase().trim();
   try {

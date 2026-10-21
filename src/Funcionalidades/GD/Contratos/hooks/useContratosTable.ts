@@ -132,7 +132,7 @@ export function useContratosTable(contratosSvc: ContratosService, username?: str
       try {
         const { items, } = await contratosSvc.getAll( buildContratosReportFilter(from, to, enviadoPor, cargo, empresa, ciudad));
         setRows(items);
-      } catch (e: any) {
+      } catch {
         setRows([]);
       } finally {
         setLoading(false);

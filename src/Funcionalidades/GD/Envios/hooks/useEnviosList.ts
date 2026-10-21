@@ -29,7 +29,6 @@ export function useEnviosList(pageSize: number) {
         message: e.message,
         ok: false
       }
-    } finally {
     }
   }, [sorts, search, range, pageSize]);
 

@@ -24,7 +24,6 @@ export const FirmaPicker: React.FC<Props> = ({ src, onChangeFile, disabled }) =>
     // pero OJO: solo si NO hay un archivo seleccionado pendiente
     if (!selectedFile) {
       setPreview(src);
-    } else {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);

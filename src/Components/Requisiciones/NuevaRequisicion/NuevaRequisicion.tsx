@@ -1,9 +1,10 @@
 import * as React from "react";
 import "./NuevaRequisicion.css";
+import { sameText } from "../../../utils/text";
 import type { requisiciones } from "../../../models/Requisiciones/requisiciones";
 import FirstStepForm from "./FormStep1/Step1";
 import {
-  gruposCVE,
+  useGruposCVE,
   useCargo,
   useCentroCostos,
   useCentroOperativo,
@@ -29,10 +30,6 @@ type Props = {
   sendNotificationPlantaIdeal: (co: string, motivo:string) => void
 };
 
-export function sameText(left: unknown, right: unknown) {
-  return String(left ?? "").trim().toLowerCase() === String(right ?? "").trim().toLowerCase();
-}
-
 export default function WizardRequisicion3Pasos({
   onClose,
   state,
@@ -52,7 +49,7 @@ export default function WizardRequisicion3Pasos({
   const { reload: loadCentroOperativo, options: centroOperativoOptions } = useCentroOperativo(Maestro);
   const { reload: loadCentroCostos, options: centroCostosOptioons } = useCentroCostos(Maestro);
   const { reload: loadUnidadNegocio, options: unidadNegocioOptions } = useUnidadNegocio(Maestro);
-  const { reload: loadCVE, options: cveOptions } = gruposCVE(Maestro);
+  const { reload: loadCVE, options: cveOptions } = useGruposCVE(Maestro);
   const { reload: loadModalidad, options: modalidadOptions } = useModalidadTrabajo(Maestro);
 
   const cargosRetail: string[] = [

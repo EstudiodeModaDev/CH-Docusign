@@ -5,7 +5,7 @@ import { useEmpresasSelect } from "../../../../Funcionalidades/Desplegables";
 import type { maestro } from "../../../../models/Desplegables";
 import { notify } from '../../../../utils/notify';
 
-export const EmpresasManager: React.FC = ({}) => {
+export const EmpresasManager: React.FC = () => {
     const { Maestro, } = useCoreGraphServices();
     const { items, add, editItem, reload, remove} = useEmpresasSelect(Maestro);
     const [isEditing, setIsEditing] = React.useState(false);

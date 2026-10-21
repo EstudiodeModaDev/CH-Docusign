@@ -22,7 +22,6 @@ export function useRequestDetailsActions() {
       return { ok: true, created: creado };
     } catch {
       return { ok: false, created: null };
-    } finally {
     }
   };
 

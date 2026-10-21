@@ -3,8 +3,10 @@ import type { salario, salarioErrors } from "../../models/Desplegables";
 import type { CategoriaCargosService } from "../../Services/CategoriaCargos.service";
 import type { CargoCategoria } from "../../models/Maestros";
 import { notify } from '../../utils/notify';
+import { useAuditLog } from "../Common/useAuditLog";
 
 export function useAutomaticCargo(nivelSvc: CategoriaCargosService) {
+    const { withAudit } = useAuditLog("Configuracion");
     const [rows, setRows] = React.useState<CargoCategoria[]>([]);
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
@@ -66,7 +68,16 @@ export function useAutomaticCargo(nivelSvc: CategoriaCargosService) {
         Categoria: state.Categoria,
         Title: state.Title
       };
-      await nivelSvc.create(payload);
+      await withAudit(
+        {
+          accion: "Creacion",
+          descripcion: "Se creó la categoría de un cargo",
+          descripcionError: "Falló la creación de la categoría de un cargo",
+          detalle: { cargo: payload.Title, campos_enviados: Object.keys(payload) },
+          idFromResult: (r: any) => r?.Id,
+        },
+        () => nivelSvc.create(payload)
+      );
       notify.auto("Se ha creado el registro con éxito");
       loadAll()
     } finally {
@@ -82,7 +93,16 @@ export function useAutomaticCargo(nivelSvc: CategoriaCargosService) {
         Categoria: categoriaSeleccionado.Categoria !== state.Categoria ? state.Categoria : categoriaSeleccionado.Categoria,
         Title: categoriaSeleccionado.Title !== state.Title ? state.Title : categoriaSeleccionado.Title,
       };
-      await nivelSvc.update(categoriaSeleccionado.Id!, payload);
+      await withAudit(
+        {
+          accion: "Edicion",
+          descripcion: "Se editó la categoría de un cargo",
+          descripcionError: "Falló la edición de la categoría de un cargo",
+          id_item_afectado: categoriaSeleccionado.Id,
+          detalle: { cargo: payload.Title, campos_enviados: Object.keys(payload) },
+        },
+        () => nivelSvc.update(categoriaSeleccionado.Id!, payload)
+      );
       notify.auto("Se ha actualizado el registro con éxito");
       loadAll()
     } finally {

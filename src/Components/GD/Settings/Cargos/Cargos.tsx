@@ -6,9 +6,11 @@ import type { maestro } from "../../../../models/Desplegables";
 import { useSalarios } from "../../../../Funcionalidades/GD/Salario";
 import { useAutomaticCargo } from "../../../../Funcionalidades/GD/Niveles";
 import { notify } from '../../../../utils/notify';
+import { useAuditLog } from "../../../../Funcionalidades/Common/useAuditLog";
 
 export const CargosManager: React.FC = () => {
   const { Maestro, salarios, categorias } = useCoreGraphServices();
+  const { withAudit } = useAuditLog("Configuracion");
 
   const { items, add, editItem, reload, remove } = useCargo(Maestro);
   const { reload: reloadNiveles, items: nivelesCargo } = useNivelCargo(Maestro);
@@ -50,10 +52,19 @@ export const CargosManager: React.FC = () => {
     if (!salarioVal) return;
 
     if (!stateSalario.Id) {
-      const created = await salarios.create({
-        Salariorecomendado: salarioVal,
-        Title: cargo,
-      });
+      const created = await withAudit(
+        {
+          accion: "Creacion",
+          descripcion: "Se creó un salario recomendado para un cargo",
+          descripcionError: "Falló la creación de un salario recomendado para un cargo",
+          detalle: { cargo, campos_enviados: ["Salariorecomendado", "Title"] },
+          idFromResult: (r: any) => r?.Id,
+        },
+        () => salarios.create({
+          Salariorecomendado: salarioVal,
+          Title: cargo,
+        })
+      );
 
       if (created?.Id) {
         setStateSalario((prev: any) => ({ ...prev, Id: created.Id, Title: cargo }));
@@ -61,12 +72,23 @@ export const CargosManager: React.FC = () => {
         setStateSalario((prev: any) => ({ ...prev, Title: cargo }));
       }
     } else {
-      await salarios.update(stateSalario.Id, {
-        Salariorecomendado: salarioVal,
-        Title: cargo,
-      });
+      const salarioId = stateSalario.Id;
+      await withAudit(
+        {
+          accion: "Edicion",
+          descripcion: "Se editó el salario recomendado de un cargo",
+          descripcionError: "Falló la edición del salario recomendado de un cargo",
+          id_item_afectado: salarioId,
+          detalle: { cargo, campos_enviados: ["Salariorecomendado", "Title"] },
+        },
+        () => salarios.update(salarioId, {
+          Salariorecomendado: salarioVal,
+          Title: cargo,
+        })
+      );
     }
   }, [
+    withAudit,
     salarios,
     state.T_x00ed_tulo1,
     stateSalario.Id,
@@ -82,10 +104,19 @@ export const CargosManager: React.FC = () => {
     if (!nivelCargo) return;
 
     if (!stateCategoriaCargo.Id) {
-      const created = await categorias.create({
-        Categoria: nivelCargo,
-        Title: cargo,
-      });
+      const created = await withAudit(
+        {
+          accion: "Creacion",
+          descripcion: "Se creó la categoría de un cargo",
+          descripcionError: "Falló la creación de la categoría de un cargo",
+          detalle: { cargo, categoria: nivelCargo, campos_enviados: ["Categoria", "Title"] },
+          idFromResult: (r: any) => r?.Id,
+        },
+        () => categorias.create({
+          Categoria: nivelCargo,
+          Title: cargo,
+        })
+      );
 
       if (created?.Id) {
         setStateCargoAutomatico((prev: any) => ({ ...prev, Id: created.Id, Title: cargo }));
@@ -93,12 +124,23 @@ export const CargosManager: React.FC = () => {
         setStateCargoAutomatico((prev: any) => ({ ...prev, Title: cargo }));
       }
     } else {
-      await categorias.update(stateCategoriaCargo.Id, {
-        Categoria: nivelCargo,
-        Title: cargo,
-      });
+      const categoriaId = stateCategoriaCargo.Id;
+      await withAudit(
+        {
+          accion: "Edicion",
+          descripcion: "Se editó la categoría de un cargo",
+          descripcionError: "Falló la edición de la categoría de un cargo",
+          id_item_afectado: categoriaId,
+          detalle: { cargo, categoria: nivelCargo, campos_enviados: ["Categoria", "Title"] },
+        },
+        () => categorias.update(categoriaId, {
+          Categoria: nivelCargo,
+          Title: cargo,
+        })
+      );
     }
   }, [
+    withAudit,
     categorias,
     state.T_x00ed_tulo1,
     stateCategoriaCargo.Categoria,

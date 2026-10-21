@@ -2,6 +2,7 @@ import * as React from "react";
 import "./ChangeName.css";
 import type { Archivo } from "../../../../models/archivos";
 import { useGestorServices } from "../../../../graph/graphContext";
+import { useAuditLog } from "../../../../Funcionalidades/Common/useAuditLog";
 
 type Props = {
   open: boolean;
@@ -14,29 +15,41 @@ type Props = {
 export const RenameModal: React.FC<Props> = ({open, selectedFile, onClose, biblioteca, recargar}) => {
   const [value, setValue] = React.useState("");
   const {ColaboradoresDH, ColaboradoresEDM, ColaboradoresDenim, ColaboradoresMeta, ColaboradoresVisual, ColaboradoresBroken} = useGestorServices()
+  const { withAudit } = useAuditLog("Documentos")
   
 
     const rename = React.useCallback(async (newName: string) => {
       if(!selectedFile) return
         try {
-          if(biblioteca === "estudio"){
-            await ColaboradoresEDM.renameArchivo(selectedFile, newName)
-          } else if(biblioteca === "dh"){
-            await ColaboradoresDH.renameArchivo(selectedFile, newName)
-          } else if(biblioteca === "denim"){
-            await  ColaboradoresDenim.renameArchivo(selectedFile, newName)
-          } else if(biblioteca === "meta"){
-            await ColaboradoresMeta.renameArchivo(selectedFile, newName)
-          } else if(biblioteca === "visual"){
-            await ColaboradoresVisual.renameArchivo(selectedFile, newName)
-          } else if(biblioteca === "broken"){
-            await ColaboradoresBroken.renameArchivo(selectedFile, newName)
-          }
+          await withAudit(
+            {
+              accion: "Edicion",
+              descripcion: "Se renombró un documento",
+              descripcionError: "Falló el renombrado de un documento",
+              id_item_afectado: selectedFile.id,
+              detalle: { biblioteca, ruta: selectedFile.path, nombre_anterior: selectedFile.name, nombre_nuevo: newName },
+            },
+            async () => {
+              if(biblioteca === "estudio"){
+                await ColaboradoresEDM.renameArchivo(selectedFile, newName)
+              } else if(biblioteca === "dh"){
+                await ColaboradoresDH.renameArchivo(selectedFile, newName)
+              } else if(biblioteca === "denim"){
+                await  ColaboradoresDenim.renameArchivo(selectedFile, newName)
+              } else if(biblioteca === "meta"){
+                await ColaboradoresMeta.renameArchivo(selectedFile, newName)
+              } else if(biblioteca === "visual"){
+                await ColaboradoresVisual.renameArchivo(selectedFile, newName)
+              } else if(biblioteca === "broken"){
+                await ColaboradoresBroken.renameArchivo(selectedFile, newName)
+              }
+            }
+          )
           await recargar()
         } catch (e: any) {
         console.error(e?.message ?? "Error actualizando elemento de la carpeta.");
-        } 
-    }, [selectedFile, biblioteca]);
+        }
+    }, [selectedFile, biblioteca, withAudit]);
 
   // cuando cambie el archivo, inicializamos el valor vacío
   React.useEffect(() => {

@@ -6,6 +6,7 @@ import { FlowClient } from "../FlowClient";
 import type { FirmaInline } from "../../models/Imagenes";
 import { useCoreGraphServices } from "../../graph/graphContext";
 import { notify } from '../../utils/notify';
+import { useAuditLog } from "../Common/useAuditLog";
 
 
 export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalvo?: PazSalvo) {
@@ -18,6 +19,7 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
 
   const [errors, setErrors] = React.useState<respuestaErrors>({});
   const { graph } = useCoreGraphServices();
+  const { withAudit } = useAuditLog("Paz y salvos");
 
   const setField = <K extends keyof respuestas>(k: K, v: respuestas[K]) =>
     setState((s) => ({ ...s, [k]: v }));
@@ -293,7 +295,23 @@ export function useRespuestasPazSalvos(respuestaSvc: RespuestaService, IdPazSalv
         Respuesta: state.Respuesta,
       };
 
-      const created = await respuestaSvc.create(payload);
+      const accion = payload.Estado === "Aprobado" ? "Aprobacion" : payload.Estado === "Rechazado" ? "Rechazo" : "Creacion";
+      const created = await withAudit(
+        {
+          accion,
+          descripcion: `Se registró una respuesta (${payload.Estado}) a un paz y salvo`,
+          descripcionError: `Falló el registro de una respuesta (${payload.Estado}) a un paz y salvo`,
+          id_item_afectado: IdPazSalvo.Id,
+          detalle: {
+            id_paz_salvo: IdPazSalvo.Id,
+            area: payload.Area,
+            estado: payload.Estado,
+            cantidad_adjuntos: filesArray?.length ?? 0,
+          },
+          idFromResult: (r) => r?.Id,
+        },
+        () => respuestaSvc.create(payload)
+      );
 
       // 2) Adjuntos al flow (notifyFlow)
       if (filesArray?.length && created?.Id) {

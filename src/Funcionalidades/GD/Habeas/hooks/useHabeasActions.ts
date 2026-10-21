@@ -5,14 +5,25 @@ import { buildHabeasReportFilter } from "../utils/habeasFilters";
 import { buildHabeasPatch } from "../utils/habeasPatch";
 import { useGestorServices } from "../../../../graph/graphContext";
 import { notify } from '../../../../utils/notify';
+import { useAuditLog } from "../../../Common/useAuditLog";
 
 export function useHabeasActions() {
   const {HabeasData} = useGestorServices()
+  const { withAudit } = useAuditLog("Contrataciones");
 
   const handleSubmitBd = async (state: HabeasData): Promise<HabeasData> => {
     try {
       const payload = buildHabeasCreatePayload(state)
-      const created = await HabeasData.create(payload);
+      const created = await withAudit(
+        {
+          accion: "Creacion",
+          descripcion: "Se creó un registro de habeas data",
+          descripcionError: "Falló la creación de un registro de habeas data",
+          detalle: { campos_enviados: Object.keys(payload) },
+          idFromResult: (r) => r?.Id,
+        },
+        () => HabeasData.create(payload)
+      );
       notify.auto("Se ha creado el registro con éxito")
       return created
     } catch {
@@ -49,7 +60,16 @@ export function useHabeasActions() {
           ok: true,
         }
       }
-      const updated = await HabeasData.update(habeasSeleccionado.Id!, payload);
+      const updated = await withAudit(
+        {
+          accion: "Edicion",
+          descripcion: "Se actualizó un registro de habeas data",
+          descripcionError: "Falló la actualización de un registro de habeas data",
+          id_item_afectado: habeasSeleccionado.Id,
+          detalle: { campos_modificados: Object.keys(payload) },
+        },
+        () => HabeasData.update(habeasSeleccionado.Id!, payload)
+      );
       notify.auto("Se ha actualizado el registro con éxito")
       return {
         data: updated,
@@ -63,12 +83,20 @@ export function useHabeasActions() {
 
   const deleteHabeasDataBd = React.useCallback(async (Id: string) => {
       try {
-        await HabeasData.delete(Id);
+        await withAudit(
+          {
+            accion: "Eliminacion",
+            descripcion: "Se eliminó un registro de habeas data",
+            descripcionError: "Falló la eliminación de un registro de habeas data",
+            id_item_afectado: Id,
+          },
+          () => HabeasData.delete(Id)
+        );
       } catch {
         throw new Error("Ha ocurrido un error eliminando la cesación");
       }
     },
-    []
+    [withAudit]
   );
 
   return {

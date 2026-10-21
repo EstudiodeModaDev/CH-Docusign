@@ -1,6 +1,7 @@
 import React from "react";
 import type { pasoRequisicion } from "../../../models/Requisiciones/pasos";
 import { buildTemplateStepMap, sortTemplateSteps } from "./utils";
+import { useAuditLog } from "../../Common/useAuditLog";
 
 type GetAllFn = (args?: any) => Promise<pasoRequisicion[]>;
 type UpdateFn = (id: string, payload: any) => Promise<pasoRequisicion>;
@@ -18,6 +19,7 @@ export function useStepsCatalogRequisicion({
   orderby = "fields/OrdenPaso asc",
   includeInactive = true,
 }: UseStepsCatalogParams) {
+  const { withAudit } = useAuditLog("Requisiciones");
   const [rows, setRows] = React.useState<pasoRequisicion[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -50,7 +52,16 @@ export function useStepsCatalogRequisicion({
       setError(null);
 
       try {
-        await update(id, { Activo: false });
+        await withAudit(
+          {
+            accion: "Edicion",
+            descripcion: "Se desactivó un paso de la plantilla de requisiciones",
+            descripcionError: "Falló la desactivación de un paso de la plantilla de requisiciones",
+            id_item_afectado: id,
+            detalle: { campo_modificado: "Activo", valor_resultante: false },
+          },
+          () => update(id, { Activo: false })
+        );
         return true;
       } catch (e: any) {
         setError(e?.message ?? "Error desactivando el paso");
@@ -59,7 +70,7 @@ export function useStepsCatalogRequisicion({
         setLoading(false);
       }
     },
-    [update]
+    [update, withAudit]
   );
 
   const activate = React.useCallback(
@@ -68,7 +79,16 @@ export function useStepsCatalogRequisicion({
       setError(null);
 
       try {
-        await update(id, { Activo: true });
+        await withAudit(
+          {
+            accion: "Edicion",
+            descripcion: "Se activó un paso de la plantilla de requisiciones",
+            descripcionError: "Falló la activación de un paso de la plantilla de requisiciones",
+            id_item_afectado: id,
+            detalle: { campo_modificado: "Activo", valor_resultante: true },
+          },
+          () => update(id, { Activo: true })
+        );
         return true;
       } catch (e: any) {
         setError(e?.message ?? "Error activando el paso");
@@ -77,7 +97,7 @@ export function useStepsCatalogRequisicion({
         setLoading(false);
       }
     },
-    [update]
+    [update, withAudit]
   );
 
   const byTemplateId = React.useMemo(() => buildTemplateStepMap(rows), [rows]);

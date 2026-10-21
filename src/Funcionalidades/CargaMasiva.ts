@@ -1,5 +1,20 @@
 import * as XLSX from "xlsx";
 import type { MaestrosService } from "../Services/Maestros.service";
+import type { AuditEntry } from "./Common/useAuditLog";
+
+// Opcional: quien dispara la carga puede pasar `audit` (de useAuditLog) para registrar un resumen.
+type AuditFn = (entry: AuditEntry) => Promise<void>;
+type ResumenCarga = { total: number; creados: number; actualizados: number };
+
+async function auditCargaMasiva(audit: AuditFn | undefined, tipo: string, resumen: ResumenCarga, error?: unknown) {
+  if (!audit) return;
+  await audit({
+    accion: "Creacion",
+    descripcion: error ? `Falló la carga masiva de ${tipo}` : `Se realizó una carga masiva de ${tipo}`,
+    detalle: error ? { ...resumen, error: error instanceof Error ? error.message : String(error) } : resumen,
+    resultado: error ? "Error" : "Exito",
+  });
+}
 
 type CentroCosto = {
   codigo: string;
@@ -39,7 +54,7 @@ export async function parseCentroCostosXls(file: File): Promise<CentroCosto[]> {
   return out;
 }
 
-export async function masiveCharge(file: File, maestroSvc: MaestrosService) {
+export async function masiveCharge(file: File, maestroSvc: MaestrosService, audit?: AuditFn) {
   const centros = await parseCentroCostosXls(file);
   const existentes = await maestroSvc.getAll({filter: `fields/Title eq 'Centro de costos'`});
 
@@ -49,31 +64,42 @@ export async function masiveCharge(file: File, maestroSvc: MaestrosService) {
     if (codigo) map.set(codigo, item);
   }
 
-  // 3) Iterar excel
-  for (const cc of centros) {
-    const codigo = String(cc.codigo).trim();
-    const nombre = String(cc.nombre).trim();
-    if (!codigo || !nombre) continue;
+  const resumen: ResumenCarga = { total: centros.length, creados: 0, actualizados: 0 };
 
-    const found = map.get(codigo);
+  try {
+    // 3) Iterar excel
+    for (const cc of centros) {
+      const codigo = String(cc.codigo).trim();
+      const nombre = String(cc.nombre).trim();
+      if (!codigo || !nombre) continue;
 
-    if (found) {
-      await maestroSvc.update(found.Id!, {
-        Codigo: codigo,
-        T_x00ed_tulo1: nombre,
-      });
-    } else {
-      await maestroSvc.create({
-        Abreviacion: "",
-        Codigo: codigo,
-        T_x00ed_tulo1: nombre,
-        Title: "Centro de costos",
-      });
+      const found = map.get(codigo);
+
+      if (found) {
+        await maestroSvc.update(found.Id!, {
+          Codigo: codigo,
+          T_x00ed_tulo1: nombre,
+        });
+        resumen.actualizados++;
+      } else {
+        await maestroSvc.create({
+          Abreviacion: "",
+          Codigo: codigo,
+          T_x00ed_tulo1: nombre,
+          Title: "Centro de costos",
+        });
+        resumen.creados++;
+      }
     }
+  } catch (error) {
+    await auditCargaMasiva(audit, "centros de costos", resumen, error);
+    throw error;
   }
+
+  await auditCargaMasiva(audit, "centros de costos", resumen);
 }
 
-export async function masiveChargeCO(file: File, maestroSvc: MaestrosService) {
+export async function masiveChargeCO(file: File, maestroSvc: MaestrosService, audit?: AuditFn) {
   const centros = await parseCentroCostosXls(file);
   const existentes = await maestroSvc.getAll({filter: `fields/Title eq 'Centros operativos'`});
 
@@ -83,26 +109,37 @@ export async function masiveChargeCO(file: File, maestroSvc: MaestrosService) {
     if (codigo) map.set(codigo, item);
   }
 
-  // 3) Iterar excel
-  for (const cc of centros) {
-    const codigo = String(cc.codigo).trim();
-    const nombre = String(cc.nombre).trim();
-    if (!codigo || !nombre) continue;
+  const resumen: ResumenCarga = { total: centros.length, creados: 0, actualizados: 0 };
 
-    const found = map.get(codigo);
+  try {
+    // 3) Iterar excel
+    for (const cc of centros) {
+      const codigo = String(cc.codigo).trim();
+      const nombre = String(cc.nombre).trim();
+      if (!codigo || !nombre) continue;
 
-    if (found) {
-      await maestroSvc.update(found.Id!, {
-        Codigo: codigo,
-        T_x00ed_tulo1: nombre,
-      });
-    } else {
-      await maestroSvc.create({
-        Abreviacion: "",
-        Codigo: codigo,
-        T_x00ed_tulo1: nombre,
-        Title: "Centros operativos",
-      });
+      const found = map.get(codigo);
+
+      if (found) {
+        await maestroSvc.update(found.Id!, {
+          Codigo: codigo,
+          T_x00ed_tulo1: nombre,
+        });
+        resumen.actualizados++;
+      } else {
+        await maestroSvc.create({
+          Abreviacion: "",
+          Codigo: codigo,
+          T_x00ed_tulo1: nombre,
+          Title: "Centros operativos",
+        });
+        resumen.creados++;
+      }
     }
+  } catch (error) {
+    await auditCargaMasiva(audit, "centros operativos", resumen, error);
+    throw error;
   }
+
+  await auditCargaMasiva(audit, "centros operativos", resumen);
 }

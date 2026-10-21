@@ -40,13 +40,19 @@ export class LogService {
   }
 
   // ---------- CRUD ----------
-  async create(record: Partial<log>) {
-    await this.ensureIds();
-    const res = await this.graph.post<any>(
-      `/sites/${this.siteId}/lists/${this.listId}/items`,
-      { fields: record }
-    );
-    return this.toModel(res);
+  // Nunca lanza: un fallo al guardar el log no debe alterar la operación principal.
+  async create(record: Partial<log>): Promise<log | null> {
+    try {
+      await this.ensureIds();
+      const res = await this.graph.post<any>(
+        `/sites/${this.siteId}/lists/${this.listId}/items`,
+        { fields: record }
+      );
+      return this.toModel(res);
+    } catch (error) {
+      console.error("No fue posible guardar el log de auditoría:", error);
+      return null;
+    }
   }
 
   private loadCache() {

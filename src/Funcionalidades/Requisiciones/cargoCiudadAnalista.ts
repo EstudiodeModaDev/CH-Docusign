@@ -3,8 +3,10 @@ import type { DateRange, SortDir, SortField, } from "../../models/Commons";
 import type { cargoCiudadAnalista, cargoCiudadAnalistaErrors, } from "../../models/Requisiciones/requisiciones";
 import type { cargoCiudadAnalistaService } from "../../Services/cargoCiudadAnalista.service";
 import { notify } from '../../utils/notify';
+import { useAuditLog } from "../Common/useAuditLog";
 
 export function useCargoCiudadAnalista(requisicionSvc: cargoCiudadAnalistaService,) {
+  const { withAudit } = useAuditLog("Requisiciones");
   const [rows, setRows] = React.useState<cargoCiudadAnalista[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -75,7 +77,16 @@ export function useCargoCiudadAnalista(requisicionSvc: cargoCiudadAnalistaServic
             ok: false
         }
       }
-      const created = await requisicionSvc.create(payload);
+      const created = await withAudit(
+        {
+          accion: "Creacion",
+          descripcion: "Se asignó un analista a una combinación de cargo y ciudad",
+          descripcionError: "Falló la asignación de un analista a una combinación de cargo y ciudad",
+          detalle: { cargo: payload.Cargo, ciudad: payload.Ciudad, analista: payload.nombreAnalista },
+          idFromResult: (r) => r?.Id,
+        },
+        () => requisicionSvc.create(payload)
+      );
       notify.auto("Se ha creado el registro con éxito")
       return {
         created: created.Id ?? "",
@@ -122,7 +133,15 @@ export function useCargoCiudadAnalista(requisicionSvc: cargoCiudadAnalistaServic
 
     setLoading(true);
     try {
-      await requisicionSvc.delete(cargoSeleccionado);
+      await withAudit(
+        {
+          accion: "Eliminacion",
+          descripcion: "Se eliminó la asignación de analista de una combinación de cargo y ciudad",
+          descripcionError: "Falló la eliminación de la asignación de analista de una combinación de cargo y ciudad",
+          id_item_afectado: cargoSeleccionado,
+        },
+        () => requisicionSvc.delete(cargoSeleccionado)
+      );
       notify.auto("Registro eliminado con éxito");
     } catch (err) {
       console.error(err);

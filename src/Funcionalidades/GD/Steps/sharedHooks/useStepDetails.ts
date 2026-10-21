@@ -6,6 +6,7 @@ import { buildDetailCreatePayload } from "../utils/stepPayloads";
 import { calculateCompletedPercentage } from "../utils/stepProgress";
 import type { pasoRestriccionProcesoService } from "../../../../Services/PasoRestriccionProceso.Service";
 import { notify } from '../../../../utils/notify';
+import { useAuditLog } from "../../../Common/useAuditLog";
 
 
 interface DetailsService {
@@ -28,6 +29,7 @@ export function useStepDetails({detailsService, selected, activationModule, serv
   const [rows, setRows] = React.useState<DetallesPasos[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const { withAudit } = useAuditLog("Contrataciones");
 
   //Cargar los detalles de los pasos
   const load = React.useCallback(async (): Promise<DetallesPasos[]> => {
@@ -73,7 +75,17 @@ export function useStepDetails({detailsService, selected, activationModule, serv
         return;
       }
 
-      await Promise.all(creates);
+      // Un solo registro de log para todos los pasos creados.
+      await withAudit(
+        {
+          accion: "Creacion",
+          descripcion: "Se crearon los pasos de un proceso",
+          descripcionError: "Falló la creación de los pasos de un proceso",
+          id_item_afectado: entityId,
+          detalle: { proceso: activationModule, pasos_creados: creates.length, pasos_definidos: pasos.length },
+        },
+        () => Promise.all(creates)
+      );
     } catch (e) {
       console.error("Error creando pasos", e);
       notify.auto("Ha ocurrido un error");

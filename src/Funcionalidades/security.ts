@@ -2,6 +2,7 @@ import React from "react";
 import type { GraphUserLite } from "../graph/graphRest";
 import { useCoreGraphServices } from "../graph/graphContext";
 import type { GroupOption } from "../utils/security";
+import { useAuditLog } from "./Common/useAuditLog";
 
 
 type MembersResponse = {
@@ -68,6 +69,7 @@ const PAGE_SIZE = 50;
 
 export function useSecurity(groups: GroupOption[]) {
   const { graph } = useCoreGraphServices();
+  const { audit, withAudit } = useAuditLog("Permisos");
 
   const initialGroup = React.useMemo(() => {
     if (!groups?.length) return null;
@@ -220,7 +222,16 @@ export function useSecurity(groups: GroupOption[]) {
     setError(null);
 
     try {
-      await graph.addUserToGroup(selectedGroup.groupId, email);
+      await withAudit(
+        {
+          accion: "CambioPermisos",
+          descripcion: `Se agregó un usuario al grupo ${selectedGroup.label}`,
+          descripcionError: `Falló al agregar un usuario al grupo ${selectedGroup.label}`,
+          id_item_afectado: email,
+          detalle: { operacion: "Agregar miembro", usuario: email, GroupKey: selectedGroup.key, GroupId: selectedGroup.groupId },
+        },
+        () => graph.addUserToGroup(selectedGroup.groupId, email)
+      );
       setIsAddOpen(false);
       setAddEmail("");
       await reloadPreservingLimit();
@@ -229,7 +240,7 @@ export function useSecurity(groups: GroupOption[]) {
     } finally {
       setAddBusy(false);
     }
-  }, [graph, selectedGroup?.groupId, addEmail, reloadPreservingLimit]);
+  }, [graph, selectedGroup, addEmail, reloadPreservingLimit, withAudit]);
 
   const handleRemove = React.useCallback(
     async (user: GraphUserLite) => {
@@ -248,7 +259,16 @@ export function useSecurity(groups: GroupOption[]) {
           throw new Error("Este usuario no tiene mail o UPN para remover.");
         }
 
-        await graph.removeUserFromGroup(selectedGroup.groupId, email);
+        await withAudit(
+          {
+            accion: "CambioPermisos",
+            descripcion: `Se quitó un usuario del grupo ${selectedGroup.label}`,
+            descripcionError: `Falló al quitar un usuario del grupo ${selectedGroup.label}`,
+            id_item_afectado: email,
+            detalle: { operacion: "Quitar miembro", usuario: email, userId: user.id, GroupKey: selectedGroup.key, GroupId: selectedGroup.groupId },
+          },
+          () => graph.removeUserFromGroup(selectedGroup.groupId, email)
+        );
         await reloadPreservingLimit();
       } catch (e: any) {
         setError(String(e?.message ?? e));
@@ -256,7 +276,7 @@ export function useSecurity(groups: GroupOption[]) {
         setLoading(false);
       }
     },
-    [graph, selectedGroup?.groupId, reloadPreservingLimit]
+    [graph, selectedGroup, reloadPreservingLimit, withAudit]
   );
 
   const syncActiveUsers = React.useCallback(async () => {
@@ -299,13 +319,29 @@ export function useSecurity(groups: GroupOption[]) {
       }
 
       setSyncSummary({ added, skipped: total - added - failed, failed, total });
+      await audit({
+        accion: "CambioPermisos",
+        descripcion: failed
+          ? `Se sincronizaron los usuarios activos con el grupo ${selectedGroup.label} (con ${failed} errores)`
+          : `Se sincronizaron los usuarios activos con el grupo ${selectedGroup.label}`,
+        id_item_afectado: selectedGroup.groupId,
+        detalle: { operacion: "Sincronizar usuarios activos", GroupKey: selectedGroup.key, agregados: added, omitidos: total - added - failed, fallidos: failed, total },
+        resultado: "Exito",
+      });
       await loadFirstPage();
     } catch (e: any) {
       setError(String(e?.message ?? e));
+      await audit({
+        accion: "CambioPermisos",
+        descripcion: `Falló la sincronización de usuarios activos con el grupo ${selectedGroup.label}`,
+        id_item_afectado: selectedGroup.groupId,
+        detalle: { operacion: "Sincronizar usuarios activos", GroupKey: selectedGroup.key, error: String(e?.message ?? e) },
+        resultado: "Error",
+      });
     } finally {
       setSyncing(false);
     }
-  }, [graph, selectedGroup?.groupId, loadFirstPage]);
+  }, [graph, selectedGroup, loadFirstPage, audit]);
 
   return {
     selectedKey,

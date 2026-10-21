@@ -7,6 +7,7 @@ import type { maestro } from "../../../../models/Desplegables";
 import { masiveCharge } from "../../../../Funcionalidades/CargaMasiva";
 import type { MaestrosService } from "../../../../Services/Maestros.service";
 import { notify } from '../../../../utils/notify';
+import { useAuditLog, type AuditEntry } from "../../../../Funcionalidades/Common/useAuditLog";
 
 export const CentroCostosManager: React.FC = () => {
     const { Maestro, } = useCoreGraphServices();
@@ -138,7 +139,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   maestroSvc: MaestrosService;
-  masiveCharge: (file: File, maestro: MaestrosService) => void,
+  masiveCharge: (file: File, maestro: MaestrosService, audit?: (entry: AuditEntry) => Promise<void>) => void,
   titulo: string
 };
 
@@ -148,6 +149,7 @@ export const MasiveChargeModal: React.FC<Props> = ({ open, onClose, maestroSvc, 
   const [error, setError] = React.useState<string>("");
   const [loading, setLoading] = React.useState(false);
   const [doneMsg, setDoneMsg] = React.useState<string>("");
+  const { audit } = useAuditLog("Configuracion");
 
   React.useEffect(() => {
     if (!open) {
@@ -208,7 +210,7 @@ export const MasiveChargeModal: React.FC<Props> = ({ open, onClose, maestroSvc, 
 
     try {
       setLoading(true);
-      await masiveCharge(file!, maestroSvc);
+      await masiveCharge(file!, maestroSvc, audit);
       setDoneMsg("Carga masiva completada.");
       // si quieres cerrar automático:
       // onClose();

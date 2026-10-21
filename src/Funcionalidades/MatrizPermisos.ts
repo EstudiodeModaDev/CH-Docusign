@@ -2,6 +2,7 @@ import * as React from "react";
 import { useCoreGraphServices,  } from "../graph/graphContext";
 import { FEATURES, type AppPermissionRow, type FeatureKey, type ModuleKey } from "../models/security";
 import { normalizeFeatureKey, type GroupOption } from "../utils/security";
+import { useAuditLog } from "./Common/useAuditLog";
 
 type AppPermissionItemVM = AppPermissionRow & {
   saving: boolean;
@@ -14,6 +15,7 @@ type ModulePermissions = {
 
 export function useGroupPermissionsAdmin(selectedGroup: GroupOption | null) {
   const { MatrizPermisos } = useCoreGraphServices();
+  const { withAudit } = useAuditLog("Permisos");
 
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -105,9 +107,24 @@ export function useGroupPermissionsAdmin(selectedGroup: GroupOption | null) {
       );
 
       try {
-        await MatrizPermisos.update(row.Id, {
-          Enabled: nextEnabled,
-        });
+        await withAudit(
+          {
+            accion: "CambioPermisos",
+            descripcion: `Se ${nextEnabled ? "habilitó" : "deshabilitó"} el permiso ${featureKey} para el grupo ${selectedGroup.label}`,
+            descripcionError: `Falló el cambio del permiso ${featureKey} para el grupo ${selectedGroup.label}`,
+            id_item_afectado: row.Id,
+            detalle: {
+              FeatureKey: featureKey,
+              GroupKey: row.GroupKey ?? selectedGroup.key,
+              GroupId: selectedGroup.groupId,
+              EnabledAntes: !!row.Enabled,
+              EnabledDespues: nextEnabled,
+            },
+          },
+          () => MatrizPermisos.update(row.Id, {
+            Enabled: nextEnabled,
+          })
+        );
       } catch (e: any) {
         setRows(previousRows);
         setError(e?.message ?? `No se pudo actualizar ${featureKey}`);
@@ -115,7 +132,7 @@ export function useGroupPermissionsAdmin(selectedGroup: GroupOption | null) {
         setSaving(featureKey, false);
       }
     },
-    [rows, rowsByFeature, selectedGroup?.groupId, setSaving]
+    [rows, rowsByFeature, selectedGroup, setSaving, withAudit]
   );
 
   return {

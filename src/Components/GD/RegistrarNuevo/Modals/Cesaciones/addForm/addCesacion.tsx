@@ -2,6 +2,7 @@ import * as React from "react";
 import "../../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
 import { useCoreGraphServices, useGestorServices } from "../../../../../../graph/graphContext";
+import { useAuditLog } from "../../../../../../Funcionalidades/Common/useAuditLog";
 import type { desplegablesOption } from "../../../../../../models/Desplegables";
 import { useAuth } from "../../../../../../auth/authProvider";
 import { formatPesosEsCO, numeroATexto, toNumberFromEsCO,  } from "../../../../../../utils/Number";
@@ -82,6 +83,7 @@ type Props = {
 /* ================== Formulario ================== */
 export default function FormCesacion({sending, temporalLoading, temporalOption, deptoOptions, loadingDeptos, handleReactivateProcessById, title, handleCancelProcessbyId, setState, selectedCesacion, handleEdit, tipo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, dependenciaOptions, loadingDependencias, onClose, state, setField, handleSubmit, errors, searchRegister: searchCesacion }: Props) {
   const { Cesaciones, } = useGestorServices();
+  const { withAudit } = useAuditLog("Contrataciones");
   const {categorias, salarios, configuraciones, mail} = useCoreGraphServices()
   const { searchHabeas, searchNovedad, searchPromocion, searchRetail } = useRegistroPersonasContext();
   const { loadSpecificSalary } = useSalarios(salarios);
@@ -249,10 +251,19 @@ export default function FormCesacion({sending, temporalLoading, temporalOption, 
         const id = selectedCesacion?.Id;
         if (!id) return;
 
-        await Cesaciones.update(id, { Estado: "Completado" });
+        await withAudit(
+          {
+            accion: "Edicion",
+            descripcion: "Se completó un proceso de cesación",
+            descripcionError: "Falló la actualización del estado de un proceso de cesación al completarse",
+            id_item_afectado: id,
+            detalle: { campos_modificados: ["Estado"], estado_resultante: "Completado", porcentaje: 100 },
+          },
+          () => Cesaciones.update(id, { Estado: "Completado" })
+        );
       }
     },
-    [handleCompleteStep, calcPorcentaje, selectedCesacion?.Id, Cesaciones])
+    [handleCompleteStep, calcPorcentaje, selectedCesacion?.Id, Cesaciones, withAudit])
 
   const handleCancel = async ({ reason }: ConfirmModalPayload) => {
     if(!reason) {

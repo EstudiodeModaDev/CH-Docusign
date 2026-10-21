@@ -12,6 +12,7 @@ import { detallePayloadFromPromocion } from "./UpdateRequestDetails/utils/reques
 import { notifyUpdateRequest } from "../../utils/mail";
 import { useCoreGraphServices, useGestorServices } from "../../graph/graphContext";
 import { notify } from '../../utils/notify';
+import { useAuditLog } from "../Common/useAuditLog";
 
 function includesSearch(row: Promocion, q: string) {
   const qq = norm(q);
@@ -78,6 +79,7 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
   const [workers, setWorkers] = React.useState<Promocion[]>([]);
   const [workersOptions, setWorkersOptions] = React.useState<rsOption[]>([]);
   const [loading, setLoading] = React.useState(false);
+  const { audit, withAudit } = useAuditLog("Contrataciones");
   const [error, setError] = React.useState<string | null>(null);
   const [range, setRange] = React.useState<DateRange>({ from: "", to: "" });
   const [pageSize, setPageSize] = React.useState<number>(10); 
@@ -391,7 +393,16 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
         FechaExamenesMedicos: null,
         DominicalDay: state.DominicalDay
       };
-      const created = await PromocionesSvc.create(payload);
+      const created = await withAudit(
+        {
+          accion: "Creacion",
+          descripcion: "Se creó un registro de promoción",
+          descripcionError: "Falló la creación de un registro de promoción",
+          detalle: { campos_enviados: Object.keys(payload) },
+          idFromResult: (r) => r?.Id,
+        },
+        () => PromocionesSvc.create(payload)
+      );
       notify.auto("Se ha creado el registro con éxito")
       return {
         created: created,
@@ -423,21 +434,51 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
 
       if(!canEdit){
         const payload = buildPromocionesPatch(toEdit, state);
-        await PromocionesSvc.update(promocionSeleccionada.Id, payload);
+        await withAudit(
+          {
+            accion: "Edicion",
+            descripcion: "Se actualizó un registro de promoción",
+            descripcionError: "Falló la actualización de un registro de promoción",
+            id_item_afectado: promocionSeleccionada.Id,
+            detalle: { campos_modificados: Object.keys(payload) },
+          },
+          () => PromocionesSvc.update(promocionSeleccionada.Id!, payload)
+        );
         notify.auto("Se ha actualizado el registro con éxito");
       } else {
 
         const request = await requestController.createRequest("Promocion", promocionSeleccionada.Id)
-        if(!request.created || !request.ok) return
+        if(!request.created || !request.ok) {
+          await audit({
+            accion: "Edicion",
+            descripcion: "No fue posible crear la solicitud de edición de una promoción",
+            id_item_afectado: promocionSeleccionada.Id,
+            detalle: { tipo_evento: "SolicitudEdicion" },
+            resultado: "Error",
+          });
+          return
+        }
+        const solicitudCreada = request.created;
 
-        const realRegister = await Promociones.get(promocionSeleccionada.Id)
+        await withAudit(
+          {
+            accion: "Edicion",
+            descripcion: "Se solicitó la edición de una promoción",
+            descripcionError: "Falló el proceso de solicitud de edición de una promoción",
+            id_item_afectado: promocionSeleccionada.Id,
+            detalle: { tipo_evento: "SolicitudEdicion", id_solicitud: solicitudCreada.Id },
+          },
+          async () => {
+            const realRegister = await Promociones.get(promocionSeleccionada.Id!)
 
-        const DetallesPayload = detallePayloadFromPromocion(realRegister, state, request.created.Id!)
+            const DetallesPayload = detallePayloadFromPromocion(realRegister, state, solicitudCreada.Id!)
 
-        requestController.genericProcess("Promocion", DetallesPayload,)
+            requestController.genericProcess("Promocion", DetallesPayload,)
 
-        const groupMembers = await graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
-        await notifyUpdateRequest(mail, "Promocion", account?.name ?? "", promocionSeleccionada.NumeroDoc, groupMembers,)
+            const groupMembers = await graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
+            await notifyUpdateRequest(mail, "Promocion", account?.name ?? "", promocionSeleccionada.NumeroDoc, groupMembers,)
+          }
+        );
         
         notify.auto("Se ha enviado la solicitud, se te notificara el resultado")
         
@@ -454,14 +495,23 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
         if(!Id || !fecha ) return
 
         const spDate = toGraphDateTime(fecha)
-        await Promociones.update(Id, {FechaExamenesMedicos: spDate});
+        await withAudit(
+          {
+            accion: "Edicion",
+            descripcion: "Se registró la fecha de exámenes médicos de una promoción",
+            descripcionError: "Falló el registro de la fecha de exámenes médicos de una promoción",
+            id_item_afectado: Id,
+            detalle: { campo_modificado: "FechaExamenesMedicos" },
+          },
+          () => Promociones.update(Id, {FechaExamenesMedicos: spDate})
+        );
         await loadBase()
         notify.auto("Se ha guardado la fecha de los examenes medicos con éxito.")
       } catch {
         throw new Error("Ha ocurrido un error eliminando la novedad");
       }
     },
-    []
+    [withAudit]
   )
 
 
@@ -547,14 +597,23 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
       const proceso = await PromocionesSvc.get(Id)
 
       if(proceso){
-        await PromocionesSvc.update(Id, {CanceladoPor: account?.name, Estado: "Cancelado", razonCancelacion: RazonCancelacion})
+        await withAudit(
+          {
+            accion: "Edicion",
+            descripcion: "Se canceló un proceso de promoción",
+            descripcionError: "Falló la cancelación de un proceso de promoción",
+            id_item_afectado: Id,
+            detalle: { campos_modificados: ["CanceladoPor", "Estado", "razonCancelacion"], estado_resultante: "Cancelado" },
+          },
+          () => PromocionesSvc.update(Id, {CanceladoPor: account?.name, Estado: "Cancelado", razonCancelacion: RazonCancelacion})
+        );
         notify.auto("Se ha cancelado este proceso con éxito")
         reloadAll()
       }
     } catch {
       throw new Error("Ha ocurrido un error cancelando el proceso");
     }
-}, [PromocionesSvc]);
+}, [PromocionesSvc, withAudit]);
 
   const handleReactivateProcessById = React.useCallback(async (Id: string) => {
 
@@ -562,24 +621,44 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
       const proceso = await PromocionesSvc.get(Id)
 
       if(proceso){
-        await PromocionesSvc.update(Id, {Estado: "En proceso",})
+        await withAudit(
+          {
+            accion: "Edicion",
+            descripcion: "Se reactivó un proceso de promoción",
+            descripcionError: "Falló la reactivación de un proceso de promoción",
+            id_item_afectado: Id,
+            detalle: { campos_modificados: ["Estado"], estado_resultante: "En proceso" },
+          },
+          () => PromocionesSvc.update(Id, {Estado: "En proceso",})
+        );
         notify.auto("Se ha reactivado este proceso con éxito")
         reloadAll()
       }
     } catch {
       throw new Error("Ha ocurrido un error reactivando el proceso");
     }
-}, [PromocionesSvc]);
+}, [PromocionesSvc, withAudit]);
 
   const deletePromocion = React.useCallback(async (Id: string) => {
     setLoading(true)
     const pasos = await PasosPromocion.getAll({filter: `fields/Title eq '${Id}'`})
     try{
-      for (const paso of pasos) {
-        await PasosPromocion.delete(paso.Id!);
-      }
+      await withAudit(
+        {
+          accion: "Eliminacion",
+          descripcion: "Se eliminó un registro de promoción y sus pasos",
+          descripcionError: "Falló la eliminación de un registro de promoción",
+          id_item_afectado: Id,
+          detalle: { pasos_eliminados: pasos.length },
+        },
+        async () => {
+          for (const paso of pasos) {
+            await PasosPromocion.delete(paso.Id!);
+          }
 
-      await PromocionesSvc.delete(Id)
+          await PromocionesSvc.delete(Id)
+        }
+      );
       await loadBase()
       notify.auto("Se ha eliminado el registro con exito.")
     } catch {
@@ -587,7 +666,7 @@ export function usePromocion(PromocionesSvc: PromocionesService) {
     } finally {
       setLoading(false)
     }
-  }, [PromocionesSvc]);
+  }, [PromocionesSvc, withAudit]);
 
   return {
     errors, setState, rows, loading, error, pageSize, pageIndex, hasNext, range, search, sorts, state, workers, workersOptions, estado,

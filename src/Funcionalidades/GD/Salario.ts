@@ -2,8 +2,10 @@ import React from "react";
 import type { SalariosService } from "../../Services/Salarios.service";
 import type { salario, salarioErrors } from "../../models/Desplegables";
 import { notify } from '../../utils/notify';
+import { useAuditLog } from "../Common/useAuditLog";
 
 export function useSalarios(salariosSvc: SalariosService) {
+    const { withAudit } = useAuditLog("Configuracion");
     const [rows, setRows] = React.useState<salario[]>([]);
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
@@ -65,7 +67,16 @@ export function useSalarios(salariosSvc: SalariosService) {
         Salariorecomendado: state.Salariorecomendado,
         Title: state.Title
       };
-      await salariosSvc.create(payload);
+      await withAudit(
+        {
+          accion: "Creacion",
+          descripcion: "Se creó un salario recomendado para un cargo",
+          descripcionError: "Falló la creación de un salario recomendado para un cargo",
+          detalle: { cargo: payload.Title, campos_enviados: Object.keys(payload) },
+          idFromResult: (r: any) => r?.Id,
+        },
+        () => salariosSvc.create(payload)
+      );
       notify.auto("Se ha creado el registro con éxito");
       loadAll()
     } finally {
@@ -81,7 +92,16 @@ export function useSalarios(salariosSvc: SalariosService) {
         Salariorecomendado: salarioSeleccionado.Salariorecomendado !== state.Salariorecomendado ? state.Salariorecomendado : salarioSeleccionado.Salariorecomendado,
         Title: salarioSeleccionado.Title !== state.Title ? state.Title : salarioSeleccionado.Title,
       };
-      await salariosSvc.update(salarioSeleccionado.Id!, payload);
+      await withAudit(
+        {
+          accion: "Edicion",
+          descripcion: "Se editó el salario recomendado de un cargo",
+          descripcionError: "Falló la edición del salario recomendado de un cargo",
+          id_item_afectado: salarioSeleccionado.Id,
+          detalle: { cargo: payload.Title, campos_enviados: Object.keys(payload) },
+        },
+        () => salariosSvc.update(salarioSeleccionado.Id!, payload)
+      );
       notify.auto("Se ha actualizado el registro con éxito");
       loadAll()
     } finally {

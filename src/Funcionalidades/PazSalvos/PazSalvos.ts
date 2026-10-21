@@ -8,6 +8,7 @@ import type { FirmaInline } from "../../models/Imagenes";
 import type { MailService } from "../../Services/Mail.service";
 import { buildRecipients } from "../../utils/mail";
 import { notify } from '../../utils/notify';
+import { useAuditLog } from "../Common/useAuditLog";
 
 export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, isAdmin?: boolean,) {
   const [rows, setRows] = React.useState<PazSalvo[]>([]);
@@ -39,6 +40,7 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
   const [errors, setErrors] = React.useState<PazSalvoErrors>({});
   const setField = <K extends keyof PazSalvo>(k: K, v: PazSalvo[K]) => setState((s) => ({ ...s, [k]: v }));
   const {account} = useAuth();
+  const { withAudit } = useAuditLog("Paz y salvos");
   
   // construir filtro OData
   const buildFilter = React.useCallback((): GetAllOpts => {
@@ -239,7 +241,20 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
         Solicitante: account?.username ?? "",
       };
 
-      const created = await pazSalvoSvc.create(payload);
+      const created = await withAudit(
+        {
+          accion: "Creacion",
+          descripcion: "Se solicitó un paz y salvo",
+          descripcionError: "Falló la solicitud de un paz y salvo",
+          detalle: {
+            campos_enviados: Object.keys(payload),
+            consecutivo,
+            cantidad_solicitados: payload.Solicitados?.length ?? 0,
+          },
+          idFromResult: (r) => r?.Id,
+        },
+        () => pazSalvoSvc.create(payload)
+      );
       console.warn("[DEBUG] creado:", created);
 
       // 3) Recipients
@@ -369,7 +384,16 @@ export function usePazSalvo(pazSalvoSvc: PazSalvosService, mail: MailService, is
     setLoading(true);
     try {
 
-      await pazSalvoSvc.update(IdPazSalvo, {Estado: "Finalizado"});
+      await withAudit(
+        {
+          accion: "Edicion",
+          descripcion: "Se finalizó un paz y salvo",
+          descripcionError: "Falló la finalización de un paz y salvo",
+          id_item_afectado: IdPazSalvo,
+          detalle: { campos_actualizados: ["Estado"], estado_resultante: "Finalizado" },
+        },
+        () => pazSalvoSvc.update(IdPazSalvo, {Estado: "Finalizado"})
+      );
     
       notify.auto("Se ha finalizado el paz y salvo con éxito");
       cleanState();

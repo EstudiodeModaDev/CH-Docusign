@@ -19,12 +19,14 @@ import RequisicionDetalleModal from "../../Components/Requisiciones/tablaRequisi
 import RequisicionEditModal from "../../Components/Requisiciones/tablaRequisiciones/RequisicionEditModal";
 import { useCoreGraphServices, useRequisicionesServices } from "../../graph/graphContext";
 import { notify } from "../../utils/notify";
+import { useAuditLog } from "../../Funcionalidades/Common/useAuditLog";
 
 export default function RequisicionesBoardWrapper() {
   const location = useLocation();
   const navigate = useNavigate();
   const { Maestro, DeptosYMunicipios } = useCoreGraphServices();
   const { requisiciones } = useRequisicionesServices();
+  const { withAudit } = useAuditLog("Requisiciones");
   const { setState, state, onPostergarANS, reloadAll, cancelarRequisicion, loading } = useRequisicionesContext();
   const detailRouteMatch = useMatch("/requisicion/view/visualizacionDetalle");
   const editRouteMatch = useMatch("/requisicion/view/editRequisicion");
@@ -101,7 +103,16 @@ export default function RequisicionesBoardWrapper() {
 
     try {
       const { Id: _ignoredId, ...changes } = toEdit;
-      const updated = await requisiciones.update(id, changes);
+      const updated = await withAudit(
+        {
+          accion: "Edicion",
+          descripcion: "Se editó una requisición",
+          descripcionError: "Falló la edición de una requisición",
+          id_item_afectado: id,
+          detalle: { campos_modificados: Object.keys(changes) },
+        },
+        () => requisiciones.update(id, changes)
+      );
       setState(updated);
       notify.success("Se ha editado la requisicion con exito");
     } catch (e: any) {

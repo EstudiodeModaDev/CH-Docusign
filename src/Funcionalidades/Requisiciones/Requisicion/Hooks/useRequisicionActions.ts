@@ -12,6 +12,7 @@ import { notify } from '../../../../utils/notify';
 import { toISODateTimeFlex } from "../../../../utils/Date";
 import { useHistoricoFechas } from "./useHistoricoFechas";
 import type { useNewRequisicionForm } from "./useRequisicionForm";
+import { useAuditLog } from "../../../Common/useAuditLog";
 
 type Props = {
   state: requisiciones;
@@ -22,6 +23,7 @@ type Props = {
 export function useRequisicionesActions({ state, setErrors, stateController }: Props) {
   const notifications = useNotifyRequisiciones();
   const log = useHistoricoFechas();
+  const { withAudit } = useAuditLog("Requisiciones");
   const { DeptosYMunicipios, categorias } = useCoreGraphServices();
   const {
     plantaIdeal,
@@ -109,27 +111,48 @@ export function useRequisicionesActions({ state, setErrors, stateController }: P
     setLoading(true);
 
     try {
-      const categoriaCargo = (await categorias.getAll({ filter: `fields/Title eq '${state.Title}'`, top: 1 }))[0];
-      const responsable = await chooseFinalResponsible(
-        DeptosYMunicipios,
-        responsableZonas,
-        responsablesNivel,
-        requisiciones,
-        state.Ciudad,
-        state.tipoRequisicion as "Administrativa" | "Retail",
-        categoriaCargo?.Categoria || state.NivelCargo
+      const created = await withAudit(
+        {
+          accion: "Creacion",
+          descripcion: "Se creó una requisición",
+          descripcionError: "Falló la creación de una requisición",
+          detalle: { tipo_requisicion: state.tipoRequisicion, cargo: state.Title, ciudad: state.Ciudad, ans },
+          idFromResult: (r) => r?.Id,
+        },
+        async () => {
+          const categoriaCargo = (await categorias.getAll({ filter: `fields/Title eq '${state.Title}'`, top: 1 }))[0];
+          const responsable = await chooseFinalResponsible(
+            DeptosYMunicipios,
+            responsableZonas,
+            responsablesNivel,
+            requisiciones,
+            state.Ciudad,
+            state.tipoRequisicion as "Administrativa" | "Retail",
+            categoriaCargo?.Categoria || state.NivelCargo
+          );
+
+          if(!responsable){
+            throw new Error("No se ha encontrado un responsable definido para esta requisicion")
+          }
+
+          const payload = await createRequisicionPayload(state, ans, responsable, categoriaCargo.Categoria)
+          return requisiciones.create(payload);
+        }
       );
 
-      if(!responsable){
-        throw new Error("No se ha encontrado un responsable definido para esta requisicion")
-      }
-
-      const payload = await createRequisicionPayload(state, ans, responsable, categoriaCargo.Categoria)
-      const created = await requisiciones.create(payload);
-
       if (created.Id) {
+        const requisicionId = created.Id;
         try {
-          await createDetallesPasosRequisicion(created.Id);
+          // Una sola entrada de auditoría para todos los pasos generados.
+          await withAudit(
+            {
+              accion: "Creacion",
+              descripcion: "Se generaron los pasos de una requisición",
+              descripcionError: "Falló la generación de los pasos de una requisición",
+              id_item_afectado: requisicionId,
+            },
+            () => createDetallesPasosRequisicion(requisicionId)
+          );
         } catch (detailError) {
           console.error("No se pudieron crear los detalles de pasos de la requisicion", detailError);
           notify.auto("La requisicion se creo, pero no fue posible generar los detalles de pasos.");
@@ -164,12 +187,30 @@ export function useRequisicionesActions({ state, setErrors, stateController }: P
         const limite = new Date(state.fechaLimite ?? "").getTime();
         const ingreso = new Date(state.fechaIngreso ?? "").getTime();
         const cumple = limite < ingreso ? "No" : "Si";
-        await requisiciones.update(requisicionSeleccionada.Id!, { ...payload, Estado: "Cerrado", cumpleANS: cumple });
+        await withAudit(
+          {
+            accion: "Edicion",
+            descripcion: "Se cerró una requisición",
+            descripcionError: "Falló el cierre de una requisición",
+            id_item_afectado: requisicionSeleccionada.Id,
+            detalle: { campos_modificados: Object.keys(payload), estado_resultante: "Cerrado", cumpleANS: cumple },
+          },
+          () => requisiciones.update(requisicionSeleccionada.Id!, { ...payload, Estado: "Cerrado", cumpleANS: cumple })
+        );
         notify.auto("Se ha finalizado con exito la requisicion");
         return;
       }
 
-      await requisiciones.update(requisicionSeleccionada.Id!, payload);
+      await withAudit(
+        {
+          accion: "Edicion",
+          descripcion: "Se editó una requisición",
+          descripcionError: "Falló la edición de una requisición",
+          id_item_afectado: requisicionSeleccionada.Id,
+          detalle: { campos_modificados: Object.keys(payload) },
+        },
+        () => requisiciones.update(requisicionSeleccionada.Id!, payload)
+      );
       notify.auto("Se ha actualizado el registro con exito");
       return;
     } finally {
@@ -183,11 +224,20 @@ export function useRequisicionesActions({ state, setErrors, stateController }: P
     setLoading(true);
 
     try{
-      await requisiciones.update(r.Id ?? "", {
-        Estado: "Cancelado",
-        cumpleANS: "No Aplica",
-        motivoNoCumplimiento: motivo,
-      });
+      await withAudit(
+        {
+          accion: "Edicion",
+          descripcion: "Se canceló una requisición",
+          descripcionError: "Falló la cancelación de una requisición",
+          id_item_afectado: r.Id,
+          detalle: { estado_anterior: r.Estado, estado_resultante: "Cancelado", motivo },
+        },
+        () => requisiciones.update(r.Id ?? "", {
+          Estado: "Cancelado",
+          cumpleANS: "No Aplica",
+          motivoNoCumplimiento: motivo,
+        })
+      );
       await log.createNewAnsLog(r, motivo, "Cancelación")
       notify.success("Se ha cancelado la requisicion con exito");
       return true;
@@ -210,7 +260,16 @@ export function useRequisicionesActions({ state, setErrors, stateController }: P
     }
 
     try{
-      await requisiciones.update(r.Id!, {fechaLimite:formatedDate, motivoNoCumplimiento: motivo})
+      await withAudit(
+        {
+          accion: "Edicion",
+          descripcion: "Se postergó el ANS de una requisición",
+          descripcionError: "Falló la postergación del ANS de una requisición",
+          id_item_afectado: r.Id,
+          detalle: { fecha_limite_anterior: r.fechaLimite ?? null, fecha_limite_nueva: formatedDate, motivo },
+        },
+        () => requisiciones.update(r.Id!, {fechaLimite:formatedDate, motivoNoCumplimiento: motivo})
+      )
       await log.createNewAnsLog(r, motivo, formatedDate)
       await notifications.notifyAnsPostergado(r, formatedDate, motivo)
       notify.success("Se ha postergado el ANS con éxito")

@@ -2,6 +2,7 @@ import { useAuth } from "../../../../auth/authProvider";
 import type { DetallesPasos, PasosProceso, StepDecisionMap, StepReasonMap } from "../../../../models/Pasos";
 import { buildCompletedStepPayload, buildOmitStepPayload } from "../utils/stepPayloads";
 import { notify } from '../../../../utils/notify';
+import { useAuditLog } from "../../../Common/useAuditLog";
 
 
 interface UpdateSvc {
@@ -17,6 +18,7 @@ interface Params {
 
 export function useStepCompletion({detailsService, byId, decisiones, motivos,}: Params) {
   const { account } = useAuth();
+  const { withAudit } = useAuditLog("Contrataciones");
 
   //Funcion para completar un paso
   const handleCompleteStep = async (detalle: DetallesPasos, estado: string) => {
@@ -48,14 +50,25 @@ export function useStepCompletion({detailsService, byId, decisiones, motivos,}: 
     const userName = account?.name ?? "";
     const tipoPaso = String(paso.TipoPaso ?? "");
 
+    const detalleLog = { proceso_id: detalle.Title, numero_paso: detalle.NumeroPaso, tipo_paso: tipoPaso, estado_anterior: estadoAnterior };
+    const auditStep = <T,>(
+      accion: "Edicion" | "Aprobacion" | "Rechazo",
+      descripcion: string,
+      descripcionError: string,
+      estadoResultante: string,
+      op: () => Promise<T>
+    ) => withAudit({ accion, descripcion, descripcionError, id_item_afectado: idDetalle, detalle: { ...detalleLog, estado_resultante: estadoResultante } }, op);
+
     if (estado === "Omitido") {
-      await detailsService.update(idDetalle, buildOmitStepPayload(userName));
+      await auditStep("Edicion", "Se omitió un paso de un proceso", "Falló la omisión de un paso de un proceso", "Omitido",
+        () => detailsService.update(idDetalle, buildOmitStepPayload(userName)));
       notify.auto("Paso omitido");
       return;
     }
 
     if (tipoPaso === "SubidaDocumento") {
-      const a = await detailsService.update(idDetalle, buildCompletedStepPayload(userName, "Archivo subido"));
+      const a = await auditStep("Edicion", "Se completó un paso de subida de documento", "Falló la completación de un paso de subida de documento", "Completado",
+        () => detailsService.update(idDetalle, buildCompletedStepPayload(userName, "Archivo subido")));
       console.log(a)
       notify.auto("Se ha completado con éxito");
       return;
@@ -82,18 +95,26 @@ export function useStepCompletion({detailsService, byId, decisiones, motivos,}: 
           ? `Rechazado con el motivo: ${motivo}`
           : "Aceptado";
 
-      await detailsService.update(idDetalle, buildCompletedStepPayload(userName, notas));
+      if (decision === "Rechazado") {
+        await auditStep("Rechazo", "Se rechazó un paso de aprobación de un proceso", "Falló el rechazo de un paso de aprobación de un proceso", "Completado",
+          () => detailsService.update(idDetalle, buildCompletedStepPayload(userName, notas)));
+      } else {
+        await auditStep("Aprobacion", "Se aprobó un paso de aprobación de un proceso", "Falló la aprobación de un paso de aprobación de un proceso", "Completado",
+          () => detailsService.update(idDetalle, buildCompletedStepPayload(userName, notas)));
+      }
       notify.auto("Se ha completado con éxito");
       return;
     }
 
     if (tipoPaso === "Notificacion") {
-      await detailsService.update(idDetalle, buildCompletedStepPayload(userName, "Notificación enviada"));
+      await auditStep("Edicion", "Se completó un paso de notificación", "Falló la completación de un paso de notificación", "Completado",
+        () => detailsService.update(idDetalle, buildCompletedStepPayload(userName, "Notificación enviada")));
       notify.auto("Se ha completado con éxito");
       return;
     }
 
-    await detailsService.update(idDetalle, buildCompletedStepPayload(userName));
+    await auditStep("Edicion", "Se completó un paso de un proceso", "Falló la completación de un paso de un proceso", "Completado",
+      () => detailsService.update(idDetalle, buildCompletedStepPayload(userName)));
     notify.auto("Se ha completado con éxito");
   };
 

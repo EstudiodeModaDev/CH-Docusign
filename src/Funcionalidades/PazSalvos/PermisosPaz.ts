@@ -2,6 +2,7 @@ import React from "react";
 import type {permisos, permisosErrors } from "../../models/PazSalvo";
 import type { PermisosPazSalvosService } from "../../Services/PermisosPazSalvos.service";
 import { notify } from '../../utils/notify';
+import { useAuditLog } from "../Common/useAuditLog";
 
 export function usePermisosPazSalvos(permisosPazSalvosSvc: PermisosPazSalvosService) {
   const [rows, setRows] = React.useState<permisos[]>([]);
@@ -14,6 +15,7 @@ export function usePermisosPazSalvos(permisosPazSalvosSvc: PermisosPazSalvosServ
   const [isAdmin, setIsAdmin] = React.useState(false);
   const [errors, setErrors] = React.useState<permisosErrors>({});   
   const setField = <K extends keyof permisos>(k: K, v: permisos[K]) => setState((s) => ({ ...s, [k]: v }));
+  const { withAudit } = useAuditLog("Paz y salvos");
   
   const loadPermisos = React.useCallback(async () => {
     setLoading(true)
@@ -60,7 +62,16 @@ export function usePermisosPazSalvos(permisosPazSalvosSvc: PermisosPazSalvosServ
         Correo: state.Correo,
         Title: state.Title, 
       };
-      await permisosPazSalvosSvc.create(payload);
+      await withAudit(
+        {
+          accion: "CambioPermisos",
+          descripcion: "Se otorgó permiso de administrador de paz y salvos",
+          descripcionError: "Falló el otorgamiento de permiso de administrador de paz y salvos",
+          detalle: { campos_enviados: Object.keys(payload), correo_usuario: payload.Correo },
+          idFromResult: (r) => r?.Id,
+        },
+        () => permisosPazSalvosSvc.create(payload)
+      );
       notify.auto("Se ha creado el registro con éxito");
       cleanState();
     } finally {

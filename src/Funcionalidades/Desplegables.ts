@@ -3,6 +3,7 @@ import * as React from "react";
 import type {desplegablesOption, dobleCampo, maestro,} from "../models/Desplegables";
 import type { DeptosYMunicipiosService } from "../Services/DeptosYMunicipios.service";
 import type { MaestrosService } from "../Services/Maestros.service";
+import { useAuditLog } from "./Common/useAuditLog";
 
 /* ================== Tipos genéricos ================== */
 
@@ -19,6 +20,9 @@ type DesplegableConfig<T> = {
   addItem?: (payload: any) => Promise<T>;
   deleteItem?: (id: string | number) => Promise<void>;
   editItem?: (payload: any, id: string) => Promise<T>;
+
+  // Nombre del catálogo para el log de auditoría (p. ej. "Empresas")
+  auditLabel?: string;
 };
 
 type UseDesplegableResult<T> = {
@@ -36,7 +40,8 @@ type UseDesplegableResult<T> = {
 /* ================== Hook genérico ================== */
 
 export function useDesplegable<T>(config: DesplegableConfig<T>): UseDesplegableResult<T> {
-  const {load, getId, getLabel, includeIdInLabel = true, fallbackIfEmptyTitle = "(Sin título)", idPrefix = "#", addItem, deleteItem, editItem,} = config;
+  const {load, getId, getLabel, includeIdInLabel = true, fallbackIfEmptyTitle = "(Sin título)", idPrefix = "#", addItem, deleteItem, editItem, auditLabel = "(Sin nombre)",} = config;
+  const { withAudit } = useAuditLog("Configuracion");
   const [items, setItems] = React.useState<T[]>([]);
   const [options, setOptions] = React.useState<desplegablesOption[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -68,7 +73,16 @@ export function useDesplegable<T>(config: DesplegableConfig<T>): UseDesplegableR
       setLoading(true);
       setError(null);
       try {
-        const created = await addItem(payload);
+        const created = await withAudit(
+          {
+            accion: "Creacion",
+            descripcion: `Se creó un elemento en el catálogo ${auditLabel}`,
+            descripcionError: `Falló la creación de un elemento en el catálogo ${auditLabel}`,
+            detalle: { catalogo: auditLabel, elemento: payload?.T_x00ed_tulo1 ?? payload?.Title ?? "", campos_enviados: Object.keys(payload ?? {}) },
+            idFromResult: (r) => (r ? getId(r) : null),
+          },
+          () => addItem(payload)
+        );
         setItems((prev) => [...prev, created]);
         return created;
       } catch (e: any) {
@@ -78,7 +92,22 @@ export function useDesplegable<T>(config: DesplegableConfig<T>): UseDesplegableR
         setLoading(false);
       }
     },
-    [addItem]
+    [addItem, auditLabel, getId, withAudit]
+  );
+
+  const edit = React.useCallback(
+    (payload: any, id: string): Promise<T> =>
+      withAudit(
+        {
+          accion: "Edicion",
+          descripcion: `Se editó un elemento del catálogo ${auditLabel}`,
+          descripcionError: `Falló la edición de un elemento del catálogo ${auditLabel}`,
+          id_item_afectado: id,
+          detalle: { catalogo: auditLabel, elemento: payload?.T_x00ed_tulo1 ?? payload?.Title ?? "", campos_enviados: Object.keys(payload ?? {}) },
+        },
+        () => editItem!(payload, id)
+      ),
+    [editItem, auditLabel, withAudit]
   );
 
   const remove = React.useCallback(
@@ -90,7 +119,17 @@ export function useDesplegable<T>(config: DesplegableConfig<T>): UseDesplegableR
       setLoading(true);
       setError(null);
       try {
-        await deleteItem(id);
+        const target = items.find((it) => String(getId(it)) === String(id));
+        await withAudit(
+          {
+            accion: "Eliminacion",
+            descripcion: `Se eliminó un elemento del catálogo ${auditLabel}`,
+            descripcionError: `Falló la eliminación de un elemento del catálogo ${auditLabel}`,
+            id_item_afectado: id,
+            detalle: { catalogo: auditLabel, elemento: target ? getLabel(target) : "" },
+          },
+          () => deleteItem(id)
+        );
         setItems((prev) =>
           prev.filter((it) => String(getId(it)) !== String(id))
         );
@@ -102,7 +141,7 @@ export function useDesplegable<T>(config: DesplegableConfig<T>): UseDesplegableR
         setLoading(false);
       }
     },
-    [deleteItem, getId]
+    [deleteItem, getId, getLabel, items, auditLabel, withAudit]
   );
 
   React.useEffect(() => {
@@ -125,7 +164,7 @@ export function useDesplegable<T>(config: DesplegableConfig<T>): UseDesplegableR
   }, [items, includeIdInLabel, fallbackIfEmptyTitle, idPrefix]);
 
   return {
-    items, options, loading, error, reload, add: addItem ? add : undefined, remove: deleteItem ? remove : undefined, editItem,};
+    items, options, loading, error, reload, add: addItem ? add : undefined, remove: deleteItem ? remove : undefined, editItem: editItem ? edit : undefined,};
 }
 
 /* ================== Hooks concretos ================== */
@@ -163,7 +202,7 @@ export function useEmpresasSelect(EmpresaSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Empresas", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -198,7 +237,7 @@ export function useDireccion(EmpresaSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Direcciones", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -233,7 +272,7 @@ export function useGenero(EmpresaSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Géneros", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -260,7 +299,7 @@ export function useTemporales(TiemposSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Temporales", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -287,7 +326,7 @@ export function useCargo(CargoSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Cargos", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -314,7 +353,7 @@ export function useTipoConvocatoria(CargoSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Tipos de convocatoria", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -341,7 +380,7 @@ export function useGruposCVE(CargoSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Grupos CVE", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -368,7 +407,7 @@ export function useModalidadTrabajo(modalidadSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, deleteItem, editItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Modalidades de teletrabajo", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -395,7 +434,7 @@ export function useEspecificidadCargo(espeficidadSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Especificidad de cargos", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -422,7 +461,7 @@ export function useEtapa(etapasSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Etapas", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -449,7 +488,7 @@ export function useNivelCargo(nivelSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, editItem, deleteItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Niveles de cargo", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -476,7 +515,7 @@ export function useOrigenSeleccion(origenSeleccionSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, deleteItem, addItem, editItem, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Orígenes de selección", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -503,7 +542,7 @@ export function useTipoContrato(tipoContratoSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "", addItem, deleteItem, editItem,
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Tipos de contrato", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -530,7 +569,7 @@ export function useTipoVacante(tipoVacante: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, editItem, deleteItem,  getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Tipos de vacante", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -557,7 +596,7 @@ export function useDependencias(dependiciasSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, editItem, deleteItem,  getId: (e) => e.Id ?? e.T_x00ed_tulo1, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Dependencias", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -586,7 +625,7 @@ export function useTipoDocumentoSelect(tipoDocumentoSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, editItem, deleteItem, getId: (e) => e.Abreviacion, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Tipos de documento", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -613,7 +652,7 @@ export function useCentroCostos(centroCostosSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, editItem, deleteItem, getId: (e) => e.Codigo, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Centros de costos", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -640,7 +679,7 @@ export function useMotivoRequisicion(centroCostosSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, editItem, deleteItem, getId: (e) => e.Codigo, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Motivos de requisición", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -667,7 +706,7 @@ export function useCentroOperativo(centroOperativoSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, addItem, editItem, deleteItem, getId: (e) => e.Codigo, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Centros operativos", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -694,7 +733,7 @@ export function useUnidadNegocio(unidadNegocioSvc: MaestrosService) {
 
   return useDesplegable<maestro>({
     load, deleteItem, editItem, addItem, getId: (e) => e.Codigo, getLabel: (e) => e.T_x00ed_tulo1 ?? "",
-    includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
+    includeIdInLabel: false, auditLabel: "Unidades de negocio", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",
   });
 }
 
@@ -705,7 +744,7 @@ export function useDeptosMunicipios(DeptosSvc: DeptosYMunicipiosService) {
   );
 
   return useDesplegable<dobleCampo>({
-    load, getId: (e) => e.Abreviacion, getLabel: (e) => e.Title ?? "", includeIdInLabel: false, fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",});
+    load, getId: (e) => e.Abreviacion, getLabel: (e) => e.Title ?? "", includeIdInLabel: false, auditLabel: "Departamentos y municipios", fallbackIfEmptyTitle: "(Sin nombre)", idPrefix: "#",});
 } 
 
 import { useAuth } from "../auth/authProvider";

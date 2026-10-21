@@ -10,12 +10,14 @@ import { spDateToDDMMYYYY } from "../../../../../utils/Date";
 import { SimpleFileUpload } from "../../../../GD/AddFile/AddFile";
 import { notify } from "../../../../../utils/notify";
 import { blobToBase64 } from "../../../../../utils/Images";
+import { useAuditLog } from "../../../../../Funcionalidades/Common/useAuditLog";
 import { detectTipoPaso, getCurrentDetalle, isEstadoDone, normalizeProcessText, sanitizeFileName, toRecipients, type EstadoFinal, withSuffix,} from "./processCesacion.helpers";
 import { ApprovalStepContent, NotificationStepContent, StepCompletionNotes, UploadStepContent,} from "./processCesacionSections";
 
 export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDetalles, errorDetalles, loadDetalles, titulo, selectedCesacion, onClose, loadingPasos, errorPasos, pasosById, decisiones, motivos, setMotivos, setDecisiones, handleCompleteStep, proceso,}) => {
   const { ColaboradoresDH, ColaboradoresEDM, ColaboradoresDenim, ColaboradoresVisual, ColaboradoresMeta, ColaboradoresBroken,} = useGestorServices();
   const { mail } = useCoreGraphServices();
+  const { withAudit } = useAuditLog("Contrataciones");
 
   const vm = toUnifyVM(proceso as Proceso, selectedCesacion as any);
 
@@ -175,47 +177,60 @@ export const ProcessDetail: React.FC<PropsProceso> = ({detallesRows, loadingDeta
         targetFolderId = null;
       }
 
-      let uploadedName: string | null = null;
-      let lastErr: unknown = null;
+      // La completación del paso se registra aparte en useStepCompletion.
+      await withAudit(
+        {
+          accion: "Creacion",
+          descripcion: "Se subió un documento de un paso de proceso",
+          descripcionError: "Falló la subida de un documento de un paso de proceso",
+          id_item_afectado: idDetalle,
+          detalle: { proceso: String(proceso ?? ""), numero_paso: detalle.NumeroPaso, evidencia: evidenciaRaw, carpeta_existente: Boolean(targetFolderId) },
+        },
+        async () => {
+          let uploadedName: string | null = null;
+          let lastErr: unknown = null;
 
-      for (let index = 0; index <= 15; index++) {
-        const candidate =
-          index === 0 ? `${baseSafe}.${ext}` : `${withSuffix(baseSafe, index)}.${ext}`;
+          for (let index = 0; index <= 15; index++) {
+            const candidate =
+              index === 0 ? `${baseSafe}.${ext}` : `${withSuffix(baseSafe, index)}.${ext}`;
 
-        const renamedFile = new File([file], candidate, {
-          type: file.type,
-          lastModified: file.lastModified,
-        });
+            const renamedFile = new File([file], candidate, {
+              type: file.type,
+              lastModified: file.lastModified,
+            });
 
-        try {
-          if (targetFolderId) {
-            await servicioColaboradores.uploadFileByFolderId(targetFolderId, renamedFile);
-          } else {
-            await servicioColaboradores.uploadFile(carpetaFallback, renamedFile);
-            console.log("Se creao por aqui")
+            try {
+              if (targetFolderId) {
+                await servicioColaboradores.uploadFileByFolderId(targetFolderId, renamedFile);
+              } else {
+                await servicioColaboradores.uploadFile(carpetaFallback, renamedFile);
+                console.log("Se creao por aqui")
+              }
+
+              uploadedName = candidate;
+              lastErr = null;
+              break;
+            } catch (error: any) {
+              const message = (error?.message ?? "").toLowerCase();
+              const status = error?.status ?? error?.response?.status;
+
+              if (
+                status === 409 ||
+                message.includes("incompatible with a similar name") ||
+                message.includes("409")
+              ) {
+                lastErr = error;
+                continue;
+              }
+
+              throw error;
+            }
           }
 
-          uploadedName = candidate;
-          lastErr = null;
-          break;
-        } catch (error: any) {
-          const message = (error?.message ?? "").toLowerCase();
-          const status = error?.status ?? error?.response?.status;
-
-          if (
-            status === 409 ||
-            message.includes("incompatible with a similar name") ||
-            message.includes("409")
-          ) {
-            lastErr = error;
-            continue;
-          }
-
-          throw error;
+          if (!uploadedName) throw lastErr;
+          return uploadedName;
         }
-      }
-
-      if (!uploadedName) throw lastErr;
+      );
 
       await handleSubmit(detalle, "Completado");
       setFiles((prev) => ({ ...prev, [idDetalle]: null }));

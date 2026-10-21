@@ -11,6 +11,7 @@ import { MotivoAdjuntosForm } from "./RespuestaPazSalvo/RespuestaPazSalvo";
 import type { PazSalvo } from "../../models/PazSalvo";
 import { PazSalvoRespuestasTable } from "./VerRespuestasPazSalvo/VerRespuestasPazSalvo";
 import { usePazSalvoServices } from "../../graph/graphContext";
+import { useAuditLog } from "../../Funcionalidades/Common/useAuditLog";
 
 export const PazSalvoPage: React.FC = () => {
   const [selectedModule, setSelectedModule] = React.useState<string>("home");
@@ -22,6 +23,7 @@ export const PazSalvoPage: React.FC = () => {
   const { isAdmin, checkAdmin } = usePermisosPazSalvos(PermisosPaz);
   const { loadRenovables, updateState } = useRenovar(Renovar);
   const { firmaItem, refresh } = useFirmaUsuario(Firmas, username);
+  const { withAudit } = useAuditLog("Paz y salvos");
   
   
   const needRenovar = async (correo: string) => {
@@ -97,7 +99,16 @@ export const PazSalvoPage: React.FC = () => {
                                               <p>Debe actualizar su firma</p>
                                               <FirmaPicker src={url} disabled={loading} onChangeFile={async (file) => {
                                                                                           const safeUser = (username ?? "").toLowerCase().trim();
-                                                                                          await Firmas.uploadImage(file, "Firmas", `${safeUser}.png`);
+                                                                                          await withAudit(
+                                                                                            {
+                                                                                              accion: firmaItem ? "Edicion" : "Creacion",
+                                                                                              descripcion: firmaItem ? "Se actualizó la firma del usuario" : "Se cargó la firma del usuario",
+                                                                                              descripcionError: "Falló la carga de la firma del usuario",
+                                                                                              detalle: { carpeta: "Firmas", archivo: `${safeUser}.png` },
+                                                                                              idFromResult: (r) => r?.fileName,
+                                                                                            },
+                                                                                            () => Firmas.uploadImage(file, "Firmas", `${safeUser}.png`)
+                                                                                          );
                                                                                           await refresh();      // <- para que firmaItem tenga serverUrl/serverRelativeUrl
                                                                                           await updateState();
                                                                                         }}/>

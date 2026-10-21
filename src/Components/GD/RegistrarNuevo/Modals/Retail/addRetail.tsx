@@ -2,6 +2,7 @@ import * as React from "react";
 import "../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
 import { useCoreGraphServices, useGestorServices } from "../../../../../graph/graphContext";
+import { useAuditLog } from "../../../../../Funcionalidades/Common/useAuditLog";
 import type { desplegablesOption } from "../../../../../models/Desplegables";
 import { useAuth } from "../../../../../auth/authProvider";
 import { formatPesosEsCO, numeroATexto, toNumberFromEsCO,  } from "../../../../../utils/Number";
@@ -84,6 +85,7 @@ export default function FormRetail({
   origenOptions, loadingOrigen, submitting, title, selectedRetail, tipo, empresaOptions, loadingEmp, tipoDocOptions, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, loadingTipo, cargoOptions, loadingCargo, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, 
   handleReactivateProcessById, handleCancelProcessbyId, setState, handleEdit, onClose, state, setField, handleSubmit, errors, searchRegister: searchRetail, }: Props) {
   const { Retail,} = useGestorServices();
+  const { withAudit } = useAuditLog("Contrataciones");
   const { salarios, categorias, configuraciones, mail,} = useCoreGraphServices();
   const { searchNovedad, searchHabeas, searchPromocion, searchCesacion } = useRegistroPersonasContext();
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
@@ -251,9 +253,18 @@ export default function FormRetail({
       const id = selectedRetail?.Id;
       if (!id) return;
 
-      await Retail.update(id, { Estado: "Completado" });
+      await withAudit(
+        {
+          accion: "Edicion",
+          descripcion: "Se completó un proceso de retail",
+          descripcionError: "Falló la actualización del estado de un proceso de retail al completarse",
+          id_item_afectado: id,
+          detalle: { campos_modificados: ["Estado"], estado_resultante: "Completado", porcentaje: 100 },
+        },
+        () => Retail.update(id, { Estado: "Completado" })
+      );
     }
-  },[selectedRetail?.Id, Retail, retailStepsController.handleCompleteStep, retailStepsDetailsController,])
+  },[selectedRetail?.Id, Retail, retailStepsController.handleCompleteStep, retailStepsDetailsController, withAudit])
 
   const handleCancel = async ({ reason }: ConfirmModalPayload) => {
     if (!reason) return;

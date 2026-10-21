@@ -2,6 +2,7 @@ import * as React from "react";
 import "../AddContrato.css"
 import Select, { components, type OptionProps } from "react-select";
 import { useCoreGraphServices, useGestorServices } from "../../../../../graph/graphContext";
+import { useAuditLog } from "../../../../../Funcionalidades/Common/useAuditLog";
 import type { desplegablesOption } from "../../../../../models/Desplegables";
 import {formatPesosEsCO, numeroATexto, toNumberFromEsCO,} from "../../../../../utils/Number";
 import { useAuth } from "../../../../../auth/authProvider";
@@ -91,6 +92,7 @@ type Props = {
 /* ================== Formulario ================== */
 export default function FormPromocion({ submitting, handleReactivateProcessById, title, handleCancelProcessbyId, setState, selectedPromocion, handleEdit, tipo, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, loadingModalidad, especificidadOptions, loadingEspecificdad, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, onClose, state, setField, handleSubmit, errors, searchRegister: searchPromocion, loadFirstPage }: Props) {
   const { Promociones, } = useGestorServices();
+  const { withAudit } = useAuditLog("Contrataciones");
   const { salarios, categorias, configuraciones, mail} = useCoreGraphServices();
   const { searchHabeas, searchNovedad, searchCesacion, searchRetail } = useRegistroPersonasContext();
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
@@ -353,10 +355,19 @@ export default function FormPromocion({ submitting, handleReactivateProcessById,
         const id = selectedPromocion?.Id;
         if (!id) return;
 
-        await Promociones.update(id, { Estado: "Completado" });
+        await withAudit(
+          {
+            accion: "Edicion",
+            descripcion: "Se completó un proceso de promoción",
+            descripcionError: "Falló la actualización del estado de un proceso de promoción al completarse",
+            id_item_afectado: id,
+            detalle: { campos_modificados: ["Estado"], estado_resultante: "Completado", porcentaje: 100 },
+          },
+          () => Promociones.update(id, { Estado: "Completado" })
+        );
       }
     },
-    [handleCompleteStep, calcPorcentaje, selectedPromocion?.Id, Promociones]
+    [handleCompleteStep, calcPorcentaje, selectedPromocion?.Id, Promociones, withAudit]
   );
 
   const handleCancel = async ({ reason }: ConfirmModalPayload) => {

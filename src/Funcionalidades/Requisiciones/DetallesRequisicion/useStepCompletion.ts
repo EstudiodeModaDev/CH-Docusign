@@ -9,6 +9,7 @@ import { shouldNotifyAllStepsCompleted } from "./utils/notificationRules";
 import { useNotifyRequisiciones } from "../Requisicion/Hooks/useRequisicionNotifications";
 import type { requisiciones } from "../../../models/Requisiciones/requisiciones";
 import { toGraphDateTime, toISODateTimeFlex } from "../../../utils/Date";
+import { useAuditLog } from "../../Common/useAuditLog";
 
 interface UpdateSvc {
   update: (id: string, payload: Partial<Omit<detalleRequisicion, "Id">>) => Promise<any>;
@@ -35,6 +36,7 @@ export function useStepCompletion({
 }: Params) {
   const { account } = useAuth();
   const notificaciones = useNotifyRequisiciones()
+  const { withAudit } = useAuditLog("Requisiciones");
 
   function isCompleted(estado: string): boolean {
     const normalizedEstado = estado.trim().toLocaleLowerCase();
@@ -131,14 +133,32 @@ export function useStepCompletion({
       const pendienteFecha = requiereFechaIngreso();
       if (pendienteFecha) return pendienteFecha;
 
-      await detailsService.update(idDetalle, {
-        Estado: "Omitido",
-        CompletadoPor: userName,
-        FechaCompletadoPor: new Date().toISOString(),
-        Notas: detalle.Notas || "Paso omitido",
-      });
+      const porcentajeOmitido = calcPorcentajeTras(detalle, "Omitido");
+      await withAudit(
+        {
+          accion: "Edicion",
+          descripcion: "Se omitió un paso de una requisición",
+          descripcionError: "Falló la omisión de un paso de una requisición",
+          id_item_afectado: detalle.IdRequisicion,
+          detalle: {
+            id_detalle: idDetalle,
+            paso: paso.Title ?? templateId,
+            estado_resultante: "Omitido",
+            porcentaje_resultante: porcentajeOmitido,
+            cierra_requisicion: porcentajeOmitido === 100,
+          },
+        },
+        async () => {
+          await detailsService.update(idDetalle, {
+            Estado: "Omitido",
+            CompletadoPor: userName,
+            FechaCompletadoPor: new Date().toISOString(),
+            Notas: detalle.Notas || "Paso omitido",
+          });
 
-      await updatePorcentajeRequisicion(detalle, "Omitido", fechaIngreso);
+          await updatePorcentajeRequisicion(detalle, "Omitido", fechaIngreso);
+        }
+      );
 
       return {
         message: "Paso omitido con exito",
@@ -148,6 +168,7 @@ export function useStepCompletion({
 
     const tipoPaso = String(paso.TipoPaso ?? "");
     let notas = detalle.Notas ?? "";
+    let accionAuditoria: "Edicion" | "Aprobacion" | "Rechazo" = "Edicion";
 
     if (tipoPaso === "Aprobacion") {
       const decision = decisiones[idDetalle] ?? "";
@@ -170,6 +191,7 @@ export function useStepCompletion({
       }
 
       notas = decision === "Rechazado" ? `Rechazado con el motivo: ${motivo}` : "Aprobado";
+      accionAuditoria = decision === "Rechazado" ? "Rechazo" : "Aprobacion";
     }
 
     if (tipoPaso === "Texto") {
@@ -199,14 +221,38 @@ export function useStepCompletion({
     const pendienteFecha = requiereFechaIngreso();
     if (pendienteFecha) return pendienteFecha;
 
-    await detailsService.update(idDetalle, {
-      Estado: "Completado",
-      CompletadoPor: userName,
-      FechaCompletadoPor: new Date().toISOString(),
-      Notas: notas,
-    });
+    const porcentajeCompletado = calcPorcentajeTras(detalle, "Completado");
+    await withAudit(
+      {
+        accion: accionAuditoria,
+        descripcion:
+          accionAuditoria === "Aprobacion"
+            ? "Se aprobó un paso de una requisición"
+            : accionAuditoria === "Rechazo"
+              ? "Se rechazó un paso de una requisición"
+              : "Se completó un paso de una requisición",
+        descripcionError: "Falló el completado de un paso de una requisición",
+        id_item_afectado: detalle.IdRequisicion,
+        detalle: {
+          id_detalle: idDetalle,
+          paso: paso.Title ?? templateId,
+          tipo_paso: tipoPaso,
+          estado_resultante: "Completado",
+          porcentaje_resultante: porcentajeCompletado,
+          cierra_requisicion: porcentajeCompletado === 100,
+        },
+      },
+      async () => {
+        await detailsService.update(idDetalle, {
+          Estado: "Completado",
+          CompletadoPor: userName,
+          FechaCompletadoPor: new Date().toISOString(),
+          Notas: notas,
+        });
 
-    await updatePorcentajeRequisicion(detalle, "Completado", fechaIngreso);
+        await updatePorcentajeRequisicion(detalle, "Completado", fechaIngreso);
+      }
+    );
 
     return {
       message: "Se ha completado el paso con exito",

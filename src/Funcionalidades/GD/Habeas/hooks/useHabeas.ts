@@ -13,6 +13,7 @@ import { detallePayloadFromHabeas } from "../../UpdateRequestDetails/utils/reque
 import { notifyUpdateRequest } from "../../../../utils/mail";
 import { useCoreGraphServices, useGestorServices } from "../../../../graph/graphContext";
 import { notify } from '../../../../utils/notify';
+import { useAuditLog } from "../../../Common/useAuditLog";
 
 export function useHabeasData() {
   const {HabeasData} = useGestorServices()
@@ -26,6 +27,8 @@ export function useHabeasData() {
   const searchesController = useSpecificHabeasSearches()
 
   const [loading, setLoading] = React.useState(false);
+  // Creación, edición directa y eliminación se registran en useHabeasActions; aquí solo la solicitud de edición.
+  const { audit, withAudit } = useAuditLog("Contrataciones");
 
   const handleSubmit = async (): Promise<{ created: HabeasData | null; ok: boolean }> => {
     const validationErrors = formController.validate()
@@ -72,16 +75,37 @@ export function useHabeasData() {
       } else {
 
         const request = await requestController.createRequest("Habeas", habeasSeleccionado.Id)
-        if(!request.created || !request.ok) return
+        if(!request.created || !request.ok) {
+          await audit({
+            accion: "Edicion",
+            descripcion: "No fue posible crear la solicitud de edición de un registro de habeas data",
+            id_item_afectado: habeasSeleccionado.Id,
+            detalle: { tipo_evento: "SolicitudEdicion" },
+            resultado: "Error",
+          });
+          return
+        }
+        const solicitudCreada = request.created;
 
-        const realRegister = await HabeasData.get(habeasSeleccionado.Id)
+        await withAudit(
+          {
+            accion: "Edicion",
+            descripcion: "Se solicitó la edición de un registro de habeas data",
+            descripcionError: "Falló el proceso de solicitud de edición de un registro de habeas data",
+            id_item_afectado: habeasSeleccionado.Id,
+            detalle: { tipo_evento: "SolicitudEdicion", id_solicitud: solicitudCreada.Id },
+          },
+          async () => {
+            const realRegister = await HabeasData.get(habeasSeleccionado.Id!)
 
-        const DetallesPayload = detallePayloadFromHabeas(realRegister, formController.state, request.created.Id!)
+            const DetallesPayload = detallePayloadFromHabeas(realRegister, formController.state, solicitudCreada.Id!)
 
-        requestController.genericProcess("Habeas", DetallesPayload,)
+            requestController.genericProcess("Habeas", DetallesPayload,)
 
-        const groupMembers = await graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
-        await notifyUpdateRequest(mail, "Habeas data", auth.account?.name ?? "", habeasSeleccionado.NumeroDocumento, groupMembers,)
+            const groupMembers = await graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
+            await notifyUpdateRequest(mail, "Habeas data", auth.account?.name ?? "", habeasSeleccionado.NumeroDocumento, groupMembers,)
+          }
+        );
         
         notify.auto("Se ha enviado la solicitud, se te notificara el resultado")
         

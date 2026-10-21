@@ -3,9 +3,11 @@ import "../Empresas.css";
 import { useCoreGraphServices } from "../../../../graph/graphContext";
 import type { configuraciones } from "../../../../models/Desplegables";
 import { notify } from '../../../../utils/notify';
+import { useAuditLog } from "../../../../Funcionalidades/Common/useAuditLog";
 
 export const ConfiguracionesVariasComponent: React.FC = () => {
     const { configuraciones, } = useCoreGraphServices();
+    const { withAudit } = useAuditLog("Configuracion");
     const [isEditing, setIsEditing] = React.useState(false);
     const [state, setState] = React.useState<configuraciones>({ Title: "", Valor: ""})
     const [rows, setRows] = React.useState<configuraciones[]>([])
@@ -22,7 +24,16 @@ export const ConfiguracionesVariasComponent: React.FC = () => {
             return false
         }
 
-        configuraciones.update(state.Id ?? "", {Valor: state.Valor.trim()})
+        void withAudit(
+            {
+                accion: "Edicion",
+                descripcion: `Se editó el parámetro de configuración ${state.Title}`,
+                descripcionError: `Falló la edición del parámetro de configuración ${state.Title}`,
+                id_item_afectado: state.Id,
+                detalle: { parametro: state.Title, campos_enviados: ["Valor"] },
+            },
+            () => configuraciones.update(state.Id ?? "", {Valor: state.Valor.trim()})
+        )
         return true
     };
     

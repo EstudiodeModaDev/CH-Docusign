@@ -22,6 +22,7 @@ import { pickValueFromLabel } from "../../../Funcionalidades/GD/Docusing/Templat
 import { convertToCommonDTO } from "../../../Funcionalidades/Common/parseOptions";
 import { validateFields } from "../../../Funcionalidades/GD/Docusing/Templates/utils/validateTemplate";
 import { notify } from '../../../utils/notify';
+import { useAuditLog } from "../../../Funcionalidades/Common/useAuditLog";
 
 
 export interface EnviarFormatoValues {
@@ -51,6 +52,7 @@ const EnviarFormatoCard: React.FC = () => {
   const cesaciones = useCesaciones()
   const { searchWorker: searchWorkerRetail, workersOptions: workerOptionsRetail, workers: workersRetail } = useRetail(Retail)
   const plantillaSelected = docusignController.templatesOptions.find((o) => o.value === templateId) ?? null;
+  const { audit, withAudit } = useAuditLog("Documentos");
 
   const vm = React.useMemo(() => {
     if (!proceso || !varColaborador) return null;
@@ -73,8 +75,10 @@ const EnviarFormatoCard: React.FC = () => {
       return;
     }
 
+    let draftEnvelopeId = "";
     try {
       const draft = await docusignController.createdraft(templateId, asunto);
+      draftEnvelopeId = draft.envelopeId;
       setEnvelopeId(draft.envelopeId);
 
       const signersResp = await docusignController.getRecipients(draft.envelopeId);
@@ -115,9 +119,23 @@ const EnviarFormatoCard: React.FC = () => {
 
       enviosController.setField("IdSobre", draft.envelopeId);
       enviosController.setField("Title", plantillaSelected?.label ?? "");
+      await audit({
+        accion: "Creacion",
+        descripcion: "Se creó un borrador de sobre de DocuSign",
+        id_item_afectado: draft.envelopeId,
+        detalle: { plantilla: plantillaSelected?.label ?? templateId, proceso, campos_prellenados: prefillUpdates.length },
+        resultado: "Exito",
+      });
       setSegundoPaso(true);
     } catch (err) {
       console.error(err);
+      await audit({
+        accion: "Creacion",
+        descripcion: "Falló la creación de un borrador de sobre de DocuSign",
+        id_item_afectado: draftEnvelopeId,
+        detalle: { plantilla: plantillaSelected?.label ?? templateId, proceso, error: err instanceof Error ? err.message : String(err) },
+        resultado: "Error",
+      });
       notify.auto("Ocurrió un error creando el sobre. Revisa consola.");
     } finally {
       setLoading(false);
@@ -271,9 +289,20 @@ const EnviarFormatoCard: React.FC = () => {
 
   const handleSendEnvolope = async () => {
     try {
-      const recipients = await updateEnvelopeRecipients(envelopeId, { signers });
-      enviosController.setField("Recipients", JSON.stringify(recipients.signers));
-      await sendEnvelope(envelopeId);
+      await withAudit(
+        {
+          accion: "Creacion",
+          descripcion: "Se envió un sobre de DocuSign",
+          descripcionError: "Falló el envío de un sobre de DocuSign",
+          id_item_afectado: envelopeId,
+          detalle: { plantilla: plantillaSelected?.label ?? templateId, proceso, firmantes: signers.length },
+        },
+        async () => {
+          const recipients = await updateEnvelopeRecipients(envelopeId, { signers });
+          enviosController.setField("Recipients", JSON.stringify(recipients.signers));
+          await sendEnvelope(envelopeId);
+        }
+      );
       enviosController.handleSubmit();
       notify.auto("Se ha enviado con exito el sobre");
     } catch (err) {

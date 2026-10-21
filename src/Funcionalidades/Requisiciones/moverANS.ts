@@ -4,8 +4,10 @@ import type { moverAns, moverANSErrors, requisiciones, } from "../../models/Requ
 import type { MoverANSService } from "../../Services/moverAns.service";
 import { toISODateTimeFlex } from "../../utils/Date";
 import { notify } from '../../utils/notify';
+import { useAuditLog } from "../Common/useAuditLog";
 
 export function useMoverANS(requisicionSvc: MoverANSService, requisicion?: requisiciones) {
+  const { withAudit } = useAuditLog("Requisiciones");
   const [rows, setRows] = React.useState<moverAns[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -84,7 +86,16 @@ export function useMoverANS(requisicionSvc: MoverANSService, requisicion?: requi
         Title: state.Title,
     }
     try {
-      const created = await requisicionSvc.create(payload);
+      const created = await withAudit(
+        {
+          accion: "Edicion",
+          descripcion: "Se registró un movimiento de ANS de una requisición",
+          descripcionError: "Falló el registro de un movimiento de ANS de una requisición",
+          id_item_afectado: payload.Title,
+          detalle: { fecha_limite_nueva: payload.fechaLimite, motivo: payload.observacion },
+        },
+        () => requisicionSvc.create(payload)
+      );
       notify.auto("Se ha creado el registro con éxito")
       return {
         created: created.Id ?? "",

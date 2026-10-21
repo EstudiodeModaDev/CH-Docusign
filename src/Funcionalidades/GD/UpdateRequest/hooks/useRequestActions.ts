@@ -10,6 +10,7 @@ import { getServiceByModulo, isModulo, type Modulo } from "../../../Common/allTa
 import { useRequestDetailsActions } from "../../UpdateRequestDetails/hooks/useRequestDetailsActions";
 import { useCoreGraphServices, useGestorServices } from "../../../../graph/graphContext";
 import { notify } from '../../../../utils/notify';
+import { useAuditLog } from "../../../Common/useAuditLog";
 
 export function useRequestActions() {
   const { account } = useAuth();
@@ -19,6 +20,7 @@ export function useRequestActions() {
   const formController = useRequestForm(account?.name ?? "", account?.username ?? "")
   const requestDetailController = useRequestDetailsActions()
   const [loading, setLoading] = React.useState(false);
+  const { withAudit } = useAuditLog("Contrataciones");
 
   const createRequest = async (modulo: string, Id: string): Promise<{ created: solicitud | null; ok: boolean }> => {
     const validationErrors = formController.validate()
@@ -70,17 +72,29 @@ export function useRequestActions() {
       console.log(payload)
 
       if(!isModulo(solicitudObj.Title)) return
+      const moduloRegistro = solicitudObj.Title
 
-      const updated = await getServiceByModulo(solicitudObj.Title, gestor)?.update(solicitudObj.IdRegistro!, payload)
-      console.log(updated)
+      await withAudit(
+        {
+          accion: "Aprobacion",
+          descripcion: "Se aprobó una solicitud de edición",
+          descripcionError: "Falló la aprobación de una solicitud de edición",
+          id_item_afectado: solicitudObj.Id,
+          detalle: { modulo_registro: solicitudObj.Title, id_registro: solicitudObj.IdRegistro, campos_modificados: Object.keys(payload) },
+        },
+        async () => {
+          const updated = await getServiceByModulo(moduloRegistro, gestor)?.update(solicitudObj.IdRegistro!, payload)
+          console.log(updated)
 
-      // 6. Marcar solicitud como aprobada
-      await solicitud.update(solicitudObj.Id!, {
-        Estado: "Aprobada",
-        Aprobador: account?.name ?? "",
-        fechaAprobacion: new Date().toISOString(),
-        comentarioAprobador: comentario ?? "",
-      });
+          // 6. Marcar solicitud como aprobada
+          await solicitud.update(solicitudObj.Id!, {
+            Estado: "Aprobada",
+            Aprobador: account?.name ?? "",
+            fechaAprobacion: new Date().toISOString(),
+            comentarioAprobador: comentario ?? "",
+          });
+        }
+      );
       await notifyAceptedRequest(mail, "Contrato", solicitudObj,)
       notify.auto("Solicitud aprobada correctamente");
 
@@ -103,12 +117,21 @@ export function useRequestActions() {
       isAdmin(graph, account!)
 
       // 3. Marcar solicitud como aprobada
-      await solicitud.update(solicitudObj.Id!, {
-        Estado: "Rechazada",
-        Aprobador: account?.name ?? "",
-        fechaAprobacion: new Date().toISOString(),
-        comentarioAprobador: comentario ?? "",
-      });
+      await withAudit(
+        {
+          accion: "Rechazo",
+          descripcion: "Se rechazó una solicitud de edición",
+          descripcionError: "Falló el rechazo de una solicitud de edición",
+          id_item_afectado: solicitudObj.Id,
+          detalle: { modulo_registro: solicitudObj.Title, id_registro: solicitudObj.IdRegistro },
+        },
+        () => solicitud.update(solicitudObj.Id!, {
+          Estado: "Rechazada",
+          Aprobador: account?.name ?? "",
+          fechaAprobacion: new Date().toISOString(),
+          comentarioAprobador: comentario ?? "",
+        })
+      );
       
       notify.auto("Solicitud rechazada correctamente");
 

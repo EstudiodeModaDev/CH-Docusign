@@ -4,6 +4,7 @@ import { updateEnvelopeRecipients, } from "../../../../Services/DocusignAPI.serv
 import type { DocGenFormFieldResponse, DocusignRecipient, PrefillTabsResponse } from "../../../../models/Docusign";
 import { useDocusignTemplates } from "../../../../Funcionalidades/GD/Docusing/Templates/hooks/useDocusingTemplates";
 import { notify } from '../../../../utils/notify';
+import { useAuditLog } from "../../../../Funcionalidades/Common/useAuditLog";
 
 export type CampoActual = {
   label: string;
@@ -21,6 +22,7 @@ export const PreviewEnvioModal: React.FC<PreviewEnvioModalProps> = ({open, onClo
     const [campos, setCampos] = React.useState<CampoActual[]>([]);
     const [destinatarios, setDestinatarios] = React.useState<DocusignRecipient[]>([]);
     const [loading, setLoading] = React.useState<boolean>(false);
+    const { withAudit } = useAuditLog("Documentos");
 
     const loadTemplates = React.useCallback(async () => {
         if (!envelopeId) return;
@@ -68,7 +70,16 @@ export const PreviewEnvioModal: React.FC<PreviewEnvioModalProps> = ({open, onClo
         if (!envelopeId) return;
         try {
                 setLoading(true);
-                await updateEnvelopeRecipients(envelopeId, { signers: destinatarios }, {resendEnvelope: true});
+                await withAudit(
+                    {
+                        accion: "Edicion",
+                        descripcion: "Se reenvió un sobre de DocuSign",
+                        descripcionError: "Falló el reenvío de un sobre de DocuSign",
+                        id_item_afectado: envelopeId,
+                        detalle: { firmantes: destinatarios.length },
+                    },
+                    () => updateEnvelopeRecipients(envelopeId, { signers: destinatarios }, {resendEnvelope: true})
+                );
                 notify.auto("El sobre ha sido reenviado correctamente.");
             } catch (e) {
                 console.error("Ha ocurrido un error reenviando el error:", e);
@@ -76,7 +87,7 @@ export const PreviewEnvioModal: React.FC<PreviewEnvioModalProps> = ({open, onClo
             } finally {
             setLoading(false);
         }
-    }, [envelopeId, destinatarios]);
+    }, [envelopeId, destinatarios, withAudit]);
 
     React.useEffect(() => {
         loadTemplates()

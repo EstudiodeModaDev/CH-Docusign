@@ -36,15 +36,6 @@ export function useContratos() {
   const [workersOptions, setWorkersOptions] = React.useState<rsOption[]>([]);
   const [loading, setLoading] = React.useState(false);
 
-  // Evita que un fallo al guardar el log altere la operación principal.
-  const safeLog = React.useCallback(async (entry: Parameters<typeof log.create>[0]): Promise<void> => {
-    try {
-      await log.create(entry);
-    } catch (error) {
-      console.error("No fue posible guardar el log de auditoría:", error);
-    }
-  }, [log]);
-
   // Datos comunes de auditoría.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const auditActor = {
@@ -88,7 +79,7 @@ export function useContratos() {
       return { ok: false, created: null };
     } finally {
       if (attempted) {
-        await safeLog({
+        await log.create({
           accion: "Creacion",
           ...auditActor,
           descripcion: success
@@ -215,7 +206,7 @@ export function useContratos() {
       notify.auto("Ha ocurrido un error");
     } finally {
       if (attempted && shouldLog) {
-        await safeLog({
+        await log.create({
           accion: "Edicion",
           ...auditActor,
           descripcion: description,
@@ -281,7 +272,7 @@ export function useContratos() {
         throw new Error("Ha ocurrido un error cancelando el proceso");
       } finally {
         if (attempted) {
-          await safeLog({
+          await log.create({
             accion: "Edicion",
             ...auditActor,
             descripcion: success
@@ -297,7 +288,7 @@ export function useContratos() {
         }
       }
     },
-    [Contratos, account?.name, auditActor, registerController, safeLog]
+    [Contratos, account?.name, auditActor, log, registerController]
   );
 
   // REACTIVAR PROCESO
@@ -327,7 +318,7 @@ export function useContratos() {
         throw new Error("Ha ocurrido un error reactivando el proceso");
       } finally {
         if (attempted) {
-          await safeLog({
+          await log.create({
             accion: "Edicion",
             ...auditActor,
             descripcion: success
@@ -343,7 +334,7 @@ export function useContratos() {
         }
       }
     },
-    [Contratos, auditActor, registerController, safeLog]);
+    [Contratos, auditActor, log, registerController]);
 
   // ELIMINAR CONTRATO
   const deleteContrato = React.useCallback(async (Id: string): Promise<void> => {
@@ -366,7 +357,7 @@ export function useContratos() {
       throw new Error("Ha ocurrido un error eliminando el contrato");
     } finally {
       if (attempted) {
-        await safeLog({
+        await log.create({
           accion: "Eliminacion",
           ...auditActor,
           descripcion: success
@@ -378,7 +369,7 @@ export function useContratos() {
         });
       }
     }
-  },[Contratos, auditActor, registerController, safeLog]);
+  },[Contratos, auditActor, log, registerController]);
 
   // GUARDAR FECHA DE EXÁMENES MÉDICOS
   const saveMedicalExams = React.useCallback(async (Id: string, fecha: string): Promise<void> => {
@@ -407,7 +398,7 @@ export function useContratos() {
       throw new Error("Ha ocurrido un error guardando la fecha de los exámenes médicos");
     } finally {
       if (attempted) {
-        await safeLog({
+        await log.create({
           accion: "Edicion",
           ...auditActor,
           descripcion: success
@@ -420,7 +411,7 @@ export function useContratos() {
         });
       }
     }
-  },[Contratos, auditActor, registerController, safeLog]);
+  },[Contratos, auditActor, log, registerController]);
 
   return {
     formController,

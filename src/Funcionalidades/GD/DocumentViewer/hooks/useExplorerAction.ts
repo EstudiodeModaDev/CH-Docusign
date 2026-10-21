@@ -3,6 +3,7 @@ import { appendSegment, parentPathOf } from "../utils/explorerPath";
 import type { EmpresaKey, PathsState } from "../../../../models/DocumentViewer";
 import type { Archivo } from "../../../../models/archivos";
 import { notify } from '../../../../utils/notify';
+import { useAuditLog } from "../../../Common/useAuditLog";
 
 type Params = {
   empresa: EmpresaKey;
@@ -17,6 +18,8 @@ type Params = {
 };
 
 export function useExplorerActions({empresa, currentPath,  activeService, setPaths, setRawItems, setLoading, setError, setSearch, reload,}: Params) {
+  const { withAudit } = useAuditLog("Documentos");
+
   const openFolder = React.useCallback((folder: Archivo) => {
     setPaths(prev => ({
       ...prev,
@@ -57,14 +60,23 @@ export function useExplorerActions({empresa, currentPath,  activeService, setPat
     }
 
     try {
-      await activeService.uploadFile(path, file, name);
+      await withAudit(
+        {
+          accion: "Creacion",
+          descripcion: "Se subió un documento a la carpeta de un colaborador",
+          descripcionError: "Falló la carga de un documento a la carpeta de un colaborador",
+          id_item_afectado: path,
+          detalle: { empresa, ruta: path, archivo: name || file.name },
+        },
+        () => activeService.uploadFile(path, file, name)
+      );
       await reload();
       notify.auto("Archivo subido correctamente");
     } catch (e: any) {
       console.error(e);
       notify.auto("Error subiendo archivo: " + e.message);
     }
-  }, [activeService, reload]);
+  }, [activeService, reload, withAudit, empresa]);
 
 
   const handleDelete = React.useCallback(async (itemId: string, nombre: string) => {
@@ -80,14 +92,23 @@ export function useExplorerActions({empresa, currentPath,  activeService, setPat
     }
 
     try {
-      await activeService.deleteArchivoById(itemId);
+      await withAudit(
+        {
+          accion: "Eliminacion",
+          descripcion: "Se eliminó un documento de la carpeta de un colaborador",
+          descripcionError: "Falló la eliminación de un documento de la carpeta de un colaborador",
+          id_item_afectado: itemId,
+          detalle: { empresa, ruta: currentPath, archivo: nombre },
+        },
+        () => activeService.deleteArchivoById(itemId)
+      );
       await reload();
       notify.auto("Archivo eliminado correctamente");
     } catch (e: any) {
       console.error(e);
       notify.auto("Error eliminando archivo: " + e.message);
     }
-  }, [activeService, reload]);
+  }, [activeService, reload, withAudit, empresa, currentPath]);
 
   const moveToPath = React.useCallback(async (targetPath: string, fallbackMessage: string) => {
     if (!currentPath) return;
@@ -98,7 +119,20 @@ export function useExplorerActions({empresa, currentPath,  activeService, setPat
     setError(null);
 
     try {
-      await activeService.moveFolderByPath(currentPath, targetPath);
+      await withAudit(
+        {
+          accion: "Edicion",
+          descripcion: targetPath === "Procesos Cancelados"
+            ? "Se movió la carpeta de un colaborador a procesos cancelados"
+            : "Se movió la carpeta de un colaborador",
+          descripcionError: targetPath === "Procesos Cancelados"
+            ? "Falló el movimiento de la carpeta de un colaborador a procesos cancelados"
+            : "Falló el movimiento de la carpeta de un colaborador",
+          id_item_afectado: currentPath,
+          detalle: { empresa, ruta_origen: currentPath, ruta_destino: targetPath },
+        },
+        () => activeService.moveFolderByPath(currentPath, targetPath)
+      );
 
       setPaths(prev => ({
         ...prev,
@@ -113,7 +147,7 @@ export function useExplorerActions({empresa, currentPath,  activeService, setPat
     } finally {
       setLoading(false);
     }
-  }, [activeService, currentPath, empresa, setPaths, setRawItems, setLoading, setError]);
+  }, [activeService, currentPath, empresa, setPaths, setRawItems, setLoading, setError, withAudit]);
 
   const handleCancelProcess = React.useCallback(async () => {
     await moveToPath("Procesos Cancelados", "No se pudo cancelar el proceso.");

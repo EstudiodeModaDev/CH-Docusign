@@ -19,6 +19,7 @@ import { auxilioHandlder } from "../../Handler/CesacionesHandlers";
 import { createEmptyContratos } from "../../../../../Funcionalidades/GD/Contratos/utils/contratosState";
 import { useNovedadesStepDetails, useNovedadesSteps } from "../../../../../Funcionalidades/GD/Steps/ContratosSteps/useNovedadesSteps";
 import { useCoreGraphServices, useGestorServices } from "../../../../../graph/graphContext";
+import { useAuditLog } from "../../../../../Funcionalidades/Common/useAuditLog";
 import { ConfirmModal, type ConfirmModalPayload } from "../../../Common/confirmModal/ConfirmModal";
 import FooterForm from "../Common/AddFormFooter/addFooter";
 import { diasSemanaOptions } from "../../../../../consts/diasFestivos";
@@ -92,6 +93,7 @@ type Props = {
 /* ================== Formulario ================== */
 export default function FormContratacion({handleReactivateProcessById, title, handleCancelProcessbyId, setState, selectedNovedad, handleEdit, tipo, tipoContratoOptions, empresaOptions, loadingEmp, tipoDocOptions, loadingTipo, cargoOptions, loadingCargo, modalidadOptions, loadingModalidad, especificidadOptions, loadingEspecificdad, etapasOptions, loadingEtapas, nivelCargoOptions, loadinNivelCargo, CentroCostosOptions, loadingCC, COOptions, loadingCO, UNOptions, loadingUN, origenOptions, loadingOrigen, loadingTipoContrato, tipoVacanteOptions, loadingTipoVacante, deptoOptions, loadingDepto, dependenciaOptions, loadingDependencias, onClose, state, setField, handleSubmit, errors, searchRegister: searchNovedad, loadFirstPage }: Props) {
   const { Contratos, } = useGestorServices();
+  const { withAudit } = useAuditLog("Contrataciones");
   const {salarios, categorias, configuraciones, mail} = useCoreGraphServices()
   const { searchHabeas, searchPromocion, searchRetail, searchCesacion } = useRegistroPersonasContext();
   const { loadSpecificLevel } = useAutomaticCargo(categorias);
@@ -433,9 +435,18 @@ export default function FormContratacion({handleReactivateProcessById, title, ha
       const id = selectedNovedad?.Id;
       if (!id) return;
 
-      await Contratos.update(id, { Estado: "Finalizado" });
+      await withAudit(
+        {
+          accion: "Edicion",
+          descripcion: "Se completó un proceso de contratación",
+          descripcionError: "Falló la actualización del estado de un proceso de contratación al completarse",
+          id_item_afectado: id,
+          detalle: { campos_modificados: ["Estado"], estado_resultante: "Finalizado", porcentaje: 100 },
+        },
+        () => Contratos.update(id, { Estado: "Finalizado" })
+      );
     }
-  },[calcPorcentaje, selectedNovedad?.Id, Contratos]);
+  },[calcPorcentaje, selectedNovedad?.Id, Contratos, withAudit]);
 
   const handleCancel = async ({ reason }: ConfirmModalPayload) => {
     if (!reason) return;

@@ -12,6 +12,7 @@ import { detallePayloadFromRetail } from "./UpdateRequestDetails/utils/requestPa
 import { notifyUpdateRequest } from "../../utils/mail";
 import { useCoreGraphServices, useGestorServices } from "../../graph/graphContext";
 import { notify } from '../../utils/notify';
+import { useAuditLog } from "../Common/useAuditLog";
 
 function includesSearch(row: Retail, q: string) {
   const qq = norm(q);
@@ -83,6 +84,7 @@ export function useRetail(RetailSvc: RetailService, ) {
   const [workers, setWorkers] = React.useState<Retail[]>([]);
   const [workersOptions, setWorkersOptions] = React.useState<rsOption[]>([]);
   const [loading, setLoading] = React.useState(false);
+  const { audit, withAudit } = useAuditLog("Contrataciones");
   const [error, setError] = React.useState<string | null>(null);
   const [range, setRange] = React.useState<DateRange>({ from: "", to: "" });
   const [pageSize, setPageSize] = React.useState<number>(10); 
@@ -345,7 +347,16 @@ export function useRetail(RetailSvc: RetailService, ) {
         FechaExamenesMedicos: null,
         DominicalDay: state.DominicalDay
     };
-      const created = await RetailSvc.create(payload);
+      const created = await withAudit(
+        {
+          accion: "Creacion",
+          descripcion: "Se creó un registro de retail",
+          descripcionError: "Falló la creación de un registro de retail",
+          detalle: { campos_enviados: Object.keys(payload) },
+          idFromResult: (r) => r?.Id,
+        },
+        () => RetailSvc.create(payload)
+      );
       notify.auto("Se ha creado el registro con éxito")
       return {
         created: created,
@@ -377,21 +388,51 @@ export function useRetail(RetailSvc: RetailService, ) {
 
       if(!canEdit){
         const payload = buildRetailPatch(toEdit, state);
-        await RetailSvc.update(retailSeleccionado.Id, payload);
+        await withAudit(
+          {
+            accion: "Edicion",
+            descripcion: "Se actualizó un registro de retail",
+            descripcionError: "Falló la actualización de un registro de retail",
+            id_item_afectado: retailSeleccionado.Id,
+            detalle: { campos_modificados: Object.keys(payload) },
+          },
+          () => RetailSvc.update(retailSeleccionado.Id!, payload)
+        );
         notify.auto("Se ha actualizado el registro con éxito");
       } else {
 
         const request = await requestController.createRequest("Retail", retailSeleccionado.Id)
-        if(!request.created || !request.ok) return
+        if(!request.created || !request.ok) {
+          await audit({
+            accion: "Edicion",
+            descripcion: "No fue posible crear la solicitud de edición de un registro de retail",
+            id_item_afectado: retailSeleccionado.Id,
+            detalle: { tipo_evento: "SolicitudEdicion" },
+            resultado: "Error",
+          });
+          return
+        }
+        const solicitudCreada = request.created;
 
-        const realRegister = await Retail.get(retailSeleccionado.Id)
+        await withAudit(
+          {
+            accion: "Edicion",
+            descripcion: "Se solicitó la edición de un registro de retail",
+            descripcionError: "Falló el proceso de solicitud de edición de un registro de retail",
+            id_item_afectado: retailSeleccionado.Id,
+            detalle: { tipo_evento: "SolicitudEdicion", id_solicitud: solicitudCreada.Id },
+          },
+          async () => {
+            const realRegister = await Retail.get(retailSeleccionado.Id!)
 
-        const DetallesPayload = detallePayloadFromRetail(realRegister, state, request.created.Id!)
+            const DetallesPayload = detallePayloadFromRetail(realRegister, state, solicitudCreada.Id!)
 
-        requestController.genericProcess("Retail", DetallesPayload,)
+            requestController.genericProcess("Retail", DetallesPayload,)
 
-        const groupMembers = await graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
-        await notifyUpdateRequest(mail, "Retail", account?.name ?? "", retailSeleccionado.Title, groupMembers,)
+            const groupMembers = await graph.getAllGroupMembers("3dc57761-477f-4096-99c8-e533b6fd7423", {excludeEmail: "larendon@estudiodemoda.com.co"})
+            await notifyUpdateRequest(mail, "Retail", account?.name ?? "", retailSeleccionado.Title, groupMembers,)
+          }
+        );
         
         notify.auto("Se ha enviado la solicitud, se te notificara el resultado")
         
@@ -485,14 +526,23 @@ export function useRetail(RetailSvc: RetailService, ) {
       const proceso = await RetailSvc.get(Id)
 
       if(proceso){
-        await RetailSvc.update(Id, {CanceladoPor: account?.name, Estado: "Cancelado", razonCancelacion: RazonCancelacion})
+        await withAudit(
+          {
+            accion: "Edicion",
+            descripcion: "Se canceló un proceso de retail",
+            descripcionError: "Falló la cancelación de un proceso de retail",
+            id_item_afectado: Id,
+            detalle: { campos_modificados: ["CanceladoPor", "Estado", "razonCancelacion"], estado_resultante: "Cancelado" },
+          },
+          () => RetailSvc.update(Id, {CanceladoPor: account?.name, Estado: "Cancelado", razonCancelacion: RazonCancelacion})
+        );
         notify.auto("Se ha cancelado este proceso con éxito")
         reloadAll()
       }
     } catch {
       throw new Error("Ha ocurrido un error cancelando el proceso");
     }
-}, [RetailSvc]);
+}, [RetailSvc, withAudit]);
 
   const handleReactivateProcessById = React.useCallback(async (Id: string) => {
 
@@ -500,24 +550,44 @@ export function useRetail(RetailSvc: RetailService, ) {
       const proceso = await RetailSvc.get(Id)
 
       if(proceso){
-        await RetailSvc.update(Id, {Estado: "En proceso",})
+        await withAudit(
+          {
+            accion: "Edicion",
+            descripcion: "Se reactivó un proceso de retail",
+            descripcionError: "Falló la reactivación de un proceso de retail",
+            id_item_afectado: Id,
+            detalle: { campos_modificados: ["Estado"], estado_resultante: "En proceso" },
+          },
+          () => RetailSvc.update(Id, {Estado: "En proceso",})
+        );
         notify.auto("Se ha reactivado este proceso con éxito")
         reloadAll()
       }
     } catch {
       throw new Error("Ha ocurrido un error reactivando el proceso");
     }
-}, [RetailSvc]);
+}, [RetailSvc, withAudit]);
 
   const deleteRetail = React.useCallback(async (Id: string) => {
     setLoading(true)
     const pasos = await pasosRetail.getAll({filter: `fields/Title eq '${Id}'`})
     try{
-      for (const paso of pasos) {
-        await pasosRetail.delete(paso.Id!);
-      }
+      await withAudit(
+        {
+          accion: "Eliminacion",
+          descripcion: "Se eliminó un registro de retail y sus pasos",
+          descripcionError: "Falló la eliminación de un registro de retail",
+          id_item_afectado: Id,
+          detalle: { pasos_eliminados: pasos.length },
+        },
+        async () => {
+          for (const paso of pasos) {
+            await pasosRetail.delete(paso.Id!);
+          }
 
-      await RetailSvc.delete(Id)
+          await RetailSvc.delete(Id)
+        }
+      );
       await loadBase()
       notify.auto("Se ha eliminado el registro con exito.")
     } catch {
@@ -525,21 +595,30 @@ export function useRetail(RetailSvc: RetailService, ) {
     } finally {
       setLoading(false)
     }
-  }, [RetailSvc]);
+  }, [RetailSvc, withAudit]);
 
   const saveMedicalExams = React.useCallback(async (Id: string, fecha: string) => {
       try {
         if(!Id || !fecha ) return
 
         const spDate = toGraphDateTime(fecha)
-        await Retail.update(Id, {FechaExamenesMedicos: spDate});
+        await withAudit(
+          {
+            accion: "Edicion",
+            descripcion: "Se registró la fecha de exámenes médicos de un registro de retail",
+            descripcionError: "Falló el registro de la fecha de exámenes médicos de un registro de retail",
+            id_item_afectado: Id,
+            detalle: { campo_modificado: "FechaExamenesMedicos" },
+          },
+          () => Retail.update(Id, {FechaExamenesMedicos: spDate})
+        );
         await loadBase()
         notify.auto("Se ha guardado la fecha de los examenes medicos con éxito.")
       } catch {
         throw new Error("Ha ocurrido un error eliminando la novedad");
       }
     },
-    []
+    [withAudit]
   )
 
   return {

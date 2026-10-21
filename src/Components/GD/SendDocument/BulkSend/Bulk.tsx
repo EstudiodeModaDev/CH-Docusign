@@ -13,6 +13,7 @@ import type { maestro } from "../../../../models/Desplegables";
 import { generateCsvForTemplate } from "../../../../Funcionalidades/GD/Docusing/bulk/functions/bulkTemplateBuilder";
 import { useDocusignTemplates } from "../../../../Funcionalidades/GD/Docusing/Templates/hooks/useDocusingTemplates";
 import { notify } from '../../../../utils/notify';
+import { useAuditLog } from "../../../../Funcionalidades/Common/useAuditLog";
 
 type Row = Record<string, string>;
 
@@ -410,6 +411,7 @@ export const EnvioMasivoUI: React.FC = () => {
   const { Envios,} = useGestorServices();
   const { Maestro } = useCoreGraphServices();
   const { items, reload } = useEmpresasSelect(Maestro);
+  const { audit } = useAuditLog("Documentos");
 
   const [templateId, setTemplateId] = React.useState("");
   const [columns, setColumns] = React.useState<string[]>([]);
@@ -574,7 +576,7 @@ export const EnvioMasivoUI: React.FC = () => {
       const templateName = plantillaSelected?.label ?? "Template";
       const compHeader = columns.find((h) => headerAliasKey(h) === headerAliasKey(COMPANY_COL_KEY)) ?? COMPANY_COL_KEY;
 
-      await runWithConcurrency(
+      const results = await runWithConcurrency(
         normalizedRows,
         async (row, idx) => {
           const res = await sendSingleFromRow({
@@ -619,9 +621,25 @@ export const EnvioMasivoUI: React.FC = () => {
         2
       );
 
+      const enviados = results.filter((r) => r.status === "SENT").length;
+      await audit({
+        accion: "Creacion",
+        descripcion: "Se realizó un envío masivo de sobres de DocuSign",
+        id_item_afectado: templateId,
+        detalle: { plantilla: templateName, total: results.length, enviados, fallidos: results.length - enviados },
+        resultado: enviados === results.length ? "Exito" : "Error",
+      });
+
       notify.auto("Proceso finalizado.");
     } catch (e) {
       console.error(e);
+      await audit({
+        accion: "Creacion",
+        descripcion: "Falló el envío masivo de sobres de DocuSign",
+        id_item_afectado: templateId,
+        detalle: { plantilla: plantillaSelected?.label ?? "", total: rows.length, error: e instanceof Error ? e.message : String(e) },
+        resultado: "Error",
+      });
       notify.auto(e instanceof Error ? e.message : "Error enviando masivo");
     } finally {
       setSending(false);

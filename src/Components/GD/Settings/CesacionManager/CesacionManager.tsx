@@ -6,6 +6,7 @@ import PasoActivationRulesModal from "../StepActivationModal/PasosActivacionModa
 import { useGestorServices } from "../../../../graph/graphContext";
 import { createStepRestriction, toggleUpdateRestriction } from "../../../../Funcionalidades/GD/StepRules/pasoRestriccionAction";
 import type { desplegablesOption } from "../../../../models/Desplegables";
+import { useAuditLog } from "../../../../Funcionalidades/Common/useAuditLog";
 
 type PasoCesacionDraft = Omit<PasosProceso, "Id">;
 
@@ -53,6 +54,7 @@ export const ProcesosStepManager: React.FC<Props> = ({loadingCargo, cargos, onCh
   // MODAL
   const [openModal, setOpenModal] = React.useState(false);
   const {pasoRestriccion} = useGestorServices()
+  const { audit, withAudit } = useAuditLog("Configuracion");
 
   // Cerrar modal con ESC
   React.useEffect(() => {
@@ -139,10 +141,17 @@ export const ProcesosStepManager: React.FC<Props> = ({loadingCargo, cargos, onCh
 
     setSaving(true);
     try {
+      const detalle = { proceso: tipo, paso: state.NombrePaso, orden: state.Orden, tipo_paso: state.TipoPaso };
       if (editingId) {
-        await onEdit(editingId, state);
+        await withAudit(
+          { accion: "Edicion", descripcion: `Se editó un paso del proceso ${tipo}`, id_item_afectado: editingId, detalle },
+          async () => onEdit(editingId, state)
+        );
       } else {
-        await onAdd(state);
+        await withAudit(
+          { accion: "Creacion", descripcion: `Se creó un paso en el proceso ${tipo}`, detalle },
+          async () => onAdd(state)
+        );
       }
 
       await onReload();
@@ -165,9 +174,23 @@ const desactivate = async (s: PasosProceso) => {
   try {
     const isActive = s.Activado === true;
 
-    const ok = isActive
-      ? await onDesactivate(s.Id)
-      : await onActivate(s.Id);
+    const entry = {
+      accion: "Edicion" as const,
+      id_item_afectado: s.Id,
+      detalle: { proceso: tipo, paso: s.NombrePaso, activado: !isActive },
+    };
+    let ok = false;
+    try {
+      ok = isActive ? await onDesactivate(s.Id) : await onActivate(s.Id);
+    } finally {
+      await audit({
+        ...entry,
+        descripcion: ok
+          ? `Se ${isActive ? "desactivó" : "activó"} un paso del proceso ${tipo}`
+          : `No fue posible ${isActive ? "desactivar" : "activar"} un paso del proceso ${tipo}`,
+        resultado: ok ? "Exito" : "Error",
+      });
+    }
 
     if (!ok) {
       setError(isActive
@@ -383,9 +406,23 @@ const desactivate = async (s: PasosProceso) => {
               filter: `fields/Proceso eq '${proceso}' and fields/Title eq '${idPaso}'`
             });
           } }
-          onAddRule={async (payload) => await createStepRestriction({data: payload, service: {pasoRestriccion}})}
+          onAddRule={async (payload) => {
+            const detalle = { proceso: payload.Proceso, paso: payload.Title, tipo_regla: payload.TipoRegla, cargo: payload.CargoNombre };
+            try {
+              const created = await createStepRestriction({data: payload, service: {pasoRestriccion}});
+              // Si no hay resultado, la validación lo rechazó y ya se notificó al usuario.
+              if (created) await audit({ accion: "Creacion", descripcion: "Se creó una regla de activación de paso", id_item_afectado: created.Id, detalle });
+              return created;
+            } catch (e) {
+              await audit({ accion: "Creacion", descripcion: "Falló la creación de una regla de activación de paso", detalle: { ...detalle, error: String(e) }, resultado: "Error" });
+              throw e;
+            }
+          }}
           onEditRule={save}
-          onToggleRule={async (id, activo) => await toggleUpdateRestriction({id, activo, service: {pasoRestriccion}})}
+          onToggleRule={async (id, activo) => await withAudit(
+            { accion: "Edicion", descripcion: `Se ${activo ? "activó" : "desactivó"} una regla de activación de paso`, id_item_afectado: id, detalle: { activo } },
+            () => toggleUpdateRestriction({id, activo, service: {pasoRestriccion}})
+          )}
           cargos={cargos} 
           loadingCargo={loadingCargo}        
         />

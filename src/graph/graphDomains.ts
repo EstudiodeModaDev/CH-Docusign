@@ -34,7 +34,6 @@ import { CategoriaCargosService } from "../Services/CategoriaCargos.service";
 import { RetailService } from "../Services/Retail.service";
 import { PasosRetailService } from "../Services/PasosRetail.service";
 import { DetallesPasosRetail } from "../Services/DetallesPasosRetail.service";
-import { LogService } from "../Services/Log.service";
 import { ConfiguracionesService } from "../Services/Configuraciones.service";
 import { MatrizPermisosService } from "../Services/MatrizPermisos.service";
 import { AnsRequisicionService } from "../Services/Ans.service";
@@ -54,6 +53,7 @@ import { PasosVacantesService } from "../Services/Requisiciones/PasosVacante.ser
 import { DetalleRequisicionService } from "../Services/Requisiciones/detalleRequisicion.service";
 import { RequisicionesService } from "../Services/Requisiciones/Requisiciones.service";
 import { HistoricoFechasService } from "../Services/Requisiciones/requisicionHistoricoFecha.service";
+import { LogService } from "../Services/Log.service";
 
 export type CoreServices = {
   graph: GraphRest;
@@ -66,6 +66,7 @@ export type CoreServices = {
   Usuarios: UsuariosSPService;
   Perfiles: PerfilesService;
   MatrizPermisos: MatrizPermisosService;
+  log: LogService
 };
 
 export type GestorServices = {
@@ -90,7 +91,6 @@ export type GestorServices = {
   ColaboradoresVisual: ColaboradoresVisualService;
   ColaboradoresMeta: ColaboradoresMetaService;
   ColaboradoresBroken: ColaboradoresBrokenService;
-  log: LogService;
   solicitud: solicitudService;
   detalle: solicitudDetalleService;
   controlRevisionCarpetas: ControlRevisionCarpetasService;
@@ -131,7 +131,7 @@ export type GraphDomainBundle = {
 };
 
 export function buildGraphDomainServices(cfg: UnifiedConfig, graph: GraphRest): GraphDomainBundle {
-  const { ch, lists, helpDesk } = cfg;
+  const { ch, lists, } = cfg;
 
   const core: CoreServices = {
     graph,
@@ -144,6 +144,7 @@ export function buildGraphDomainServices(cfg: UnifiedConfig, graph: GraphRest): 
     Usuarios: new UsuariosSPService(graph, ch.hostname, ch.sitePath, lists.Usuarios),
     Perfiles: new PerfilesService(graph, ch.hostname, ch.sitePath, lists.Perfiles),
     MatrizPermisos: new MatrizPermisosService(graph, ch.hostname, ch.sitePath, lists.MatrizPermisos),
+    log: new LogService(graph)
   };
 
   const gestor: GestorServices = {
@@ -167,7 +168,6 @@ export function buildGraphDomainServices(cfg: UnifiedConfig, graph: GraphRest): 
     ColaboradoresVisual: new ColaboradoresVisualService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresVisual),
     ColaboradoresMeta: new ColaboradoresMetaService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresMeta),
     ColaboradoresBroken: new ColaboradoresBrokenService(graph, ch.hostname, ch.sitePath, lists.ColaboradoresBroken),
-    log: new LogService(graph, helpDesk.hostname, helpDesk.sitePath, lists.log),
     solicitud: new solicitudService(graph, ch.hostname, ch.sitePath, lists.solicitud),
     detalle: new solicitudDetalleService(graph, ch.hostname, ch.sitePath, lists.detalle),
     controlRevisionCarpetas: new ControlRevisionCarpetasService(graph, ch.hostname, ch.sitePath, lists.controlRevisionCarpetas),

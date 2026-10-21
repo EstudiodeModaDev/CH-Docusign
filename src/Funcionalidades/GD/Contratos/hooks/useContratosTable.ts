@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import type { DateRange, GetAllOpts, SortDir, SortField } from "../../../../models/Commons";
 import type { ContratosService } from "../../../../Services/Contratos.service";

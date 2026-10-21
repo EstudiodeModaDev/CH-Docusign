@@ -1,8 +1,6 @@
-import type { GraphRest } from "../graph/graphRest";
-import type { GetAllOpts } from "../models/Commons";
-import type { Log } from "../models/tickets";
-
-
+import { GraphRest } from '../graph/graphRest';
+import type { log } from '../models/log';
+import { esc } from '../utils/text';
 
 export class LogService {
   private graph!: GraphRest;
@@ -16,8 +14,8 @@ export class LogService {
   constructor(
     graph: GraphRest,
     hostname = 'estudiodemoda.sharepoint.com',
-    sitePath = '/sites/TransformacionDigital/IN/HD',
-    listName = 'Log'     
+    sitePath = '/sites/TransformacionDigital/IN/CH',
+    listName = 'ActionsLog'     
   ) {
     this.graph = graph;
     this.hostname = hostname;
@@ -25,9 +23,32 @@ export class LogService {
     this.listName = listName;
   }
 
-  private esc(s: string) { return String(s).replace(/'/g, "''"); }
+  // ---------- mapping ----------
+  private toModel(item: any): log {
+    const f = item?.fields ?? {};
+    return {
+      accion: f.accion,
+      actor: f.actor,
+      correo_actor: f.correo_actor,
+      Created: f.Created,
+      descripcion: f.descripcion,
+      detalle: f.detalle,
+      id_item_afectado: f.id_item_afectado,
+      modulo: f.modulo,
+      resultado: f.resultado
+    };
+  }
 
-  // cache (mem + localStorage opcional)
+  // ---------- CRUD ----------
+  async create(record: Partial<log>) {
+    await this.ensureIds();
+    const res = await this.graph.post<any>(
+      `/sites/${this.siteId}/lists/${this.listId}/items`,
+      { fields: record }
+    );
+    return this.toModel(res);
+  }
+
   private loadCache() {
       try {
       const k = `sp:${this.hostname}${this.sitePath}:${this.listName}`;
@@ -39,14 +60,14 @@ export class LogService {
       }
       } catch {}
   }
-
+  
   private saveCache() {
       try {
       const k = `sp:${this.hostname}${this.sitePath}:${this.listName}`;
       localStorage.setItem(k, JSON.stringify({ siteId: this.siteId, listId: this.listId }));
       } catch {}
   }
-
+  
   private async ensureIds() {
       if (!this.siteId || !this.listId) this.loadCache();
 
@@ -59,7 +80,7 @@ export class LogService {
 
       if (!this.listId) {
       const lists = await this.graph.get<any>(
-          `/sites/${this.siteId}/lists?$filter=displayName eq '${this.esc(this.listName)}'`
+          `/sites/${this.siteId}/lists?$filter=displayName eq '${esc(this.listName)}'`
       );
       const list = lists?.value?.[0];
       if (!list?.id) throw new Error(`Lista no encontrada: ${this.listName}`);
@@ -67,108 +88,7 @@ export class LogService {
       this.saveCache();
       }
   }
-
-  // ---------- mapping ----------
-  private toModel(item: any): Log {
-    const f = item?.fields ?? {};
-    return {
-        Id: String(item?.id ?? ''),
-        Title: f.Title,
-        Descripcion: f.Descripcion,
-        Tipo_de_accion: f.Tipo_de_accion,
-        Actor: f.Actor,
-        CorreoActor: f.CorreoActor,
-        Created : f.Created
-    };
-  }
-
-  // ---------- CRUD ----------
-  async create(record: Omit<Log, 'ID'>) {
-    await this.ensureIds();
-    const res = await this.graph.post<any>(
-      `/sites/${this.siteId}/lists/${this.listId}/items`,
-      { fields: record }
-    );
-    return this.toModel(res);
-  }
-
-  async update(id: string, changed: Partial<Omit<Log, 'ID'>>) {
-    await this.ensureIds();
-    await this.graph.patch<any>(
-      `/sites/${this.siteId}/lists/${this.listId}/items/${id}/fields`,
-      changed
-    );
-    const res = await this.graph.get<any>(
-      `/sites/${this.siteId}/lists/${this.listId}/items/${id}?$expand=fields`
-    );
-    return this.toModel(res);
-  }
-
-  async delete(id: string) {
-    await this.ensureIds();
-    await this.graph.delete(`/sites/${this.siteId}/lists/${this.listId}/items/${id}`);
-  }
-
-  async get(id: string) {
-    await this.ensureIds();
-    const res = await this.graph.get<any>(
-      `/sites/${this.siteId}/lists/${this.listId}/items/${id}?$expand=fields`
-    );
-    return this.toModel(res);
-  }
-
-  async getAll(opts?: GetAllOpts) {
-    await this.ensureIds();
-
-    // ID -> id, Title -> fields/Title (cuando NO está prefijado con '/')
-    const normalizeFieldTokens = (s: string) =>
-      s
-        .replace(/\bID\b/g, 'id')
-        .replace(/(^|[^/])\bTitle\b/g, '$1fields/Title');
-
-    const escapeODataLiteral = (v: string) => v.replace(/'/g, "''");
-
-    // Normaliza expresiones del $filter (minimiza 404 por sintaxis)
-    const normalizeFilter = (raw: string) => {
-      let out = normalizeFieldTokens(raw.trim());
-      // escapa todo literal '...'
-      out = out.replace(/'(.*?)'/g, (_m, p1) => `'${escapeODataLiteral(p1)}'`);
-      return out;
-    };
-
-    const normalizeOrderby = (raw: string) => normalizeFieldTokens(raw.trim());
-
-    const qs = new URLSearchParams();
-    qs.set('$expand', 'fields');        // necesario si filtras por fields/*
-    qs.set('$select', 'id,webUrl');     // opcional; añade fields(...) si quieres
-    if (opts?.orderby) qs.set('$orderby', normalizeOrderby(opts.orderby));
-    if (opts?.top != null) qs.set('$top', String(opts.top));
-    if (opts?.filter) qs.set('$filter', normalizeFilter(String(opts.filter)));
-
-    // Evita '+' por espacios (algunos proxies se quejan)
-    const query = qs.toString().replace(/\+/g, '%20');
-
-    const url = `/sites/${encodeURIComponent(this.siteId!)}/lists/${encodeURIComponent(this.listId!)}/items?${query}`;
-
-    try {
-      const res = await this.graph.get<any>(url);
-      const mapped = (res.value ?? []).map((x: any) => this.toModel(x));
-      return mapped
-
-    } catch (e: any) {
-      // Si la ruta es válida pero el $filter rompe, reintenta sin $filter para diagnóstico
-      const code = e?.error?.code ?? e?.code;
-      if (code === 'itemNotFound' && opts?.filter) {
-        const qs2 = new URLSearchParams(qs);
-        qs2.delete('$filter');
-        const url2 = `/sites/${encodeURIComponent(this.siteId!)}/lists/${encodeURIComponent(this.listId!)}/items?${qs2.toString()}`;
-        const res2 = await this.graph.get<any>(url2);
-        return (res2.value ?? []).map((x: any) => this.toModel(x));
-      }
-      throw e;
-    }
-  }
-
+  
 
 }
 

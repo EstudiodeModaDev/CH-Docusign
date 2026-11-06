@@ -2,7 +2,7 @@ import * as React from "react";
 import RequisicionesMetricasLayout from "../../Components/Requisiciones/Metricas/RequisicionesMetricasLayout";
 import { useCargo, useDeptosMunicipios, useDireccion } from "../../Funcionalidades/Desplegables";
 import { useRequisicionesContext } from "../../Funcionalidades/Requisiciones/RequisicionesContext";
-import { useRequisicionesMetrics } from "../../Funcionalidades/Requisiciones/Requisicion/Hooks/requisicionesMetrics";
+import { pickCorteDate, useRequisicionesMetrics } from "../../Funcionalidades/Requisiciones/Requisicion/Hooks/requisicionesMetrics";
 import type { desplegablesOption } from "../../models/Desplegables";
 import type { detalleRequisicion, pasoRequisicion } from "../../models/Requisiciones/pasos";
 import type { requisiciones } from "../../models/Requisiciones/requisiciones";
@@ -37,7 +37,7 @@ export default function RequisicionesMetricasWrapper() {
     setError(null);
 
     try {
-      const base = requisicionesController.buildFilter();
+      const base = requisicionesController.buildFilter({ ignoreMes: true });
       const firstPage = await requisiciones.getAll({
         filter: base.filter,
         orderby: base.orderby,
@@ -99,10 +99,8 @@ export default function RequisicionesMetricasWrapper() {
     const years: desplegablesOption[] = [{ value: "all", label: "*Todos*" }];
 
     metricsRows.forEach((row) => {
-      const raw = row.fechaInicioProceso;
-      if (!raw) return;
-      const date = new Date(raw);
-      if (Number.isNaN(date.getTime())) return;
+      const date = pickCorteDate(row);
+      if (!date) return;
 
       const year = String(date.getFullYear());
       if (seen.has(year)) return;

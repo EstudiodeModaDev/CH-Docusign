@@ -36,7 +36,8 @@ export function useRequisicionFilters(pageSize: number) {
       ? sorts.map((s) => `${mapSortField(s.field)} ${s.dir}`).join(",")
       : "fields/Created desc";
 
-  const buildFilter = React.useCallback((): GetAllOpts => {
+  // ignoreMes: no deben heredar el filtro de mes de la tabla, que no se ve en el tablero.
+  const buildFilter = React.useCallback((opts?: { ignoreMes?: boolean }): GetAllOpts => {
     const filters: string[] = [];
     const trimmedSearch = debouncedSearch.trim();
 
@@ -60,10 +61,10 @@ export function useRequisicionFilters(pageSize: number) {
       filters.push(`startswith(fields/solicitante, '${esc(trimmedSolicitante)}')`);
     }
 
-    if (mes) {
+    if (mes && !opts?.ignoreMes) {
       const { from, toExclusive } = buildUtcMonthRange(mes);
-      filters.push(`fields/fechaInicioProceso ge '${from}'`);
-      filters.push(`fields/fechaInicioProceso lt '${toExclusive}'`);
+      filters.push(`fields/fechaLimite ge '${from}'`);
+      filters.push(`fields/fechaLimite lt '${toExclusive}'`);
     }
 
 

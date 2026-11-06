@@ -279,13 +279,13 @@ function resolveFunnelStage(template?: pasoRequisicion): "entrevista" | "finalis
   return null;
 }
 
-// Cumplimiento ANS por mes, limitado a las requisiciones que iniciaron en el año indicado.
-// Agrupa por fecha de cierre: solo cuentan las requisiciones ya cerradas en el año indicado.
-export function buildMonthlyMetricsByCloseForYear(rows: requisiciones[], year: number): MonthlyMetricRow[] {
-  return buildMonthlyMetrics(rows.filter((row) => pickCloseDate(row)?.getFullYear() === year), pickCloseDate);
+// Cumplimiento ANS por mes de la fecha limite, limitado a las requisiciones cuya fecha limite cae en el año indicado.
+export function buildMonthlyMetricsByCorteForYear(rows: requisiciones[], year: number): MonthlyMetricRow[] {
+  return buildMonthlyMetrics(rows.filter((row) => pickCorteDate(row)?.getFullYear() === year));
 }
 
-function buildMonthlyMetrics(rows: requisiciones[], pickDate: (row: requisiciones) => Date | null = pickStartDate): MonthlyMetricRow[] {
+// Todas las metricas por periodo usan la fecha limite (fecha de corte); las canceladas no entran.
+function buildMonthlyMetrics(rows: requisiciones[]): MonthlyMetricRow[] {
   const bucket = MONTHS.map((month) => ({
     month,
     total: 0,
@@ -294,7 +294,7 @@ function buildMonthlyMetrics(rows: requisiciones[], pickDate: (row: requisicione
   }));
 
   rows.forEach((row) => {
-    const date = pickDate(row);
+    const date = pickCorteDate(row);
     if (!date) return;
 
     const monthIndex = date.getMonth();
@@ -391,7 +391,7 @@ function isRiskAns(row: requisiciones, now: Date): boolean {
 
 function getClosingDays(row: requisiciones): number | null {
   const start = pickStartDate(row);
-  const end = parseDate(row.fechaIngreso);
+  const end = pickCloseDate(row);
 
   if (!start || !end) return null;
 
@@ -405,8 +405,14 @@ function pickStartDate(row: requisiciones): Date | null {
   return parseDate(row.fechaInicioProceso);
 }
 
+// Fecha de corte de las metricas por periodo: la fecha limite del ANS.
+export function pickCorteDate(row: requisiciones): Date | null {
+  if (normalize(row.Estado).includes("cancel")) return null;
+  return parseDate(row.fechaLimite);
+}
+
 // Las requisiciones cerradas manualmente (Estado "Cerrado") no guardan fechaCierre, solo fechaIngreso.
-export function pickCloseDate(row: requisiciones): Date | null {
+function pickCloseDate(row: requisiciones): Date | null {
   if (normalize(row.Estado).includes("cancel")) return null;
   return parseDate(row.fechaCierre) ?? parseDate(row.fechaIngreso);
 }

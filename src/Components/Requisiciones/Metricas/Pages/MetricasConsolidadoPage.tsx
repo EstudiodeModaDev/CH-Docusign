@@ -1,7 +1,7 @@
 import * as React from "react";
 import "../RequisicionesMetricas.css";
 import { useRequisicionesMetricasData } from "../RequisicionesMetricasContext";
-import { buildMonthlyMetricsByCloseForYear, pickCloseDate } from "../../../../Funcionalidades/Requisiciones/Requisicion/Hooks/requisicionesMetrics";
+import { buildMonthlyMetricsByCorteForYear, pickCorteDate } from "../../../../Funcionalidades/Requisiciones/Requisicion/Hooks/requisicionesMetrics";
 import { useEncuestaSatisfaccionMetrics } from "../../../../Funcionalidades/Requisiciones/EncuestaSatisfaccion/useEncuestaSatisfaccionMetrics";
 import { useEncuestaPeriodoPruebaMetrics } from "../../../../Funcionalidades/Requisiciones/EncuestaPeriodoPrueba/useEncuestaPeriodoPruebaMetrics";
 import { RQM_COLORS } from "../rqmChartTheme";
@@ -48,7 +48,7 @@ export default function MetricasConsolidadoPage() {
   const requisicionYears = React.useMemo(() => {
     const years = new Set<number>();
     rows.forEach((row) => {
-      const date = pickCloseDate(row);
+      const date = pickCorteDate(row);
       if (date) years.add(date.getFullYear());
     });
     return years;
@@ -67,7 +67,7 @@ export default function MetricasConsolidadoPage() {
   }, [year, requisicionYears, satisfaccion.availableYears, periodoPrueba.availableYears]);
 
   const componentes = React.useMemo<ComponenteRow[]>(() => {
-    const requisicionesMes = buildMonthlyMetricsByCloseForYear(rows, year);
+    const requisicionesMes = buildMonthlyMetricsByCorteForYear(rows, year);
 
     return [
       {

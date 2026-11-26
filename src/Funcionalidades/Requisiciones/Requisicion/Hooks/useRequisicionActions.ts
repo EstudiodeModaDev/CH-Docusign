@@ -20,6 +20,8 @@ type Props = {
   stateController: ReturnType<typeof useNewRequisicionForm>;
 };
 
+export type resolutor = {nombre: string, correo: string}
+
 export function useRequisicionesActions({ state, setErrors, stateController }: Props) {
   const notifications = useNotifyRequisiciones();
   const log = useHistoricoFechas();
@@ -280,14 +282,77 @@ export function useRequisicionesActions({ state, setErrors, stateController }: P
     }
   };
 
+  const handleReasignar = async (professional: resolutor, id: string): Promise<boolean> => {
+    if (!professional) {
+      notify.auto("El profesional seleccionado no es valido");
+      return false
+    }
+    let updated: requisiciones
+    setLoading(true);
+
+    try {
+      await withAudit(
+        {
+          accion: "Edicion",
+          descripcion: "Se hizo un cambio de profesional. El nuevo profesional es: " + professional.nombre,
+          descripcionError: "Fallo en el cambio de profesional",
+          detalle:  {
+            profesional_asignado: professional.nombre
+          },
+          id_item_afectado: id,
+        },
+        async () => {
+          updated = await requisiciones.update(id, {
+            nombreProfesional: professional.nombre,
+            correoProfesional: professional.correo
+          }); 
+          return updated
+        }
+      )
+
+      notify.auto("Se cambio el profesional con éxito");
+      notifications.notifyReasignacion(
+        professional, 
+        Number(id), 
+        updated!.Title,
+        updated!.Ciudad
+      )
+      return true
+    } catch {
+      return false
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Profesionales configurados en las listas de responsables (por nivel y por zona), sin duplicados.
+  const getProfesionalesDisponibles = async (): Promise<resolutor[]> => {
+    const [porNivel, porZona] = await Promise.all([
+      responsablesNivel.getAll({ top: 500 }),
+      responsableZonas.getAll({ top: 500 }),
+    ]);
+
+    const unicos = new Map<string, resolutor>();
+    for (const r of [...porNivel.items, ...porZona.items]) {
+      const correo = String(r.correoResponsable ?? "").trim();
+      const key = correo.toLowerCase();
+      if (!key || unicos.has(key)) continue;
+      unicos.set(key, { nombre: r.Title || correo, correo });
+    }
+
+    return Array.from(unicos.values()).sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+  };
+
   return {
     loading,
     state,
+    getProfesionalesDisponibles,
     handleSubmit,
     handleEdit,
     cancelarBD,
     sendNotificationPlantaIdeal,
-    postergarANS
+    postergarANS,
+    handleReasignar
   };
 }
 

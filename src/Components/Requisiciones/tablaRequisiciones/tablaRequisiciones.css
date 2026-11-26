@@ -910,6 +910,23 @@
   overflow-wrap: anywhere;
 }
 
+.rq-detail-value--link {
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font-family: inherit;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.rq-detail-value--link:hover,
+.rq-detail-value--link:focus-visible {
+  color: color-mix(in oklab, var(--primary) 68%, var(--ink) 32%);
+}
+
 .rq-report-backdrop {
   position: absolute;
   inset: 0;

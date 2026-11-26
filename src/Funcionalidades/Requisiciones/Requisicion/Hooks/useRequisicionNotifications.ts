@@ -4,6 +4,7 @@ import { spDateToDDMMYYYY } from "../../../../utils/Date";
 import { buildRecipients } from "../../../../utils/mail";
 import { notify } from "../../../../utils/notify";
 import { emailsArray } from "../../../../utils/text";
+import type { resolutor } from "./useRequisicionActions";
 
 export function useNotifyRequisiciones() {
   const { maestrosMotivos } = useRequisicionesServices();
@@ -26,6 +27,110 @@ export function useNotifyRequisiciones() {
     }
 
     notifyAsignacionNormal(created)
+  };
+
+  const notifyReasignacion = async (nuevo_profesional: resolutor, id_requisicion: number, title: string, ciudad: string) => {
+    const htmlBody = `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f4f5;font-family:Arial,Helvetica,sans-serif;padding:24px 12px;">
+        <tr>
+          <td align="center">
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;">
+
+              <tr>
+                <td style="background:#171717;padding:22px 28px;color:#ffffff;">
+                  <span style="font-size:17px;font-weight:bold;">CAPITAL HUMANO</span>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="padding:32px 28px 20px;">
+                  <span style="background:#dcfce7;color:#166534;padding:7px 12px;border-radius:20px;font-size:12px;font-weight:bold;">
+                    NUEVA ASIGNACIÓN
+                  </span>
+
+                  <h1 style="font-size:25px;color:#18181b;margin:22px 0 10px;">
+                    ¡Tienes una nueva requisición!
+                  </h1>
+
+                  <p style="font-size:14px;line-height:22px;color:#52525b;margin:0;">
+                    Hola, <strong>${nuevo_profesional.nombre}</strong>.
+                    Te informamos que se te ha asignado una nueva requisición para gestionar.
+                  </p>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="padding:0 28px 24px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;">
+                    <tr>
+                      <td style="padding:20px;">
+                        <p style="font-size:11px;font-weight:bold;color:#9a3412;margin:0 0 8px;">
+                          REQUISICIÓN ASIGNADA
+                        </p>
+                        <h2 style="font-size:24px;color:#18181b;margin:0 0 6px;">
+                          ${id_requisicion}
+                        </h2>
+                        <p style="font-size:14px;color:#52525b;margin:0;">
+                          ${title}
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="padding:0 28px 24px;">
+                  <h3 style="font-size:16px;color:#18181b;margin:0 0 18px;">
+                    Detalles de la requisición
+                  </h3>
+
+                  <p style="font-size:13px;color:#71717a;margin:0 0 5px;">Ubicación</p>
+                  <p style="font-size:14px;color:#18181b;margin:0 0 16px;font-weight:bold;">
+                    ${ciudad}
+                  </p>
+
+                </td>
+              </tr>
+
+              <tr>
+                <td style="padding:0 28px 30px;">
+                  <p style="font-size:14px;line-height:22px;color:#52525b;margin:0 0 22px;">
+                    Ingresa a la plataforma para consultar la información y comenzar la gestión de esta requisición.
+                  </p>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="background:#f4f4f5;padding:20px 28px;text-align:center;">
+                  <p style="font-size:11px;color:#71717a;margin:0 0 6px;">
+                    ESTUDIO DE MODA · CAPITAL HUMANO
+                  </p>
+                  <p style="font-size:11px;color:#a1a1aa;margin:0;">
+                    Notificación automática. Por favor, no respondas a este mensaje.
+                  </p>
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+      </table>
+
+    `;
+
+    const toRecipients = buildRecipients([nuevo_profesional.correo]);
+
+    const mailPayload: any = {
+      message: {
+        subject: `Nueva requisicion asignada ID: ${id_requisicion}`,
+        body: { contentType: "HTML", content: htmlBody },
+        toRecipients,
+      },
+      saveToSentItems: true,
+    };
+
+    await mail.sendEmail(mailPayload);
   };
 
   const notifyAsignacionNormal = async (created: requisiciones) => {
@@ -678,6 +783,7 @@ export function useNotifyRequisiciones() {
     notifyAsignacion,
     notifyEncuestaSatisfaccion,
     notifyInconveniente,
-    notifyAnsPostergado
+    notifyAnsPostergado,
+    notifyReasignacion
   };
 }

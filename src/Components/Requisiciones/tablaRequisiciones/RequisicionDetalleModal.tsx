@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import type { commonResponse } from "../../../models/Commons";
 import { usePermissions } from "../../../Funcionalidades/Permisos";
 import HistorialRequisicionModal from "./HistorialRequisicionModal";
+import type { resolutor } from "../../../Funcionalidades/Requisiciones/Requisicion/Hooks/useRequisicionActions";
 
 type Props = {
   open: boolean;
@@ -22,7 +23,12 @@ type Props = {
 };
 
 export default function RequisicionDetalleModal({loading, open, row, onClose,onPostergarANSBD, handleCancelRequisicion }: Props) {
-  const { notifyInconveniente } = useRequisicionesContext();
+  const { notifyInconveniente, getProfesionalesDisponibles, reasignarProfesional } = useRequisicionesContext();
+  const [reasignarOpen, setReasignarOpen] = React.useState(false);
+  const [profesionales, setProfesionales] = React.useState<resolutor[]>([]);
+  const [loadingProfesionales, setLoadingProfesionales] = React.useState(false);
+  const [selectedProfesional, setSelectedProfesional] = React.useState("");
+  const [savingReasignar, setSavingReasignar] = React.useState(false);
   const [currentRow, setCurrentRow] = React.useState<requisiciones | null>(row);
   const [reportModalOpen, setReportModalOpen] = React.useState(false);
   const [postergarANS, setPostergarANS] = React.useState(false);
@@ -44,14 +50,15 @@ export default function RequisicionDetalleModal({loading, open, row, onClose,onP
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
-      // Con el historial abierto, Escape cierra solo el historial
+      // Con un submodal abierto, Escape cierra solo ese submodal
       if (historialOpen) setHistorialOpen(false);
+      else if (reasignarOpen) { if (!savingReasignar) setReasignarOpen(false); }
       else onClose();
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose, historialOpen]);
+  }, [open, onClose, historialOpen, reasignarOpen, savingReasignar]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -59,7 +66,25 @@ export default function RequisicionDetalleModal({loading, open, row, onClose,onP
     setSelectedReason("");
     setReportText("");
     setHistorialOpen(false);
+    setReasignarOpen(false);
   }, [open, row]);
+
+  // Carga la lista de profesionales al abrir el modal de cambio
+  React.useEffect(() => {
+    if (!reasignarOpen) return;
+    let cancelled = false;
+    setSelectedProfesional("");
+    setLoadingProfesionales(true);
+    getProfesionalesDisponibles()
+      .then((list) => { if (!cancelled) setProfesionales(list); })
+      .catch((e) => {
+        console.error("Error cargando profesionales", e);
+        if (!cancelled) notify.error("No fue posible cargar la lista de profesionales.");
+      })
+      .finally(() => { if (!cancelled) setLoadingProfesionales(false); });
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reasignarOpen]);
 
   if (!open || !currentRow) return null;
 
@@ -123,6 +148,35 @@ export default function RequisicionDetalleModal({loading, open, row, onClose,onP
     }
 
     await onPostergarANSBD(row!, date, reason)
+  };
+
+  const currentCorreoProfesional = String(currentRow.correoProfesional ?? "").trim().toLowerCase();
+
+  const handleReasignarProfesional = async () => {
+    const profesional = profesionales.find((p) => p.correo === selectedProfesional);
+
+    if (!profesional) {
+      notify.error("Debes seleccionar un profesional.");
+      return;
+    }
+
+    if (profesional.correo.toLowerCase() === currentCorreoProfesional) {
+      notify.error("El profesional seleccionado ya está asignado a esta requisición.");
+      return;
+    }
+
+    setSavingReasignar(true);
+    try {
+      const ok = await reasignarProfesional(currentRow, profesional);
+      if (!ok) {
+        notify.error("No fue posible cambiar el profesional asignado.");
+        return;
+      }
+      setCurrentRow({ ...currentRow, nombreProfesional: profesional.nombre, correoProfesional: profesional.correo });
+      setReasignarOpen(false);
+    } finally {
+      setSavingReasignar(false);
+    }
   };
 
   const onCancelRequisicion = async ({reason}: ConfirmModalPayload) => {
@@ -200,7 +254,18 @@ export default function RequisicionDetalleModal({loading, open, row, onClose,onP
                 {section.fields.map((field) => (
                   <article key={field.key} className="rq-detail-card">
                     <span className="rq-detail-label">{field.label}</span>
-                    <strong className="rq-detail-value">{formatValue(currentRow, field)}</strong>
+                    {field.key === "nombreProfesional" && canCancelRequisicion ? (
+                      <button
+                        type="button"
+                        className="rq-detail-value rq-detail-value--link"
+                        title="Cambiar profesional asignado"
+                        onClick={() => setReasignarOpen(true)}
+                      >
+                        {formatValue(currentRow, field)}
+                      </button>
+                    ) : (
+                      <strong className="rq-detail-value">{formatValue(currentRow, field)}</strong>
+                    )}
                   </article>
                 ))}
               </div>
@@ -264,6 +329,60 @@ export default function RequisicionDetalleModal({loading, open, row, onClose,onP
                 </button>
                 <button type="button" className="btn btn-danger btn-xs rq-detail-btn rq-detail-btn--danger" disabled={savingReport || reportExceeded} onClick={handleSendNotification}>
                   {savingReport ? "Enviando..." : "Enviar"}
+                </button>
+              </footer>
+            </section>
+          </div>
+        ) : null}
+
+        {reasignarOpen ? (
+          <div className="rq-report-backdrop" role="presentation" onClick={() => !savingReasignar && setReasignarOpen(false)}>
+            <section
+              className="rq-report-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="rq-reasignar-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <header className="rq-report-header">
+                <div>
+                  <span className="rq-detail-kicker">Reasignación</span>
+                  <h3 id="rq-reasignar-title" className="rq-report-title">Cambiar profesional asignado</h3>
+                  <p className="rq-report-copy">
+                    Profesional actual: <strong>{currentRow.nombreProfesional || "Sin profesional asignado"}</strong>
+                  </p>
+                </div>
+              </header>
+
+              <div className="rq-report-body">
+                <label className="rq-report-label" htmlFor="rq-reasignar-profesional">Nuevo profesional</label>
+                <select
+                  id="rq-reasignar-profesional"
+                  className="rq-report-select"
+                  value={selectedProfesional}
+                  onChange={(event) => setSelectedProfesional(event.target.value)}
+                  disabled={savingReasignar || loadingProfesionales}
+                >
+                  <option value="">{loadingProfesionales ? "Cargando profesionales..." : "Selecciona un profesional"}</option>
+                  {profesionales.map((p) => (
+                    <option key={p.correo} value={p.correo} disabled={p.correo.toLowerCase() === currentCorreoProfesional}>
+                      {p.nombre} ({p.correo})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <footer className="rq-report-actions">
+                <button type="button" className="btn btn-secondary-final btn-xs rq-detail-btn" disabled={savingReasignar} onClick={() => setReasignarOpen(false)}>
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-xs rq-detail-btn"
+                  disabled={savingReasignar || loadingProfesionales || !selectedProfesional}
+                  onClick={handleReasignarProfesional}
+                >
+                  {savingReasignar ? "Guardando..." : "Cambiar profesional"}
                 </button>
               </footer>
             </section>

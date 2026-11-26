@@ -1,5 +1,5 @@
 import React from "react";
-import { useRequisicionesActions } from "./useRequisicionActions";
+import { useRequisicionesActions, type resolutor } from "./useRequisicionActions";
 import { useRequisicionFilters } from "./useRequisicionFilters";
 import { useNewRequisicionForm } from "./useRequisicionForm";
 import { useRequisicionesList } from "./useRequisicionList";
@@ -35,6 +35,13 @@ export function useRequisicion() {
     return true
   }
 
+  const reasignarProfesional = async (r: requisiciones, profesional: resolutor): Promise<boolean> => {
+    if (!r.Id) return false
+    const ok = await actionsController.handleReasignar(profesional, r.Id)
+    if (ok) await listController.reloadAll()
+    return ok
+  }
+
   return {
     ...formController,
     ...paginationController,
@@ -43,7 +50,8 @@ export function useRequisicion() {
     ... listController,
     ...notificationController,
     cancelarRequisicion,
-    onPostergarANS
+    onPostergarANS,
+    reasignarProfesional
   };
 }
 

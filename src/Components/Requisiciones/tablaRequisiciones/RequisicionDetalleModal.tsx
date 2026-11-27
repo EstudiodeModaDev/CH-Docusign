@@ -1,454 +1,172 @@
 import * as React from "react";
 import type { requisiciones } from "../../../models/Requisiciones/requisiciones";
 import { notify } from "../../../utils/notify";
-import { spDateToDDMMYYYY } from "../../../utils/Date";
 import "./tablaRequisiciones.css";
 import { useRequisicionesContext } from "../../../Funcionalidades/Requisiciones/RequisicionesContext";
 import { ConfirmModal, type ConfirmModalPayload } from "../../GD/Common/confirmModal/ConfirmModal";
-import { formatPesosEsCO } from "../../../utils/Number";
-import { getDetailSections, type DetailField } from "../../../consts/requisicionesFields";
 import { toast } from "sonner";
 import type { commonResponse } from "../../../models/Commons";
 import { usePermissions } from "../../../Funcionalidades/Permisos";
 import HistorialRequisicionModal from "./HistorialRequisicionModal";
 import type { resolutor } from "../../../Funcionalidades/Requisiciones/Requisicion/Hooks/useRequisicionActions";
+import DetalleHeader from "./DetalleRequisicion/DetalleHeader";
+import DetalleSections from "./DetalleRequisicion/DetalleSections";
+import ReportarProblemaModal from "./DetalleRequisicion/ReportarProblemaModal";
+import ReasignarProfesionalModal from "./DetalleRequisicion/ReasignarProfesionalModal";
 
 type Props = {
   open: boolean;
   row: requisiciones | null;
   onClose: () => void;
-  onPostergarANSBD: (r: requisiciones, date: string, motivo: string) => void
-  handleCancelRequisicion: (r: requisiciones, motivo: string) => Promise<commonResponse<void>>
-  loading: boolean
+  onPostergarANSBD: (r: requisiciones, date: string, motivo: string) => void;
+  handleCancelRequisicion: (r: requisiciones, motivo: string) => Promise<commonResponse<void>>;
+  loading: boolean;
 };
 
-export default function RequisicionDetalleModal({loading, open, row, onClose,onPostergarANSBD, handleCancelRequisicion }: Props) {
+export default function RequisicionDetalleModal({ loading, open, row, onClose, onPostergarANSBD, handleCancelRequisicion }: Props) {
   const { notifyInconveniente, getProfesionalesDisponibles, reasignarProfesional } = useRequisicionesContext();
-  const [reasignarOpen, setReasignarOpen] = React.useState(false);
-  const [profesionales, setProfesionales] = React.useState<resolutor[]>([]);
-  const [loadingProfesionales, setLoadingProfesionales] = React.useState(false);
-  const [selectedProfesional, setSelectedProfesional] = React.useState("");
-  const [savingReasignar, setSavingReasignar] = React.useState(false);
-  const [currentRow, setCurrentRow] = React.useState<requisiciones | null>(row);
-  const [reportModalOpen, setReportModalOpen] = React.useState(false);
-  const [postergarANS, setPostergarANS] = React.useState(false);
-  const [cancelRequisicion, setCancelRequisicion] = React.useState(false);
-  const [historialOpen, setHistorialOpen] = React.useState(false);
-  const [selectedReason, setSelectedReason] = React.useState("");
-  const [reportText, setReportText] = React.useState("");
-  const [savingReport, setSavingReport] = React.useState(false);
-  const detailSections = currentRow ? getDetailSections(currentRow) : [];
   const { engine } = usePermissions();
 
-  const canCancelRequisicion = React.useMemo(() => {
-    return engine.can("requisiciones.edit");
-  }, [engine]);
+  const [currentRow, setCurrentRow] = React.useState<requisiciones | null>(row);
+  const [historialOpen, setHistorialOpen] = React.useState(false);
+  const [reportOpen, setReportOpen] = React.useState(false);
+  const [reasignarOpen, setReasignarOpen] = React.useState(false);
+  const [postergarOpen, setPostergarOpen] = React.useState(false);
+  const [cancelOpen, setCancelOpen] = React.useState(false);
 
-  //Cerrar con escape o click fuera
+  const canEdit = React.useMemo(() => engine.can("requisiciones.edit"), [engine]);
+
+  // Escape cierra el detalle; con un submodal abierto, solo cierra ese submodal
+  // (Reportar y Reasignar manejan su propio Escape).
   React.useEffect(() => {
     if (!open) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
-      // Con un submodal abierto, Escape cierra solo ese submodal
       if (historialOpen) setHistorialOpen(false);
-      else if (reasignarOpen) { if (!savingReasignar) setReasignarOpen(false); }
-      else onClose();
+      else if (!reportOpen && !reasignarOpen) onClose();
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose, historialOpen, reasignarOpen, savingReasignar]);
+  }, [open, onClose, historialOpen, reportOpen, reasignarOpen]);
 
   React.useEffect(() => {
     if (!open) return;
     setCurrentRow(row);
-    setSelectedReason("");
-    setReportText("");
     setHistorialOpen(false);
+    setReportOpen(false);
     setReasignarOpen(false);
   }, [open, row]);
 
-  // Carga la lista de profesionales al abrir el modal de cambio
-  React.useEffect(() => {
-    if (!reasignarOpen) return;
-    let cancelled = false;
-    setSelectedProfesional("");
-    setLoadingProfesionales(true);
-    getProfesionalesDisponibles()
-      .then((list) => { if (!cancelled) setProfesionales(list); })
-      .catch((e) => {
-        console.error("Error cargando profesionales", e);
-        if (!cancelled) notify.error("No fue posible cargar la lista de profesionales.");
-      })
-      .finally(() => { if (!cancelled) setLoadingProfesionales(false); });
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reasignarOpen]);
-
   if (!open || !currentRow) return null;
 
-  const tone = getToneByEstado(currentRow.Estado);
-  const reportWords = countWords(reportText);
-  const reportExceeded = reportWords > 200;
-
-  const handleSendNotification = async () => {
-    if (!currentRow?.Id) {
-      notify.error("La requisicion no tiene un ID valido.");
-      return;
+  const onReportarProblema = async (motivo: string, detalle: string) => {
+    if (!row?.Id) {
+      notify.error("No se ha seleccionado una requisición valida");
+      return false;
     }
+    await notifyInconveniente(row, motivo, detalle);
+    return true;
+  };
 
-    if (!selectedReason) {
-      notify.error("Debes seleccionar un motivo.");
-      return;
+  const onReasignar = async (profesional: resolutor) => {
+    const ok = await reasignarProfesional(currentRow, profesional);
+    if (ok) {
+      setCurrentRow({ ...currentRow, nombreProfesional: profesional.nombre, correoProfesional: profesional.correo });
     }
-
-    if (!reportText.trim()) {
-      notify.error("Debes escribir el detalle del problema.");
-      return;
-    }
-
-    if (reportExceeded) {
-      notify.error("El detalle no puede superar 200 palabras.");
-      return;
-    }
-
-    setSavingReport(true);
-    try {
-      if(!row) {
-        notify.error("No se ha seleccionado una requisición valida")
-        return
-      }
-      notifyInconveniente(row, selectedReason, reportText)
-      notify.auto("El motivo fue actualizado correctamente.");
-      setSelectedReason("")
-      setReportText("")
-      setReportModalOpen(false)
-    } catch (error) {
-      console.error("Error actualizando el motivo de la requisicion", error);
-      notify.auto("No fue posible guardar el motivo.");
-    } finally {
-      setSavingReport(false);
-    }
+    return ok;
   };
 
   const onPostergarANS = async ({ date, reason }: ConfirmModalPayload) => {
-    if(!date || !reason){
-      return
-    }
+    if (!date || !reason) return;
 
-    if(new Date(date) < new Date()){
-      toast.error("La fecha de postergación no puede ser menor a la fecha actual")
-      return
-    }
-
-    if(new Date(date) < new Date(currentRow.fechaLimite ?? "")){
-      toast.error("La fecha de postergación no puede ser menor a la fecha límite")
-      return
-    }
-
-    await onPostergarANSBD(row!, date, reason)
-  };
-
-  const currentCorreoProfesional = String(currentRow.correoProfesional ?? "").trim().toLowerCase();
-
-  const handleReasignarProfesional = async () => {
-    const profesional = profesionales.find((p) => p.correo === selectedProfesional);
-
-    if (!profesional) {
-      notify.error("Debes seleccionar un profesional.");
+    if (new Date(date) < new Date()) {
+      toast.error("La fecha de postergación no puede ser menor a la fecha actual");
       return;
     }
 
-    if (profesional.correo.toLowerCase() === currentCorreoProfesional) {
-      notify.error("El profesional seleccionado ya está asignado a esta requisición.");
+    if (new Date(date) < new Date(currentRow.fechaLimite ?? "")) {
+      toast.error("La fecha de postergación no puede ser menor a la fecha límite");
       return;
     }
 
-    setSavingReasignar(true);
-    try {
-      const ok = await reasignarProfesional(currentRow, profesional);
-      if (!ok) {
-        notify.error("No fue posible cambiar el profesional asignado.");
-        return;
-      }
-      setCurrentRow({ ...currentRow, nombreProfesional: profesional.nombre, correoProfesional: profesional.correo });
-      setReasignarOpen(false);
-    } finally {
-      setSavingReasignar(false);
-    }
+    await onPostergarANSBD(row!, date, reason);
   };
 
-  const onCancelRequisicion = async ({reason}: ConfirmModalPayload) => {
-    if(!reason) {
-      toast.error("Debes llenar el motivo de cancelación")
-      return
+  const onCancelRequisicion = async ({ reason }: ConfirmModalPayload) => {
+    if (!reason) {
+      toast.error("Debes llenar el motivo de cancelación");
+      return;
     }
 
-    if(!row){
-      toast.error("La requisición seleccionada no ha sido encontrada en la base de datos")
-      return
-    }
-  
-    const response = await handleCancelRequisicion(row, reason)
-
-    if(!response.ok){
-      toast.error(response.errorMessage ?? "Algo ha salido mal cancelando la requisición")
-      return
+    if (!row) {
+      toast.error("La requisición seleccionada no ha sido encontrada en la base de datos");
+      return;
     }
 
-    toast.success("Requisición cancelada con éxito")
-  }
+    const response = await handleCancelRequisicion(row, reason);
+
+    if (!response.ok) {
+      toast.error(response.errorMessage ?? "Algo ha salido mal cancelando la requisición");
+      return;
+    }
+
+    toast.success("Requisición cancelada con éxito");
+  };
 
   return (
     <div className="rq-detail-backdrop" role="presentation" onClick={onClose}>
       <div className="rq-detail-modal" role="dialog" aria-modal="true" aria-labelledby="rq-detail-title" onClick={(event) => event.stopPropagation()}>
-        <header className="rq-detail-header">
-          <div className="rq-detail-header__copy">
-            <span className="rq-detail-kicker">Detalle de requisicion</span>
-            <h2 id="rq-detail-title" className="rq-detail-title">
-              {currentRow.Title || "Detalle de requisicion"}
-            </h2>
-            <p className="rq-detail-copy">
-              #{currentRow.Id || "Sin ID"} - {currentRow.tipoRequisicion || "Sin tipo"} - {currentRow.Ciudad || "Sin ciudad"}
-            </p>
-          </div>
+        <DetalleHeader
+          row={currentRow}
+          canCancel={canEdit}
+          onVerHistorial={() => setHistorialOpen(true)}
+          onPostergarANS={() => setPostergarOpen(true)}
+          onReportarProblema={() => setReportOpen(true)}
+          onCancelar={() => setCancelOpen(true)}
+          onClose={onClose}
+        />
 
-          <div className="rq-detail-header__meta">
-            <div className="rq-detail-header__status">
-              <span className={`rb-status rb-status--${tone}`}>{currentRow.Estado || "Sin estado"}</span>
-            </div>
+        <DetalleSections row={currentRow} onProfesionalClick={canEdit ? () => setReasignarOpen(true) : undefined} />
 
-            <div className="rq-detail-header__actions">
-              <button type="button" className="btn btn-secondary-final btn-xs rq-detail-btn" onClick={() => setHistorialOpen(true)}>
-                Ver historial
-              </button>
+        <ReportarProblemaModal open={reportOpen} onClose={() => setReportOpen(false)} onSubmit={onReportarProblema} />
 
-              <button type="button" className="btn btn-primary btn-xs rq-detail-btn rq-detail-btn--danger" onClick={() => setPostergarANS(true)}>
-                Postergar ANS
-              </button>
-
-              <button type="button" className="btn btn-danger btn-xs rq-detail-btn rq-detail-btn--normal" onClick={() => setReportModalOpen(true)}>
-                Reportar problema
-              </button>
-              { canCancelRequisicion &&
-                <button type="button" className="btn btn-danger btn-xs rq-detail-btn rq-detail-btn--normal" onClick={() => setCancelRequisicion(true)}>
-                  Cancelar requisición
-                </button>
-              }
-              <button type="button" className="btn btn-secondary-final btn-xs rq-detail-btn" onClick={onClose}>
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </header>
-
-        <div className="rq-detail-body">
-          {detailSections.map((section) => (
-            <section key={section.title} className="rq-detail-section">
-              <div className="rq-detail-section__header">
-                <h3>{section.title}</h3>
-              </div>
-
-              <div className="rq-detail-grid">
-                {section.fields.map((field) => (
-                  <article key={field.key} className="rq-detail-card">
-                    <span className="rq-detail-label">{field.label}</span>
-                    {field.key === "nombreProfesional" && canCancelRequisicion ? (
-                      <button
-                        type="button"
-                        className="rq-detail-value rq-detail-value--link"
-                        title="Cambiar profesional asignado"
-                        onClick={() => setReasignarOpen(true)}
-                      >
-                        {formatValue(currentRow, field)}
-                      </button>
-                    ) : (
-                      <strong className="rq-detail-value">{formatValue(currentRow, field)}</strong>
-                    )}
-                  </article>
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
-
-        {reportModalOpen ? (
-          <div className="rq-report-backdrop" role="presentation" onClick={() => !savingReport && setReportModalOpen(false)}>
-            <section
-              className="rq-report-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="rq-report-title"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <header className="rq-report-header">
-                <div>
-                  <span className="rq-detail-kicker">Reporte</span>
-                  <h3 id="rq-report-title" className="rq-report-title">Reportar problema</h3>
-                  <p className="rq-report-copy">Selecciona el tipo de novedad y describe el caso en un maximo de 200 palabras.</p>
-                </div>
-              </header>
-
-              <div className="rq-report-body">
-                <label className="rq-report-label" htmlFor="rq-report-reason">Motivo</label>
-                <select
-                  id="rq-report-reason"
-                  className="rq-report-select"
-                  value={selectedReason}
-                  onChange={(event) => setSelectedReason(event.target.value)}
-                  disabled={savingReport}
-                >
-                  <option value="">Selecciona un motivo</option>
-                  <option value="Información incompleta">Información incompleta</option>
-                  <option value="Inconsistencia en datos">Inconsistencia en datos</option>
-                  <option value="Planta no disponible">Planta no disponible</option>
-                  <option value="Otros">Otros</option>
-
-                </select>
-
-                <label className="rq-report-label" htmlFor="rq-report-text">Detalle del problema</label>
-                <textarea
-                  id="rq-report-text"
-                  className={`rq-report-textarea ${reportExceeded ? "is-invalid" : ""}`}
-                  value={reportText}
-                  onChange={(event) => setReportText(event.target.value)}
-                  placeholder="Describe el problema con el mayor contexto posible."
-                  rows={6}
-                  disabled={savingReport}
-                />
-
-                <div className={`rq-report-counter ${reportExceeded ? "is-invalid" : ""}`}>
-                  {reportWords}/200 palabras
-                </div>
-              </div>
-
-              <footer className="rq-report-actions">
-                <button type="button" className="btn btn-secondary-final btn-xs rq-detail-btn" disabled={savingReport} onClick={() => setReportModalOpen(false)}>
-                  Cancelar
-                </button>
-                <button type="button" className="btn btn-danger btn-xs rq-detail-btn rq-detail-btn--danger" disabled={savingReport || reportExceeded} onClick={handleSendNotification}>
-                  {savingReport ? "Enviando..." : "Enviar"}
-                </button>
-              </footer>
-            </section>
-          </div>
-        ) : null}
-
-        {reasignarOpen ? (
-          <div className="rq-report-backdrop" role="presentation" onClick={() => !savingReasignar && setReasignarOpen(false)}>
-            <section
-              className="rq-report-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="rq-reasignar-title"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <header className="rq-report-header">
-                <div>
-                  <span className="rq-detail-kicker">Reasignación</span>
-                  <h3 id="rq-reasignar-title" className="rq-report-title">Cambiar profesional asignado</h3>
-                  <p className="rq-report-copy">
-                    Profesional actual: <strong>{currentRow.nombreProfesional || "Sin profesional asignado"}</strong>
-                  </p>
-                </div>
-              </header>
-
-              <div className="rq-report-body">
-                <label className="rq-report-label" htmlFor="rq-reasignar-profesional">Nuevo profesional</label>
-                <select
-                  id="rq-reasignar-profesional"
-                  className="rq-report-select"
-                  value={selectedProfesional}
-                  onChange={(event) => setSelectedProfesional(event.target.value)}
-                  disabled={savingReasignar || loadingProfesionales}
-                >
-                  <option value="">{loadingProfesionales ? "Cargando profesionales..." : "Selecciona un profesional"}</option>
-                  {profesionales.map((p) => (
-                    <option key={p.correo} value={p.correo} disabled={p.correo.toLowerCase() === currentCorreoProfesional}>
-                      {p.nombre} ({p.correo})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <footer className="rq-report-actions">
-                <button type="button" className="btn btn-secondary-final btn-xs rq-detail-btn" disabled={savingReasignar} onClick={() => setReasignarOpen(false)}>
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary btn-xs rq-detail-btn"
-                  disabled={savingReasignar || loadingProfesionales || !selectedProfesional}
-                  onClick={handleReasignarProfesional}
-                >
-                  {savingReasignar ? "Guardando..." : "Cambiar profesional"}
-                </button>
-              </footer>
-            </section>
-          </div>
-        ) : null}
+        <ReasignarProfesionalModal
+          open={reasignarOpen}
+          nombreActual={currentRow.nombreProfesional}
+          correoActual={currentRow.correoProfesional}
+          onClose={() => setReasignarOpen(false)}
+          loadProfesionales={getProfesionalesDisponibles}
+          onConfirm={onReasignar}
+        />
 
         <HistorialRequisicionModal open={historialOpen} row={currentRow} onClose={() => setHistorialOpen(false)} />
       </div>
 
       <ConfirmModal
-        open={postergarANS} 
-        onClose={() => setPostergarANS(false)}
-        onSend={onPostergarANS} 
-        title={"Postergar ANS de requisición " + row?.Title} 
-        needText={true} 
-        description={"Escriba la razón por la que se posterga el ANS"} 
+        open={postergarOpen}
+        onClose={() => setPostergarOpen(false)}
+        onSend={onPostergarANS}
+        title={"Postergar ANS de requisición " + row?.Title}
+        needText={true}
+        description={"Escriba la razón por la que se posterga el ANS"}
         buttonText={"Aplicar"}
         needDate={true}
         dateText="Nueva fecha final "
-        loading={loading}/>
+        loading={loading}
+      />
 
-      <ConfirmModal 
-        open={cancelRequisicion} 
-        onClose={() => setCancelRequisicion(false)} 
-        onSend={onCancelRequisicion} 
-        title={"Cancelar la requisición #" + row?.Id} 
-        needText={true} 
-        placeHolderText={"Escriba la razón por la que se cancela la requisición"} 
-        buttonText={"Cancelar"} 
-        loadingButtonText={"Cancelando"}/>
+      <ConfirmModal
+        open={cancelOpen}
+        onClose={() => setCancelOpen(false)}
+        onSend={onCancelRequisicion}
+        title={"Cancelar la requisición #" + row?.Id}
+        needText={true}
+        placeHolderText={"Escriba la razón por la que se cancela la requisición"}
+        buttonText={"Cancelar"}
+        loadingButtonText={"Cancelando"}
+      />
     </div>
   );
-}
-
-function countWords(value: string): number {
-  const words = value.trim().match(/\S+/g);
-  return words ? words.length : 0;
-}
-
-function formatValue(row: requisiciones, field: DetailField): string {
-  if (field.key === "Id") {
-    return row.Id ? String(row.Id) : "Sin dato";
-  }
-
-  const value = row[field.key]
-
-  if (value === null || value === undefined || value === "") {
-    return "Sin dato";
-  }
-
-  if (field.kind === "date") {
-    return spDateToDDMMYYYY(value as string);
-  }
-
-  if(field.kind === "money"){
-    return "$ " + formatPesosEsCO(value as string)
-  }
-
-  return String(value);
-}
-
-function getToneByEstado(estado: string): "active" | "closed" | "cancel" | "neutral" {
-  const normalized = String(estado ?? "").trim().toLowerCase();
-
-  if (normalized.includes("cancel")) return "cancel";
-  if (normalized.includes("cerr")) return "closed";
-  if (normalized.includes("activo") || normalized.includes("abiert")) return "active";
-  return "neutral";
 }
